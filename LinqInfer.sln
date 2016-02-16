@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer", "LinqInfer\LinqInfer.csproj", "{57818C8E-99BA-405E-A5C5-6DE2E54883EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer", "src\LinqInfer\LinqInfer.csproj", "{57818C8E-99BA-405E-A5C5-6DE2E54883EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Tests", "..\..\tests\LinkInfer.Tests\LinqInfer.Tests.csproj", "{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Tests", "tests\LinkInfer.Tests\LinqInfer.Tests.csproj", "{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
