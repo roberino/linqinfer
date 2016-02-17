@@ -42,9 +42,9 @@ namespace LinqInfer.Probability
             Logger = (m) => Console.WriteLine(m);
         }
 
-        public Sample<T> Subset(Expression<Func<T, bool>> eventPredicate)
+        public IQueryableSample<T> Subset(Expression<Func<T, bool>> eventPredicate)
         {
-            return new Sample<T>(_sampleSpace.Where(eventPredicate));
+            return new QueryableSample<T>(_sampleSpace.Where(eventPredicate));
         }
 
         public override int Count()
@@ -54,7 +54,7 @@ namespace LinqInfer.Probability
 
         public override int Count(Expression<Func<T, bool>> eventPredicate)
         {
-            return _sampleSpace.Count(eventPredicate.Compile());
+            return _sampleSpace.Count(eventPredicate);
         }
 
         public override Fraction ProbabilityOfEvent(Expression<Func<T, bool>> eventPredicate)
@@ -85,10 +85,8 @@ namespace LinqInfer.Probability
 
         public bool AreMutuallyExclusive(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)
         {
-            var conjExp = LinqExtensions.ConjunctiveJoin(eventPredicateA, eventPredicateB);
+            var conjExp = eventPredicateA.ConjunctiveJoin(eventPredicateB);
             return Output(!_sampleSpace.Any(conjExp));
-
-            //return Output(!_sampleSpace.Any(e => eventPredicateA.Compile()(e) && eventPredicateB.Compile()(e)));
         }
 
         public IEnumerator<T> GetEnumerator()

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using LinqInfer.Learning.Features;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -7,56 +8,75 @@ namespace LinqInfer.Learning
 {
     public class ClusterNode<T>
     {
-        private readonly ConcurrentDictionary<T, int> _words;
+        private readonly ConcurrentDictionary<T, int> _values;
+        private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
         private readonly float _learningRate;
 
-        public ClusterNode(float[] initialWeights, float learningRate = 0.5f)
+        public ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, float[] initialWeights, float learningRate = 0.5f)
         {
             Contract.Assert(initialWeights.Length > 0);
             Contract.Assert(learningRate > 0);
 
             Weights = initialWeights;
 
+            _featureExtractor = featureExtractor;
             _learningRate = learningRate;
-            _words = new ConcurrentDictionary<T, int>();
+            _values = new ConcurrentDictionary<T, int>();
         }
 
         public float[] Weights { get; private set; }
 
-        public bool IsInitialised { get; private set; }
+        internal bool IsInitialised { get; private set; }
 
-        public IDictionary<T, int> Data
+        public IDictionary<T, int> Members
         {
             get
             {
-                return _words.ToDictionary(w => w.Key, w => w.Value);
+                return _values.ToDictionary(w => w.Key, w => w.Value);
             }
         }
 
-        public float CalculateDifference(ObjectVector<T> dataItem)
+        public bool IsMember(T value)
         {
-            if (_words.ContainsKey(dataItem.Value)) return -1;
+            return MemberFrequency(value) > 0;
+        }
+
+        public int MemberFrequency(T value)
+        {
+            int f = 0;
+            _values.TryGetValue(value, out f);
+            return f;
+        }
+
+        public float CalculateDifference(T value)
+        {
+            return NetworkCalculator.CalculateDistance(_featureExtractor.ExtractVector(value), Weights);
+        }
+
+        internal float CalculateDifference(ObjectVector<T> dataItem)
+        {
+            if (IsMember(dataItem.Value)) return -1;
             return NetworkCalculator.CalculateDistance(dataItem.Attributes, Weights);
         }
 
-        public void AdjustAndAppend(ObjectVector<T> dataItem)
+        internal void AppendMember(ObjectVector<T> dataItem)
         {
             IsInitialised = true;
             bool isNew = false;
 
-            if (_words.ContainsKey(dataItem.Value))
+            if (_values.ContainsKey(dataItem.Value))
             {
-                _words[dataItem.Value] += 1;
+                _values[dataItem.Value] += 1;
             }
             else
             {
                 isNew = true;
-                _words[dataItem.Value] = 1;
+                _values[dataItem.Value] = 1;
             }
 
             if (isNew)
             {
-                lock(_words)
+                lock(_values)
                 {
                     Weights = NetworkCalculator.AdjustWeights(dataItem.Attributes, Weights, _learningRate);
                 }

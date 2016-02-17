@@ -5,6 +5,8 @@ namespace LinqInfer.Probability
 {
     public abstract class SampleBase<T>
     {
+        internal SampleBase() { }
+
         public Action<string> Logger { get; set; }
 
         public string Name { get; protected set; }

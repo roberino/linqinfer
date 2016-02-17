@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Learning;
 using NUnit.Framework;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Tests.Learning
@@ -17,15 +16,15 @@ namespace LinqInfer.Tests.Learning
 
             Assert.That(featureMap.Count(), Is.EqualTo(2));
 
-            var youngPoorPirates = featureMap.Single(m => m.Data.Any(p => p.Key.Age == 25));
-            var oldRichPirates = featureMap.Single(m => m.Data.Any(p => p.Key.Age == 64));
+            var youngPoorPirates = featureMap.Single(m => m.Members.Any(p => p.Key.Age == 25));
+            var oldRichPirates = featureMap.Single(m => m.Members.Any(p => p.Key.Age == 64));
 
-            Assert.That(youngPoorPirates.Data.Single(p => p.Key.Age == 21).Value == 1);
-            Assert.That(youngPoorPirates.Data.Single(p => p.Key.Age == 19).Value == 1);
-            Assert.That(youngPoorPirates.Data.Single(p => p.Key.Age == 18).Value == 1);
+            Assert.That(youngPoorPirates.Members.Single(p => p.Key.Age == 21).Value == 1);
+            Assert.That(youngPoorPirates.Members.Single(p => p.Key.Age == 19).Value == 1);
+            Assert.That(youngPoorPirates.Members.Single(p => p.Key.Age == 18).Value == 1);
 
-            Assert.That(oldRichPirates.Data.Single(p => p.Key.Age == 45).Value == 1);
-            Assert.That(oldRichPirates.Data.Single(p => p.Key.Age == 52).Value == 1);
+            Assert.That(oldRichPirates.Members.Single(p => p.Key.Age == 45).Value == 1);
+            Assert.That(oldRichPirates.Members.Single(p => p.Key.Age == 52).Value == 1);
         }
 
         [Test]

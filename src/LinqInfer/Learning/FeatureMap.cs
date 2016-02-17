@@ -49,32 +49,27 @@ namespace LinqInfer.Learning
         {
             var v = new ObjectVector<T>(value, _featureExtractor.ExtractVector(value));
             var bestMatch = _outputNodes.OrderBy(c => c.CalculateDifference(v)).FirstOrDefault();
-            bestMatch.AdjustAndAppend(v);
+            bestMatch.AppendMember(v);
         }
 
         protected HashSet<ClusterNode<T>> SetupOutputNodes(T initialSample, int outputNodeCount = 10, float learningRate = 0.5f)
         {
             var sampleVector = _featureExtractor.CreateNormalisingVector(initialSample);
             var vectorSize = sampleVector.Length;
-            var rnd = new Random(DateTime.Now.Millisecond);
-            var maxVectorValue = sampleVector.Max();
-
-            if (maxVectorValue == 0) maxVectorValue = 1f;
+            var dist = Functions.PercentileRange(outputNodeCount);
 
             return new HashSet<ClusterNode<T>>(
                     Enumerable
-                        .Range(1, outputNodeCount)
+                        .Range(0, outputNodeCount)
                         .Select(n =>
-                            new ClusterNode<T>(CreateInitialVector(n, vectorSize, sampleVector), learningRate)));
+                            new ClusterNode<T>(_featureExtractor, CreateInitialVector(n, sampleVector, (float)dist[n]), learningRate)));
         }
 
-        protected float[] CreateInitialVector(int n, int size, float[] sampleVector)
+        protected float[] CreateInitialVector(int n, float[] sampleVector, float weight)
         {
-            var dist = Functions.PercentileRange(size);
-
             return Enumerable
-                        .Range(0, size)
-                        .Select(x => (float)dist[n] * sampleVector[n])
+                        .Range(0, sampleVector.Length)
+                        .Select(x => weight * sampleVector[n])
                         .ToArray();
         }
     }
