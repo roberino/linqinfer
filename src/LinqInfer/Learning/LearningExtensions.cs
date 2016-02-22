@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
+using LinqInfer.Probability;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,27 @@ namespace LinqInfer.Learning
             var fm = new FeatureMap<T>(featureExtractor, default(T), outputNodeCount, learningRate);
 
             return fm.Map(values);
+        }
+
+        public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Func<TInput, TClass> classf) where TInput : class
+        {
+            var extractor = _ofo.CreateFeatureExtractor<TInput>();
+            var net = new SimpleNet<TClass>(extractor.VectorSize);
+            var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
+
+            foreach (var batch in trainingData.Chunk())
+            {
+                classifierPipe.Train(batch.Select(v => new Tuple<TClass, TInput>(classf(v), v)));
+            }
+
+            return x =>
+            {
+                var matches = classifierPipe.FindPossibleMatches(x).ToList();
+                var factor = Math.Max(matches.Count, 100);
+                var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
+                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)Math.Round(m.Score * factor, 0), total));
+                return dist;
+            };
         }
 
         public static Func<TInput, ClassifyResult<TClass>> ToSimpleClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Func<TInput, TClass> classf) where TInput : class

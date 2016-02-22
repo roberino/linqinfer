@@ -10,6 +10,18 @@ namespace LinqInfer.Probability
     internal class QueryableSample<T> : SampleBase<T>, IQueryableSample<T>
     {
         protected readonly IQueryable<T> _sampleSpace;
+        protected readonly Expression<Func<T, int>> _weightSelector;
+        private int _hypothesisCount = 0;
+        protected bool _hasWeights;
+
+        public QueryableSample(IQueryable<T> sampleSpace, string name = null, Expression<Func<T, int>> weightSelector = null)
+        {
+            _sampleSpace = sampleSpace;
+            _hasWeights = weightSelector != null;
+            _weightSelector = weightSelector ?? (x => 1);
+            Name = name;
+            Logger = (m) => Console.WriteLine(m);
+        }
 
         public Expression Expression
         {
@@ -35,32 +47,41 @@ namespace LinqInfer.Probability
             }
         }
 
-        public QueryableSample(IQueryable<T> sampleSpace, string name = null)
+        public IHypotheticalSubset<T> CreateHypothesis(Expression<Func<T, bool>> eventPredicate, string name = null, Fraction? prior = null)
         {
-            _sampleSpace = sampleSpace;
-            Name = name;
-            Logger = (m) => Console.WriteLine(m);
+            _hypothesisCount++;
+            return new HypothesisSubset<T>(this, Subset(eventPredicate), name ?? ("Hypothesis " + _hypothesisCount), prior, _hasWeights ? _weightSelector : null);
         }
 
         public IQueryableSample<T> Subset(Expression<Func<T, bool>> eventPredicate)
         {
-            return new QueryableSample<T>(_sampleSpace.Where(eventPredicate));
+            return new QueryableSample<T>(_sampleSpace.Where(eventPredicate), null, _hasWeights ? _weightSelector : null);
         }
 
-        public override int Count()
+        public Tuple<IQueryableSample<T>, IQueryableSample<T>> Split(Expression<Func<T, bool>> eventPredicate)
         {
-            return _sampleSpace.Count();
+            return new Tuple<IQueryableSample<T>, IQueryableSample<T>>(Subset(eventPredicate), Subset(eventPredicate.Invert()));
+        }
+
+        private int WeightedSum(IQueryable<T> sample)
+        {
+            return _hasWeights ? sample.Select(_weightSelector).Sum() : sample.Count();
+        }
+
+        public override int Total()
+        {
+            return WeightedSum(_sampleSpace);
         }
 
         public override int Count(Expression<Func<T, bool>> eventPredicate)
         {
-            return _sampleSpace.Count(eventPredicate);
+            return WeightedSum(_sampleSpace.Where(eventPredicate));
         }
 
         public override Fraction ProbabilityOfEvent(Expression<Func<T, bool>> eventPredicate)
         {
-            var e = _sampleSpace.Where(eventPredicate).Count();
-            var n = _sampleSpace.Count();
+            var e = Count(eventPredicate);
+            var n = Total();
 
             return Output(new Fraction(e, n));
         }
@@ -70,12 +91,12 @@ namespace LinqInfer.Probability
             var a = _sampleSpace.Where(eventPredicateA);
             var b_a = a.Where(eventPredicateB);
 
-            return new Fraction(b_a.Count(), a.Count());
+            return new Fraction(WeightedSum(b_a), WeightedSum(a));
         }
 
         public bool IsSimple(Expression<Func<T, bool>> eventPredicate)
         {
-            return _sampleSpace.Count(eventPredicate) == 1;
+            return Count(eventPredicate) == 1;
         }
 
         public bool IsExhaustive(Expression<Func<T, bool>> eventPredicate)

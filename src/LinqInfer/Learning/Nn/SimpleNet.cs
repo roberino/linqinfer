@@ -21,41 +21,12 @@ namespace LinqInfer.Learning.Nn
 
         public ClassifyResult<T> Classify(byte[] data)
         {
-            Contract.Assert(data != null);
-
-            return Classify(data.Select(v => (float)v).ToArray());
+            return FindPossibleMatches(data).FirstOrDefault();
         }
 
         public ClassifyResult<T> Classify(float[] data)
         {
-            Contract.Assert(data != null);
-            Contract.Assert(data.Length == vectorSize);
-
-            if (netData.Count == 0)
-            {
-                throw new InvalidOperationException("No training data");
-            }
-
-            var results = new ConcurrentDictionary<T, double>();
-
-            netData.AsParallel().ForAll(s =>
-            {
-                int i = 0;
-                double t = 0;
-
-                foreach (var x in data)
-                {
-                    var n = s.Value[i++];
-
-                    t += n.Pdf(x);
-                }
-
-                results[s.Key] = t;
-            });
-
-            var first = results.OrderByDescending(r => r.Value).First();
-
-            return new ClassifyResult<T>() { ClassType = first.Key, Score = first.Value };
+            return FindPossibleMatches(data).FirstOrDefault();
         }
 
         public void Train(T dataClass, byte[] sample)
@@ -83,6 +54,45 @@ namespace LinqInfer.Learning.Nn
             {
                 neurons[i++].AddSample(x);
             }
+        }
+
+        public IEnumerable<ClassifyResult<T>> FindPossibleMatches(float[] data)
+        {
+            Contract.Assert(data != null);
+            Contract.Assert(data.Length == vectorSize);
+
+            if (netData.Count == 0)
+            {
+                throw new InvalidOperationException("No training data");
+            }
+
+            var results = new ConcurrentDictionary<T, double>();
+
+            netData.AsParallel().ForAll(s =>
+            {
+                int i = 0;
+                double t = 0;
+
+                foreach (var x in data)
+                {
+                    var n = s.Value[i++];
+
+                    t += n.Pdf(x);
+                }
+
+                results[s.Key] = t;
+            });
+
+            return results
+                .OrderByDescending(r => r.Value)
+                .Select(r => new ClassifyResult<T>() { ClassType = r.Key, Score = r.Value });
+        }
+
+        public IEnumerable<ClassifyResult<T>> FindPossibleMatches(byte[] vector)
+        {
+            Contract.Assert(vector != null);
+
+            return FindPossibleMatches(vector.Select(v => (float)v).ToArray());
         }
     }
 }

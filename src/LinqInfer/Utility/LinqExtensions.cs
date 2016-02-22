@@ -8,6 +8,13 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static Expression<Func<T, bool>> Invert<T>(this Expression<Func<T, bool>> exp)
+        {
+            var notExp = Expression.Not(exp.Body);
+
+            return Expression.Lambda<Func<T, bool>>(notExp, exp.Parameters);
+        }
+
         public static Expression<Func<T, bool>> DisjunctiveJoin<T>(this Expression<Func<T, bool>> exp1, Expression<Func<T, bool>> exp2)
         {
             var exp2p = UpdateParameter(exp2, exp1.Parameters.First());

@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Probability;
 using NUnit.Framework;
 using System.Linq;
 
@@ -51,6 +52,26 @@ namespace LinqInfer.Tests.Learning
 
             Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
             Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
+        }
+
+        [Test]
+        public void ToSimpleClassDistribution_SimpleSample()
+        {
+            var pirateSample = TestData.CreatePirates().ToList();
+            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => p.Age > 25 ? "old" : "young");
+
+            var distribution = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 120,
+                Age = 26,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            var total = distribution.Values.Sum();
+
+            Assert.That(total.Value, Is.EqualTo(1));
+            Assert.That(distribution.Values.All(v => v.Value > 0f));
         }
     }
 }

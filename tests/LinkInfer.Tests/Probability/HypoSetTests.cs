@@ -1,11 +1,28 @@
 ﻿using LinqInfer.Probability;
 using NUnit.Framework;
+using System.Linq;
 
 namespace LinqInfer.Tests.Probability
 {
     [TestFixture]
     public class HypoSetTests
     {
+        [TestCase(40, 10, 20, 3, 5)]
+        public void CookieJar_Example2(int total, int choc1, int choc2, int expectedNumerator, int expectedDenominator)
+        {
+            var hypos = P.Hypotheses(P.Of("Jar1").Is(1).OutOf(2), P.Of("Jar2").Is(1).OutOf(2));
+
+            var vanilla_jar1 = total - choc1;
+            var vanilla_jar2 = total - choc2;
+
+            hypos.Update(vanilla_jar1.OutOf(total), vanilla_jar2.OutOf(total));
+
+            var postProb = hypos.ProbabilityOf("Jar1");
+
+            Assert.That(postProb.Numerator, Is.EqualTo(expectedNumerator));
+            Assert.That(postProb.Denominator, Is.EqualTo(expectedDenominator));
+        }
+
         [TestCase(40, 10, 20, 3, 5)]
         public void CookieJar_Example(int total, int choc1, int choc2, int expectedNumerator, int expectedDenominator)
         {

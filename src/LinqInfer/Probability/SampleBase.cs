@@ -11,7 +11,7 @@ namespace LinqInfer.Probability
 
         public string Name { get; protected set; }
 
-        public abstract int Count();
+        public abstract int Total();
 
         public abstract int Count(Expression<Func<T, bool>> eventPredicate);
 

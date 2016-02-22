@@ -34,5 +34,10 @@ namespace LinqInfer.Learning
         {
             return _classifier.Classify(_featureExtract.ExtractVector(obj));
         }
+
+        public IEnumerable<ClassifyResult<TClass>> FindPossibleMatches(TInput obj)
+        {
+            return _classifier.FindPossibleMatches(_featureExtract.ExtractVector(obj));
+        }
     }
 }

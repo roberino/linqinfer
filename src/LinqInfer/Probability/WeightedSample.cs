@@ -43,7 +43,7 @@ namespace LinqInfer.Probability
             }
         }
 
-        public override int Count()
+        public override int Total()
         {
             return Output(data.Sum(x => x.Value));
         }
@@ -55,7 +55,7 @@ namespace LinqInfer.Probability
 
         public override Fraction ProbabilityOfEvent(Expression<Func<T, bool>> eventPredicate)
         {
-            return Output(new Fraction(data.Where(x => eventPredicate.Compile()(x.Key)).Sum(x => x.Value), Count()));
+            return Output(new Fraction(data.Where(x => eventPredicate.Compile()(x.Key)).Sum(x => x.Value), Total()));
         }
 
         public override Fraction LikelyhoodOfB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)

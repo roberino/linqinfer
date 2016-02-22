@@ -66,7 +66,14 @@
     <Compile Include="Learning\Nn\WordVectoriser.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\ObjectVector.cs" />
-    <Compile Include="Probability\ProbabilityExtensions.cs" />
+    <Compile Include="Probability\HypothesisBuilder.cs" />
+    <Compile Include="Probability\HypotheticalSubset.cs" />
+    <Compile Include="Probability\HypotheticalOutcome.cs" />
+    <Compile Include="Probability\Hypotheses.cs" />
+    <Compile Include="Probability\IHypothetical.cs" />
+    <Compile Include="Probability\IHypotheticalSubset.cs" />
+    <Compile Include="Probability\IHypotheticalOutcome.cs" />
+    <Compile Include="Probability\P.cs" />
     <Compile Include="Probability\Fraction.cs" />
     <Compile Include="Probability\Functions.cs" />
     <Compile Include="Probability\HypoSet.cs" />

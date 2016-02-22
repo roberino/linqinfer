@@ -1,16 +1,18 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Probability;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Tests
 {
     [TestFixture]
     public class Samples
-    {
+    {   
         [Test]
-        public void Run()
-        {
+        public void SelfOrganisingFeatureMap()
+        {    
             var data = new[] {
                 new { x = 1, y = 1 },
                 new { x = 2, y = 1 },
@@ -26,12 +28,13 @@ namespace LinqInfer.Tests
 
             foreach (var m in map)
             {
-                Console.Write("Node " + ++i);
+                Console.WriteLine("Node " + ++i);
 
                 foreach(var x in m.Members)
                 {
                     Console.WriteLine(x.Key);
                 }
+                Console.WriteLine();
             }
         }
     }

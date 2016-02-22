@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace LinqInfer.Probability
 {
@@ -9,7 +10,7 @@ namespace LinqInfer.Probability
         {
             Contract.Assert(d != 0);
 
-            if (reduce)
+            if (reduce && d != 0)
             {
                 var r = Reduce(n, d);
 
@@ -21,6 +22,11 @@ namespace LinqInfer.Probability
                 Numerator = n;
                 Denominator = d;
             }
+        }
+
+        public static Fraction Create(int n, int d)
+        {
+            return new Fraction(n, d);
         }
 
         public static Fraction One
@@ -47,21 +53,47 @@ namespace LinqInfer.Probability
             }
         }
 
+        public static Fraction[] FindCommonDenominator(params Fraction[] fractions)
+        {
+            if (fractions.Length < 2) return fractions;
+
+            var fLast = fractions[0];
+
+            foreach(var f in fractions.Skip(1))
+            {
+                fLast = fLast * f;
+            }
+
+            return fractions.Select(f => new Fraction(f.Numerator * (fLast.Denominator / f.Denominator), fLast.Denominator, false)).ToArray();
+        }
+
         public int Numerator;
 
         public int Denominator;
 
-        public float Value
+        public double Value
         {
             get
             {
-                return (float)Numerator / (float)Denominator;
+                if (Denominator == 0) return 0;
+
+                return (double)Numerator / (double)Denominator;
             }
         }
         
         public override string ToString()
         {
             return string.Format("{0}/{1}", Numerator, Denominator);
+        }
+
+        public Fraction Invert()
+        {
+            return new Fraction(Denominator, Numerator);
+        }
+
+        public Fraction Compliment(int total = 1)
+        {
+            return new Fraction(total, 1) - this;
         }
 
         public Fraction Reduce()

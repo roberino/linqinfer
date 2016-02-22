@@ -3,7 +3,7 @@ using System;
 
 namespace LinqInfer.Learning
 {
-    public class WordVectoriser : IByteFeatureExtractor<string>
+    internal class WordVectoriser : IByteFeatureExtractor<string>
     {
         private readonly int _size;
 

@@ -10,7 +10,7 @@ namespace LinqInfer.Probability
 
         public Fraction ProbabilityOfEvent(Expression<Func<T, bool>> eventPredicate)
         {
-            var total = _sampleSpace.Sum(h => h.Count());
+            var total = _sampleSpace.Sum(h => h.Total());
             var sumOfE = _sampleSpace.Sum(h => h.Count(eventPredicate));
 
             return new Fraction(sumOfE, total);

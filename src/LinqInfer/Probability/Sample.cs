@@ -50,7 +50,7 @@ namespace LinqInfer.Probability
             return new Sample<T>(_sampleSpace.Where(eventPredicate.Compile()));
         }
 
-        public override int Count()
+        public override int Total()
         {
             return _sampleSpace.Count;
         }
