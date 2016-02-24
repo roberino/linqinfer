@@ -28,5 +28,62 @@ namespace LinqInfer.Tests.Probability
             Assert.That(f5.Equals(1, 10));
             Assert.That(f6.Equals(2, 5));
         }
+
+        [TestCase(1, 2, 3, 4, 5, 4)]
+        [TestCase(-1, 2, 3, 4, 1, 4)]
+        [TestCase(0, 0, 3, 4, 3, 4)]
+        public void Add_Operation_ReturnExpected(int n1, int d1, int n2, int d2, int ne, int de)
+        {
+            var x1 = n1.OutOf(d1);
+            var x2 = n2.OutOf(d2);
+            var expected = ne.OutOf(de);
+
+            Assert.That(x1 + x2, Is.EqualTo(expected));
+        }
+
+        [TestCase(1, 2, 3, 4, -1, 4)]
+        [TestCase(-1, 2, 3, 4, -5, 4)]
+        [TestCase(0, 0, 3, 4, -3, 4)]
+        public void Subtract_Operation_ReturnExpected(int n1, int d1, int n2, int d2, int ne, int de)
+        {
+            var x1 = n1.OutOf(d1);
+            var x2 = n2.OutOf(d2);
+            var expected = ne.OutOf(de);
+
+            Assert.That(x1 - x2, Is.EqualTo(expected));
+        }
+
+        [TestCase(1, 2, 3, 4, 2, 3)]
+        [TestCase(-1, 2, 3, 4, -2, 3)]
+        [TestCase(0, 0, 3, 4, 0, 0)]
+        public void Divide_Operation_ReturnExpected(int n1, int d1, int n2, int d2, int ne, int de)
+        {
+            var x1 = n1.OutOf(d1);
+            var x2 = n2.OutOf(d2);
+            var expected = ne.OutOf(de);
+            var actual = x1 / x2;
+
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void Divide_By_Zero_ThrowsError()
+        {
+            Assert.Throws<DivideByZeroException>(() => { var x = Fraction.One / Fraction.Zero; });
+            Assert.Throws<DivideByZeroException>(() => { var x = (5).OutOf(6) / (0).OutOf(0); });
+        }
+
+        [TestCase(1, 2, 3, 4, 3, 8)]
+        [TestCase(-1, 2, 3, 4, -3, 8)]
+        [TestCase(0, 0, 3, 4, 0, 0)]
+        public void Multiply_Operation_ReturnExpected(int n1, int d1, int n2, int d2, int ne, int de)
+        {
+            var x1 = n1.OutOf(d1);
+            var x2 = n2.OutOf(d2);
+            var expected = ne.OutOf(de);
+            var actual = x1 * x2;
+
+            Assert.That(actual, Is.EqualTo(expected));
+        }
     }
 }

@@ -2,7 +2,6 @@
 using LinqInfer.Probability;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Tests
@@ -11,30 +10,45 @@ namespace LinqInfer.Tests
     public class Samples
     {   
         [Test]
+        public void CombineClassifier_WithHypotheses()
+        {
+            var pirateSample = TestData.CreatePirates().ToList();
+            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => p.Age > 25 ? "old" : "young");
+
+            var distribution = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 120,
+                Age = 26,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            var hypos = distribution.Select(x => P.Hypothesis(x.Key, x.Value)).AsHypotheses();
+
+            hypos.Update(x => x == "old" ? (5).OutOf(6) : (1).OutOf(10));
+
+            var newPosterier = hypos["old"];
+        }
+
+        [Test]
         public void SelfOrganisingFeatureMap()
-        {    
-            var data = new[] {
-                new { x = 1, y = 1 },
-                new { x = 2, y = 1 },
-                new { x = 3, y = 1 },
-                new { x = 2, y = 2 },
-                new { x = 2, y = 2 },
-                new { x = 2, y = 2 }
-                };
+        {
+            const int max = 100;
 
-            var map = data.AsQueryable().ToSofm(new { x = 3, y = 3 }, 2);
+            var rnd = new Random(DateTime.Now.Millisecond);
 
-            int i = 0;
+            var cubes = Enumerable.Range(1, 1000).Select(n => new
+            {
+                height = rnd.Next(max),
+                width = rnd.Next(max),
+                depth = rnd.Next(max)
+            }).AsQueryable();
 
+            var map = cubes.ToSofm(new { height = max, width = max, depth = max }, 10);
+            
             foreach (var m in map)
             {
-                Console.WriteLine("Node " + ++i);
-
-                foreach(var x in m.Members)
-                {
-                    Console.WriteLine(x.Key);
-                }
-                Console.WriteLine();
+                Console.WriteLine(string.Format("{0}\t{1}\t{2}", m.Weights[0], m.Weights[1], m.Weights[2]));
             }
         }
     }

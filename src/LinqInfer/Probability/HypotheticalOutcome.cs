@@ -18,9 +18,14 @@
 
         public Fraction PosteriorProbability { get; private set; }
 
+        public Fraction Calculate(Fraction likelyhoodGivenHypo, Fraction likelyhood)
+        {
+            return (PosteriorProbability * likelyhoodGivenHypo) / likelyhood;
+        }
+
         public IHypotheticalOutcome<T> Update(Fraction likelyhoodGivenHypo, Fraction likelyhood)
         {
-            PosteriorProbability = (PosteriorProbability * likelyhoodGivenHypo) / likelyhood;
+            PosteriorProbability = Calculate(likelyhoodGivenHypo, likelyhood);
 
             return this;
         }

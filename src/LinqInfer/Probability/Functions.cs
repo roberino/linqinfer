@@ -88,7 +88,7 @@ namespace LinqInfer.Probability
             double max = percentile - min;
             double bc = bucketCount - 1;
 
-            //=0.1 + (G12 /(H12 - 1) * 0.8)
+            //=0.1 + (a /(b - 1) * 0.8)
 
             return Enumerable.Range(0, bucketCount).Select(n => (double)n).Select(n => min + (n / bc * max)).ToArray();
         }

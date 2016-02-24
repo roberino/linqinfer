@@ -22,6 +22,28 @@ namespace LinqInfer.Probability
             return this[item].PosteriorProbability;
         }
 
+        public IDictionary<T, IDictionary<V, double>> DistributionOver<V>(Func<T, V, Fraction> likelyhoodFunc, IEnumerable<V> values)
+        {
+            var dist = Hypotheses.ToDictionary(h => h.Outcome, h => (IDictionary<V, double>)values.ToDictionary(v => v, v => 0d));
+
+            foreach (var v in values)
+            {
+                var posteriors = CalculateDistribution(h => likelyhoodFunc(h, v));
+
+                foreach(var p in posteriors)
+                {
+                    dist[p.Key][v] = p.Value.Value;
+                }
+            }
+
+            return dist;
+        }
+
+        public IDictionary<T, double> CurrentDistribution()
+        {
+            return Hypotheses.ToDictionary(h => h.Outcome, h => h.PosteriorProbability.Value);
+        }
+
         public void Update(Func<T, Fraction> likelyhoodFunc)
         {
             Update(Hypotheses.Select(h => h.Outcome).Select(likelyhoodFunc).ToArray());
@@ -39,6 +61,24 @@ namespace LinqInfer.Probability
             {
                 h.Update(newEvents[i++], nf);
             }
+        }
+
+        private IDictionary<T, Fraction> CalculateDistribution(Func<T, Fraction> likelyhoodFunc)
+        {
+            return CalculateDistribution(Hypotheses.Select(h => h.Outcome).Select(likelyhoodFunc).ToArray());
+        }
+
+        private IDictionary<T, Fraction> CalculateDistribution(params Fraction[] newEvents)
+        {
+            int i = 0;
+
+            var nf = Hypotheses.Select(h => newEvents[i++] * h.PriorProbability).ToList().Sum();
+
+            i = 0;
+
+            return Hypotheses
+                .Select(h => new { h = h, p = h.Calculate(newEvents[i++], nf) })
+                .ToDictionary(x => x.h.Outcome, x => x.p);
         }
     }
 }

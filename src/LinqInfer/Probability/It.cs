@@ -13,6 +13,11 @@ namespace LinqInfer.Probability
             return x => x == item;
         }
 
+        public static Expression<Func<T, bool>> IsNot<T>(T item) where T : class
+        {
+            return x => x != item;
+        }
+
         public static Expression<Func<T, bool>> IsAny<T>(params Expression<Func<T, bool>>[] predicates)
         {
             if (!predicates.Any()) return x => true;

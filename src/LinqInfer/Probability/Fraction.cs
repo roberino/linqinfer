@@ -1,24 +1,34 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Probability
 {
+    [DebuggerDisplay("{Numerator}/{Denominator}")]
     public struct Fraction : IEquatable<Fraction>
     {
         public Fraction(int n, int d, bool reduce = true)
         {
-            Contract.Assert(d != 0);
-
-            if (reduce && d != 0)
+            if (reduce)
             {
-                var r = Reduce(n, d);
+                if (d != 0)
+                {
+                    var r = Reduce(n, d);
 
-                Numerator = r.Item1;
-                Denominator = r.Item2;
+                    Numerator = r.Item1;
+                    Denominator = r.Item2;
+                }
+                else
+                {
+                    Numerator = 0;
+                    Denominator = 1;
+                }
             }
             else
             {
+                if (d == 0) throw new InvalidOperationException();
+
                 Numerator = n;
                 Denominator = d;
             }
@@ -67,6 +77,14 @@ namespace LinqInfer.Probability
             return fractions.Select(f => new Fraction(f.Numerator * (fLast.Denominator / f.Denominator), fLast.Denominator, false)).ToArray();
         }
 
+        public bool IsProper
+        {
+            get
+            {
+                return Value >= 0 && Value <= 1;
+            }
+        }
+
         public int Numerator;
 
         public int Denominator;
@@ -78,6 +96,14 @@ namespace LinqInfer.Probability
                 if (Denominator == 0) return 0;
 
                 return (double)Numerator / (double)Denominator;
+            }
+        }
+
+        public bool IsZero
+        {
+            get
+            {
+                return Numerator == 0 || Denominator == 0;
             }
         }
         
@@ -93,6 +119,8 @@ namespace LinqInfer.Probability
 
         public Fraction Compliment(int total = 1)
         {
+            Contract.Assert(total >= 1);
+            Contract.Assert(total > 1 || IsProper);
             return new Fraction(total, 1) - this;
         }
 
@@ -174,6 +202,8 @@ namespace LinqInfer.Probability
             // =    24/15 / 3/15
             // =    62/15 
 
+            if (d2.IsZero) throw new DivideByZeroException();
+
             return d1 * new Fraction(d2.Denominator, d2.Numerator, true);
         }
 
@@ -182,12 +212,14 @@ namespace LinqInfer.Probability
             return d1 / new Fraction(d, 1);
         }
 
-        public static int CommonDenominator(int d1, int d2)
+        private static int CommonDenominator(int d1, int d2)
         {
             int dmin = Math.Min(d1, d2);
             int dmax = Math.Max(d1, d2);
             int d = dmax;
-            
+
+            if (dmin == 0) return dmax;
+               
             while(!(d % dmin == 0 && d % dmax == 0))
             {
                 d++;
@@ -217,15 +249,6 @@ namespace LinqInfer.Probability
             return a;
         }
 
-        private static Tuple<int, int> Reduce(int n, int d)
-        {
-            if (n == d) return new Tuple<int, int>(1, 1);
-
-            var lcd = LargestCommonDivisor(n, d);
-
-            return new Tuple<int, int>(n / lcd, d / lcd);
-        }
-
         public override bool Equals(object obj)
         {
             if (!(obj is Fraction)) return false;
@@ -249,6 +272,15 @@ namespace LinqInfer.Probability
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+
+        private static Tuple<int, int> Reduce(int n, int d)
+        {
+            if (n == d) return new Tuple<int, int>(1, 1);
+
+            var lcd = LargestCommonDivisor(n, d);
+
+            return new Tuple<int, int>(n / lcd, d / lcd);
         }
     }
 }

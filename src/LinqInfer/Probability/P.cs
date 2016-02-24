@@ -22,6 +22,11 @@ namespace LinqInfer.Probability
             return total;
         }
 
+        public static Hypothetheses<T> AsHypotheses<T>(this IEnumerable<IHypotheticalOutcome<T>> hypos)
+        {
+            return new Hypothetheses<T>(hypos);
+        }
+
         public static Hypothetheses<T> Hypotheses<T>(params IHypotheticalOutcome<T>[] hypos)
         {
             return new Hypothetheses<T>(hypos);

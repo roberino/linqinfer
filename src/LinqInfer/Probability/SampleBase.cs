@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Probability
 {
-    public abstract class SampleBase<T>
+    internal abstract class SampleBase<T>
     {
         internal SampleBase() { }
 

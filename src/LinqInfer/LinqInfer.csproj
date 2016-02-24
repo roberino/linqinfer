@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Annotation\FeatureAttribute.cs" />
+    <Compile Include="Genetics\Breeder.cs" />
     <Compile Include="Learning\Features\DefaultConverter.cs" />
     <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />
@@ -90,9 +91,7 @@
     <EmbeddedResource Include="Resources\en_dict.txt" />
     <EmbeddedResource Include="Resources\en_phonics.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Genetics\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

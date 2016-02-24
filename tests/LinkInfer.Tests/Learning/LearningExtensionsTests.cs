@@ -6,7 +6,7 @@ using System.Linq;
 namespace LinqInfer.Tests.Learning
 {
     [TestFixture]
-    public class ExtensionTests
+    public class LearningExtensionsTests
     {
         [Test]
         public void ToSofm_SimpleSample_ClassifiesAsExpected()
@@ -34,10 +34,13 @@ namespace LinqInfer.Tests.Learning
             var pirateSample = TestData.CreatePirates().ToList();
             var classifier = pirateSample.AsQueryable().ToSimpleClassifier(p => p.Age > 25 ? "old" : "young");
 
+            // In the original predicate, if age > 25 then old.
+            // But this pirate shares many features of other young pirates
+            // So therfore should be classed as "young"
             var classOfPirate = classifier.Invoke(new TestData.Pirate()
             {
                 Gold = 120,
-                Age = 26,
+                Age = 27,
                 IsCaptain = false,
                 Ships = 1
             });

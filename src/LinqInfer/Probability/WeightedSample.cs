@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Probability
 {
-    public class WeightedSample<T> : SampleBase<T>
+    internal class WeightedSample<T> : SampleBase<T>
     {
         private readonly IDictionary<T, int> data;
 

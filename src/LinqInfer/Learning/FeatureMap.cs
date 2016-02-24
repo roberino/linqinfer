@@ -62,14 +62,14 @@ namespace LinqInfer.Learning
                     Enumerable
                         .Range(0, outputNodeCount)
                         .Select(n =>
-                            new ClusterNode<T>(_featureExtractor, CreateInitialVector(n, sampleVector, (float)dist[n]), learningRate)));
+                            new ClusterNode<T>(_featureExtractor, CreateInitialVector(sampleVector, (float)dist[n]), learningRate)));
         }
 
-        protected float[] CreateInitialVector(int n, float[] sampleVector, float weight)
+        protected float[] CreateInitialVector(float[] sampleVector, float weight)
         {
             return Enumerable
                         .Range(0, sampleVector.Length)
-                        .Select(x => weight * sampleVector[n])
+                        .Select(x => weight * sampleVector[x])
                         .ToArray();
         }
     }

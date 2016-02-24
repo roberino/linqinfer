@@ -24,7 +24,7 @@ namespace LinqInfer.Tests.Probability
         }
 
         [TestCase(40, 10, 20, 3, 5)]
-        public void CookieJar_Example(int total, int choc1, int choc2, int expectedNumerator, int expectedDenominator)
+        public void CookieJar_Example1(int total, int choc1, int choc2, int expectedNumerator, int expectedDenominator)
         {
             var sample1 = new Sample<Cookie>("Jar1");
             var sample2 = new Sample<Cookie>("Jar2");

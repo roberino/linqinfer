@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="Samples.cs" />
     <Compile Include="TestData.cs" />
-    <Compile Include="Learning\ExtensionTests.cs" />
+    <Compile Include="Learning\LearningExtensionsTests.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractorTests.cs" />
     <Compile Include="Probability\FractionTests.cs" />
     <Compile Include="Probability\HypoSetTests.cs" />

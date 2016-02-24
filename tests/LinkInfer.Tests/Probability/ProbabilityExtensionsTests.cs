@@ -8,6 +8,62 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class ProbabilityExtensionsTests
     {
+        [Test]
+        public void BayesianProbability_MixedDiceExample()
+        {
+            var die = new[] // A mixed bag of die with various number of faces
+            {
+                new
+                {
+                    n = 3,
+                    faces = 4
+                },
+                new
+                {
+                    n = 2,
+                    faces = 6
+                },
+                new
+                {
+                    n = 6,
+                    faces = 12
+                }
+            };
+
+            var hypos = die
+                .Select(d => P.Of(d).Is(d.n).OutOf(die.Length))
+                .AsHypotheses();
+
+            var dist = hypos
+                .DistributionOver((h, v) => v > h.faces ? Fraction.Zero : (1).OutOf(h.faces) * h.n, Enumerable.Range(1, 12));
+
+            foreach(var h in dist)
+            {
+                Console.Write("{0}\t", h.Key.faces);
+
+                foreach(var v in h.Value)
+                {
+                    Console.Write("{0}\t", v.Value);
+                }
+                Console.WriteLine();
+            }
+        }
+
+        [Test]
+        public void BayesianProbability_DiceExample()
+        {
+            // Given the dice below
+            // What are the respective probabilities
+            // that each dice was rolled if the roll = 6
+
+            var die = new[] { 4, 6, 8, 12, 20 };
+            var hypos = die.Select(n => P.Of(n).Is(1).OutOf(die.Length)).AsHypotheses();
+
+            hypos.Update(x => x < 6 ? Fraction.Zero : (1).OutOf(x));
+
+            Assert.That(hypos.ProbabilityOf(4), Is.EqualTo(Fraction.Zero));
+            Assert.That(hypos.ProbabilityOf(8).Value, Is.InRange(0.294f, 0.295f));
+        }
 
         [Test]
         public void BayesianProbability_MedicalTestExample()
@@ -18,6 +74,8 @@ namespace LinqInfer.Tests.Probability
 
             var disease = (1).OutOf(200);  // A = P(of disease)
             var notDisease = disease.Compliment(); // ~A = P(of healthy)
+
+            Assert.That(disease + notDisease, Is.EqualTo(Fraction.One));
 
             var truePositive = (99).OutOf(100); // Positive test when disease present
             var falseNegative = truePositive.Compliment(); // Negative test when disease present
