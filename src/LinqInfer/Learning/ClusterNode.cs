@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning
 {
+    /// <summary>
+    /// Represents a cluster of values.
+    /// </summary>
     public class ClusterNode<T>
     {
         private readonly ConcurrentDictionary<T, int> _values;

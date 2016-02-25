@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Annotation\FeatureAttribute.cs" />
-    <Compile Include="Genetics\Breeder.cs" />
+    <Compile Include="Language\TextFuctions.cs" />
     <Compile Include="Learning\Features\DefaultConverter.cs" />
     <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />

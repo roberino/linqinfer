@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using LinqInfer.Probability;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace LinqInfer
+namespace LinqInfer.Language
 {
     public class EnglishDictionary
     {
@@ -17,6 +20,52 @@ namespace LinqInfer
             _words = ReadFile("en_dict.txt");
             _phonics = ReadFile("en_phonics.txt");
             _phonicsMapper = _phonics.Select(p => new Regex(p, RegexOptions.Compiled | RegexOptions.IgnoreCase)).ToList();
+        }
+
+        /// <summary>
+        /// Returns a enumeration of words.
+        /// </summary>
+        public IEnumerable<string> Words { get { return _words; } }
+
+        /// <summary>
+        /// Returns true for a word found within the dictionary.
+        /// </summary>
+        public bool IsWord(string word)
+        {
+            if (word == null) return false;
+
+            return _words.Contains(word.ToLower());
+        }
+
+        /// <summary>
+        /// Returns words which are statistically similar
+        /// with regards to the number of edits required
+        /// to transform from one word to another.
+        /// </summary>
+        /// <param name="word">The word</param>
+        /// <param name="tolerance">The tolerance level as a percentage (between 0 and 1)</param>
+        /// <returns>A dictionary of results and relevant scores</returns>
+        public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75f)
+        {
+            Contract.Assert(word != null);
+            Contract.Assert(tolerance > 0f && tolerance <= 1f);
+
+            word = word.ToLower();
+
+            return _words
+                .Where(w => Math.Abs(w.Length - word.Length) < 3)
+                .Select(w => new
+                {
+                    Word = w,
+                    Diff = word.ComputeLevenshteinDifference(w)
+                })
+                .Where(x => x.Diff.Value >= tolerance)
+                .ToDictionary(k => k.Word, v => v.Diff);
+        }
+
+        internal IDictionary<string, int> PhonicMap(string word)
+        {
+            return _phonicsMapper.ToDictionary(p => p.ToString(), p => p.Matches(word).Count);
         }
 
         private static HashSet<string> ReadFile(string name)
@@ -49,25 +98,6 @@ namespace LinqInfer
             var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
 
             return asm.GetManifestResourceStream(rname);
-        }
-
-        public IEnumerable<string> Words { get { return _words; } }
-
-        public IDictionary<string, int> PhonicMap(string word)
-        {
-            return _phonicsMapper.ToDictionary(p => p.ToString(), p => p.Matches(word).Count);
-        }
-
-        public bool IsWord(string word)
-        {
-            if (word == null) return false;
-
-            return _words.Contains(word.ToLower());
-        }
-
-        public IEnumerable<string> FindWordsLike(string word)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

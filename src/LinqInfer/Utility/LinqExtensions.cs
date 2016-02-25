@@ -8,6 +8,9 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        /// <summary>
+        /// Inverts an expression e.g. not(exp).
+        /// </summary>
         public static Expression<Func<T, bool>> Invert<T>(this Expression<Func<T, bool>> exp)
         {
             var notExp = Expression.Not(exp.Body);
@@ -15,6 +18,9 @@ namespace LinqInfer.Utility
             return Expression.Lambda<Func<T, bool>>(notExp, exp.Parameters);
         }
 
+        /// <summary>
+        /// Joins two expressions with an OR.
+        /// </summary>
         public static Expression<Func<T, bool>> DisjunctiveJoin<T>(this Expression<Func<T, bool>> exp1, Expression<Func<T, bool>> exp2)
         {
             var exp2p = UpdateParameter(exp2, exp1.Parameters.First());
@@ -23,6 +29,9 @@ namespace LinqInfer.Utility
             return Expression.Lambda<Func<T, bool>>(andExp, exp1.Parameters);
         }
 
+        /// <summary>
+        /// Joins two expressions with an AND.
+        /// </summary>
         public static Expression<Func<T, bool>> ConjunctiveJoin<T>(this Expression<Func<T, bool>> exp1, Expression<Func<T, bool>> exp2)
         {
             var exp2p = UpdateParameter(exp2, exp1.Parameters.First());
@@ -31,6 +40,9 @@ namespace LinqInfer.Utility
             return Expression.Lambda<Func<T, bool>>(andExp, exp1.Parameters);
         }
 
+        /// <summary>
+        /// Chunks up a queryable source into batches.
+        /// </summary>
         public static IEnumerable<IEnumerable<T>> Chunk<T>(this IQueryable<T> source, int size = 1000)
         {
             Contract.Assert(size > 0);

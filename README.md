@@ -6,7 +6,7 @@ This library reflects my interest over the last few years in Bayesian probabilit
 probabilistic reasoning and other means of inference.
 
 It is both a learning exercise for myself and an attempt to create a useful
-library which uses a LINQ-like approach to this type of problem solving.
+library which uses a fluent and LINQ-like approach to this type of problem solving.
 
 See tests for usage examples.
 

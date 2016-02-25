@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Language;
+using LinqInfer.Learning;
 using LinqInfer.Probability;
 using NUnit.Framework;
 using System;
@@ -9,6 +10,20 @@ namespace LinqInfer.Tests
     [TestFixture]
     public class Samples
     {   
+        [Test]
+        public void CombineWordSearchAsHypothesis()
+        {
+            var dict = new EnglishDictionary();
+
+            var possibleMatches = dict.FindWordsLike("businesses").AsHypotheses();
+
+            possibleMatches.Update(w => w.StartsWith("business") && !w.EndsWith("es") ? (1).OutOf(1) : (1).OutOf(2));
+
+            var mostProbable = possibleMatches.MostProbable();
+
+            Assert.That(mostProbable, Is.EqualTo("businessmen"));
+        }
+
         [Test]
         public void CombineClassifier_WithHypotheses()
         {

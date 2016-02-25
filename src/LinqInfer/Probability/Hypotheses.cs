@@ -22,6 +22,14 @@ namespace LinqInfer.Probability
             return this[item].PosteriorProbability;
         }
 
+        public T MostProbable()
+        {
+            return _hypos
+                .OrderByDescending(h => h.Value.PosteriorProbability.Value)
+                .Select(h => h.Key)
+                .FirstOrDefault();
+        }
+
         public IDictionary<T, IDictionary<V, double>> DistributionOver<V>(Func<T, V, Fraction> likelyhoodFunc, IEnumerable<V> values)
         {
             var dist = Hypotheses.ToDictionary(h => h.Outcome, h => (IDictionary<V, double>)values.ToDictionary(v => v, v => 0d));
