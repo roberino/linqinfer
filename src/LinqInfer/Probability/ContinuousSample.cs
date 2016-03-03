@@ -1,11 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace LinqInfer.Probability
 {
     internal class ContinuousSample<T>
     {
-        public ContinuousSample(IQueryable<T> values, IKernelDensityEstimator<T> estimationModel)
+        private Func<T, Fraction> _kde;
+
+        public ContinuousSample(IQueryable<T> sample, IKernelDensityEstimator<T> estimationModel)
         {
+            Contract.Assert(estimationModel != null);
+            _kde = estimationModel.Evaluate(sample);
+        }
+
+        public Fraction ProbabilityOf(T item)
+        {
+            return _kde(item);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace LinqInfer.Probability
         {
             get
             {
-                return new Fraction(1, 1);
+                return new Fraction(1, 1, false);
             }
         }
 
@@ -63,7 +64,7 @@ namespace LinqInfer.Probability
             }
         }
 
-        public static Fraction ApproxPii
+        internal static Fraction ApproxPii
         {
             get
             {
@@ -87,7 +88,7 @@ namespace LinqInfer.Probability
         //    return x;
         //});
 
-        public static Fraction E
+        internal static Fraction E
         {
             get
             {
@@ -97,7 +98,7 @@ namespace LinqInfer.Probability
             }
         }
 
-        public static Fraction[] FindCommonDenominator(params Fraction[] fractions)
+        internal static Fraction[] FindCommonDenominator(params Fraction[] fractions)
         {
             if (fractions.Length < 2) return fractions;
 
@@ -227,6 +228,83 @@ namespace LinqInfer.Probability
             return Multiply(this, this, approx);
         }
 
+        public Fraction Approximate(int precision = 4)
+        {
+            Fraction a = this;
+            int i = 3;
+
+            while (i < 9)
+            {
+                a = ApproximateRational(Value, i++);
+
+                if (Math.Round(a.Value, precision) == Math.Round(Value, precision)) break;
+            }
+
+            return a;
+        }
+
+        public static Fraction ApproximateRational(double x, int iterations = 8)
+        {
+            if (x == 1) return One;
+            if (x == 0) return Zero;
+
+            var cf = new List<int>(iterations);
+            double lastR = x;
+            long lastPq = 0;
+            int i;
+
+            for (i = 0; i < iterations; i++)
+            {
+                if (i > 0)
+                {
+                    if (lastR - lastPq == 0) break;
+                    lastR = 1 / (lastR - lastPq);
+                }
+
+                lastPq = (long)Math.Floor(lastR);
+
+                if (lastPq > int.MaxValue)
+                {
+                    if (i == 0)
+                        throw new OverflowException();
+                    else
+                        break;
+                }
+                cf.Add((int)lastPq);
+            }
+
+            var a = Zero;
+
+            int c = cf.Count;
+
+            while (true)
+            {
+                try
+                {
+                    for (i = c - 1; i > 0; i--)
+                    {
+                        var n = new Fraction(cf[i], 1, false);
+
+                        if (a.IsZero) a = One / n;
+                        else a = One / (n + a);
+                    }
+
+                    break;
+                }
+                catch (OverflowException)
+                {
+                    if (i < 1) break;
+
+                    c = i;
+                    a = Zero;
+                }
+            }
+
+            a = new Fraction(cf[0], 1) + a;
+
+            return a;
+        }
+
         internal static Fraction RootOf(int x, int n)
         {
             return new Fraction(x, 1, false).Root(n);
@@ -241,17 +319,6 @@ namespace LinqInfer.Probability
         {
             var n0 = Numerator;
             var d0 = Denominator;
-
-            //if (approx)
-            //{
-            //    const int maxIterations = 1000;
-
-            //    while (n0 > maxIterations || d0 > maxIterations)
-            //    {
-            //        n0 = (n0 >> 2);
-            //        d0 = (d0 >> 2);
-            //    }
-            //}
 
             var n = Power(n0, other, approx);
             var d = Power(d0, other, approx);
@@ -275,25 +342,6 @@ namespace LinqInfer.Probability
             }
 
             return new Fraction((int)n1, (int)d1);
-
-            //var t = new Fraction(Numerator, Denominator);
-
-            //if (n > 0)
-            //{
-            //    for (int i = 1; i < n; i++)
-            //    {
-            //        t = Multiply(t, t, approx);
-            //    }
-            //}
-            //else
-            //{
-            //    for (int i = n; i > 0; i--)
-            //    {
-            //        t = Divide(t, t, approx);
-            //    }
-            //}
-
-            //return t;
         }
 
         public static bool operator ==(Fraction d1, Fraction d2)
@@ -312,30 +360,32 @@ namespace LinqInfer.Probability
             return r1.Numerator != r2.Numerator || r1.Denominator != r2.Denominator;
         }
 
-        public static Fraction operator +(Fraction d1, Fraction d2)
+        public static Fraction operator +(Fraction x, Fraction y)
         {
             // e.g  2/4 + 5/6
             // =    6/12 + 10/12
             // =    16/12
 
-            var comd = CommonDenominator(d1.Denominator, d2.Denominator);
-            var d1n1 = d1.Numerator * (comd / d1.Denominator);
-            var d2n1 = d2.Numerator * (comd / d2.Denominator);
+            var cd = (long)x.Denominator * (long)y.Denominator;
+            var xn1 = (long)x.Numerator * (long)y.Denominator;
+            var yn1 = (long)y.Numerator * (long)x.Denominator;
+            var n = xn1 + yn1;
+            var lcd = LargestCommonDivisor(n, cd);
 
-            return new Fraction(d1n1 + d2n1, comd, true);
+            n = n / lcd;
+            cd = cd / lcd;
+
+            if(n > int.MaxValue || cd > int.MaxValue)
+            {
+                throw new OverflowException();
+            }
+
+            return new Fraction((int)n, (int)cd, false);
         }
 
         public static Fraction operator -(Fraction d1, Fraction d2)
         {
-            // e.g  2/4 + 5/6
-            // =    6/12 + 10/12
-            // =    16/12
-
-            var comd = CommonDenominator(d1.Denominator, d2.Denominator);
-            var d1n1 = d1.Numerator * (comd / d1.Denominator);
-            var d2n1 = d2.Numerator * (comd / d2.Denominator);
-
-            return new Fraction(d1n1 - d2n1, comd, true);
+            return d1 + new Fraction(0 - d2.Numerator, d2.Denominator);
         }
 
         internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
@@ -402,22 +452,6 @@ namespace LinqInfer.Probability
         public static Fraction operator /(Fraction d1, int d)
         {
             return d1 / new Fraction(d, 1);
-        }
-
-        private static int CommonDenominator(int d1, int d2)
-        {
-            int dmin = Math.Min(d1, d2);
-            int dmax = Math.Max(d1, d2);
-            int d = dmax;
-
-            if (dmin == 0) return dmax;
-               
-            while(!(d % dmin == 0 && d % dmax == 0))
-            {
-                d++;
-            }
-
-            return d;
         }
 
         //function gcd(a, b)

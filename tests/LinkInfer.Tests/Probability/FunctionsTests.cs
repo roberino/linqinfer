@@ -21,16 +21,16 @@ namespace LinqInfer.Tests.Probability
 
             var normal1 = Functions.NormalDistributionDebug(a, meanAndStdDev.Item2, meanAndStdDev.Item1);
             var normal2 = Functions.NormalDistributionDebug(a.Value, meanAndStdDevF.Item2, meanAndStdDevF.Item1);
+            var prec = 3;
 
-            AssertEquiv(normal1.Item1, normal2.Item1, 1);
-            AssertEquiv(normal1.Item2, normal2.Item2, 1);
-            AssertEquiv(normal1.Item3, normal2.Item3, 1);
-            AssertEquiv(normal1.Item4, normal2.Item4, 1);
-            AssertEquiv(normal1.Item5, normal2.Item5, 1);
+            Assertions.AssertEquiv(normal1.Item1, normal2.Item1, prec);
+            Assertions.AssertEquiv(normal1.Item2, normal2.Item2, prec);
+            Assertions.AssertEquiv(normal1.Item3, normal2.Item3, prec);
+            Assertions.AssertEquiv(normal1.Item4, normal2.Item4, prec);
+            Assertions.AssertEquiv(normal1.Item5, normal2.Item5, prec);
         }
 
         [Test]
-        [Ignore]
         public void EnumerationOfFractions_NormalDistribution_ReturnsExpectedResults()
         {
             var a = (1).OutOf(5);
@@ -44,7 +44,7 @@ namespace LinqInfer.Tests.Probability
             var normal1 = Functions.NormalDistribution(a, meanAndStdDev.Item2, meanAndStdDev.Item1);
             var normal2 = Functions.NormalDistribution(a.Value, meanAndStdDevF.Item2, meanAndStdDevF.Item1);
 
-            AssertEquiv(normal1, normal2, 4);
+            Assertions.AssertEquiv(normal1, normal2, 3);
         }
 
         [Test]
@@ -56,14 +56,8 @@ namespace LinqInfer.Tests.Probability
             var meanAndStdDev = fracts.MeanStdDev();
             var meanAndStdDevF = floating.MeanStdDev();
 
-            AssertEquiv(meanAndStdDev.Item1, meanAndStdDevF.Item1);
-            AssertEquiv(meanAndStdDev.Item2, meanAndStdDevF.Item2);
-        }
-
-        private void AssertEquiv(Fraction x, double y, int precision = 6)
-        {
-            Console.WriteLine("{0}={1}~={2}", x, x.Value, y);
-            Assert.That(Math.Round(x.Value, precision), Is.EqualTo(Math.Round(y, precision)));
+            Assertions.AssertEquiv(meanAndStdDev.Item1, meanAndStdDevF.Item1);
+            Assertions.AssertEquiv(meanAndStdDev.Item2, meanAndStdDevF.Item2);
         }
     }
 }

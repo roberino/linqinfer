@@ -5,8 +5,44 @@ using System;
 namespace LinqInfer.Tests.Probability
 {
     [TestFixture]
-    public class FractionTests
+    public class FractionTests : AssertionHelper
     {
+        [TestCase(0.2, 1, 5)]
+        [TestCase(0.6666666666666, 2, 3)]
+        [TestCase(0.5, 1, 2)]
+        [TestCase(10.25, 41, 4)]
+        public void ToApproximateRational_ArbFloatingPointValue_ReturnsEquivValue(double v, int n, int d)
+        {
+            var x = Fraction.ApproximateRational(v);
+
+            Assert.That(x.Numerator, Is.EqualTo(n));
+            Assert.That(x.Denominator, Is.EqualTo(d));
+            Assertions.AssertEquiv(x, v);
+        }
+
+        [TestCase(5)]
+        [TestCase(7)]
+        [TestCase(23)]
+        // [TestCase(43)]
+        [TestCase(23657)]
+        public void ToApproximateRational_SqRt_ReturnsEquivValue(int n)
+        {
+            var y = Math.Sqrt(n);
+            var x = Fraction.ApproximateRational(y, 8);
+
+            Assertions.AssertEquiv(x, y, 4);
+        }
+
+        [Test]
+        public void ToApproximateRational_PII_ReturnsEquivValue()
+        {
+            var x = Math.PI;
+            var y = Fraction.ApproximateRational(x);
+
+            Console.Write("{0}~={1} = {2}", x, y, y.Value);
+            Assertions.AssertEquiv(y, x);
+        }
+
         [TestCase(5, 1, 2)]
         [TestCase(15, 1, 3)]
         [TestCase(15, 2, 3)]

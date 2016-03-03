@@ -109,12 +109,11 @@ namespace LinqInfer.Probability
 
         internal static Tuple<Fraction, Fraction, Fraction, Fraction, Fraction> NormalDistributionDebug(Fraction x, Fraction theta, Fraction mu)
         {
-            var a = Fraction.Multiply(theta, (Fraction.ApproxPii * 2).Sqrt(), true);
+            var a = Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true);
             var b = (x - mu).Sq();
             var c = Fraction.Multiply(theta.Sq(true), (2).OutOf(1), true);
             var d = Fraction.Multiply(Fraction.Divide(b, c, true), (-1).OutOf(1), true);
-            var e = new Fraction((int)(Math.Exp(d.Value) * 100000), 100000);
-            var e2 = Fraction.E.Power(d, true);
+            var e = Fraction.ApproximateRational(Math.Exp(d.Value));
 
             return new Tuple<Fraction, Fraction, Fraction, Fraction, Fraction>(a, b, c, d, e);
         }
@@ -125,7 +124,7 @@ namespace LinqInfer.Probability
 
             // (1 / a) * (Math.Pow(Math.E, -(b / c)));
 
-            return Fraction.Multiply(Fraction.Divide(Fraction.One, parts.Item1, true), parts.Item5, true);
+            return Fraction.Multiply(Fraction.Divide(Fraction.One, parts.Item1.Approximate(), true), parts.Item5, true);
 
             //return (Fraction.One / a) * Math.Exp(-(b / c));
 
