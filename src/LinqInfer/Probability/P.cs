@@ -28,23 +28,6 @@ namespace LinqInfer.Probability
         }
 
         /// <summary>
-        /// Sums up an enumeration of fractions.
-        /// </summary>
-        /// <param name="values">The values</param>
-        /// <returns>The resultant sum</returns>
-        public static Fraction Sum(this IEnumerable<Fraction> values)
-        {
-            Fraction total = values.First();
-
-            foreach (var v in values.Skip(1))
-            {
-                total += v;
-            }
-
-            return total;
-        }
-
-        /// <summary>
         /// Returns a hypotheses instance from an enumeration of hypothetical outcomes.
         /// </summary>
         /// <typeparam name="T">The outcome type</typeparam>

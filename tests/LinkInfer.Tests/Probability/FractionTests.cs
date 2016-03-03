@@ -7,6 +7,74 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FractionTests
     {
+        [TestCase(5, 1, 2)]
+        [TestCase(15, 1, 3)]
+        [TestCase(15, 2, 3)]
+        [TestCase(9, 2, 3)]
+        [TestCase(9, 2, 5)]
+        public void Power_Fraction_IntegerExponent(int x, int n, int d)
+        {
+            var a = new Fraction(n, d);
+            var pow = a.Power(x);
+            var exp = Math.Pow((double)n / (double)d, x);
+
+            Assert.That(Math.Round(pow.Value, 8), Is.EqualTo(Math.Round(exp, 8)));
+        }
+
+        [TestCase(5, 1, 2)]
+        [TestCase(15, 1, 3)]
+        [TestCase(15, 2, 3)]
+        [TestCase(9, 2, 3)]
+        [TestCase(9, 2, 5)]
+        [TestCase(103, 2, 5)]
+        //[TestCase(32, 10, 105)]
+        public void Power_Integer(int x, int n, int d)
+        {
+            var y = Fraction.Power(x, n.OutOf(d), approx: true);
+            var exp = Math.Pow(x, (double)n / (double)d);
+            Assert.That(Math.Round(y.Value, 4), Is.EqualTo(Math.Round(exp, 4)));
+        }
+
+        [Test]
+        public void RootOf_SqRootOf5()
+        {
+            var x = Fraction.RootOf(5, 2);
+            Assert.That(Math.Round(x.Value, 6), Is.EqualTo(Math.Round(Math.Sqrt(5), 6)));
+        }
+
+        [TestCase(5, 3, 6)]
+        [TestCase(5, 4, 6)]
+        [TestCase(5, 2, 7)]
+        [TestCase(509, 2, 6)]
+        public void NthRootOfX(int x, int n, int p)
+        {
+            var v = Fraction.RootOf(x, n);
+            Assert.That(Math.Round(v.Value, p), Is.EqualTo(Math.Round(Math.Pow(x, 1d / (double)n), p)));
+        }
+
+        [Test]
+        public void E_ReturnsCorrectResult()
+        {
+            var e = Math.E;
+            var ef = Fraction.E;
+
+            Assert.That(Math.Round(ef.Value, 8), Is.EqualTo(Math.Round(e, 8)));
+        }
+
+        [TestCase(4, 5, 6)]
+        [TestCase(4, 5, 8)]
+        [TestCase(4, 5, 2)]
+        [TestCase(8, 1, 5)]
+        [TestCase(1, 8, 6)]
+        [TestCase(1, 100, 6)]
+        public void Sqrt(int n, int d, int p)
+        {
+            var sq = n.OutOf(d).Sqrt(p);
+            var sq2 = Math.Sqrt((double)n / (double)d);
+
+            Assert.AreEqual(Math.Round(sq.Value, p), Math.Round(sq2, p));
+        }
+
         [Test]
         public void Math_Operations_ReturnExpected()
         {

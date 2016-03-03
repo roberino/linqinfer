@@ -63,6 +63,40 @@ namespace LinqInfer.Probability
             }
         }
 
+        public static Fraction ApproxPii
+        {
+            get
+            {
+                return new Fraction(22, 7, false);
+            }
+        }
+
+        //private static Lazy<Fraction> _e = new Lazy<Fraction>(() =>
+        //{
+        //    var x = One;
+        //    long d = 1;
+        //    long a = 1;
+
+        //    while (d < int.MaxValue)
+        //    {
+        //        x = x + new Fraction(1, (int)d, false);
+        //        a++;
+        //        d = d * a;
+        //    }
+
+        //    return x;
+        //});
+
+        public static Fraction E
+        {
+            get
+            {
+                const int n = 260412269;
+                const int d = 95800320;
+                return new Fraction(n, d, false);
+            }
+        }
+
         public static Fraction[] FindCommonDenominator(params Fraction[] fractions)
         {
             if (fractions.Length < 2) return fractions;
@@ -129,6 +163,139 @@ namespace LinqInfer.Probability
             return new Fraction(Numerator, Denominator, true);
         }
 
+        internal Fraction Root(int n, int precision = 6)
+        {
+            //TODO: Clumbsy implementation
+
+            Fraction final = new Fraction();
+            var f = 1d;
+            var nd = (double)n;
+
+            while (f < float.MaxValue)
+            {
+                var sqD = Math.Pow(Denominator * f, 1d / nd);
+                var sqN = Math.Pow(Numerator * f, 1d / nd);
+
+                var res = new Fraction((int)Math.Round(sqN), (int)Math.Round(sqD));
+
+                if (double.IsPositiveInfinity(res.Value)) break;
+
+                final = res;
+
+                if (Math.Round(Math.Pow(Value, 1d / nd), precision) == Math.Round(res.Value, precision))
+                {
+                    break;
+                }
+
+                f = f * 10d;
+            }
+
+            return final;
+        }
+
+        public Fraction Sqrt(int precision = 6)
+        {
+            //TODO: Clumbsy implementation
+
+            Fraction final = new Fraction();
+            var f = 1d;
+
+            while (f < float.MaxValue)
+            {
+                var sqD = Math.Sqrt(Denominator * f);
+                var sqN = Math.Sqrt(Numerator * f);
+
+                var res = new Fraction((int)Math.Round(sqN), (int)Math.Round(sqD));
+
+                if (double.IsPositiveInfinity(res.Value)) break;
+
+                final = res;
+
+                if (Math.Round( Math.Sqrt(Value), precision) == Math.Round(res.Value, precision))
+                {
+                    break;
+                }
+
+                f = f * 10d;
+            }
+
+            return final;
+        }
+
+        public Fraction Sq(bool approx = false)
+        {
+            return Multiply(this, this, approx);
+        }
+
+        internal static Fraction RootOf(int x, int n)
+        {
+            return new Fraction(x, 1, false).Root(n);
+        }
+
+        internal static Fraction Power(int x, Fraction r, bool approx = false)
+        {
+            return new Fraction(x, 1, false).Root(r.Denominator).Power(r.Numerator, approx);
+        }
+
+        internal Fraction Power(Fraction other, bool approx = false)
+        {
+            var n0 = Numerator;
+            var d0 = Denominator;
+
+            //if (approx)
+            //{
+            //    const int maxIterations = 1000;
+
+            //    while (n0 > maxIterations || d0 > maxIterations)
+            //    {
+            //        n0 = (n0 >> 2);
+            //        d0 = (d0 >> 2);
+            //    }
+            //}
+
+            var n = Power(n0, other, approx);
+            var d = Power(d0, other, approx);
+
+            return n / d;
+        }
+
+        internal Fraction Power(int n, bool approx = false)
+        {
+            if (n == 0) return One;
+
+            var n1 = (long)Math.Pow(Numerator, n);
+            var d1 = (long)Math.Pow(Denominator, n);
+
+            while (n1 > int.MaxValue || d1 > int.MaxValue)
+            {
+                if (!approx) throw new OverflowException();
+
+                n1 = (n1 >> 2);
+                d1 = (d1 >> 2);
+            }
+
+            return new Fraction((int)n1, (int)d1);
+
+            //var t = new Fraction(Numerator, Denominator);
+
+            //if (n > 0)
+            //{
+            //    for (int i = 1; i < n; i++)
+            //    {
+            //        t = Multiply(t, t, approx);
+            //    }
+            //}
+            //else
+            //{
+            //    for (int i = n; i > 0; i--)
+            //    {
+            //        t = Divide(t, t, approx);
+            //    }
+            //}
+
+            //return t;
+        }
+
         public static bool operator ==(Fraction d1, Fraction d2)
         {
             var r1 = d1.Reduce();
@@ -171,27 +338,54 @@ namespace LinqInfer.Probability
             return new Fraction(d1n1 - d2n1, comd, true);
         }
 
-        public static Fraction operator *(Fraction d1, Fraction d2)
+        internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
+        {
+            long n = (long)x.Numerator * (long)y.Numerator;
+            long d = (long)x.Denominator * (long)y.Denominator;
+
+            var lcd = LargestCommonDivisor(n, d);
+
+            while ((n / lcd) > int.MaxValue || (d / lcd) > int.MaxValue)
+            {
+                if (!approx) throw new OverflowException();
+
+                n = (n >> 2);
+                d = (d >> 2);
+            }
+
+            int n0 = (int)(n / lcd);
+            int d0 = (int)(d / lcd);
+
+            return new Fraction(n0, d0, false);
+        }
+
+        internal static Fraction Divide(Fraction x, Fraction y, bool approx = false)
+        {
+            if (y.IsZero) throw new DivideByZeroException();
+
+            return Multiply(x, new Fraction(y.Denominator, y.Numerator, true), approx);
+        }
+
+        public static Fraction operator *(Fraction x, Fraction y)
         {
             // e.g  2/4 * 5/6
             // =    10/24
             // =    5/12
 
-            return new Fraction(d1.Numerator * d2.Numerator, d1.Denominator * d2.Denominator, true);
+            return Multiply(x, y);
         }
 
-        public static Fraction operator *(Fraction d1, int n)
+        public static Fraction operator *(Fraction x, int n)
         {
             // e.g  2/4 * 6
             // =    1/2 * 6
             // =    3
 
-            var d2 = new Fraction(n, 1);
-
-            return new Fraction(d1.Numerator * d2.Numerator, d1.Denominator * d2.Denominator, true);
+            var y = new Fraction(n, 1);
+            return Multiply(x, y);
         }
 
-        public static Fraction operator /(Fraction d1, Fraction d2)
+        public static Fraction operator /(Fraction x, Fraction y)
         {
             // e.g  6/14 / 5/10
             // =    12/14
@@ -202,9 +396,7 @@ namespace LinqInfer.Probability
             // =    24/15 / 3/15
             // =    62/15 
 
-            if (d2.IsZero) throw new DivideByZeroException();
-
-            return d1 * new Fraction(d2.Denominator, d2.Numerator, true);
+            return Divide(x, y);
         }
 
         public static Fraction operator /(Fraction d1, int d)
@@ -235,9 +427,9 @@ namespace LinqInfer.Probability
         //       a := t; 
         //    return a;
 
-        public static int LargestCommonDivisor(int a, int b)
+        public static long LargestCommonDivisor(long a, long b)
         {
-            int t = 0;
+            long t = 0;
 
             while(b != 0)
             {
@@ -274,13 +466,13 @@ namespace LinqInfer.Probability
             return ToString().GetHashCode();
         }
 
-        private static Tuple<int, int> Reduce(int n, int d)
+        private static Tuple<int, int> Reduce(long n, long d)
         {
             if (n == d) return new Tuple<int, int>(1, 1);
 
             var lcd = LargestCommonDivisor(n, d);
 
-            return new Tuple<int, int>(n / lcd, d / lcd);
+            return new Tuple<int, int>((int)(n / lcd), (int)(d / lcd));
         }
     }
 }

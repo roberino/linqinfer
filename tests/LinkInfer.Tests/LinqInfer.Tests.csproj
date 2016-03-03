@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Language\EnglishDictionaryTests.cs" />
+    <Compile Include="Probability\FunctionsTests.cs" />
     <Compile Include="Samples.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="Learning\LearningExtensionsTests.cs" />
