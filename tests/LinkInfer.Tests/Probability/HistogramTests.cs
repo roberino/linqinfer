@@ -18,9 +18,9 @@ namespace LinqInfer.Tests.Probability
             Assert.That(histSample.Min, Is.EqualTo(1));
             Assert.That(histSample.Total, Is.EqualTo(sample.Count()));
             Assert.That(histSample.Width, Is.EqualTo(1));
-            Assert.That(histSample.Bins.Count, Is.EqualTo(9));
+            Assert.That(histSample.Bins.Count, Is.EqualTo(10));
             Assert.That(histSample.Bins[0], Is.EqualTo(1));
-            Assert.That(histSample.Bins[8], Is.EqualTo(1));
+            Assert.That(histSample.Bins[9], Is.EqualTo(1));
         }
 
         [Test]

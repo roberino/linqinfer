@@ -7,7 +7,7 @@ namespace LinqInfer.Probability
     /// <summary>
     /// 1 dimentional KDE
     /// </summary>
-    class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>
+    class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>, IDensityEstimationStrategy<ColumnVector1D>
     {
         private readonly Func<IQueryable<Fraction>, Func<Fraction, Fraction>> _kernelFact;
         private readonly float _bandwidth;
@@ -54,8 +54,14 @@ namespace LinqInfer.Probability
             {
                 //return kF(y);
                 var t = sample.Select(x => kF((y - x) / h));
-                return Fraction.ApproximateRational(hReciprocal.Value * t.Sum(v => v.Value)) / max;
+                return Fraction.Divide(Fraction.ApproximateRational(hReciprocal.Value * t.Sum(v => v.Value)), max, true);
             });
+        }
+
+        public Func<ColumnVector1D, Fraction> Evaluate(IQueryable<ColumnVector1D> sample)
+        {
+            var f = Functions.MultiVariateNormalKernel(sample, _bandwidth);
+            return x => Fraction.ApproximateRational(f(x));
         }
     }
 }

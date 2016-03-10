@@ -30,7 +30,7 @@ namespace LinqInfer.Learning
             return fm.Map(values);
         }
 
-        internal static IEnumerable<ClusterNode<T>> ToSofm<T>(this IQueryable<T> values, Func<T, float[]> featureExtractor, int outputNodeCount = 10, float learningRate = 0.5f)
+        public static IEnumerable<ClusterNode<T>> ToSofm<T>(this IQueryable<T> values, Func<T, float[]> featureExtractor, int outputNodeCount = 10, float learningRate = 0.5f)
         {
             var fm = new FeatureMap<T>(featureExtractor, default(T), outputNodeCount, learningRate);
 

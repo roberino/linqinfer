@@ -67,6 +67,7 @@
     <Compile Include="Learning\Nn\WordVectoriser.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\ObjectVector.cs" />
+    <Compile Include="Probability\ColumnVector1D.cs" />
     <Compile Include="Probability\ContinuousSample.cs" />
     <Compile Include="Probability\Histogram.cs" />
     <Compile Include="Probability\HypothesisBuilder.cs" />

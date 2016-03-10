@@ -8,6 +8,20 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FunctionsTests
     {
+        [Test]
+        public void MultiVariateNormalKernel_ReturnsExpectedResults()
+        {
+            var vector1 = ColumnVector1D.Create(1, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9);
+            var vector2 = ColumnVector1D.Create(1, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 7, 7, 8, 8, 9);
+
+            var normF = Functions.MultiVariateNormalKernel(new[] { vector1, vector2 }, 2);
+
+            var p = normF(ColumnVector1D.Create(2, 2, 3, 3, 4, 5, 5, 5, 5, 6, 6, 7, 8, 8, 8, 9));
+
+            Assert.That(p > 0);
+            Assert.That(p < 9);
+        }
+
         [TestCase(1, 2, 0.5d, 0.04714d, 8.46)]
         public void NormalDistribution_ReturnsExpectedResult(int n, int d, double mu, double stdDev, double expected)
         {

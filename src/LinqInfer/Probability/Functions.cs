@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LinqInfer.Probability
 {
-    internal static class Functions
+    public static class Functions
     {
         private static readonly Random _random = new System.Random((int)DateTime.UtcNow.Ticks);
 
@@ -24,11 +24,11 @@ namespace LinqInfer.Probability
         /// </summary>
         /// <param name="values">The values</param>
         /// <returns>The resultant sample</returns>
-        public static IEnumerable<Fraction> Normalise(this IEnumerable<Fraction> values)
+        public static IEnumerable<Fraction> Normalise(this IEnumerable<Fraction> values, bool approx = true)
         {
             var sum = Fraction.ApproximateRational(values.Select(x => x.Value).Sum());
 
-            return values.Select(x => x / sum);
+            return values.Select(x => Fraction.Divide(x, sum, approx));
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace LinqInfer.Probability
         {
             Contract.Assert(values != null);
 
-            Fraction total = values.First();
+            var total = values.First();
 
             foreach (var v in values.Skip(1))
             {
@@ -49,6 +49,21 @@ namespace LinqInfer.Probability
 
             return total;
         }
+
+        public static ColumnVector1D Sum(this IEnumerable<ColumnVector1D> values)
+        {
+            Contract.Assert(values != null);
+
+            var total = values.First();
+
+            foreach (var v in values.Skip(1))
+            {
+                total += v;
+            }
+
+            return total;
+        }
+
         public static Fraction Mean(this IEnumerable<Fraction> items)
         {
             var sum = items.Sum();
@@ -121,7 +136,7 @@ namespace LinqInfer.Probability
 
         internal static Tuple<double, double> NormalConst(double theta)
         {
-            double a = 1d / (theta * Math.Sqrt(Math.PI * 2f));
+            double a = 1d / (theta * Math.Sqrt(Math.PI * 2d));
             double b = 2 * Math.Pow(theta, 2);
 
             return new Tuple<double, double>(a, b);
@@ -139,6 +154,22 @@ namespace LinqInfer.Probability
             return new Tuple<double, double, double, double, double>(a, b, c, d, e);
 
             // 1 / (theta * SqrR(2 * Pi)) * e -((x - mu) ^ 2) / (2 * theta ^ 2)
+        }
+
+        internal static Func<ColumnVector1D, double> MultiVariateNormalKernel(IEnumerable<ColumnVector1D> sample, double bandwidth)
+        {
+            var h = bandwidth;
+            var hSq2 = 2 * h * h;
+            var n = (double)sample.Count();
+            var a = 1d / n;
+
+            return (x) =>
+            {
+                var b = 1d / Math.Pow(Math.PI * hSq2, x.Size / 2);
+                var c = sample.Select(x0 => b * Math.Exp(-Math.Pow((x - x0).EuclideanLength, 2) / hSq2)).Sum();
+
+                return a * c;
+            };
         }
 
         internal static Tuple<Fraction, Fraction, Fraction, Fraction, Fraction> NormalDistributionDebug(Fraction x, Fraction theta, Fraction mu)
