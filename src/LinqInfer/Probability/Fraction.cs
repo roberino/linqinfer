@@ -64,6 +64,11 @@ namespace LinqInfer.Probability
             }
         }
 
+        public static Fraction Random(int maxPrecision = 100)
+        {
+            return new Fraction(Functions.Random(maxPrecision), maxPrecision, true);
+        }
+
         internal static Fraction ApproxPii
         {
             get
@@ -144,6 +149,7 @@ namespace LinqInfer.Probability
         
         public override string ToString()
         {
+            if (IsZero) return "0";
             return string.Format("{0}/{1}", Numerator, Denominator);
         }
 
@@ -291,6 +297,13 @@ namespace LinqInfer.Probability
 
                     break;
                 }
+                catch (DivideByZeroException)
+                {
+                    if (i < 1) break;
+
+                    c = i;
+                    a = Zero;
+                }
                 catch (OverflowException)
                 {
                     if (i < 1) break;
@@ -390,6 +403,8 @@ namespace LinqInfer.Probability
 
         internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
         {
+            if (x.IsZero || y.IsZero) return Zero;
+
             long n = (long)x.Numerator * (long)y.Numerator;
             long d = (long)x.Denominator * (long)y.Denominator;
 

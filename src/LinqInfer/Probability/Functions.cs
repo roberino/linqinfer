@@ -7,6 +7,30 @@ namespace LinqInfer.Probability
 {
     internal static class Functions
     {
+        private static readonly Random _random = new System.Random((int)DateTime.UtcNow.Ticks);
+
+        /// <summary>
+        /// Returns a random number between zero and max (inclusive).
+        /// </summary>
+        /// <param name="max">The maximum value</param>
+        /// <returns>An integer</returns>
+        public static int Random(int max = 100)
+        {
+            return _random.Next(max + 1);
+        }
+
+        /// <summary>
+        /// Normalises the set of values.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <returns>The resultant sample</returns>
+        public static IEnumerable<Fraction> Normalise(this IEnumerable<Fraction> values)
+        {
+            var sum = Fraction.ApproximateRational(values.Select(x => x.Value).Sum());
+
+            return values.Select(x => x / sum);
+        }
+
         /// <summary>
         /// Sums up an enumeration of fractions.
         /// </summary>
@@ -14,6 +38,8 @@ namespace LinqInfer.Probability
         /// <returns>The resultant sum</returns>
         public static Fraction Sum(this IEnumerable<Fraction> values)
         {
+            Contract.Assert(values != null);
+
             Fraction total = values.First();
 
             foreach (var v in values.Skip(1))
@@ -90,17 +116,25 @@ namespace LinqInfer.Probability
         public static double NormalDistribution(double x, double theta, double mu)
         {
             var parts = NormalDistributionDebug(x, theta, mu);
-            return (1 / parts.Item1) * parts.Item5;
+            return parts.Item1 * parts.Item5;
         }
 
-        public static Tuple<double, double, double, double, double> NormalDistributionDebug(double x, double theta, double mu)
+        internal static Tuple<double, double> NormalConst(double theta)
         {
-            double a = theta * Math.Sqrt(Math.PI * 2f);
-            double b = Math.Pow(x - mu, 2);
-            double c = 2 * Math.Pow(theta, 2);
-            double d = -(b / c);
+            double a = 1d / (theta * Math.Sqrt(Math.PI * 2f));
+            double b = 2 * Math.Pow(theta, 2);
+
+            return new Tuple<double, double>(a, b);
+        }
+
+        internal static Tuple<double, double, double, double, double> NormalDistributionDebug(double x, double theta, double mu)
+        {
+            var con = NormalConst(theta);
+            double a = con.Item1;
+            double b = con.Item2;
+            double c = Math.Pow(x - mu, 2);
+            double d = -(c / con.Item2);
             double e = Math.Exp(d);
-            // (1 / a) * (Math.Pow(Math.E, -(b / c)));
 
             return new Tuple<double, double, double, double, double>(a, b, c, d, e);
 
@@ -109,10 +143,10 @@ namespace LinqInfer.Probability
 
         internal static Tuple<Fraction, Fraction, Fraction, Fraction, Fraction> NormalDistributionDebug(Fraction x, Fraction theta, Fraction mu)
         {
-            var a = Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true);
-            var b = (x - mu).Sq();
-            var c = Fraction.Multiply(theta.Sq(true), (2).OutOf(1), true);
-            var d = Fraction.Multiply(Fraction.Divide(b, c, true), (-1).OutOf(1), true);
+            var a = Fraction.Divide(Fraction.One, Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true).Approximate(), true);
+            var b = Fraction.Multiply(theta.Sq(true), (2).OutOf(1), true);
+            var c = (x - mu).Sq();
+            var d = Fraction.Multiply(Fraction.Divide(c, b, true), (-1).OutOf(1), true);
             var e = Fraction.ApproximateRational(Math.Exp(d.Value));
 
             return new Tuple<Fraction, Fraction, Fraction, Fraction, Fraction>(a, b, c, d, e);
@@ -122,14 +156,11 @@ namespace LinqInfer.Probability
         {
             var parts = NormalDistributionDebug(x, theta, mu);
 
-            // (1 / a) * (Math.Pow(Math.E, -(b / c)));
-
-            return Fraction.Multiply(Fraction.Divide(Fraction.One, parts.Item1.Approximate(), true), parts.Item5, true);
-
-            //return (Fraction.One / a) * Math.Exp(-(b / c));
-
+            return Fraction.Multiply(parts.Item1, parts.Item5, true);
+            
             // 1 / (theta * SqrR(2 * Pi)) * e -((x - mu) ^ 2) / (2 * theta ^ 2)
         }
+
         public static Func<float, double> NormalPdf(double theta, double mu)
         {
             return x => NormalDistribution(x, theta, mu);

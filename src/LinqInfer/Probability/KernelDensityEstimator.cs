@@ -1,14 +1,24 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Probability
 {
-    class KernelDensityEstimator : IKernelDensityEstimator<Fraction>
+    /// <summary>
+    /// 1 dimentional KDE
+    /// </summary>
+    class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>
     {
         private readonly Func<IQueryable<Fraction>, Func<Fraction, Fraction>> _kernelFact;
+        private readonly float _bandwidth;
 
-        public KernelDensityEstimator()
+        public KernelDensityEstimator(
+            float bandwidth = 0.2F)
         {
+            Contract.Assert(bandwidth > 0);
+
+            _bandwidth = bandwidth;
+
             _kernelFact = (s) =>
             {
                 var muStdDev = Functions.MeanStdDev(s);
@@ -17,24 +27,34 @@ namespace LinqInfer.Probability
             };
         }
 
-        public KernelDensityEstimator(Func<IQueryable<Fraction>, Func<Fraction, Fraction>> kernelFact)
+        public KernelDensityEstimator(
+            Func<IQueryable<Fraction>, Func<Fraction, Fraction>> kernelFact,
+            float bandwidth = 0.2F)
         {
+            Contract.Assert(bandwidth > 0);
+
+            _bandwidth = bandwidth;
             _kernelFact = kernelFact;
         }
 
-        public Func<Fraction, Fraction> Evaluate(IQueryable<Fraction> sample,
-            float bandwidth = 0.2F)
+        public Func<Fraction, Fraction> Evaluate(IQueryable<Fraction> sample)
         {
-            // h = bandwidth
-            // Sum(K(y - x[i]) / h) [over sample data]
-            var h = Fraction.ApproximateRational(bandwidth);
-            var k = _kernelFact(sample);
+            // h = bandwidth (smoothing param)
+            // n = count of sample data
+            // kF = kernel function
+            // Sum((1 / hn) kF((y - x[i]) / h)) [over sample data]
+            var h = Fraction.ApproximateRational(_bandwidth, 16);
+            var n = sample.Count();
+            var hn = Fraction.ApproximateRational(_bandwidth * n);
+            var max = sample.OrderByDescending(s => s.Value).First();
+            var hReciprocal = Fraction.One / hn;
+            var kF = _kernelFact(sample);
 
             return new Func<Fraction, Fraction>(y =>
             {
-                var t = sample.Select(x => k(y - x)).ToList();
-                return Fraction.ApproximateRational(t.Sum(v => v.Value)) / h;
-                //return t.Sum() / h;
+                //return kF(y);
+                var t = sample.Select(x => kF((y - x) / h));
+                return Fraction.ApproximateRational(hReciprocal.Value * t.Sum(v => v.Value)) / max;
             });
         }
     }

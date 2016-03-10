@@ -8,7 +8,7 @@ namespace LinqInfer.Probability
     {
         private Func<T, Fraction> _kde;
 
-        public ContinuousSample(IQueryable<T> sample, IKernelDensityEstimator<T> estimationModel)
+        public ContinuousSample(IQueryable<T> sample, IDensityEstimationStrategy<T> estimationModel)
         {
             Contract.Assert(estimationModel != null);
             _kde = estimationModel.Evaluate(sample);

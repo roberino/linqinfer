@@ -8,6 +8,17 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FunctionsTests
     {
+        [TestCase(1, 2, 0.5d, 0.04714d, 8.46)]
+        public void NormalDistribution_ReturnsExpectedResult(int n, int d, double mu, double stdDev, double expected)
+        {
+            var x = n.OutOf(d);
+            var muf = Fraction.ApproximateRational(mu);
+            var stdDevf = Fraction.ApproximateRational(stdDev);
+            var p = Functions.NormalDistribution(x, stdDevf, muf);
+
+            Assertions.AssertEquiv(p, expected, 2);
+        }
+
         [Test]
         public void EnumerationOfFractions_NormalDistribution_ReturnsExpectedComponents()
         {
