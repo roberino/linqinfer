@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning
 {
-    public class ClassificationPipeline<TClass, TInput, TVector> where TVector : struct
+    internal class ClassificationPipeline<TClass, TInput, TVector> where TVector : struct
     {
         private readonly IAssistedLearning<TClass, TVector> _learning;
         private readonly IClassifier<TClass, TVector> _classifier;

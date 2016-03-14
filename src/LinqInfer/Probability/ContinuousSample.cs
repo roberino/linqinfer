@@ -14,9 +14,8 @@ namespace LinqInfer.Probability
             _kde = estimationModel.Evaluate(sample);
         }
 
-        public Fraction ProbabilityOf(T item)
+        public Fraction DensityOf(T item)
         {
-            //
             return _kde(item);
         }
     }

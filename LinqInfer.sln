@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E5FE3E3C-B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Api", "src\LinqInfer.Api\LinqInfer.Api.csproj", "{D91E1181-6D01-475E-97C0-3C89CF3C8A17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.File", "src\LinqInfer.Storage.File\LinqInfer.Storage.File.csproj", "{8A2628BC-DF0D-4262-A686-B048E8A581A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A2628BC-DF0D-4262-A686-B048E8A581A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A2628BC-DF0D-4262-A686-B048E8A581A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A2628BC-DF0D-4262-A686-B048E8A581A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A2628BC-DF0D-4262-A686-B048E8A581A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

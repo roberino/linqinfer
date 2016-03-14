@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
-    public class SimpleNet<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
+    internal class SimpleNet<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
     {
         private readonly Dictionary<T, List<INeuron<float>>> netData;
         private readonly int vectorSize;

@@ -53,8 +53,12 @@ namespace LinqInfer.Probability
             return new Func<Fraction, Fraction>(y =>
             {
                 //return kF(y);
-                var t = sample.Select(x => kF((y - x) / h));
-                return Fraction.Divide(Fraction.ApproximateRational(hReciprocal.Value * t.Sum(v => v.Value)), max, true);
+                var t = sample.Select(x => kF(Fraction.Divide(Fraction.Add(y, -x, true), h, true)));
+                var fpSum = t.Sum(v => v.Value);
+                var norm = hReciprocal.Value * fpSum;
+                var normR = Fraction.ApproximateRational(norm);
+
+                return Fraction.Divide(normR, max, true);
             });
         }
 

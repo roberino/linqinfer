@@ -29,15 +29,20 @@ namespace LinqInfer.Learning.Features
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(bool normaliseData = true, string setName = null) where T : class
         {
-            var featureProps = typeof(T)
+            return CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
+        }
+
+        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, bool normaliseData = true, string setName = null) where T : class
+        {
+            var featureProps = actualType
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .OrderBy(p => p.Name)
                 .Select(c => CreateConverter<T>(c, setName))
                 .Where(c => c != null)
                 .ToList();
 
-            return new DelegatingFloatingPointFeatureExtractor<T>((x) => 
-                featureProps.Select(c => x == null ? 1f : c(x)).ToArray(), 
+            return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
+                featureProps.Select(c => x == null ? 1f : c(x)).ToArray(),
                 featureProps.Count,
                 normaliseData);
         }

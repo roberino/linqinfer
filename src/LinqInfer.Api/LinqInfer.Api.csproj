@@ -227,6 +227,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LinqInfer.Storage.File\LinqInfer.Storage.File.csproj">
+      <Project>{8a2628bc-df0d-4262-a686-b048e8a581a4}</Project>
+      <Name>LinqInfer.Storage.File</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LinqInfer\LinqInfer.csproj">
       <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
       <Name>LinqInfer</Name>

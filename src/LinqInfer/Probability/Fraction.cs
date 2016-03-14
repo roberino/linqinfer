@@ -375,30 +375,27 @@ namespace LinqInfer.Probability
 
         public static Fraction operator +(Fraction x, Fraction y)
         {
-            // e.g  2/4 + 5/6
-            // =    6/12 + 10/12
-            // =    16/12
-
-            var cd = (long)x.Denominator * (long)y.Denominator;
-            var xn1 = (long)x.Numerator * (long)y.Denominator;
-            var yn1 = (long)y.Numerator * (long)x.Denominator;
-            var n = xn1 + yn1;
-            var lcd = LargestCommonDivisor(n, cd);
-
-            n = n / lcd;
-            cd = cd / lcd;
-
-            if(n > int.MaxValue || cd > int.MaxValue)
-            {
-                throw new OverflowException();
-            }
-
-            return new Fraction((int)n, (int)cd, false);
+            return Add(x, y);
         }
 
         public static Fraction operator -(Fraction d1, Fraction d2)
         {
-            return d1 + new Fraction(0 - d2.Numerator, d2.Denominator);
+            return d1 + new Fraction(-d2.Numerator, d2.Denominator);
+        }
+
+        public static Fraction operator +(int x, Fraction y)
+        {
+            return new Fraction(x, 1) + new Fraction(y.Numerator, y.Denominator);
+        }
+
+        public static Fraction operator -(int x, Fraction y)
+        {
+            return new Fraction(x, 1) + new Fraction(-y.Numerator, y.Denominator);
+        }
+
+        public static Fraction operator -(Fraction y)
+        {
+            return new Fraction(-y.Numerator, y.Denominator);
         }
 
         internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
@@ -429,6 +426,31 @@ namespace LinqInfer.Probability
             if (y.IsZero) throw new DivideByZeroException();
 
             return Multiply(x, new Fraction(y.Denominator, y.Numerator, true), approx);
+        }
+
+        internal static Fraction Add(Fraction x, Fraction y, bool approx = false)
+        {
+            // e.g  2/4 + 5/6
+            // =    6/12 + 10/12
+            // =    16/12
+
+            var cd = (long)x.Denominator * (long)y.Denominator;
+            var xn1 = (long)x.Numerator * (long)y.Denominator;
+            var yn1 = (long)y.Numerator * (long)x.Denominator;
+            var n = xn1 + yn1;
+            var lcd = LargestCommonDivisor(n, cd);
+
+            n = n / lcd;
+            cd = cd / lcd;
+
+            if (n > int.MaxValue || cd > int.MaxValue)
+            {
+                if (!approx) throw new OverflowException();
+
+                return ApproximateRational((double)n / (double)cd);
+            }
+
+            return new Fraction((int)n, (int)cd, false);
         }
 
         public static Fraction operator *(Fraction x, Fraction y)

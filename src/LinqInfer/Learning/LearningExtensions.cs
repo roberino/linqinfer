@@ -69,7 +69,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates a simple classifer based on some training data.
+        /// Creates a simple classifier based on some training data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The returned class type</typeparam>

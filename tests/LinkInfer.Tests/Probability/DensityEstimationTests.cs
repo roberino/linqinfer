@@ -30,7 +30,7 @@ namespace LinqInfer.Tests.Probability
             {
                 i++;
 
-                Console.WriteLine("{0}\t{1}\t{2}", i, x.Value);
+                Console.WriteLine("{0}\t{1}", i, x.Value);
             }
 
             return kRes;

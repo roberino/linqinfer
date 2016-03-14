@@ -176,7 +176,7 @@ namespace LinqInfer.Probability
         {
             var a = Fraction.Divide(Fraction.One, Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true).Approximate(), true);
             var b = Fraction.Multiply(theta.Sq(true), (2).OutOf(1), true);
-            var c = (x - mu).Sq();
+            var c = Fraction.Add(x, -mu, true).Sq(true);
             var d = Fraction.Multiply(Fraction.Divide(c, b, true), (-1).OutOf(1), true);
             var e = Fraction.ApproximateRational(Math.Exp(d.Value));
 

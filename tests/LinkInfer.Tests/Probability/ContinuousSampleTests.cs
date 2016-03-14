@@ -17,7 +17,7 @@ namespace LinqInfer.Tests.Probability
 
             foreach(var x in Enumerable.Range(1, 100))
             {
-                Console.WriteLine("{0}\t{1}", x, sample.ProbabilityOf(x.OutOf(100)).Value);
+                Console.WriteLine("{0}\t{1}", x, sample.DensityOf(x.OutOf(100)).Value);
             }
         }
 
@@ -30,7 +30,7 @@ namespace LinqInfer.Tests.Probability
 
             foreach (var x in Enumerable.Range(1, 100))
             {
-                Console.WriteLine("{0}\t{1}", x, sample.ProbabilityOf(x.OutOf(100)).Value);
+                Console.WriteLine("{0}\t{1}", x, sample.DensityOf(x.OutOf(100)).Value);
             }
         }
     }

@@ -4,7 +4,7 @@
     {
         private readonly T _outcome;
 
-        public HypothesisBuilder(T outcome)
+        internal HypothesisBuilder(T outcome)
         {
             _outcome = outcome;
         }
@@ -24,7 +24,7 @@
             private readonly HypothesisBuilder<T> _owner;
             private readonly int _numerator;
 
-            public FractionBuilder(HypothesisBuilder<T> owner, int numerator)
+            internal FractionBuilder(HypothesisBuilder<T> owner, int numerator)
             {
                 _owner = owner;
                 _numerator = numerator;
