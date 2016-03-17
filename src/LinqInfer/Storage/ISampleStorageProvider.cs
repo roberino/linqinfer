@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Storage
 {
     public interface ISampleStorageProvider : IDisposable
     {
-        Task<IEnumerable<Uri>> ListSamples();
+        IQueryable<Uri> ListSamples();
 
         Task<Uri> StoreSample(DataSample sample);
 

@@ -1,5 +1,7 @@
 ﻿using LinqInfer.Learning.Features;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Learning
 {
@@ -10,7 +12,10 @@ namespace LinqInfer.Learning
         public WordVectoriser(int maxWordSize)
         {
             _size = maxWordSize;
+            Labels = Enumerable.Range(0, _size).ToDictionary(n => "Char " + n, n => n);
         }
+
+        public IDictionary<string, int> Labels { get; private set; }
 
         public int VectorSize { get { return _size; } }
 

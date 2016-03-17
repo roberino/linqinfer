@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
@@ -9,15 +10,36 @@ namespace LinqInfer.Storage.File
     public class FileStorageProvider : ISampleStorageProvider
     {
         private readonly DirectoryInfo _baseDir;
+        private readonly IUriProvider _uriProvider;
 
         public FileStorageProvider(string path)
         {
             _baseDir = new DirectoryInfo(path);
+            _uriProvider = new UriProvider();
         }
 
-        public Task<IEnumerable<Uri>> ListSamples()
+        public IQueryable<Uri> ListSamples()
         {
-            throw new NotImplementedException();
+            return ListSamples(_baseDir).AsQueryable();
+        }
+
+        public IEnumerable<Uri> ListSamples(DirectoryInfo dir)
+        {
+            foreach (var file in dir.GetFiles())
+            {
+                if(file.Extension == ".dat")
+                {
+                    yield return _uriProvider.Create("samples", file.Name.Substring(0, file.Name.Length - 4));
+                }
+            }
+
+            foreach (var subDir in dir.GetDirectories())
+            {
+                foreach (var uri in ListSamples(subDir))
+                {
+                    yield return uri;
+                }
+            }
         }
 
         public Task<DataSample> DeleteSample(Uri sampleUri)

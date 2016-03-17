@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Storage
 {
-    internal class UriProvider : IUriProvider
+    public class UriProvider : IUriProvider
     {
         public Uri Create(string type, string path)
         {

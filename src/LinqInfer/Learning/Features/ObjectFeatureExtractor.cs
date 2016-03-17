@@ -37,14 +37,15 @@ namespace LinqInfer.Learning.Features
             var featureProps = actualType
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .OrderBy(p => p.Name)
-                .Select(c => CreateConverter<T>(c, setName))
-                .Where(c => c != null)
+                .Select(c => new { converter = CreateConverter<T>(c, setName), name = c.Name })
+                .Where(c => c.converter != null)
                 .ToList();
 
             return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
-                featureProps.Select(c => x == null ? 1f : c(x)).ToArray(),
+                featureProps.Select(c => x == null ? 1f : c.converter(x)).ToArray(),
                 featureProps.Count,
-                normaliseData);
+                normaliseData,
+                featureProps.Select(f => f.name).ToArray());
         }
 
         private Func<T, float> CreateConverter<T>(PropertyInfo prop, string setName)

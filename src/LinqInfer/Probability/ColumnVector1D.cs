@@ -17,6 +17,10 @@ namespace LinqInfer.Probability
             _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
         }
 
+        public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
+        {
+        }
+
         public double this[int i]
         {
             get
