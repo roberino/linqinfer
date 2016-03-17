@@ -38,9 +38,20 @@ namespace LinqInfer.Api.Controllers
 
             var sampleResource = new Resource<DataSample>(sample, ToConcreteUri(sample.Uri));
 
+            sample.SampleData = null;
             sampleResource.Views["self organising feature map"] = ToConcreteUri(sample.Uri, "/sofm");
 
             return sampleResource;
+        }
+
+        [Route("api/data/samples/{id}/{itemId}")]
+        public async Task<Resource<DataItem>> GetSample(string id, string itemId)
+        {
+            var sample = await GetSampleById(id);
+
+            var sampleItem = new Resource<DataItem>(sample.SampleData.FirstOrDefault(d => d.Id == itemId), ToConcreteUri(sample.Uri));
+
+            return sampleItem;
         }
 
         [Route("api/data/samples-csv")]

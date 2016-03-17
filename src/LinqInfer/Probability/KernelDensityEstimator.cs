@@ -67,5 +67,13 @@ namespace LinqInfer.Probability
             var f = Functions.MultiVariateNormalKernel(sample, _bandwidth);
             return x => Fraction.ApproximateRational(f(x));
         }
+
+        public double[] CreateMultiVariateDistribution(IQueryable<ColumnVector1D> sample)
+        {
+            var f = Functions.MultiVariateNormalKernel(sample, _bandwidth);
+            var max = sample.MaxOfEachDimension();
+
+            throw new NotImplementedException();
+        }
     }
 }

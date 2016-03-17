@@ -9,7 +9,7 @@ namespace LinqInfer.Api.Controllers
     public class SofmController : DataApiControllerBase
     {
         [Route("api/data/samples/{id}/sofm")]
-        public async Task<object> GetClusterMap(string id, int nodeCount = 10, float learningRate = 0.5f)
+        public async Task<object> GetSofm(string id, int nodeCount = 10, float learningRate = 0.5f)
         {
             var sample = await GetSampleById(id);
 
