@@ -15,8 +15,8 @@ angular.module('linqinfer.sofm', ['ngRoute'])
         $scope.data = sofm.map;
         $scope.data.labels = getValues(sofm.features);
         $scope.chart = {
-            xAxis: { value: 0 },
-            yAxis: { value: 0 }
+            xAxis: $scope.data.labels[0],
+            yAxis: $scope.data.labels[1]
         };
         google.charts.setOnLoadCallback(drawChart);
 
@@ -37,17 +37,18 @@ angular.module('linqinfer.sofm', ['ngRoute'])
 
         var options = {
             title: 'SOFM',
-            hAxis: { title: 'Number' },
-            vAxis: { title: 'Euclidean Length' },
+            hAxis: { title: $scope.chart.xAxis.key },
+            vAxis: { title: $scope.chart.yAxis.key },
             bubble: { textStyle: { fontSize: 11 } }
         };
 
         var rows = [];
         var len = $scope.data.length;
-        rows.push(['ID', 'Number', 'Euclidean Length', 'a', 'Number Of Members']);
+        rows.push(['Euclidean Length', $scope.chart.xAxis.key, $scope.chart.yAxis.key, 'Node', 'Number Of Members']);
 
         $scope.data.forEach(function (x) {
-            rows.push([i + 'id', x.weights[yi], x.weights[xi], 'a', x.numberOfMembers]);
+            i++;
+            rows.push([Math.round(x.euclideanLength * 100) / 100 + '', x.weights[yi], x.weights[xi], i, x.numberOfMembers]);
         });
 
         var data = google.visualization.arrayToDataTable(rows);
