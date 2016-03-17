@@ -36,6 +36,20 @@ namespace LinqInfer.Probability
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 
+        public double[] ToDoubleArray()
+        {
+            var arr = new double[_values.Length];
+
+            Array.Copy(_values, arr, _values.Length);
+
+            return arr;
+        }
+
+        public float[] ToSingleArray()
+        {
+            return _values.Select(v => (float)v).ToArray();
+        }
+
         public double EuclideanLength
         {
             get

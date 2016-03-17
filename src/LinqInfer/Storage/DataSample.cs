@@ -53,6 +53,13 @@ namespace LinqInfer.Storage
 
                 Summary.Mean = muStdDev.Item1;
                 Summary.StdDev = muStdDev.Item2;
+                Summary.Count = SampleData.Count;
+
+                if (SampleData.Count > 0)
+                {
+                    var fv = SampleData.First().FeatureVector;
+                    Summary.Size = fv == null ? 0 : fv.Length;
+                }
             }
 
             return Summary;

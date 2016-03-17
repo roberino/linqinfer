@@ -9,6 +9,19 @@ namespace LinqInfer.Tests.Probability
     public class FunctionsTests
     {
         [Test]
+        public void Max_ColumnVector1D_ReturnsCorrectResult()
+        {
+            var vector1 = ColumnVector1D.Create(6, 2, 3);
+            var vector2 = ColumnVector1D.Create(5, 5, 4);
+
+            var max = new[] { vector1, vector2 }.MaxOfEachDimension();
+
+            Assert.That(max[0], Is.EqualTo(6));
+            Assert.That(max[1], Is.EqualTo(5));
+            Assert.That(max[2], Is.EqualTo(4));
+        }
+
+        [Test]
         public void MultiVariateNormalKernel_ReturnsExpectedResults()
         {
             var vector1 = ColumnVector1D.Create(1, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9);

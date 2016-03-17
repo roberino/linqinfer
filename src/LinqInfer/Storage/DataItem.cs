@@ -22,6 +22,8 @@ namespace LinqInfer.Storage
 
         public string Id { get; set; }
 
+        public string Label { get; set; }
+
         public virtual object Item { get; set; }
 
         public double[] FeatureVector { get; set; }
@@ -30,7 +32,7 @@ namespace LinqInfer.Storage
         {
             if (Item != null)
             {
-                FeatureVector = featureExtractor.ExtractVector(Item).Cast<double>().ToArray();
+                FeatureVector = featureExtractor.ExtractVector(Item).Select(v => (double)v).ToArray();
             }
         }
 
@@ -51,6 +53,11 @@ namespace LinqInfer.Storage
                 if (_uriProvider == null) _uriProvider = new UriProvider();
                 return _uriProvider.Create("item", Id);
             }
+        }
+
+        public override string ToString()
+        {
+            return Label == null ? Uri.ToString() : Label;
         }
     }
 }

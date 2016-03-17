@@ -50,6 +50,11 @@ namespace LinqInfer.Probability
             return total;
         }
 
+        /// <summary>
+        /// Returns the sum of the values.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <returns>A new vector containing the resultant sum</returns>
         public static ColumnVector1D Sum(this IEnumerable<ColumnVector1D> values)
         {
             Contract.Assert(values != null);
@@ -62,6 +67,16 @@ namespace LinqInfer.Probability
             }
 
             return total;
+        }
+
+        public static ColumnVector1D MaxOfEachDimension(this IEnumerable<ColumnVector1D> values)
+        {
+            if (values.Any())
+            {
+                return new ColumnVector1D(Enumerable.Range(0, values.First().Size).Select(n => values.Select(v => v[n]).Max()).ToArray());
+            }
+
+            throw new ArgumentException();
         }
 
         public static Fraction Mean(this IEnumerable<Fraction> items)
@@ -197,22 +212,22 @@ namespace LinqInfer.Probability
             return x => NormalDistribution(x, theta, mu);
         }
 
-        public static Func<int, double> UniformPdf(double value) // ??
+        internal static Func<int, double> UniformPdf(double value) // ??
         {
             return x => value;
         }
 
-        public static Func<float, double> BinaryPdf(double value)
+        internal static Func<float, double> BinaryPdf(double value)
         {
             return x => value == x ? value : 0f;
         }
 
-        public static Func<float, double> AutoPdf(double theta, double mu)
+        internal static Func<float, double> AutoPdf(double theta, double mu)
         {
             return theta == 0 ? BinaryPdf(mu) : NormalPdf(theta, mu);
         }
 
-        public static double[] PercentileRange(int bucketCount, double percentile = 0.9f)
+        public static double[] PercentileRange(int bucketCount, double percentile = 0.9d)
         {
             Contract.Assert(percentile >= 0 && percentile < 1);
 

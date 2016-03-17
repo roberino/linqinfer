@@ -9,5 +9,7 @@ namespace LinqInfer.Storage
         public double Max { get; set; }
         public double StdDev { get; set; }
         public double Mean { get; set; }
+        public int Count { get; set; }
+        public int Size { get; set; }
     }
 }

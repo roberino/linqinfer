@@ -15,6 +15,16 @@ namespace LinqInfer.Storage.File
             _baseDir = new DirectoryInfo(path);
         }
 
+        public Task<IEnumerable<Uri>> ListSamples()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DataSample> DeleteSample(Uri sampleUri)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Uri> StoreSample(DataSample sample)
         {
             return Task<Uri>.Factory.StartNew(() => Write(sample, sample.Uri));
