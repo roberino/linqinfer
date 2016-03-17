@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Annotation\FeatureAttribute.cs" />
     <Compile Include="Language\TextFuctions.cs" />
+    <Compile Include="Learning\FeatureMap.cs" />
     <Compile Include="Learning\Features\DefaultConverter.cs" />
     <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />
@@ -51,7 +52,7 @@
     <Compile Include="Language\EnglishDictionary.cs" />
     <Compile Include="Learning\NetworkCalculator.cs" />
     <Compile Include="Learning\ClusterNode.cs" />
-    <Compile Include="Learning\FeatureMap.cs" />
+    <Compile Include="Learning\FeatureMapper.cs" />
     <Compile Include="Learning\Nn\ClassificationPipeline.cs" />
     <Compile Include="Learning\Nn\ClassifyResult.cs" />
     <Compile Include="Learning\Nn\IAssistedLearning.cs" />

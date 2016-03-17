@@ -26,7 +26,7 @@ namespace LinqInfer.Storage
             get
             {
                 if (_uriProvider == null) _uriProvider = new UriProvider();
-                return _uriProvider.Create("sample", Id);
+                return _uriProvider.Create("samples", Id);
             }
         }
 

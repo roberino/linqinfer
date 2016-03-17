@@ -194,17 +194,36 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\ClusterMapController.cs" />
+    <Compile Include="Controllers\SofmController.cs" />
     <Compile Include="Controllers\DataApiControllerBase.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\SampleStorageController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Resource.cs" />
+    <Compile Include="Models\ResourceList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\app.css" />
+    <Content Include="app\app.js" />
+    <Content Include="app\components\version\interpolate-filter.js" />
+    <Content Include="app\components\version\interpolate-filter_test.js" />
+    <Content Include="app\components\version\version-directive.js" />
+    <Content Include="app\components\version\version-directive_test.js" />
+    <Content Include="app\components\version\version.js" />
+    <Content Include="app\components\version\version_test.js" />
+    <Content Include="app\index-async.html" />
+    <Content Include="app\index.html" />
+    <Content Include="app\sofm\sofm.html" />
+    <Content Include="app\sofm\sofm.js" />
+    <Content Include="app\samples\samples.html" />
+    <Content Include="app\samples\samples.js" />
+    <Content Include="app\samples\samples_test.js" />
+    <Content Include="e2e-tests\protractor.conf.js" />
+    <Content Include="e2e-tests\scenarios.js" />
     <Content Include="Global.asax" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -224,7 +243,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

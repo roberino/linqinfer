@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
@@ -10,11 +11,15 @@ namespace LinqInfer.Learning.Features
         private readonly Func<T, float[]> _vectorFunc;
         private float[] _normalisingVector;
 
-        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData)
+        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, string[] labels = null)
         {
             _vectorFunc = vectorFunc;
             _vectorSize = vectorSize;
             _normaliseData = normaliseData;
+
+            int i = 0;
+
+            Labels = (labels ?? Enumerable.Range(0, _vectorSize).Select(n => n.ToString()).ToArray()).ToDictionary(l => l, k => i++);
         }
 
         public int VectorSize
@@ -24,6 +29,8 @@ namespace LinqInfer.Learning.Features
                 return _vectorSize;
             }
         }
+
+        public IDictionary<string, int> Labels { get; private set; }
 
         public float[] CreateNormalisingVector(T sample = default(T))
         {

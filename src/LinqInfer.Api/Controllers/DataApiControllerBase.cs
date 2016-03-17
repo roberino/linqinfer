@@ -12,7 +12,7 @@ namespace LinqInfer.Api.Controllers
         {
             //storage://data/sample/c636f199-2957-4ec3-a859-ae25b540883c
 
-            var sample = await Storage.RetrieveSample(new Uri("storage://data/sample/" + id));
+            var sample = await Storage.RetrieveSample(new Uri("storage://data/samples/" + id));
 
             return sample;
         }
@@ -26,6 +26,11 @@ namespace LinqInfer.Api.Controllers
 
                 return store;
             }
+        }
+
+        protected Uri ToConcreteUri(Uri dataUri, string subView = null, string relPath = "/api/data")
+        {
+            return new Uri(Request.RequestUri, relPath + dataUri.PathAndQuery + subView);
         }
     }
 }

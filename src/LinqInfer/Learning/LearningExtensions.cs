@@ -23,16 +23,16 @@ namespace LinqInfer.Learning
         /// <param name="normaliseData">True if the object vector should be normalised before processing</param>
         /// <param name="learningRate">The rate of learning</param>
         /// <returns>An enumeration of cluster nodes</returns>
-        public static IEnumerable<ClusterNode<T>> ToSofm<T>(this IQueryable<T> values, T normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where T : class
+        public static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, T normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where T : class
         {
-            var fm = new FeatureMap<T>(_ofo.CreateFeatureExtractor<T>(normaliseData), normalisingSample, outputNodeCount, learningRate);
+            var fm = new FeatureMapper<T>(_ofo.CreateFeatureExtractor<T>(normaliseData), normalisingSample, outputNodeCount, learningRate);
 
             return fm.Map(values);
         }
 
-        public static IEnumerable<ClusterNode<T>> ToSofm<T>(this IQueryable<T> values, Func<T, float[]> featureExtractor, int outputNodeCount = 10, float learningRate = 0.5f)
+        public static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, Func<T, float[]> featureExtractor, int outputNodeCount = 10, float learningRate = 0.5f)
         {
-            var fm = new FeatureMap<T>(featureExtractor, default(T), outputNodeCount, learningRate);
+            var fm = new FeatureMapper<T>(featureExtractor, default(T), outputNodeCount, learningRate);
 
             return fm.Map(values);
         }

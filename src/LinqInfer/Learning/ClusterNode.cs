@@ -31,12 +31,9 @@ namespace LinqInfer.Learning
 
         internal bool IsInitialised { get; private set; }
 
-        public IDictionary<T, int> Members
+        public IDictionary<T, int> GetMembers()
         {
-            get
-            {
-                return _values.ToDictionary(w => w.Key, w => w.Value);
-            }
+            return _values.ToDictionary(w => w.Key, w => w.Value);
         }
 
         public bool IsMember(T value)
