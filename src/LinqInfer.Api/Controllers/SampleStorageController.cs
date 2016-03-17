@@ -44,7 +44,7 @@ namespace LinqInfer.Api.Controllers
             return sampleResource;
         }
 
-        [Route("api/data/samples/{id}/{itemId}")]
+        [Route("api/data/samples/{id}/items/{itemId}")]
         public async Task<Resource<DataItem>> GetSample(string id, string itemId)
         {
             var sample = await GetSampleById(id);
