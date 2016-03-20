@@ -18,7 +18,7 @@ namespace LinqInfer.Probability
             _width = width;
         }
 
-        public Sample Analyse(IQueryable<Fraction> sample)
+        public ResultSet Analyse(IQueryable<Fraction> sample)
         {
             var min = sample.Select(x => x.Value).Min();
             var max = sample.Select(x => x.Value).Max();
@@ -49,7 +49,7 @@ namespace LinqInfer.Probability
                 hist[bin]++;
             }
 
-            return new Sample() { Min = min, Width = h, Bins = hist, Total = hist.Values.Sum() };
+            return new ResultSet() { Min = min, Width = h, Bins = hist, Total = hist.Values.Sum() };
         }
 
         public Func<Fraction, Fraction> Evaluate(IQueryable<Fraction> sample)
@@ -69,7 +69,7 @@ namespace LinqInfer.Probability
             };
         }
 
-        public class Sample
+        public class ResultSet
         {
             public double Min { get; internal set; }
 

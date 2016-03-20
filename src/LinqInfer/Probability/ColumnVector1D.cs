@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Text;
 
 namespace LinqInfer.Probability
 {
-    public class ColumnVector1D : IEnumerable<double>
+    public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
     {
         private readonly double[] _values;
         private readonly Lazy<double> _euclideanLength;
@@ -26,6 +27,33 @@ namespace LinqInfer.Probability
             get
             {
                 return _values[i];
+            }
+        }
+
+        public IEnumerable<ColumnVector1D> Range(ColumnVector1D to, int binCount)
+        {
+            Contract.Assert(binCount > -1);
+
+            if (binCount == 0) yield break;
+
+            yield return this;
+
+            if (binCount > 1)
+            {
+                if (binCount > 2)
+                {
+                    var last = this;
+                    var binWidth = (to - this) / (binCount - 1);
+
+                    foreach (var n in Enumerable.Range(0, binCount - 2))
+                    {
+                        last = last + binWidth;
+
+                        yield return last;
+                    }
+                }
+
+                yield return to;
             }
         }
 
@@ -134,6 +162,44 @@ namespace LinqInfer.Probability
         public static ColumnVector1D operator *(ColumnVector1D v1, double y)
         {
             return new ColumnVector1D(v1._values.Select(x => x * y).ToArray());
+        }
+
+        public override string ToString()
+        {
+            return _values
+                .Select(v => string.Format("|{0}|\n", v))
+                .Aggregate(new StringBuilder(), (s, v) => s.Append(v))
+                .ToString();
+        }
+
+        public string ToCsv(int precision = 8)
+        {
+            return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
+        }
+
+        public override int GetHashCode()
+        {
+            return _values.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ColumnVector1D);
+        }
+
+        public bool Equals(ColumnVector1D other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            if (Size != other.Size) return false;
+
+            if (_euclideanLength.IsValueCreated && other._euclideanLength.IsValueCreated && EuclideanLength != other.EuclideanLength) return false;
+
+            int i = 0;
+
+            return _values.All(x => x == other._values[i++]);
         }
     }
 }
