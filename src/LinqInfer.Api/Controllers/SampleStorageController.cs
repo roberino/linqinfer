@@ -3,14 +3,16 @@ using LinqInfer.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace LinqInfer.Api.Controllers
 {
+    [RoutePrefix("api/data")]
     public class SampleStorageController : DataApiControllerBase
     {
-        [Route("api/data/samples")]
+        [Route("samples")]
         [HttpGet]
         public ResourceList<object> ListSamples()
         {
@@ -19,7 +21,7 @@ namespace LinqInfer.Api.Controllers
             return new ResourceList<object>(Storage.ListSamples().AsEnumerable().Select(s => new { name = "Sample " + i++, uri = ToConcreteUri(s), path = ToConcreteUri(s).PathAndQuery }));
         }
 
-        [Route("api/data/samples")]
+        [Route("samples")]
         public async Task<object> PostSample([FromBody] DataSample data)
         {
             if (data == null) throw new ArgumentNullException();
@@ -31,7 +33,7 @@ namespace LinqInfer.Api.Controllers
             return new { uri = ToConcreteUri(uri), created = data.Created, summary = data.Summary };
         }
 
-        [Route("api/data/samples/{id}")]
+        [Route("samples/{id}")]
         public async Task<Resource<DataSample>> GetSample(string id)
         {
             var sample = await GetSampleById(id);
@@ -44,7 +46,7 @@ namespace LinqInfer.Api.Controllers
             return sampleResource;
         }
 
-        [Route("api/data/samples/{id}/items/{itemId}")]
+        [Route("samples/{id}/items/{itemId}")]
         public async Task<Resource<DataItem>> GetSample(string id, string itemId)
         {
             var sample = await GetSampleById(id);
@@ -54,7 +56,24 @@ namespace LinqInfer.Api.Controllers
             return sampleItem;
         }
 
-        [Route("api/data/samples-csv")]
+        [Route("sample-file")]
+        [HttpPost]
+        public async Task<object> UploadFile()
+        {
+            var streamProvider = new MultipartFormDataStreamProvider("~/AppData/uploads");
+            await Request.Content.ReadAsMultipartAsync(streamProvider);
+
+            return new
+            {
+                FileNames = streamProvider.FileData.Select(entry => entry.LocalFileName),
+                Names = streamProvider.FileData.Select(entry => entry.Headers.ContentDisposition.FileName),
+                ContentTypes = streamProvider.FileData.Select(entry => entry.Headers.ContentType.MediaType),
+                Description = streamProvider.FormData["description"],
+                Created = DateTime.UtcNow
+            };
+        }
+
+        [Route("samples-csv")]
         public async Task<object> PostRawCsvSample([FromBody] string data)
         {
             if (data == null) throw new ArgumentNullException();
@@ -83,7 +102,7 @@ namespace LinqInfer.Api.Controllers
             return await PostSample(sample);
         }
 
-        [Route("api/data/samples-naked")]
+        [Route("samples-naked")]
         public async Task<object> PostRawSample([FromBody] List<double[]> data)
         {
             if (data == null) throw new ArgumentNullException();
