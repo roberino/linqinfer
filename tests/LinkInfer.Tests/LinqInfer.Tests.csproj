@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Assertions.cs" />
     <Compile Include="Language\EnglishDictionaryTests.cs" />
+    <Compile Include="Probability\ColumnVector1DTests.cs" />
     <Compile Include="Probability\ContinuousSampleTests.cs" />
     <Compile Include="Probability\DensityEstimationTests.cs" />
     <Compile Include="Probability\FunctionsTests.cs" />

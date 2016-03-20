@@ -79,6 +79,16 @@ namespace LinqInfer.Probability
             throw new ArgumentException();
         }
 
+        public static ColumnVector1D MinOfEachDimension(this IEnumerable<ColumnVector1D> values)
+        {
+            if (values.Any())
+            {
+                return new ColumnVector1D(Enumerable.Range(0, values.First().Size).Select(n => values.Select(v => v[n]).Min()).ToArray());
+            }
+
+            throw new ArgumentException();
+        }
+
         public static Fraction Mean(this IEnumerable<Fraction> items)
         {
             var sum = items.Sum();

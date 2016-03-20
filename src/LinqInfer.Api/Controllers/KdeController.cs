@@ -1,5 +1,4 @@
-﻿using LinqInfer.Probability;
-using System.Linq;
+﻿using LinqInfer.Storage;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -12,12 +11,15 @@ namespace LinqInfer.Api.Controllers
         {
             var sample = await GetSampleById(id);
 
-            var maxSample = sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
-            
-            return new
-            {
-                x = 1
-            };
+            return sample.CreateMultiVariateDistribution();
+        }
+
+        [Route("api/data/samples/{id}/histogram")]
+        public async Task<object> GetHistogram(string id, float bandwidth = 0.5f)
+        {
+            var sample = await GetSampleById(id);
+
+            return sample.CreateMultiVariateDistribution();
         }
     }
 }

@@ -80,6 +80,7 @@
     <Compile Include="Probability\IHypotheticalOutcome.cs" />
     <Compile Include="Probability\IDensityEstimationStrategy.cs" />
     <Compile Include="Probability\KernelDensityEstimator.cs" />
+    <Compile Include="Probability\MultiVariateHistogram.cs" />
     <Compile Include="Probability\P.cs" />
     <Compile Include="Probability\Fraction.cs" />
     <Compile Include="Probability\Functions.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\DataItem.cs" />
     <Compile Include="Storage\DataSample.cs" />
+    <Compile Include="Storage\DataSampleExtensions.cs" />
     <Compile Include="Storage\FieldIndex.cs" />
     <Compile Include="Storage\ISampleStorageProvider.cs" />
     <Compile Include="Storage\IStorageObject.cs" />
