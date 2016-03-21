@@ -34,11 +34,15 @@ namespace LinqInfer.Storage
 
         public string Name { get; set; }
 
+        public string SourceDataUrl { get; set; }
+
         public DateTime Created { get; set; }
 
         public DateTime Modified { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
 
         public virtual SampleSummary Summary { get; set; }
 

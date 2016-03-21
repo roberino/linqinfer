@@ -10,6 +10,7 @@
     "angular-route": "latest",
     "angular-loader": "latest",
     "angular-mocks": "latest",
+    "angular-resource": "latest",
     "html5-boilerplate": "~5.2.0"
   },
   "resolutions": {
