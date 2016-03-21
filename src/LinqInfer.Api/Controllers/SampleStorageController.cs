@@ -82,6 +82,8 @@ namespace LinqInfer.Api.Controllers
                 {
                     var sample = csvReader.ReadFromStream(fs);
 
+                    sample.Name = Path.GetFileName(file.LocalFileName);
+
                     var sampleResult = await Storage.StoreSample(sample);
 
                     sampleUris.Add(sampleResult);
