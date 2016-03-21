@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Annotation\FeatureAttribute.cs" />
+    <Compile Include="Charting\DataTable.cs" />
     <Compile Include="Language\TextFuctions.cs" />
     <Compile Include="Learning\FeatureMap.cs" />
     <Compile Include="Learning\Features\DefaultConverter.cs" />
@@ -99,8 +100,11 @@
     <Compile Include="Storage\ISampleStorageProvider.cs" />
     <Compile Include="Storage\IStorageObject.cs" />
     <Compile Include="Storage\IUriProvider.cs" />
+    <Compile Include="Storage\Parsers\CsvParser.cs" />
+    <Compile Include="Storage\Parsers\ParserSettings.cs" />
     <Compile Include="Storage\ResourceSet.cs" />
     <Compile Include="Storage\SampleSummary.cs" />
+    <Compile Include="Storage\SerialisableDynamicObject.cs" />
     <Compile Include="Storage\UriProvider.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
   </ItemGroup>

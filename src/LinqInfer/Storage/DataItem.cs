@@ -2,6 +2,7 @@
 using LinqInfer.Probability;
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace LinqInfer.Storage
 {
@@ -12,6 +13,8 @@ namespace LinqInfer.Storage
         private IUriProvider _uriProvider;
         [NonSerialized]
         private ColumnVector1D _vector;
+        [NonSerialized]
+        private object _item;
 
         public DataItem(IUriProvider uriProvider = null)
         {
@@ -24,7 +27,17 @@ namespace LinqInfer.Storage
 
         public string Label { get; set; }
 
-        public virtual object Item { get; set; }
+        public virtual object Item
+        {
+            get
+            {
+                return _item;
+            }
+            set
+            {
+                _item = value;
+            }
+        }
 
         public double[] FeatureVector { get; set; }
 

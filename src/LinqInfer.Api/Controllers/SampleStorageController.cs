@@ -1,10 +1,14 @@
 ﻿using LinqInfer.Api.Models;
 using LinqInfer.Storage;
+using LinqInfer.Storage.Parsers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using System.Web.Http;
 
 namespace LinqInfer.Api.Controllers
@@ -60,16 +64,38 @@ namespace LinqInfer.Api.Controllers
         [HttpPost]
         public async Task<object> UploadFile()
         {
-            var streamProvider = new MultipartFormDataStreamProvider("~/AppData/uploads");
+            if (!Request.Content.IsMimeMultipartContent())
+            {
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+            }
+
+            var path = HostingEnvironment.MapPath("~/App_Data/uploads");
+            var streamProvider = new MultipartFormDataStreamProvider(path);
             await Request.Content.ReadAsMultipartAsync(streamProvider);
+
+            var csvReader = new CsvParser();
+            var sampleUris = new List<Uri>();
+
+            foreach (var file in streamProvider.FileData)
+            {
+                using (var fs = File.OpenRead(file.LocalFileName))
+                {
+                    var sample = csvReader.ReadFromStream(fs);
+
+                    var sampleResult = await Storage.StoreSample(sample);
+
+                    sampleUris.Add(sampleResult);
+                }
+            }
 
             return new
             {
-                FileNames = streamProvider.FileData.Select(entry => entry.LocalFileName),
+                FileNames = streamProvider.FileData.Select(entry => Path.GetFileName(entry.LocalFileName)),
                 Names = streamProvider.FileData.Select(entry => entry.Headers.ContentDisposition.FileName),
                 ContentTypes = streamProvider.FileData.Select(entry => entry.Headers.ContentType.MediaType),
                 Description = streamProvider.FormData["description"],
-                Created = DateTime.UtcNow
+                Created = DateTime.UtcNow,
+                SampleUris = sampleUris
             };
         }
 
