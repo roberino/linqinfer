@@ -9,9 +9,10 @@ angular.module('linqinfer.sofm', ['ngRoute'])
   });
 }])
 
-.controller('SofmCtrl', ['$scope', '$resource', function ($scope, $resource) {
-    var Sofm = $resource('/api/data/samples/:id/sofm');
-    var sofm = Sofm.get({ id: '37a681e6-e4fe-4df3-95ab-3252d38109ec' }, function () {
+.controller('SofmCtrl', ['$scope', '$routeParams', '$resource', function ($scope, $routeParams, $resource) {
+    //alert($routeParams.resourceUrl);
+    var Sofm = $resource('/api/' + $routeParams.resourceUrl + '/sofm');
+    var sofm = Sofm.get({ }, function () {
         $scope.data = sofm.map;
         $scope.data.labels = getValues(sofm.features);
         $scope.chart = {

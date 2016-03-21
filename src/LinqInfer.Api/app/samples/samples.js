@@ -22,6 +22,11 @@ angular.module('linqinfer.samples', ['ngRoute'])
         google.charts.setOnLoadCallback(drawChart);
     });
 
+    function getRelPath(apiPath) {
+        var n = apiPath.indexOf('/api');
+        return apiPath.substring(n + 5);
+    }
+
     function drawChart() {
         // Define the chart to be drawn.
         var data = new google.visualization.DataTable();
@@ -32,7 +37,7 @@ angular.module('linqinfer.samples', ['ngRoute'])
 
         $scope.data.forEach(function (x) {
             rows.push([x.name, 1 / len]);
-            lookups[x.name] = x.path;
+            lookups[x.name] = getRelPath(x.path);
         });
 
         data.addRows(rows);
@@ -48,7 +53,7 @@ angular.module('linqinfer.samples', ['ngRoute'])
             var selection = chart.getSelection()[0];
             if (selection) {
                 var sampleName = data.getValue(selection.row, 0);
-                var path = '/sofm' + lookups[sampleName];
+                var path = '/sofm/' + lookups[sampleName];
                 $scope.$apply(function () { $location.path(path); });
             }
         }
