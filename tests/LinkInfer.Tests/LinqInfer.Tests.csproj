@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assertions.cs" />
+    <Compile Include="TestFixtureBase.cs" />
     <Compile Include="Language\EnglishDictionaryTests.cs" />
     <Compile Include="Probability\ColumnVector1DTests.cs" />
     <Compile Include="Probability\ContinuousSampleTests.cs" />
@@ -53,6 +53,7 @@
     <Compile Include="Probability\HistogramTests.cs" />
     <Compile Include="Probability\KernelDensityEstimatorTests.cs" />
     <Compile Include="Samples.cs" />
+    <Compile Include="Storage\Parsers\CsvParserTests.cs" />
     <Compile Include="TestData.cs" />
     <Compile Include="Learning\LearningExtensionsTests.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractorTests.cs" />
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Storage\example.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

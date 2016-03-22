@@ -17,7 +17,7 @@ namespace LinqInfer.Tests.Probability
 
             Assert.That(x.Numerator, Is.EqualTo(n));
             Assert.That(x.Denominator, Is.EqualTo(d));
-            Assertions.AssertEquiv(x, v);
+            TestFixtureBase.AssertEquiv(x, v);
         }
 
         [TestCase(5)]
@@ -30,7 +30,7 @@ namespace LinqInfer.Tests.Probability
             var y = Math.Sqrt(n);
             var x = Fraction.ApproximateRational(y, 8);
 
-            Assertions.AssertEquiv(x, y, 4);
+            TestFixtureBase.AssertEquiv(x, y, 4);
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace LinqInfer.Tests.Probability
             var y = Fraction.ApproximateRational(x);
 
             Console.Write("{0}~={1} = {2}", x, y, y.Value);
-            Assertions.AssertEquiv(y, x);
+            TestFixtureBase.AssertEquiv(y, x);
         }
 
         [TestCase(5, 1, 2)]

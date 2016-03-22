@@ -43,7 +43,7 @@ namespace LinqInfer.Tests.Probability
             var stdDevf = Fraction.ApproximateRational(stdDev);
             var p = Functions.NormalDistribution(x, stdDevf, muf);
 
-            Assertions.AssertEquiv(p, expected, 2);
+            TestFixtureBase.AssertEquiv(p, expected, 2);
         }
 
         [Test]
@@ -61,11 +61,11 @@ namespace LinqInfer.Tests.Probability
             var normal2 = Functions.NormalDistributionDebug(a.Value, meanAndStdDevF.Item2, meanAndStdDevF.Item1);
             var prec = 3;
 
-            Assertions.AssertEquiv(normal1.Item1, normal2.Item1, prec);
-            Assertions.AssertEquiv(normal1.Item2, normal2.Item2, prec);
-            Assertions.AssertEquiv(normal1.Item3, normal2.Item3, prec);
-            Assertions.AssertEquiv(normal1.Item4, normal2.Item4, prec);
-            Assertions.AssertEquiv(normal1.Item5, normal2.Item5, prec);
+            TestFixtureBase.AssertEquiv(normal1.Item1, normal2.Item1, prec);
+            TestFixtureBase.AssertEquiv(normal1.Item2, normal2.Item2, prec);
+            TestFixtureBase.AssertEquiv(normal1.Item3, normal2.Item3, prec);
+            TestFixtureBase.AssertEquiv(normal1.Item4, normal2.Item4, prec);
+            TestFixtureBase.AssertEquiv(normal1.Item5, normal2.Item5, prec);
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace LinqInfer.Tests.Probability
             var normal1 = Functions.NormalDistribution(a, meanAndStdDev.Item2, meanAndStdDev.Item1);
             var normal2 = Functions.NormalDistribution(a.Value, meanAndStdDevF.Item2, meanAndStdDevF.Item1);
 
-            Assertions.AssertEquiv(normal1, normal2, 3);
+            TestFixtureBase.AssertEquiv(normal1, normal2, 3);
         }
 
         [Test]
@@ -94,8 +94,8 @@ namespace LinqInfer.Tests.Probability
             var meanAndStdDev = fracts.MeanStdDev();
             var meanAndStdDevF = floating.MeanStdDev();
 
-            Assertions.AssertEquiv(meanAndStdDev.Item1, meanAndStdDevF.Item1);
-            Assertions.AssertEquiv(meanAndStdDev.Item2, meanAndStdDevF.Item2);
+            TestFixtureBase.AssertEquiv(meanAndStdDev.Item1, meanAndStdDevF.Item1);
+            TestFixtureBase.AssertEquiv(meanAndStdDev.Item2, meanAndStdDevF.Item2);
         }
     }
 }

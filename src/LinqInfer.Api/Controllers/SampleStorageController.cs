@@ -20,9 +20,14 @@ namespace LinqInfer.Api.Controllers
         [HttpGet]
         public ResourceList<object> ListSamples()
         {
-            int i = 1;
-
-            return new ResourceList<object>(Storage.ListSamples().AsEnumerable().Select(s => new { name = "Sample " + i++, uri = ToConcreteUri(s), path = ToConcreteUri(s).PathAndQuery }));
+            return new ResourceList<object>(Storage
+                .ListSamples()
+                .AsEnumerable().Select(s =>
+                    new
+                    {
+                        uri = ToConcreteUri(s.Uri),
+                        header = s
+                    }));
         }
 
         [Route("samples")]
@@ -67,7 +72,7 @@ namespace LinqInfer.Api.Controllers
             if (!Request.Content.IsMimeMultipartContent())
             {
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
-            }
+            } 
 
             var path = HostingEnvironment.MapPath("~/App_Data/uploads");
             var streamProvider = new MultipartFormDataStreamProvider(path);
@@ -82,7 +87,8 @@ namespace LinqInfer.Api.Controllers
                 {
                     var sample = csvReader.ReadFromStream(fs);
 
-                    sample.Name = Path.GetFileName(file.LocalFileName);
+                    sample.Label = file.Headers.ContentDisposition.FileName;
+                    sample.Description = streamProvider.FormData["description"];
 
                     var sampleResult = await Storage.StoreSample(sample);
 
@@ -92,12 +98,11 @@ namespace LinqInfer.Api.Controllers
 
             return new
             {
-                FileNames = streamProvider.FileData.Select(entry => Path.GetFileName(entry.LocalFileName)),
+                //FileNames = streamProvider.FileData.Select(entry => Path.GetFileName(entry.LocalFileName)),
                 Names = streamProvider.FileData.Select(entry => entry.Headers.ContentDisposition.FileName),
                 ContentTypes = streamProvider.FileData.Select(entry => entry.Headers.ContentType.MediaType),
-                Description = streamProvider.FormData["description"],
                 Created = DateTime.UtcNow,
-                SampleUris = sampleUris
+                Samples = sampleUris
             };
         }
 

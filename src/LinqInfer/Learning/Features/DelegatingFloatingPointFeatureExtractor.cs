@@ -20,6 +20,8 @@ namespace LinqInfer.Learning.Features
             int i = 0;
 
             Labels = (labels ?? Enumerable.Range(0, _vectorSize).Select(n => n.ToString()).ToArray()).ToDictionary(l => l, k => i++);
+
+            if (Labels.Count != _vectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
         }
 
         public int VectorSize

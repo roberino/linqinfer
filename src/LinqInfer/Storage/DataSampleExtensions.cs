@@ -24,8 +24,14 @@ namespace LinqInfer.Storage
         public static FeatureMap<DataItem> CreateSofm(this DataSample sample, int nodeCount = 10, float learningRate = 0.5f)
         {
             var maxSample = sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
+            var labels = sample.Metadata.Fields.Count > 0 ? sample.Metadata.Fields.Select(f => f.Label).ToArray() : null;
 
-            var sofm = sample.SampleData.AsQueryable().ToSofm(x => x == null ? maxSample : x.AsColumnVector().ToSingleArray(), nodeCount, learningRate);
+            var sofm = sample
+                .SampleData
+                .AsQueryable()
+                .ToSofm(
+                    x => x == null ? maxSample : x.AsColumnVector().ToSingleArray(), 
+                    labels, nodeCount, learningRate);
 
             return sofm;
         }
