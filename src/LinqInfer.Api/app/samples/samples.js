@@ -22,6 +22,10 @@ angular.module('linqinfer.samples', ['ngRoute'])
         google.charts.setOnLoadCallback(drawChart);
     });
 
+    $scope.getSofmPath = function (apiPath) {
+        return '/sofm/' + getRelPath(apiPath);
+    };
+
     function getRelPath(apiPath) {
         var n = apiPath.indexOf('/api');
         return apiPath.substring(n + 5);
@@ -31,13 +35,13 @@ angular.module('linqinfer.samples', ['ngRoute'])
         // Define the chart to be drawn.
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Sample');
-        data.addColumn('number', 'Percentage');
+        data.addColumn('number', 'Count');
         var rows = [];
         var len = $scope.data.length;
 
         $scope.data.forEach(function (x) {
-            rows.push([x.name, 1 / len]);
-            lookups[x.name] = getRelPath(x.path);
+            rows.push([x.header.label, x.header.summary.count]);
+            lookups[x.header.label] = getRelPath(x.uri);
         });
 
         data.addRows(rows);

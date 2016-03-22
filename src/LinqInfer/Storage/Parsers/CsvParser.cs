@@ -23,30 +23,42 @@ namespace LinqInfer.Storage.Parsers
 
             using (var reader = new StreamReader(data, _settings.Encoding ?? ParserSettings.Default.Encoding))
             {
-                string[] header = null;
-
                 while (true)
                 {
                     var nextLine = reader.ReadLine();
 
                     if (nextLine == null) break;
 
-                    if (header == null)
+                    if (sample.Metadata.Fields.Count == 0)
                     {
+                        string[] header;
+
                         if (_settings.FirstRowIsHeader)
                         {
                             header = GetRow(nextLine).ToArray();
-
-                            continue;
                         }
                         else
                         {
                             int n = 1;
                             header = GetRow(nextLine).Select(r => "Field " + n++).ToArray();
                         }
+
+                        int i = 0;
+
+                        sample.Metadata.Fields = header.Select(h => new FieldDescriptor()
+                        {
+                            Index = i++,
+                            Label = h,
+                            Name = Qname(h),
+                            FieldType = FieldType.Feature
+                        }).ToList();
+
+                        if (_settings.FirstRowIsHeader) continue;
                     }
 
-                    var nextItem = GetDataItem(nextLine, header, false);
+                    if (sample.Metadata.Fields.Count == 0) continue;
+
+                    var nextItem = GetDataItem(nextLine, sample.Metadata);
 
                     if (nextItem == null) break;
 
@@ -54,10 +66,12 @@ namespace LinqInfer.Storage.Parsers
                 }
             }
 
+            sample.Recalculate();
+
             return sample;
         }
 
-        private DataItem GetDataItem(string rowData, string[] headers, bool hasLabelCol)
+        private DataItem GetDataItem(string rowData, DataSampleMetadata metadata)
         {
             var row = GetRow(rowData).ToList();
 
@@ -66,8 +80,9 @@ namespace LinqInfer.Storage.Parsers
             string label = null;
             double x;
 
-            if (hasLabelCol || !double.TryParse(row[0], out x))
+            if (metadata.Fields.First().FieldType == FieldType.Category || !double.TryParse(row[0], out x))
             {
+                metadata.Fields.First().FieldType = FieldType.Category;
                 label = row[0];
             }
 
@@ -82,9 +97,9 @@ namespace LinqInfer.Storage.Parsers
                 var data = (IDictionary<string, object>)new ExpandoObject();
 
                 int i = 0;
-                foreach(var h in headers)
+                foreach(var h in metadata.Fields.Select(f => f.Label))
                 {
-                    data[Qname(h)] = dataItem.FeatureVector[i++];
+                    data[h] = dataItem.FeatureVector[i++];
                 }
 
                 dataItem.Item = data;

@@ -1,7 +1,22 @@
-<ul>
-    <li ng-repeat="item in data">
-        <a href="/">{{item.name}}</a>
-    </li>
-</ul>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Attributes</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="item in data">
+            <td>
+                <a href="#{{getSofmPath(item.uri)}}">{{item.header.label}}</a>
+            </td>
+            <td>{{item.header.created | date: 'dd-MMM-yyyy'}}</td>
+            <td>{{item.header.summary.size}}</td>
+            <td>{{item.header.summary.count}}</td>
+        </tr>
+    </tbody>
+</table>
 
 <div id="sampleChart"></div>

@@ -7,7 +7,7 @@ namespace LinqInfer.Storage
 {
     public interface ISampleStorageProvider : IDisposable
     {
-        IQueryable<Uri> ListSamples();
+        IQueryable<DataSampleHeader> ListSamples();
 
         Task<Uri> StoreSample(DataSample sample);
 
