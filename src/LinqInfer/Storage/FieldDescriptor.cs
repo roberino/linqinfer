@@ -9,13 +9,15 @@ namespace LinqInfer.Storage
 
         public virtual string Label { get; set; }
 
-        public virtual FieldType FieldType { get; set; }
+        public virtual FieldUsageType FieldUsage { get; set; }
+
+        public virtual TypeCode DataType { get; set; }
 
         public virtual int? Index { get; set; }
 
         public override string ToString()
         {
-            return (Label ?? Name) + " (" + FieldType + ")";
+            return (Label ?? Name) + " (" + FieldUsage + ")";
         }
     }
 }

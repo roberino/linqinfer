@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Storage
 {
-    public enum FieldType
+    public enum FieldUsageType
     {
         Ignored,
         Feature,

@@ -21,17 +21,24 @@ namespace LinqInfer.Storage
             return null; // hist.Analyse()
         }
 
-        public static FeatureMap<DataItem> CreateSofm(this DataSample sample, int nodeCount = 10, float learningRate = 0.5f)
+        public static FeatureMap<DataItem> CreateSofm(this DataSample sample, int nodeCount = 10, float learningRate = 0.5f, int[] selectedFeatures = null)
         {
-            var maxSample = sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
-            var labels = sample.Metadata.Fields.Count > 0 ? sample.Metadata.Fields.Select(f => f.Label).ToArray() : null;
+            //var maxSample = sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
+            //var labels = sample.Metadata.Fields.Count > 0 ? sample.Metadata.Fields.Where(f => f.FieldUsage == FieldUsageType.Feature).Select(f => f.Label).ToArray() : null;
+
+            //var sofm = sample
+            //    .SampleData
+            //    .AsQueryable()
+            //    .ToSofm(
+            //        x => x == null ? maxSample : x.AsColumnVector().ToSingleArray(), 
+            //        labels, nodeCount, learningRate);
+
+            var featureExtractor = sample.CreateFeatureExtractor(selectedFeatures);
 
             var sofm = sample
                 .SampleData
                 .AsQueryable()
-                .ToSofm(
-                    x => x == null ? maxSample : x.AsColumnVector().ToSingleArray(), 
-                    labels, nodeCount, learningRate);
+                .ToSofm(featureExtractor, nodeCount, learningRate);
 
             return sofm;
         }

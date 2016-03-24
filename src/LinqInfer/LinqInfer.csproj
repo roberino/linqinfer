@@ -96,10 +96,11 @@
     <Compile Include="Storage\DataItem.cs" />
     <Compile Include="Storage\DataSample.cs" />
     <Compile Include="Storage\DataSampleExtensions.cs" />
+    <Compile Include="Storage\DataSampleFeatureMap.cs" />
     <Compile Include="Storage\DataSampleHeader.cs" />
     <Compile Include="Storage\DataSampleMetadata.cs" />
     <Compile Include="Storage\FieldDescriptor.cs" />
-    <Compile Include="Storage\FieldType.cs" />
+    <Compile Include="Storage\FieldUsageType.cs" />
     <Compile Include="Storage\ISampleStorageProvider.cs" />
     <Compile Include="Storage\IStorageObject.cs" />
     <Compile Include="Storage\IUriProvider.cs" />
