@@ -1,6 +1,33 @@
-<div>
+<!--<div>
     <label>X-Axis: <select ng-model="chart.xAxis" ng-options="option.key for option in data.labels track by option.key"></select></label>
     <label>Y-Axis: <select ng-model="chart.yAxis" ng-options="option.key for option in data.labels track by option.key"></select></label>
-</div>
+</div>-->
+
+<table>
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Selected</th>
+            <th>X-Axis: {{chart.xAxis.label}}</th>
+            <th>y-Axis: {{chart.yAxis.label}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="field in metadata.fields">
+            <td>{{field.label}}</td>
+            <td><input type="checkbox" name="field-selection" ng-value="{{field}}" ng-model="selection" /></td>
+            <td><input type="radio" name="x-axis" ng-value="{{field}}" ng-model="chart.xAxis" /></td>
+            <td><input type="radio" name="y-axis" ng-value="{{field}}" ng-model="chart.yAxis" /></td>
+        </tr>
+    </tbody>
+</table>
 
 <div id="sofmChart"></div>
+
+<table>
+    <tbody>
+        <tr ng-repeat="node in data">
+            <td ng-repeat="w in node.weights">{{w}}</td>
+        </tr>
+    </tbody>
+</table>

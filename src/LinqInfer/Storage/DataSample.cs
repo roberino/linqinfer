@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Learning.Features;
+using System;
 using System.Collections.Generic;
 
 namespace LinqInfer.Storage
@@ -7,6 +8,11 @@ namespace LinqInfer.Storage
     public class DataSample : DataSampleHeader
     {
         public string Description { get; set; }
+
+        public virtual IFloatingPointFeatureExtractor<DataItem> CreateFeatureExtractor(params int[] selectedFeatures)
+        {
+            return new DataSampleFeatureMap(this, (selectedFeatures == null || selectedFeatures.Length == 0) ? null : selectedFeatures);
+        }
 
         public virtual SampleSummary Recalculate()
         {

@@ -14,10 +14,11 @@ angular.module('linqinfer.sofm', ['ngRoute'])
     var Sofm = $resource('/api/' + $routeParams.resourceUrl + '/sofm');
     var sofm = Sofm.get({ }, function () {
         $scope.data = sofm.map;
+        $scope.metadata = sofm.metadata;
         $scope.data.labels = getValues(sofm.features);
         $scope.chart = {
-            xAxis: $scope.data.labels[0],
-            yAxis: $scope.data.labels[1]
+            xAxis: sofm.metadata.fields[0],
+            yAxis: sofm.metadata.fields[1]
         };
         google.charts.setOnLoadCallback(drawChart);
 
@@ -33,19 +34,19 @@ angular.module('linqinfer.sofm', ['ngRoute'])
 
     function drawChart() {
 
-        var xi = $scope.chart.xAxis.value;
-        var yi = $scope.chart.yAxis.value;
+        var xi = $scope.chart.xAxis.index;
+        var yi = $scope.chart.yAxis.index;
 
         var options = {
             title: 'SOFM',
-            hAxis: { title: $scope.chart.xAxis.key },
-            vAxis: { title: $scope.chart.yAxis.key },
+            hAxis: { title: $scope.chart.xAxis.label },
+            vAxis: { title: $scope.chart.yAxis.label },
             bubble: { textStyle: { fontSize: 11 } }
         };
 
         var rows = [];
         var len = $scope.data.length;
-        rows.push(['Euclidean Length', $scope.chart.xAxis.key, $scope.chart.yAxis.key, 'Node', 'Number Of Members']);
+        rows.push(['Euclidean Length', $scope.chart.xAxis.label, $scope.chart.yAxis.label, 'Node', 'Number Of Members']);
 
         $scope.data.forEach(function (x) {
             i++;

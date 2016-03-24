@@ -19,7 +19,7 @@ namespace LinqInfer.Api.Controllers
         {
             var sample = await GetSampleById(id);
 
-            return sample.CreateMultiVariateDistribution();
+            return sample.CreateHistogram();
         }
     }
 }

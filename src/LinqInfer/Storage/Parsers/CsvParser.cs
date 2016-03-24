@@ -50,7 +50,8 @@ namespace LinqInfer.Storage.Parsers
                             Index = i++,
                             Label = h,
                             Name = Qname(h),
-                            FieldType = FieldType.Feature
+                            FieldUsage = FieldUsageType.Feature,
+                            DataType = System.TypeCode.Double
                         }).ToList();
 
                         if (_settings.FirstRowIsHeader) continue;
@@ -79,10 +80,12 @@ namespace LinqInfer.Storage.Parsers
 
             string label = null;
             double x;
+            var firstFld = metadata.Fields.First();
 
-            if (metadata.Fields.First().FieldType == FieldType.Category || !double.TryParse(row[0], out x))
+            if (firstFld.FieldUsage == FieldUsageType.Category || !double.TryParse(row[0], out x))
             {
-                metadata.Fields.First().FieldType = FieldType.Category;
+                firstFld.FieldUsage = FieldUsageType.Category;
+                firstFld.DataType = System.TypeCode.String;
                 label = row[0];
             }
 

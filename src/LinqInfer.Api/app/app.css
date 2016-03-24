@@ -28,3 +28,16 @@
   content: "";
   padding: 0;
 }
+
+table {
+    width: 100%;
+}
+table th{
+    border: 1pt solid #ddd;
+    font-weight: bold;
+    padding: 3px;
+}
+table td{
+    border: 1pt solid #ddd;
+    padding: 3px;
+}
