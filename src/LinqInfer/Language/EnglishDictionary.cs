@@ -1,4 +1,4 @@
-﻿using LinqInfer.Probability;
+﻿using LinqInfer.Math;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -53,7 +53,7 @@ namespace LinqInfer.Language
             word = word.ToLower();
 
             return _words
-                .Where(w => Math.Abs(w.Length - word.Length) < 3)
+                .Where(w => System.Math.Abs(w.Length - word.Length) < 3)
                 .Select(w => new
                 {
                     Word = w,

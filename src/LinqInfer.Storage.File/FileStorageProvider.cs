@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Storage.File
+namespace LinqInfer.Sampling.File
 {
     public class FileStorageProvider : ISampleStorageProvider
     {

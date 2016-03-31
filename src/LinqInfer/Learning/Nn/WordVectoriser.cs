@@ -28,7 +28,7 @@ namespace LinqInfer.Learning
         {
             var arr = new byte[_size];
 
-            for (int i = 0; i < Math.Min(data.Length, _size); i++)
+            for (int i = 0; i < System.Math.Min(data.Length, _size); i++)
             {
                 arr[i] = (byte)data[i];
             }

@@ -1,4 +1,4 @@
-﻿using LinqInfer.Probability;
+﻿using LinqInfer.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
