@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
-using LinqInfer.Probability;
+using LinqInfer.Math;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -70,9 +70,9 @@ namespace LinqInfer.Learning
             return x =>
             {
                 var matches = classifierPipe.FindPossibleMatches(x).ToList();
-                var factor = Math.Max(matches.Count, 100);
-                var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
-                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)Math.Round(m.Score * factor, 0), total));
+                var factor = System.Math.Max(matches.Count, 100);
+                var total = (int)System.Math.Round(matches.Sum(m => m.Score * factor), 0);
+                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)System.Math.Round(m.Score * factor, 0), total));
                 return dist;
             };
         }

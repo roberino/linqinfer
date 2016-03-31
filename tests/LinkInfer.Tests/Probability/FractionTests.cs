@@ -1,4 +1,4 @@
-﻿using LinqInfer.Probability;
+﻿using LinqInfer.Math;
 using NUnit.Framework;
 using System;
 
@@ -27,7 +27,7 @@ namespace LinqInfer.Tests.Probability
         [TestCase(23657)]
         public void ToApproximateRational_SqRt_ReturnsEquivValue(int n)
         {
-            var y = Math.Sqrt(n);
+            var y = System.Math.Sqrt(n);
             var x = Fraction.ApproximateRational(y, 8);
 
             TestFixtureBase.AssertEquiv(x, y, 4);
@@ -36,7 +36,7 @@ namespace LinqInfer.Tests.Probability
         [Test]
         public void ToApproximateRational_PII_ReturnsEquivValue()
         {
-            var x = Math.PI;
+            var x = System.Math.PI;
             var y = Fraction.ApproximateRational(x);
 
             Console.Write("{0}~={1} = {2}", x, y, y.Value);
@@ -52,9 +52,9 @@ namespace LinqInfer.Tests.Probability
         {
             var a = new Fraction(n, d);
             var pow = a.Power(x);
-            var exp = Math.Pow((double)n / (double)d, x);
+            var exp = System.Math.Pow((double)n / (double)d, x);
 
-            Assert.That(Math.Round(pow.Value, 8), Is.EqualTo(Math.Round(exp, 8)));
+            Assert.That(System.Math.Round(pow.Value, 8), Is.EqualTo(System.Math.Round(exp, 8)));
         }
 
         [TestCase(5, 1, 2)]
@@ -67,15 +67,15 @@ namespace LinqInfer.Tests.Probability
         public void Power_Integer(int x, int n, int d)
         {
             var y = Fraction.Power(x, n.OutOf(d), approx: true);
-            var exp = Math.Pow(x, (double)n / (double)d);
-            Assert.That(Math.Round(y.Value, 4), Is.EqualTo(Math.Round(exp, 4)));
+            var exp = System.Math.Pow(x, (double)n / (double)d);
+            Assert.That(System.Math.Round(y.Value, 4), Is.EqualTo(System.Math.Round(exp, 4)));
         }
 
         [Test]
         public void RootOf_SqRootOf5()
         {
             var x = Fraction.RootOf(5, 2);
-            Assert.That(Math.Round(x.Value, 6), Is.EqualTo(Math.Round(Math.Sqrt(5), 6)));
+            Assert.That(System.Math.Round(x.Value, 6), Is.EqualTo(System.Math.Round(System.Math.Sqrt(5), 6)));
         }
 
         [TestCase(5, 3, 6)]
@@ -85,16 +85,16 @@ namespace LinqInfer.Tests.Probability
         public void NthRootOfX(int x, int n, int p)
         {
             var v = Fraction.RootOf(x, n);
-            Assert.That(Math.Round(v.Value, p), Is.EqualTo(Math.Round(Math.Pow(x, 1d / (double)n), p)));
+            Assert.That(System.Math.Round(v.Value, p), Is.EqualTo(System.Math.Round(System.Math.Pow(x, 1d / (double)n), p)));
         }
 
         [Test]
         public void E_ReturnsCorrectResult()
         {
-            var e = Math.E;
+            var e = System.Math.E;
             var ef = Fraction.E;
 
-            Assert.That(Math.Round(ef.Value, 8), Is.EqualTo(Math.Round(e, 8)));
+            Assert.That(System.Math.Round(ef.Value, 8), Is.EqualTo(System.Math.Round(e, 8)));
         }
 
         [TestCase(4, 5, 6)]
@@ -106,9 +106,9 @@ namespace LinqInfer.Tests.Probability
         public void Sqrt(int n, int d, int p)
         {
             var sq = n.OutOf(d).Sqrt(p);
-            var sq2 = Math.Sqrt((double)n / (double)d);
+            var sq2 = System.Math.Sqrt((double)n / (double)d);
 
-            Assert.AreEqual(Math.Round(sq.Value, p), Math.Round(sq2, p));
+            Assert.AreEqual(System.Math.Round(sq.Value, p), System.Math.Round(sq2, p));
         }
 
         [Test]

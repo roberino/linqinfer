@@ -1,4 +1,4 @@
-﻿using LinqInfer.Storage;
+﻿using LinqInfer.Sampling;
 using System.Threading.Tasks;
 using System.Web.Http;
 

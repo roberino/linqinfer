@@ -1,4 +1,4 @@
-﻿using LinqInfer.Probability;
+﻿using LinqInfer.Math;
 using System;
 
 namespace LinqInfer.Language
@@ -12,7 +12,7 @@ namespace LinqInfer.Language
         {
             if (s == null || t == null) return Fraction.Zero;
 
-            var max = Math.Max(s.Length, t.Length);
+            var max = System.Math.Max(s.Length, t.Length);
             var ld = ComputeLevenshteinDistance(s, t);
 
             return (max - ld).OutOf(max);
@@ -60,8 +60,8 @@ namespace LinqInfer.Language
                     var cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
 
                     // Step 6
-                    d[i, j] = Math.Min(
-                        Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i, j] = System.Math.Min(
+                        System.Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
                         d[i - 1, j - 1] + cost);
                 }
             }

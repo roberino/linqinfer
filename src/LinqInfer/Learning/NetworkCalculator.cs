@@ -13,7 +13,7 @@ namespace LinqInfer.Learning
 
             for (int i = 0; i < weights.Length; i++)
             {
-                d += Math.Pow(weights[i] - inputVector[i], 2f);
+                d += System.Math.Pow(weights[i] - inputVector[i], 2f);
             }
 
             return (float)d;
