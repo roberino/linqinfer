@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     internal abstract class SampleBase<T>
     {

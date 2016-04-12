@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public interface IHypotheticalSubset<T> : IHypothetical
     {

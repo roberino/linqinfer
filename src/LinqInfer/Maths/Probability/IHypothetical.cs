@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Math
+﻿namespace LinqInfer.Maths
 {
     public interface IHypothetical
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public interface IDensityEstimationStrategy<T>
     {

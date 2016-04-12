@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Math
+﻿namespace LinqInfer.Maths
 {
     internal class HypotheticalOutcome<T> : IHypotheticalOutcome<T>
     {

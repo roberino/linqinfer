@@ -1,17 +1,17 @@
-﻿using LinqInfer.Math;
+﻿using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 
 namespace LinqInfer.Learning
 {
-    public class Neuron : INeuron<float>
+    public class InputAggregator
     {
         private readonly List<float> sample;
 
         private Lazy<Tuple<double, double>> parameters;
         private Lazy<Func<float, double>> pdf;
 
-        public Neuron()
+        public InputAggregator()
         {
             sample = new List<float>();
             Refresh();

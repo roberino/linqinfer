@@ -1,10 +1,12 @@
-﻿using System;
+﻿using LinqInfer.Maths;
+using System;
 
 namespace LinqInfer.Learning
 {
-    public interface INeuron<T>
+    public interface INeuron
     {
-        Func<T, double> Pdf { get; }
-        void AddSample(T data);
+        int Size { get; }
+        void Adjust(Func<double, double> func);
+        double Calculate(ColumnVector1D input);
     }
 }

@@ -5,7 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
     {
@@ -27,6 +27,14 @@ namespace LinqInfer.Math
             get
             {
                 return _values[i];
+            }
+        }
+
+        public void Apply(Func<double, double> func)
+        {
+            for (int i = 0; i < _values.Length; i++)
+            {
+                _values[i] = func(_values[i]);
             }
         }
 
