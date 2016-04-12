@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public interface IQueryableSample<T> : IQueryable<T>
     {

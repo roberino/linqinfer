@@ -1,4 +1,4 @@
-﻿using LinqInfer.Math;
+﻿using LinqInfer.Maths;
 using System;
 
 namespace LinqInfer.Language

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public static class P
     {

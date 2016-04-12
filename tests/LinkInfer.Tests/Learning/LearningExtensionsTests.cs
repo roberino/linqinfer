@@ -1,5 +1,5 @@
 ﻿using LinqInfer.Learning;
-using LinqInfer.Math;
+using LinqInfer.Maths;
 using NUnit.Framework;
 using System.Linq;
 

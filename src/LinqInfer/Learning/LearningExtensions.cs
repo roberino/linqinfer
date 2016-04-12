@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
-using LinqInfer.Math;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;

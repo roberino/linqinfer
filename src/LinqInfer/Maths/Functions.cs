@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     public static class Functions
     {
@@ -17,6 +17,28 @@ namespace LinqInfer.Math
         public static int Random(int max = 100)
         {
             return _random.Next(max + 1);
+        }
+
+        /// <summary>
+        /// Returns a random number between zero and max (inclusive).
+        /// </summary>
+        /// <param name="size">The size of the vector</param>
+        /// <param name="scale">The scale factor applied to each element (max value)</param>
+        /// <returns>A vector containing random values</returns>
+        public static ColumnVector1D RandomVector(int size, double scale = 1d)
+        {
+            return new ColumnVector1D(Enumerable.Range(1, size).Select(n => _random.NextDouble() * scale).ToArray());
+        }
+
+        /// <summary>
+        /// Returns a random number between zero and max (inclusive).
+        /// </summary>
+        /// <param name="size">The size of the vector</param>
+        /// <param name="range">The min and max range</param>
+        /// <returns>A vector containing random values</returns>
+        public static ColumnVector1D RandomVector(int size, Range range)
+        {
+            return new ColumnVector1D(Enumerable.Range(1, size).Select(n => range.Min + _random.NextDouble() * range.Size).ToArray());
         }
 
         /// <summary>

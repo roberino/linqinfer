@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Math
+﻿namespace LinqInfer.Maths
 {
     public class HypothesisBuilder<T>
     {

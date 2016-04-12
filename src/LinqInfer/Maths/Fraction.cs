@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     [DebuggerDisplay("{Numerator}/{Denominator}")]
     public struct Fraction : IEquatable<Fraction>

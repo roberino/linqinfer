@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     [DebuggerDisplay("{Name} Probability = {CurrentProbability}")]
     internal class HypothesisSubset<T> : QueryableSample<T>, IHypotheticalSubset<T>

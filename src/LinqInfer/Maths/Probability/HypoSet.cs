@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Math
+namespace LinqInfer.Maths
 {
     internal class HypoSet<T> : Sample<SampleBase<T>>
     {
