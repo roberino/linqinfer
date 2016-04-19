@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LinqInfer.Maths;
+using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Nn
 {
     public class NeuronBase : INeuron
     {
-        private readonly ColumnVector1D _weights;
+        private ColumnVector1D _weights;
 
         public NeuronBase(int inputVectorSize)
         {
@@ -28,16 +25,40 @@ namespace LinqInfer.Learning.Nn
 
         public int Size { get { return _weights.Size; } }
 
+        public double Output { get; private set; }
+
+        public Func<double, double> Activator { get; set; }
+
+        public double Bias { get; set; }
+
+        public double this[int index]
+        {
+            get
+            {
+                return _weights[index];
+            }
+        }
+
         public virtual void Adjust(Func<double, double> func)
         {
             _weights.Apply(func);
         }
 
-        public virtual double Calculate(ColumnVector1D input)
+        public virtual T Calculate<T>(Func<ColumnVector1D, T> func)
         {
-            var sum = _weights.Zip(input, (w, m) => w * m).Sum();
+            return func(_weights);
+        }
 
-            return sum;
+        public virtual double Evaluate(ColumnVector1D input)
+        {
+            var sum = Bias + _weights.Zip(input, (w, m) => w * m).Sum();
+
+            return Output = Activator == null ? sum : Activator(sum);
+        }
+
+        public void Adjust(ColumnVector1D weightAdjustments)
+        {
+            _weights += weightAdjustments;
         }
     }
 }
