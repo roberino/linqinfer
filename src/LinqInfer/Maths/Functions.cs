@@ -91,6 +91,23 @@ namespace LinqInfer.Maths
             return total;
         }
 
+        public static Func<ColumnVector1D, ColumnVector1D> CreateNormalisingFunction(this IEnumerable<ColumnVector1D> values)
+        {
+            var max = values.MaxOfEachDimension();
+
+            return x => x / max;
+        }
+
+        public static IEnumerable<ColumnVector1D> NormaliseEachDimension(this IEnumerable<ColumnVector1D> values)
+        {
+            var max = values.MaxOfEachDimension();
+
+            foreach(var v in values)
+            {
+                yield return v / max;
+            }
+        }
+
         public static ColumnVector1D MaxOfEachDimension(this IEnumerable<ColumnVector1D> values)
         {
             if (values.Any())

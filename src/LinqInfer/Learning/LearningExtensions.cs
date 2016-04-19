@@ -62,16 +62,13 @@ namespace LinqInfer.Learning
             var net = new SimpleNet<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
-            foreach (var batch in trainingData.Chunk())
-            {
-                classifierPipe.Train(batch.Select(v => new Tuple<TClass, TInput>(classf(v), v)));
-            }
+            classifierPipe.Train(trainingData, classf);
 
             return x =>
             {
                 var matches = classifierPipe.FindPossibleMatches(x).ToList();
-                var factor = System.Math.Max(matches.Count, 100);
-                var total = (int)System.Math.Round(matches.Sum(m => m.Score * factor), 0);
+                var factor = Math.Max(matches.Count, 100);
+                var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
                 var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)System.Math.Round(m.Score * factor, 0), total));
                 return dist;
             };
@@ -91,10 +88,7 @@ namespace LinqInfer.Learning
             var net = new SimpleNet<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
-            foreach (var batch in trainingData.Chunk())
-            {
-                classifierPipe.Train(batch.Select(v => new Tuple<TClass, TInput>(classf(v), v)));
-            }
+            classifierPipe.Train(trainingData, classf);
 
             return classifierPipe.Classify;
         }
