@@ -19,6 +19,11 @@ namespace LinqInfer.Learning
 
         public int VectorSize { get { return _size; } }
 
+        public byte[] CreateNormalisingVector(IEnumerable<string> samples)
+        {
+            return CreateNormalisingVector();
+        }
+
         public byte[] CreateNormalisingVector(string sample = null)
         {
             return new byte[_size];

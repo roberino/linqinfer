@@ -58,6 +58,35 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
+        public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
+        {
+            var pirateSample = TestData.CreatePirates().ToList();
+            var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young");
+
+            // In the original predicate, if age > 25 then old.
+            // But this pirate shares many features of other young pirates
+            // So therfore should be classed as "young"
+            var classOfPirate = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 120,
+                Age = 27,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            var classOfPirate2 = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 1600,
+                Age = 41,
+                IsCaptain = true,
+                Ships = 4
+            });
+
+            Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
+            Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
+        }
+
+        [Test]
         public void ToSimpleClassDistribution_SimpleSample()
         {
             var pirateSample = TestData.CreatePirates().ToList();

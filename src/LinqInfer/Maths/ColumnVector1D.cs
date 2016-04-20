@@ -38,6 +38,18 @@ namespace LinqInfer.Maths
             }
         }
 
+        public double Distance(ColumnVector1D input)
+        {
+            double d = 0;
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                d += Math.Pow(_values[i] - input[i], 2f);
+            }
+
+            return d;
+        }
+
         public IEnumerable<ColumnVector1D> Range(ColumnVector1D to, int binCount)
         {
             Contract.Assert(binCount > -1);

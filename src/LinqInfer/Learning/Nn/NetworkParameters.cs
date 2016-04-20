@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LinqInfer.Learning.Nn
+﻿namespace LinqInfer.Learning.Nn
 {
     public class NetworkParameters
     {
         public ActivatorFunc Activator { get; set; }
+        public int[] LayerSizes { get; set; }
+
     }
 }
