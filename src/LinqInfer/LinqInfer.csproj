@@ -47,6 +47,7 @@
     <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFloatingPointFeatureExtractor.cs" />
+    <Compile Include="Learning\Features\IOutputMapper.cs" />
     <Compile Include="Learning\Features\IValueConverter.cs" />
     <Compile Include="Learning\LearningExtensions.cs" />
     <Compile Include="Language\EnglishDictionary.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Learning\Nn\MultilayerNetwork.cs" />
     <Compile Include="Learning\Nn\NetworkParameters.cs" />
     <Compile Include="Learning\Nn\NeuronBase.cs" />
+    <Compile Include="Learning\Features\OutputMapper.cs" />
     <Compile Include="Learning\Nn\SimpleNet.cs" />
     <Compile Include="Learning\Nn\WordVectoriser.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />

@@ -3,6 +3,7 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Learning
 {
@@ -24,8 +25,10 @@ namespace LinqInfer.Learning
             _featureExtract.CreateNormalisingVector(normalisingSample);
         }
 
-        public virtual void Train(IQueryable<TInput> trainingData, Func<TInput, TClass> classf)
+        public virtual void Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
         {
+            var classf = classifyingExpression.Compile();
+
             foreach (var batch in trainingData.Chunk())
             {
                 foreach (var value in batch)

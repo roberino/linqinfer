@@ -9,8 +9,8 @@ namespace LinqInfer.Sampling
     internal class DataSampleFeatureMap : IFloatingPointFeatureExtractor<DataItem>
     {
         private readonly DataSample _sample;
-        private readonly float[] _maxSample;
         private readonly int[] _selectedFeatures;
+        private float[] _maxSample;
 
         public DataSampleFeatureMap(DataSample sample, int[] selectedFeatures = null)
         {
@@ -36,7 +36,7 @@ namespace LinqInfer.Sampling
                 throw new ArgumentException("Invalid feature index array");
             }
 
-            _maxSample = _sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
+            CreateNormalisingVector(_sample.SampleData);
         }
 
         public IDictionary<string, int> Labels { get; private set; }
@@ -51,6 +51,12 @@ namespace LinqInfer.Sampling
 
         public float[] CreateNormalisingVector(DataItem sample = null)
         {
+            return _maxSample;
+        }
+
+        public float[] CreateNormalisingVector(IEnumerable<DataItem> samples)
+        {
+            _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
             return _maxSample;
         }
 

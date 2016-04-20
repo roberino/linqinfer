@@ -107,7 +107,7 @@ namespace LinqInfer.Learning.Nn
 
                     var x = 0d;
                     n.Adjust(w => {
-                        x = _learningRate * (error * prevOutput);
+                        x = ExecuteUpdateRule(x, error, prevOutput);
                         return w + x;
                     });
 
@@ -122,6 +122,11 @@ namespace LinqInfer.Learning.Nn
 
                 return update;
             }, false).ToArray();
+        }
+
+        protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
+        {
+            return _learningRate * (error * previousLayerOutput);
         }
     }
 }
