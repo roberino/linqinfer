@@ -2,6 +2,6 @@
 {
     public interface IAssistedLearning<TClass, TVector>
     {
-        void Train(TClass item, TVector[] sample);
+        double Train(TClass item, TVector[] sample);
     }
 }

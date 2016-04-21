@@ -20,14 +20,28 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a random number between zero and max (exclusive).
+        /// </summary>
+        /// <param name="min">The minimum value inclusive</param>
+        /// <param name="max">The maximum value exclusive</param>
+        /// <returns>A double precision floating point number</returns>
+        public static double RandomDouble(double min = 0, double max = 1)
+        {
+            var m = max - min;
+            return min + _random.NextDouble() * m;
+        }
+
+        /// <summary>
         /// Returns a random number between zero and max (inclusive).
         /// </summary>
         /// <param name="size">The size of the vector</param>
-        /// <param name="scale">The scale factor applied to each element (max value)</param>
+        /// <param name="min">The minimum value inclusive</param>
+        /// <param name="max">The maximum value exclusive</param>
         /// <returns>A vector containing random values</returns>
-        public static ColumnVector1D RandomVector(int size, double scale = 1d)
+        public static ColumnVector1D RandomVector(int size, double min = 0, double max = 1)
         {
-            return new ColumnVector1D(Enumerable.Range(1, size).Select(n => _random.NextDouble() * scale).ToArray());
+            var m = max - min;
+            return new ColumnVector1D(Enumerable.Range(1, size).Select(n => min + (_random.NextDouble() * m)).ToArray());
         }
 
         /// <summary>

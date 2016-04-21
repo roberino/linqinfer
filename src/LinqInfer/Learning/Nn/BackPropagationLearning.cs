@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Nn
@@ -8,13 +9,24 @@ namespace LinqInfer.Learning.Nn
     internal class BackPropagationLearning : IAssistedLearningProcessor
     {
         private readonly MultilayerNetwork _network;
-        private readonly double _learningRate;
+        private double _learningRate;
+        protected readonly double _momentum;
 
-        public BackPropagationLearning(MultilayerNetwork network, double learningRate = 1)
+        public BackPropagationLearning(MultilayerNetwork network, double learningRate = 0.1, double momentum = 0.05)
         {
+            Contract.Assert(learningRate > 0 && learningRate <= 1);
+            Contract.Assert(momentum >= 0 && momentum <= 1);
+
             _network = network;
             _learningRate = learningRate;
+            _momentum = momentum;
         }
+        
+        public void AdjustLearningRate(Func<double, double> rateAdjustment)
+        {
+            _learningRate = rateAdjustment(_learningRate);
+        }
+
         public double Train(IEnumerable<Tuple<ColumnVector1D, ColumnVector1D>> trainingSet, double errorThreshold = 0, Func<ColumnVector1D, ColumnVector1D> preprocessor = null)
         {
             var pp = preprocessor ?? Functions.CreateNormalisingFunction(trainingSet.Select(x => x.Item1));
@@ -40,7 +52,7 @@ namespace LinqInfer.Learning.Nn
 
             Adjust(errors.Item1);
 
-            return errors.Item2;
+            return errors.Item2 / 2; // Math.Sqrt(errors.Item2);
         }
 
         protected virtual Tuple<ColumnVector1D[], double> CalculateError(ColumnVector1D actualOutput, ColumnVector1D targetOutput)
@@ -53,9 +65,7 @@ namespace LinqInfer.Learning.Nn
             ILayer lastLayer = null;
             ColumnVector1D lastError = null;
             double error = 0;
-
-            var j = 0;
-
+            
             var errors = _network.ForEachLayer((layer) =>
             {
                 if (lastError == null)
@@ -69,11 +79,12 @@ namespace LinqInfer.Learning.Nn
                 }
                 else
                 {
-                    lastError = layer.ForEachNeuron((n, k) =>
+                    lastError = layer.ForEachNeuron((n, i) =>
                     {
-                        var err = lastLayer.ForEachNeuron((n0, i) =>
+                        var err = lastLayer.ForEachNeuron((nk, k) =>
                         {
-                            return n0.Calculate(w => w * lastError[i]).Sum();
+                            return lastError[k] * nk[i];
+                            //return nk.Calculate(w => w * lastError[k]).Sum();
                         });
 
                         return err.Sum() * _network.Activator.Derivative(n.Output);
@@ -81,9 +92,7 @@ namespace LinqInfer.Learning.Nn
                 }
 
                 lastLayer = layer;
-
-                j++;
-
+                
                 return lastError;
             }).Reverse().ToArray();
 
@@ -97,25 +106,18 @@ namespace LinqInfer.Learning.Nn
 
             _network.ForEachLayer(layer =>
             {
-                var lastBiasUpdate = 0d;
                 var layerErrors = errors[i++];
 
                 var update = layer.ForEachNeuron((n, j) =>
                 {
                     var error = layerErrors[j];
-                    var prevOutput = previousLayer == null ? 1 : previousLayer[j].Output;
 
-                    var x = 0d;
-                    n.Adjust(w => {
-                        x = ExecuteUpdateRule(x, error, prevOutput);
-                        return w + x;
+                    n.Adjust((w, k) => {
+                        var prevOutput = previousLayer == null || k < 0 ? 1 : previousLayer[k].Output;
+                        return ExecuteUpdateRule(w, error, prevOutput);
                     });
 
-                    lastBiasUpdate = _learningRate * error;
-
-                    n.Bias += lastBiasUpdate;
-
-                    return lastBiasUpdate;
+                    return n.Bias;
                 });
 
                 previousLayer = layer;
@@ -125,8 +127,8 @@ namespace LinqInfer.Learning.Nn
         }
 
         protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
-        {
-            return _learningRate * (error * previousLayerOutput);
+        {            
+            return currentWeightValue + (_learningRate * ((_momentum * currentWeightValue) + ((1.0 - _momentum) * (error * previousLayerOutput))));
         }
     }
 }

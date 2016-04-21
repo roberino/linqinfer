@@ -38,6 +38,14 @@ namespace LinqInfer.Maths
             }
         }
 
+        public void Apply(Func<double, int, double> func)
+        {
+            for (int i = 0; i < _values.Length; i++)
+            {
+                _values[i] = func(_values[i], i);
+            }
+        }
+
         public double Distance(ColumnVector1D input)
         {
             double d = 0;

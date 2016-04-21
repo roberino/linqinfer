@@ -25,17 +25,23 @@ namespace LinqInfer.Learning
             _featureExtract.CreateNormalisingVector(normalisingSample);
         }
 
-        public virtual void Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
+        public virtual double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
         {
             var classf = classifyingExpression.Compile();
+
+            double error = 0;
+            int counter = 0;
 
             foreach (var batch in trainingData.Chunk())
             {
                 foreach (var value in batch)
                 {
-                    _learning.Train(classf(value), _featureExtract.ExtractVector(value));
+                    error += _learning.Train(classf(value), _featureExtract.ExtractVector(value));
+                    counter++;
                 }
             }
+
+            return error / (double)counter;
         }
 
         public ClassifyResult<TClass> Classify(TInput obj)

@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Nn;
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System.Linq;
@@ -58,6 +59,25 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
+        public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
+        {
+            var xor1 = new XorNode() { X = true, Y = false };
+            var xor2 = new XorNode() { X = false, Y = false };
+            var xor3 = new XorNode() { X = true, Y = true };
+            var xor4 = new XorNode() { X = false, Y = false };
+
+            var samples = new[] { xor1, xor2, xor3, xor4 };
+
+            var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output);
+
+            var classResults1 = classifier.Invoke(xor1);
+            var classResults2 = classifier.Invoke(xor2);
+
+            Assert.That(classResults1.ClassType == xor1.Output);
+            Assert.That(classResults2.ClassType == xor2.Output);
+        }
+
+        [Test]
         public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = TestData.CreatePirates().ToList();
@@ -69,7 +89,7 @@ namespace LinqInfer.Tests.Learning
             var classOfPirate = classifier.Invoke(new TestData.Pirate()
             {
                 Gold = 120,
-                Age = 27,
+                Age = 5,
                 IsCaptain = false,
                 Ships = 1
             });
@@ -77,9 +97,9 @@ namespace LinqInfer.Tests.Learning
             var classOfPirate2 = classifier.Invoke(new TestData.Pirate()
             {
                 Gold = 1600,
-                Age = 41,
+                Age = 61,
                 IsCaptain = true,
-                Ships = 4
+                Ships = 7
             });
 
             Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));

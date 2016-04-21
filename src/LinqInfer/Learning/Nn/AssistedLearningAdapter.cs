@@ -1,10 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Nn
 {
@@ -19,13 +14,13 @@ namespace LinqInfer.Learning.Nn
             _outputVectorExtractor = outputVectorExtractor;
         }
 
-        public void Train(TClass item, double[] sample)
+        public double Train(TClass item, double[] sample)
         {
             var output = new ColumnVector1D(_outputVectorExtractor.ExtractVector(item));
 
             var input = new ColumnVector1D(sample);
 
-            _processor.Train(input, output);
+            return _processor.Train(input, output);
         }
     }
 }
