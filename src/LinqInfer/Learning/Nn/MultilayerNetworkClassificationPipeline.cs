@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -8,6 +9,7 @@ namespace LinqInfer.Learning.Nn
     internal class MultilayerNetworkClassificationPipeline<TClass, TInput> : ClassificationPipeline<TClass, TInput, double> where TClass : IEquatable<TClass>
     {
         private readonly Config _config;
+        private readonly double _toleranceThreshold = 1.1;
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
@@ -21,18 +23,46 @@ namespace LinqInfer.Learning.Nn
             _config = config;
         }
 
-        public override void Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf)
+        public override double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf)
         {
+            int hiddenLayerFactor = 8;
+            IList<TClass> outputs = null;
+
             if (_config.OutputMapper.VectorSize == 0)
             {
-                var outputs = trainingData.GroupBy(classf);
+                outputs = trainingData.GroupBy(classf).Select(o => o.Key).ToList();
 
-                _config.OutputMapper.Initialise(outputs.Select(o => o.Key).ToList());
+                _config.OutputMapper.Initialise(outputs);
+
+                _config.Network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize * hiddenLayerFactor, outputs.Count);
             }
 
             _config.FeatureExtractor.CreateNormalisingVector(trainingData);
+            
+            int i = 0;
+            double error = 0;
+            double lastError = 0;
 
-            base.Train(trainingData, classf);
+            while (i < 1000)
+            {
+                error = base.Train(trainingData, classf);
+
+                if (error < _toleranceThreshold) break;
+
+                if (lastError == error)
+                {
+                    if (hiddenLayerFactor == 1) break;
+
+                    hiddenLayerFactor--;
+                    lastError = 0;
+
+                    _config.Network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize * hiddenLayerFactor, outputs.Count);
+                }
+
+                lastError = error;
+            }
+
+            return error;
         }
 
         private static Config Setup(
@@ -41,7 +71,7 @@ namespace LinqInfer.Learning.Nn
             TInput normalisingSample)
         {
             if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-            var network = new MultilayerNetwork(featureExtractor.VectorSize, new int[] { featureExtractor.VectorSize, featureExtractor.VectorSize / 2 });
+            var network = new MultilayerNetwork(featureExtractor.VectorSize);
             var bpa = new BackPropagationLearning(network);
             var adapter = new AssistedLearningAdapter<TClass>(bpa, outputMapper);
             var classifier = new MultilayerNetworkClassifier<TClass>(network, outputMapper.Map);

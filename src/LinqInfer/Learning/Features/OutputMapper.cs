@@ -61,7 +61,7 @@ namespace LinqInfer.Learning.Features
 
             var o = _outputs[obj];
 
-            var vector = new double[_outputs.Count];
+            var vector = Enumerable.Range(0, _outputs.Count).Select(n => -1d).ToArray();
 
             vector[o] = 1;
 

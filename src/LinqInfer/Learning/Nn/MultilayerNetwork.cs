@@ -7,30 +7,52 @@ namespace LinqInfer.Learning.Nn
 {
     internal class MultilayerNetwork
     {
-        private readonly INetworkSignalFilter _rootLayer;
+        private readonly int _inputVectorSize;
+        private readonly Func<int, INeuron> _neuronFactory;
+        private INetworkSignalFilter _rootLayer;
 
-        public MultilayerNetwork(int inputVectorSize, int[] neuronSizes = null, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
+        public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
         {
-            Activator = activator ?? Activators.Sigmoid();
+            _inputVectorSize = inputVectorSize;
+            _neuronFactory = neuronFactory;
 
-            if (neuronSizes == null) neuronSizes = new[] { inputVectorSize };
+            Activator = activator ?? Activators.Sigmoid();
+            
+            Initialise(neuronSizes);
+        }
+
+        internal MultilayerNetwork(int inputVectorSize, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
+        {
+            _inputVectorSize = inputVectorSize;
+            _neuronFactory = neuronFactory;
+
+            Activator = activator ?? Activators.Sigmoid();
+        }
+
+        public void Initialise(params int[] neuronSizes)
+        {
+            if (neuronSizes == null) neuronSizes = new[] { _inputVectorSize };
 
             INetworkSignalFilter next = null;
 
-            foreach(var n in neuronSizes)
+            int lastN = 0;
+
+            foreach (var n in neuronSizes)
             {
                 var prev = next;
 
-                next = new NetworkLayer(inputVectorSize, n, Activator, neuronFactory);
-
-                if(prev == null)
+                if (prev == null)
                 {
+                    next = new NetworkLayer(_inputVectorSize, _inputVectorSize, Activator, _neuronFactory);
                     _rootLayer = next;
                 }
                 else
                 {
+                    next = new NetworkLayer(lastN, n, Activator, _neuronFactory);
                     prev.Successor = next;
                 }
+
+                lastN = n;
             }
         }
 
@@ -45,7 +67,13 @@ namespace LinqInfer.Learning.Nn
 
         public ColumnVector1D Evaluate(ColumnVector1D input)
         {
-            return _rootLayer.Process(input);
+            if (_rootLayer == null) throw new InvalidOperationException("Not initialised");
+
+            var res = _rootLayer.Process(input);
+
+            Console.WriteLine("{0} => {1}", input.ToCsv(2), res.ToCsv(2));
+
+            return res;
         }
 
         public IEnumerable<ILayer> Layers

@@ -3,7 +3,6 @@
     public class NetworkParameters
     {
         public ActivatorFunc Activator { get; set; }
-        public int[] LayerSizes { get; set; }
-
+        public int[] HiddenLayerCount {  get; set; }
     }
 }

@@ -6,11 +6,12 @@ namespace LinqInfer.Learning.Nn
 {
     public class NeuronBase : INeuron
     {
-        private ColumnVector1D _weights;
+        private readonly ColumnVector1D _weights;
 
         public NeuronBase(int inputVectorSize)
         {
-            _weights = Functions.RandomVector(inputVectorSize);
+            Bias = Functions.RandomDouble(0.1);
+            _weights = Functions.RandomVector(inputVectorSize, -0.7, 0.7);
         }
 
         public NeuronBase(int inputVectorSize, Range range)
@@ -23,13 +24,13 @@ namespace LinqInfer.Learning.Nn
             _weights = weights;
         }
 
-        public int Size { get { return _weights.Size; } }
-
-        public double Output { get; private set; }
-
         public Func<double, double> Activator { get; set; }
 
-        public double Bias { get; set; }
+        public int Size { get { return _weights.Size; } }
+
+        public double Output { get; protected set; }
+
+        public double Bias { get; protected set; }
 
         public double this[int index]
         {
@@ -39,8 +40,10 @@ namespace LinqInfer.Learning.Nn
             }
         }
 
-        public virtual void Adjust(Func<double, double> func)
+        public virtual void Adjust(Func<double, int, double> func)
         {
+            Bias = func(Bias, -1);
+
             _weights.Apply(func);
         }
 
@@ -54,11 +57,6 @@ namespace LinqInfer.Learning.Nn
             var sum = Bias + _weights.Zip(input, (w, m) => w * m).Sum();
 
             return Output = Activator == null ? sum : Activator(sum);
-        }
-
-        public void Adjust(ColumnVector1D weightAdjustments)
-        {
-            _weights += weightAdjustments;
         }
     }
 }

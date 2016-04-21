@@ -82,6 +82,7 @@
     <Compile Include="Learning\Nn\SimpleNet.cs" />
     <Compile Include="Learning\Nn\WordVectoriser.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
+    <Compile Include="Learning\Nn\XorNode.cs" />
     <Compile Include="Learning\ObjectVector.cs" />
     <Compile Include="Maths\ColumnVector1D.cs" />
     <Compile Include="Maths\ColumnVector1DEventArgs.cs" />

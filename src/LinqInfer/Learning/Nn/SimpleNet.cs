@@ -29,14 +29,14 @@ namespace LinqInfer.Learning.Nn
             return FindPossibleMatches(data).FirstOrDefault();
         }
 
-        public void Train(T dataClass, byte[] sample)
+        public double Train(T dataClass, byte[] sample)
         {
             Contract.Assert(sample != null);
 
-            Train(dataClass, sample.Select(v => (float)v).ToArray());
+            return Train(dataClass, sample.Select(v => (float)v).ToArray());
         }
 
-        public void Train(T dataClass, float[] sample)
+        public double Train(T dataClass, float[] sample)
         {
             Contract.Assert(sample != null);
             Contract.Assert(sample.Length == vectorSize);
@@ -54,6 +54,8 @@ namespace LinqInfer.Learning.Nn
             {
                 neurons[i++].AddSample(x);
             }
+
+            return 0;
         }
 
         public IEnumerable<ClassifyResult<T>> FindPossibleMatches(float[] data)
