@@ -25,8 +25,15 @@
 <div id="sofmChart"></div>
 
 <table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th ng-repeat="node in data">{{metadata.fields[$index].label}}</th>
+        </tr>
+    </thead>
     <tbody>
         <tr ng-repeat="node in data">
+            <td>Node {{$index}}</td>
             <td ng-repeat="w in node.weights">{{w}}</td>
         </tr>
     </tbody>

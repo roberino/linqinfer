@@ -1,4 +1,4 @@
-﻿using LinqInfer.Probability;
+﻿using LinqInfer.Maths;
 using NUnit.Framework;
 
 namespace LinqInfer.Tests.Probability

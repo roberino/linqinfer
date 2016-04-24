@@ -22,6 +22,7 @@ namespace LinqInfer.Tests
             yield return new Pirate() { Gold = 60, Age = 19, IsCaptain = false, Ships = 1 };
             yield return new Pirate() { Gold = 1800, Age = 52, IsCaptain = true, Ships = 3 };
             yield return new Pirate() { Gold = 101, Age = 18, IsCaptain = false, Ships = 2 };
+            yield return new Pirate() { Gold = 1100, Age = 58, IsCaptain = true, Ships = 4 };
         }
 
         public class Pirate

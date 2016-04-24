@@ -12,8 +12,5 @@
     "angular-mocks": "latest",
     "angular-resource": "latest",
     "html5-boilerplate": "~5.2.0"
-  },
-  "resolutions": {
-    "angular": "1.5.1"
   }
 }

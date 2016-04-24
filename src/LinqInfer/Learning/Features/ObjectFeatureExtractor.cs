@@ -1,5 +1,4 @@
-﻿using LinqInfer.Annotation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +29,11 @@ namespace LinqInfer.Learning.Features
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(bool normaliseData = true, string setName = null) where T : class
         {
             return CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
+        }
+
+        public IFeatureExtractor<T, double> CreateDoublePrecisionFeatureExtractor<T>(bool normaliseData = true, string setName = null) where T : class
+        {
+            return (IFeatureExtractor<T, double>)CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
         }
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, bool normaliseData = true, string setName = null) where T : class

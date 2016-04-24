@@ -1,4 +1,4 @@
-﻿using LinqInfer.Storage.Parsers;
+﻿using LinqInfer.Sampling.Parsers;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace LinqInfer.Tests.Storage.Parsers
         {
             using (var csvData = GetResource("example.csv"))
             {
-                var parser = new CsvParser();
+                var parser = new CsvSampleParser();
 
                 var sample = parser.ReadFromStream(csvData);
 

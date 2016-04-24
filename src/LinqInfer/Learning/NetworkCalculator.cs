@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace LinqInfer.Learning
 {
@@ -22,6 +23,8 @@ namespace LinqInfer.Learning
         public static float[] AdjustWeights(float[] inputVector, float[] weights, float learningRate)
         {
             Validate(inputVector, weights);
+
+            //using linq: weights = weights.Zip(inputVector, (w, m) => w + learningRate * m - w).ToArray();
 
             for (int i = 0; i < weights.Length; i++)
             {

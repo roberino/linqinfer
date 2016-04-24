@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning;
-using LinqInfer.Probability;
+using LinqInfer.Learning.Nn;
+using LinqInfer.Maths;
 using NUnit.Framework;
 using System.Linq;
 
@@ -51,6 +52,54 @@ namespace LinqInfer.Tests.Learning
                 Age = 41,
                 IsCaptain = true,
                 Ships = 4
+            });
+
+            Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
+            Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
+        }
+
+        [Test]
+        public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
+        {
+            var xor1 = new XorNode() { X = true, Y = false };
+            var xor2 = new XorNode() { X = false, Y = false };
+            var xor3 = new XorNode() { X = true, Y = true };
+            var xor4 = new XorNode() { X = false, Y = false };
+
+            var samples = new[] { xor1, xor2, xor3, xor4 };
+
+            var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output);
+
+            var classResults1 = classifier.Invoke(xor1);
+            var classResults2 = classifier.Invoke(xor2);
+
+            Assert.That(classResults1.ClassType == xor1.Output);
+            Assert.That(classResults2.ClassType == xor2.Output);
+        }
+
+        [Test]
+        public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
+        {
+            var pirateSample = TestData.CreatePirates().ToList();
+            var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young");
+
+            // In the original predicate, if age > 25 then old.
+            // But this pirate shares many features of other young pirates
+            // So therfore should be classed as "young"
+            var classOfPirate = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 120,
+                Age = 5,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            var classOfPirate2 = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 1600,
+                Age = 61,
+                IsCaptain = true,
+                Ships = 7
             });
 
             Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));

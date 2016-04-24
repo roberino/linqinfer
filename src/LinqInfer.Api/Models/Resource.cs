@@ -1,4 +1,4 @@
-﻿using LinqInfer.Storage;
+﻿using LinqInfer.Sampling;
 using System;
 using System.Collections.Generic;
 

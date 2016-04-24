@@ -1,7 +1,7 @@
 ﻿namespace LinqInfer.Learning
 {
-    public interface INeuronGenerator<T>
+    public interface INeuronGenerator
     {
-        INeuron<T> Create();
+        INeuron Create();
     }
 }
