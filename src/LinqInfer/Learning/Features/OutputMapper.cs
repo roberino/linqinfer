@@ -50,7 +50,7 @@ namespace LinqInfer.Learning.Features
             return _outputs.Select(o => 1d).ToArray();
         }
 
-        public double[] CreateNormalisingVector(IEnumerable<T> samples)
+        public double[] NormaliseUsing(IEnumerable<T> samples)
         {
             return CreateNormalisingVector();
         }

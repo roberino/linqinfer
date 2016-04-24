@@ -35,12 +35,12 @@ namespace LinqInfer.Learning.Nn
                 outputs = trainingData.GroupBy(classf).Select(o => o.Key).ToList();
 
                 _config.OutputMapper.Initialise(outputs);
-                _config.FeatureExtractor.CreateNormalisingVector(trainingData);
+                _config.FeatureExtractor.NormaliseUsing(trainingData);
             }
 
             var networks = new List<Tuple<ClassificationPipeline<TClass, TInput, double>, double>>();
 
-            Enumerable.Range(0, hiddenLayerFactor).AsParallel().ForAll(n =>
+            Enumerable.Range(0, hiddenLayerFactor).AsParallel().WithDegreeOfParallelism(1).ForAll(n =>
             {
                 networks.Add(TrainNetwork(trainingData, classf, n, outputs.Count));
             });
@@ -66,7 +66,7 @@ namespace LinqInfer.Learning.Nn
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
             var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
 
-            var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample);
+            var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample, false);
 
             network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize / 2 * hiddenLayerFactor, outputSize);
 

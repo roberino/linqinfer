@@ -36,7 +36,7 @@ namespace LinqInfer.Sampling
                 throw new ArgumentException("Invalid feature index array");
             }
 
-            CreateNormalisingVector(_sample.SampleData);
+            NormaliseUsing(_sample.SampleData);
         }
 
         public IDictionary<string, int> Labels { get; private set; }
@@ -54,7 +54,7 @@ namespace LinqInfer.Sampling
             return _maxSample;
         }
 
-        public float[] CreateNormalisingVector(IEnumerable<DataItem> samples)
+        public float[] NormaliseUsing(IEnumerable<DataItem> samples)
         {
             _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
             return _maxSample;
