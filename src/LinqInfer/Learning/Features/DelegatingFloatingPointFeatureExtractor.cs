@@ -39,14 +39,14 @@ namespace LinqInfer.Learning.Features
         {
             _normalisingVector = _vectorFunc(sample);
 
-            return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector;
+            return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector; // TODO: Fix this odd logic
         }
 
-        public float[] CreateNormalisingVector(IEnumerable<T> samples)
+        public float[] NormaliseUsing(IEnumerable<T> samples)
         {
             _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToSingleArray();
 
-            return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector;
+            return _normalisingVector;
         }
 
         public float[] ExtractVector(T obj)
@@ -76,9 +76,9 @@ namespace LinqInfer.Learning.Features
             return ExtractVector(obj).Select(x => (double)x).ToArray();
         }
 
-        double[] IFeatureExtractor<T, double>.CreateNormalisingVector(IEnumerable<T> samples)
+        double[] IFeatureExtractor<T, double>.NormaliseUsing(IEnumerable<T> samples)
         {
-            return CreateNormalisingVector(samples).Select(x => (double)x).ToArray();
+            return NormaliseUsing(samples).Select(x => (double)x).ToArray();
         }
     }
 }
