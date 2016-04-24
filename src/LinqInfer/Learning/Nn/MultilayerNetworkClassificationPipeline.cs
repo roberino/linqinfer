@@ -6,10 +6,12 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Nn
 {
-    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> : ClassificationPipeline<TClass, TInput, double> where TClass : IEquatable<TClass>
+    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> where TClass : IEquatable<TClass>
     {
         private readonly Config _config;
-        private readonly double _toleranceThreshold = 1.1;
+        private readonly double _toleranceThreshold = 0.9;
+
+        private ClassificationPipeline<TClass, TInput, double> _pipeline;
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
@@ -18,12 +20,12 @@ namespace LinqInfer.Learning.Nn
         {
         }
 
-        private MultilayerNetworkClassificationPipeline(Config config) : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
+        private MultilayerNetworkClassificationPipeline(Config config) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
         {
             _config = config;
         }
 
-        public override double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf)
+        public double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf)
         {
             int hiddenLayerFactor = 8;
             IList<TClass> outputs = null;
@@ -33,36 +35,55 @@ namespace LinqInfer.Learning.Nn
                 outputs = trainingData.GroupBy(classf).Select(o => o.Key).ToList();
 
                 _config.OutputMapper.Initialise(outputs);
-
-                _config.Network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize * hiddenLayerFactor, outputs.Count);
+                _config.FeatureExtractor.CreateNormalisingVector(trainingData);
             }
 
-            _config.FeatureExtractor.CreateNormalisingVector(trainingData);
-            
+            var networks = new List<Tuple<ClassificationPipeline<TClass, TInput, double>, double>>();
+
+            Enumerable.Range(0, hiddenLayerFactor).AsParallel().ForAll(n =>
+            {
+                networks.Add(TrainNetwork(trainingData, classf, n, outputs.Count));
+            });
+
+            var min = networks.OrderBy(x => x.Item2).First();
+
+            _pipeline = min.Item1;
+
+            return min.Item2;
+        }
+
+        public ClassifyResult<TClass> Classify(TInput obj)
+        {
+            if (_pipeline == null) throw new InvalidOperationException("Pipeline not trained");
+
+            return _pipeline.Classify(obj);
+        }
+
+        private Tuple<ClassificationPipeline<TClass, TInput, double>, double> TrainNetwork(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, int hiddenLayerFactor, int outputSize)
+        {
+            var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize);
+            var bpa = new BackPropagationLearning(network);
+            var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
+            var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
+
+            var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample);
+
+            network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize / 2 * hiddenLayerFactor, outputSize);
+
             int i = 0;
             double error = 0;
             double lastError = 0;
 
             while (i < 1000)
             {
-                error = base.Train(trainingData, classf);
-
-                if (error < _toleranceThreshold) break;
-
-                if (lastError == error)
-                {
-                    if (hiddenLayerFactor == 1) break;
-
-                    hiddenLayerFactor--;
-                    lastError = 0;
-
-                    _config.Network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize * hiddenLayerFactor, outputs.Count);
-                }
+                error = pipeline.Train(trainingData, classf);
+                
+                if (error < _toleranceThreshold || error == lastError) break;
 
                 lastError = error;
             }
 
-            return error;
+            return new Tuple<ClassificationPipeline<TClass, TInput, double>, double>(pipeline, error);
         }
 
         private static Config Setup(
@@ -71,18 +92,11 @@ namespace LinqInfer.Learning.Nn
             TInput normalisingSample)
         {
             if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-            var network = new MultilayerNetwork(featureExtractor.VectorSize);
-            var bpa = new BackPropagationLearning(network);
-            var adapter = new AssistedLearningAdapter<TClass>(bpa, outputMapper);
-            var classifier = new MultilayerNetworkClassifier<TClass>(network, outputMapper.Map);
             
             return new Config()
             {
                 NormalisingSample = normalisingSample,
-                Network = network,
-                Trainer = adapter,
                 FeatureExtractor = featureExtractor,
-                Classifier = classifier,
                 OutputMapper = outputMapper
             };
         }
@@ -91,10 +105,7 @@ namespace LinqInfer.Learning.Nn
         {
             public  TInput NormalisingSample { get; set; }
             public IOutputMapper<TClass> OutputMapper { get; set; }
-            public IClassifier<TClass, double> Classifier { get; set; }
             public IFeatureExtractor<TInput, double> FeatureExtractor { get; set; }
-            public MultilayerNetwork Network { get; set; }
-            public IAssistedLearning<TClass, double> Trainer { get; set; }
         }
     }
 }
