@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Learning\Nn\BackPropagationLearningTests.cs" />
     <Compile Include="TestFixtureBase.cs" />
     <Compile Include="Language\EnglishDictionaryTests.cs" />
     <Compile Include="Probability\ColumnVector1DTests.cs" />

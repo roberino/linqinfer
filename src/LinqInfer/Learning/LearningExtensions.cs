@@ -1,10 +1,11 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
-using LinqInfer.Probability;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Learning
 {
@@ -56,23 +57,20 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning a dictionary of potential results</returns>
-        public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Func<TInput, TClass> classf) where TInput : class
+        public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var net = new SimpleNet<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
-            foreach (var batch in trainingData.Chunk())
-            {
-                classifierPipe.Train(batch.Select(v => new Tuple<TClass, TInput>(classf(v), v)));
-            }
+            classifierPipe.Train(trainingData, classf);
 
             return x =>
             {
                 var matches = classifierPipe.FindPossibleMatches(x).ToList();
                 var factor = Math.Max(matches.Count, 100);
                 var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
-                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)Math.Round(m.Score * factor, 0), total));
+                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)System.Math.Round(m.Score * factor, 0), total));
                 return dist;
             };
         }
@@ -85,16 +83,31 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
-        public static Func<TInput, ClassifyResult<TClass>> ToSimpleClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Func<TInput, TClass> classf) where TInput : class
+        public static Func<TInput, ClassifyResult<TClass>> ToSimpleClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var net = new SimpleNet<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
-            foreach (var batch in trainingData.Chunk())
-            {
-                classifierPipe.Train(batch.Select(v => new Tuple<TClass, TInput>(classf(v), v)));
-            }
+            classifierPipe.Train(trainingData, classf);
+
+            return classifierPipe.Classify;
+        }
+
+        /// <summary>
+        /// Creates a multi-layer network classifier based on some training data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="trainingData">The training data set</param>
+        /// <param name="classf">A function which will be used to classify the training data</param>
+        /// <returns>A function which can classify new objects, returning the best match</returns>
+        public static Func<TInput, ClassifyResult<TClass>> ToMultilayerNetworkClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
+            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor);
+
+            classifierPipe.Train(trainingData, classf);
 
             return classifierPipe.Classify;
         }

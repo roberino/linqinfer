@@ -1,10 +1,11 @@
-﻿using System;
+﻿using LinqInfer.Maths;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
+    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IFeatureExtractor<T, double>
     {
         private readonly int _vectorSize;
         private readonly bool _normaliseData;
@@ -41,6 +42,13 @@ namespace LinqInfer.Learning.Features
             return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector;
         }
 
+        public float[] CreateNormalisingVector(IEnumerable<T> samples)
+        {
+            _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToSingleArray();
+
+            return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector;
+        }
+
         public float[] ExtractVector(T obj)
         {
             if (!_normaliseData) return _vectorFunc(obj);
@@ -56,6 +64,21 @@ namespace LinqInfer.Learning.Features
             }
 
             return normalised;
+        }
+
+        double[] IFeatureExtractor<T, double>.CreateNormalisingVector(T sample)
+        {
+            return CreateNormalisingVector(sample).Select(x => (double)x).ToArray();
+        }
+
+        double[] IFeatureExtractor<T, double>.ExtractVector(T obj)
+        {
+            return ExtractVector(obj).Select(x => (double)x).ToArray();
+        }
+
+        double[] IFeatureExtractor<T, double>.CreateNormalisingVector(IEnumerable<T> samples)
+        {
+            return CreateNormalisingVector(samples).Select(x => (double)x).ToArray();
         }
     }
 }

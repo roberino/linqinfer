@@ -1,5 +1,5 @@
-﻿using LinqInfer.Probability;
-using LinqInfer.Storage;
+﻿using LinqInfer.Maths;
+using LinqInfer.Sampling;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;

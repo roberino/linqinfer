@@ -6,6 +6,7 @@ namespace LinqInfer.Learning.Features
     {
         int VectorSize { get; }
         TVector[] CreateNormalisingVector(TInput sample = default(TInput));
+        TVector[] CreateNormalisingVector(IEnumerable<TInput> samples);
         TVector[] ExtractVector(TInput obj);
         IDictionary<string, int> Labels { get; }
     }

@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Api.Models;
-using LinqInfer.Storage;
-using LinqInfer.Storage.Parsers;
+using LinqInfer.Sampling;
+using LinqInfer.Sampling.Parsers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,7 +78,7 @@ namespace LinqInfer.Api.Controllers
             var streamProvider = new MultipartFormDataStreamProvider(path);
             await Request.Content.ReadAsMultipartAsync(streamProvider);
 
-            var csvReader = new CsvParser();
+            var csvReader = new CsvSampleParser();
             var sampleUris = new List<Uri>();
 
             foreach (var file in streamProvider.FileData)

@@ -8,15 +8,15 @@ namespace LinqInfer.Learning.Nn
 {
     internal class SimpleNet<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
     {
-        private readonly Dictionary<T, List<INeuron<float>>> netData;
+        private readonly Dictionary<T, List<InputAggregator>> netData;
         private readonly int vectorSize;
-        private readonly Func<INeuron<float>> neuronGenerator;
+        private readonly Func<InputAggregator> neuronGenerator;
 
-        public SimpleNet(int vectorSize, Func<INeuron<float>> neuronGenerator = null)
+        public SimpleNet(int vectorSize, Func<InputAggregator> neuronGenerator = null)
         {
             this.vectorSize = vectorSize;
-            this.neuronGenerator = neuronGenerator ?? (() => new Neuron());
-            netData = new Dictionary<T, List<INeuron<float>>>();
+            this.neuronGenerator = neuronGenerator ?? (() => new InputAggregator());
+            netData = new Dictionary<T, List<InputAggregator>>();
         }
 
         public ClassifyResult<T> Classify(byte[] data)
@@ -29,19 +29,19 @@ namespace LinqInfer.Learning.Nn
             return FindPossibleMatches(data).FirstOrDefault();
         }
 
-        public void Train(T dataClass, byte[] sample)
+        public double Train(T dataClass, byte[] sample)
         {
             Contract.Assert(sample != null);
 
-            Train(dataClass, sample.Select(v => (float)v).ToArray());
+            return Train(dataClass, sample.Select(v => (float)v).ToArray());
         }
 
-        public void Train(T dataClass, float[] sample)
+        public double Train(T dataClass, float[] sample)
         {
             Contract.Assert(sample != null);
             Contract.Assert(sample.Length == vectorSize);
 
-            List<INeuron<float>> neurons;
+            List<InputAggregator> neurons;
 
             if (!netData.TryGetValue(dataClass, out neurons))
             {
@@ -54,6 +54,8 @@ namespace LinqInfer.Learning.Nn
             {
                 neurons[i++].AddSample(x);
             }
+
+            return 0;
         }
 
         public IEnumerable<ClassifyResult<T>> FindPossibleMatches(float[] data)

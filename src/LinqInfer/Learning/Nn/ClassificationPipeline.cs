@@ -1,6 +1,9 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Learning
 {
@@ -22,12 +25,23 @@ namespace LinqInfer.Learning
             _featureExtract.CreateNormalisingVector(normalisingSample);
         }
 
-        public void Train(IEnumerable<Tuple<TClass, TInput>> trainingData)
+        public virtual double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
         {
-            foreach(var item in trainingData)
+            var classf = classifyingExpression.Compile();
+
+            double error = 0;
+            int counter = 0;
+
+            foreach (var batch in trainingData.Chunk())
             {
-                _learning.Train(item.Item1, _featureExtract.ExtractVector(item.Item2));
+                foreach (var value in batch)
+                {
+                    error += _learning.Train(classf(value), _featureExtract.ExtractVector(value));
+                    counter++;
+                }
             }
+
+            return error / (double)counter;
         }
 
         public ClassifyResult<TClass> Classify(TInput obj)
