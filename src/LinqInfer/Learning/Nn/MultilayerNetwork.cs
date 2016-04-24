@@ -37,7 +37,7 @@ namespace LinqInfer.Learning.Nn
 
             int lastN = 0;
 
-            foreach (var n in neuronSizes)
+            foreach (var n in neuronSizes.Where(x => x > 0))
             {
                 var prev = next;
 

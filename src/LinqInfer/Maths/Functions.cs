@@ -40,8 +40,7 @@ namespace LinqInfer.Maths
         /// <returns>A vector containing random values</returns>
         public static ColumnVector1D RandomVector(int size, double min = 0, double max = 1)
         {
-            var m = max - min;
-            return new ColumnVector1D(Enumerable.Range(1, size).Select(n => min + (_random.NextDouble() * m)).ToArray());
+            return RandomVector(size, new Range(min, max));
         }
 
         /// <summary>
