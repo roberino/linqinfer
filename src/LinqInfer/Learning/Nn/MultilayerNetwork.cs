@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace LinqInfer.Learning.Nn
         private readonly int _inputVectorSize;
         private readonly Func<int, INeuron> _neuronFactory;
         private INetworkSignalFilter _rootLayer;
+        private NetworkParameters _parameters;
 
         public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
         {
@@ -27,17 +29,31 @@ namespace LinqInfer.Learning.Nn
             _neuronFactory = neuronFactory;
 
             Activator = activator ?? Activators.Sigmoid();
+
+            _parameters = new NetworkParameters()
+            {
+                Activator = activator ?? Activators.Sigmoid(),
+                InitialWeightRange = new Range(0.7, -0.7)
+            };
         }
 
-        public void Initialise(params int[] neuronSizes)
+        public NetworkParameters Parameters
         {
-            if (neuronSizes == null) neuronSizes = new[] { _inputVectorSize };
+            get
+            {
+                return _parameters;
+            }
+        }
 
+        public void Initialise(params int[] neuronsPerLayer)
+        {
+            if (neuronsPerLayer == null) neuronsPerLayer = new[] { _inputVectorSize };
+            
             INetworkSignalFilter next = null;
 
             int lastN = 0;
 
-            foreach (var n in neuronSizes.Where(x => x > 0))
+            foreach (var n in neuronsPerLayer.Where(x => x > 0))
             {
                 var prev = next;
 
@@ -54,6 +70,13 @@ namespace LinqInfer.Learning.Nn
 
                 lastN = n;
             }
+
+            _parameters = new NetworkParameters()
+            {
+                Activator = Activator,
+                InitialWeightRange = _parameters.InitialWeightRange,
+                LayerSizes = neuronsPerLayer
+            };
         }
 
         public ActivatorFunc Activator { get; private set; }
@@ -71,7 +94,7 @@ namespace LinqInfer.Learning.Nn
 
             var res = _rootLayer.Process(input);
 
-            Console.WriteLine("{0} => {1}", input.ToCsv(2), res.ToCsv(2));
+            // Debugger.Log("{0} => {1}", input.ToCsv(2), res.ToCsv(2));
 
             return res;
         }
@@ -89,6 +112,17 @@ namespace LinqInfer.Learning.Nn
                     next = next.Successor as ILayer;
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            string s = string.Empty;
+            foreach(var layer in Layers)
+            {
+                s += "[Layer " + layer.Size + "]";
+            }
+
+            return string.Format("Network({0}):{1}", _inputVectorSize, s);
         }
     }
 }

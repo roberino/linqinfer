@@ -4,12 +4,15 @@ namespace LinqInfer.Learning.Nn
 {
     public static class Activators
     {
-        public static ActivatorFunc Sigmoid(double alpha = 1)
+        public static ActivatorFunc Sigmoid(double alpha = 2)
         {
             return new ActivatorFunc()
             {
+                Name = "Sigmoid",
                 Activator = SigmoidF(alpha),
-                Derivative = SigmoidDerivative(alpha)
+                Derivative = SigmoidDerivative(alpha),
+                Parameter = alpha,
+                Create = (p) => Sigmoid(p)
             };
         }
 
