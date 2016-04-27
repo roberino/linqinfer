@@ -10,6 +10,27 @@ namespace LinqInfer.Maths
         private static readonly Random _random = new System.Random((int)DateTime.UtcNow.Ticks);
 
         /// <summary>
+        /// Returns either A or B.
+        /// </summary>
+        public static T AorB<T>(T a, T b)
+        {
+            return RandomDouble() > 0.5d ? a : b;
+        }
+
+        /// <summary>
+        /// Returns the average of two numbers 
+        /// with a degree of random variance
+        /// </summary>
+        /// <param name="x0">Value 0</param>
+        /// <param name="x1">Value 1</param>
+        /// <param name="randomVariability">The random amount (+/-) of variance</param>
+        /// <returns>A double</returns>
+        public static double Mutate(double x0, double x1, double randomVariability)
+        {
+            return ((x0 + x1) / 2) + RandomDouble(-randomVariability, randomVariability);
+        }
+
+        /// <summary>
         /// Returns a random number between zero and max (inclusive).
         /// </summary>
         /// <param name="max">The maximum value</param>

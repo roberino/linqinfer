@@ -7,10 +7,14 @@ namespace LinqInfer.Tests.Learning.Nn
     [TestFixture]
     public class BackPropagationLearningTests
     {
-        [Test]
-        public void Train_ReturnsErrorGt0()
+        [TestCase(2, 0)]
+        [TestCase(4, 0)]
+        [TestCase(6, 2)]
+        public void InitialiseAndTrain_ReturnsErrorGt0(int layer1Size, int layer2Size)
         {
             var network = new MultilayerNetwork(4);
+
+            network.Initialise(4, layer1Size, layer2Size, 4);
 
             var bp = new BackPropagationLearning(network);
 

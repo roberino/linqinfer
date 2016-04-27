@@ -127,6 +127,7 @@
     <Compile Include="Sampling\SampleSummary.cs" />
     <Compile Include="Sampling\SerialisableDynamicObject.cs" />
     <Compile Include="Sampling\UriProvider.cs" />
+    <Compile Include="Utility\Debugger.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
