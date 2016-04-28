@@ -15,7 +15,7 @@ namespace LinqInfer.Learning
         private readonly IClassifier<TClass, TVector> _classifier;
         private readonly IFeatureExtractor<TInput, TVector> _featureExtract;
 
-        private double error;
+        private double? error;
 
         public ClassificationPipeline(IAssistedLearning<TClass, TVector> learning,
             IClassifier<TClass, TVector> classifier,
@@ -46,7 +46,7 @@ namespace LinqInfer.Learning
                 }
             }
 
-            return error / counter;
+            return error.GetValueOrDefault() / counter;
         }
 
         public void ResetError()
@@ -54,7 +54,7 @@ namespace LinqInfer.Learning
             error = 0;
         }
 
-        public double Error
+        public double? Error
         {
             get
             {
@@ -64,7 +64,8 @@ namespace LinqInfer.Learning
 
         public virtual double Train(TInput value, Func<TInput, TClass> classf)
         {
-            var e = _learning.Train(classf(value), _featureExtract.ExtractVector(value));
+            if (!error.HasValue) error = 0;
+             var e = _learning.Train(classf(value), _featureExtract.ExtractVector(value));
             error += e;
             return e;
         }

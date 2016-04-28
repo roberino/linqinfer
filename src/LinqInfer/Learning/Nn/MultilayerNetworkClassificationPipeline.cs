@@ -16,18 +16,21 @@ namespace LinqInfer.Learning.Nn
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
-            ActivatorFunc activator = null,
-            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
+            float errorTolerance = 0.3f,
+            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)), errorTolerance)
         {
-            ErrorTolerance = 0.3f;
         }
 
-        private MultilayerNetworkClassificationPipeline(Config config) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
+        private MultilayerNetworkClassificationPipeline(Config config, float errorTolerance) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
         {
+            ErrorTolerance = errorTolerance;
+            ParallelProcess = true;
             _config = config;
         }
 
         public float ErrorTolerance { get; set; }
+
+        public bool ParallelProcess { get; set; }
 
         public double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
         {
@@ -42,23 +45,23 @@ namespace LinqInfer.Learning.Nn
                 _config.FeatureExtractor.NormaliseUsing(trainingData);
             }
 
-            var networks = Enumerable.Range(0, hiddenLayerFactor).Select(n => SetupNetwork(n, outputs.Count)).ToList();
+            var networks = Activators.All().SelectMany(a => GeneratePipelines(hiddenLayerFactor, outputs.Count, a)).ToList();
 
-            var iterationReductionFactor = hiddenLayerFactor; // reduce by 1/8 each iteration
-            var i = 0;
+            var iterationReductionFactor = hiddenLayerFactor; // reduce by 1/iterationReductionFactor each iteration
             var classf = classifyingExpression.Compile();
             var nc = networks.Count;
             var trainingDataCount = trainingData.Count();
+            var i = 0;
 
-            while (i < 1000)
+            while (i < 200)
             {
-                var unconverged = networks.Where(n => n.Instance.Error / trainingDataCount < ErrorTolerance).ToList();
+                var unconverged = (i == 0) ? networks : networks.Where(n => !n.HasConverged(trainingDataCount)).ToList();
 
                 unconverged.AsParallel().ForAll(n => n.Instance.ResetError());
 
                 foreach (var batch in trainingData.Chunk())
                 {
-                    unconverged.AsParallel().WithDegreeOfParallelism(1).ForAll(n =>
+                    unconverged.AsParallel().WithDegreeOfParallelism(ParallelProcess ? Environment.ProcessorCount : 1).ForAll(n =>
                     {
                         foreach (var value in batch)
                         {
@@ -66,12 +69,12 @@ namespace LinqInfer.Learning.Nn
                         }
                     });
                 }
-
-                if (networks.All(n => n.Instance.Error / trainingDataCount < ErrorTolerance)) break;
-
+                
                 nc = networks.Count * (iterationReductionFactor - 1) / iterationReductionFactor;
+                
+                if (networks.Count > 3) networks = networks.OrderBy(n => n.Instance.Error).Take(nc).ToList();
 
-                if (networks.Count > 2) networks = networks.OrderBy(n => n.Instance.Error).Take(nc).ToList();
+                if (networks.All(n => n.HasConverged(trainingDataCount))) break;
 
                 networks.Add(Breed(networks[0], networks[1]));
 
@@ -82,7 +85,7 @@ namespace LinqInfer.Learning.Nn
 
             Debugger.Log(_pipeline);
 
-            return _pipeline.Instance.Error / trainingDataCount;
+            return _pipeline.Instance.Error.GetValueOrDefault() / trainingDataCount;
         }
 
         public ClassifyResult<TClass> Classify(TInput obj)
@@ -106,13 +109,19 @@ namespace LinqInfer.Learning.Nn
             return new Pipeline()
             {
                 Instance = pipeline,
-                Parameters = network.Parameters
+                Parameters = network.Parameters,
+                ErrorTolerance = ErrorTolerance
             };
         }
 
-        private Pipeline SetupNetwork(int hiddenLayerFactor, int outputSize)
+        private IEnumerable<Pipeline> GeneratePipelines(int hiddenLayerFactor, int outputSize, ActivatorFunc activator)
         {
-            var activator = Functions.AorB(Activators.Sigmoid(), Activators.Threshold(), 0.7);
+            return Enumerable.Range(0, hiddenLayerFactor)
+                .Select(n => SetupNetwork(n, outputSize, activator));
+        }
+
+        private Pipeline SetupNetwork(int hiddenLayerFactor, int outputSize, ActivatorFunc activator)
+        {
             var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize, activator);
             var bpa = new BackPropagationLearning(network);
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
@@ -125,7 +134,8 @@ namespace LinqInfer.Learning.Nn
             return new Pipeline()
             {
                 Instance = pipeline,
-                Parameters = network.Parameters
+                Parameters = network.Parameters,
+                ErrorTolerance = ErrorTolerance
             };
         }
 
@@ -150,9 +160,16 @@ namespace LinqInfer.Learning.Nn
 
             public NetworkParameters Parameters { get; set; }
 
+            public float ErrorTolerance { get; set; }
+
+            public bool HasConverged(int trainingDataCount)
+            {
+                return Instance.Error.HasValue && (Instance.Error / trainingDataCount) < ErrorTolerance;
+            }
+
             public override string ToString()
             {
-                return Parameters.ToString();
+                return string.Format("error:{0} parameters:{1}", Instance.Error, Parameters);
             }
         }
 

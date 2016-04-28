@@ -1,10 +1,12 @@
 ﻿using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
+    [Serializable]
     internal class MultilayerNetwork
     {
         private readonly int _inputVectorSize;
@@ -116,6 +118,49 @@ namespace LinqInfer.Learning.Nn
                     next = next.Successor as ILayer;
                 }
             }
+        }
+
+        public void Save(Stream output)
+        {
+            var bs = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+
+            bs.Serialize(output, this);
+
+            output.Flush();
+        }
+
+        protected virtual void OnLoad()
+        {
+            var activator = Activators.Create(Parameters.Activator.Name, Parameters.Activator.Parameter);
+
+            Parameters.Activator = activator;
+
+            ForEachLayer(x =>
+            {
+                if (x is NetworkLayer)
+                {
+                    ((NetworkLayer)x).ForEachNeuron((n, i) =>
+                    {
+                        if (n is NeuronBase)
+                        {
+                            ((NeuronBase)n).Activator = activator.Activator;
+                        }
+                        return 0;
+                    }).ToList();
+                }
+                return 0;
+            }).ToList();
+        }
+
+        public static MultilayerNetwork Load(Stream input)
+        {
+            var bs = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+
+            var network = (MultilayerNetwork)bs.Deserialize(input);
+
+            network.OnLoad();
+
+            return network;
         }
 
         public override string ToString()
