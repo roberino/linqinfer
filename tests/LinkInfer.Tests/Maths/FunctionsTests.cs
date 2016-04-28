@@ -8,6 +8,23 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FunctionsTests
     {
+        [TestCase(0.1, 0.2, 0.1, true)]
+        [TestCase(0.1, 0.2, 0.5, true)]
+        [TestCase(3, 7, 2, true)]
+        [TestCase(-0.3, 0.7, 0.2, true)]
+        [TestCase(-0.3, 0.7, 0.2, false)]
+        [TestCase(3, 7, 2, false)]
+        public void Mutate_ReturnsValuesInExpectedRange(double a, double b, double variance, bool logarithmic)
+        {
+            var ave = (a + b) / 2;
+            var min = ave - variance;
+            var max = ave + variance;
+
+            var range = Enumerable.Range(1, 500).Select(n => Functions.Mutate(a, b, variance, true));
+
+            Assert.That(range.All(x => x >= min && x <= max));
+        }
+
         [Test]
         public void Max_ColumnVector1D_ReturnsCorrectResult()
         {

@@ -11,7 +11,7 @@ namespace LinqInfer.Learning.Nn
     {
         private readonly Config _config;
 
-        private ClassificationPipeline<TClass, TInput, double> _pipeline;
+        private Pipeline _pipeline;
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
@@ -51,45 +51,65 @@ namespace LinqInfer.Learning.Nn
 
             while (i < 1000)
             {
-                var unconverged = networks.Where(n => n.Error / trainingDataCount < ErrorTolerance).ToList();
+                var unconverged = networks.Where(n => n.Instance.Error / trainingDataCount < ErrorTolerance).ToList();
 
-                unconverged.AsParallel().ForAll(n => n.ResetError());
+                unconverged.AsParallel().ForAll(n => n.Instance.ResetError());
 
                 foreach (var batch in trainingData.Chunk())
                 {
                     unconverged.AsParallel().WithDegreeOfParallelism(1).ForAll(n =>
                     {
-                        foreach(var value in batch)
+                        foreach (var value in batch)
                         {
-                            n.Train(value, classf);
+                            n.Instance.Train(value, classf);
                         }
                     });
                 }
 
-                if (networks.All(n => n.Error / trainingDataCount < ErrorTolerance)) break;
+                if (networks.All(n => n.Instance.Error / trainingDataCount < ErrorTolerance)) break;
 
                 nc = networks.Count * (iterationReductionFactor - 1) / iterationReductionFactor;
 
-                if (networks.Count > 2) networks = networks.OrderBy(n => n.Error).Take(nc).ToList();
+                if (networks.Count > 2) networks = networks.OrderBy(n => n.Instance.Error).Take(nc).ToList();
+
+                networks.Add(Breed(networks[0], networks[1]));
 
                 i++;
             }
 
-            _pipeline = networks.OrderBy(n => n.Error).First();
+            _pipeline = networks.OrderBy(n => n.Instance.Error).First();
 
             Debugger.Log(_pipeline);
 
-            return _pipeline.Error / trainingDataCount;
+            return _pipeline.Instance.Error / trainingDataCount;
         }
 
         public ClassifyResult<TClass> Classify(TInput obj)
         {
             if (_pipeline == null) throw new InvalidOperationException("Pipeline not trained");
 
-            return _pipeline.Classify(obj);
+            return _pipeline.Instance.Classify(obj);
         }
 
-        private ClassificationPipeline<TClass, TInput, double> SetupNetwork(int hiddenLayerFactor, int outputSize)
+        private Pipeline Breed(Pipeline a, Pipeline b)
+        {
+            var newParams = a.Parameters.Breed(b.Parameters);
+
+            var network = new MultilayerNetwork(newParams);
+            var bpa = new BackPropagationLearning(network);
+            var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
+            var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
+
+            var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample, false);
+            
+            return new Pipeline()
+            {
+                Instance = pipeline,
+                Parameters = network.Parameters
+            };
+        }
+
+        private Pipeline SetupNetwork(int hiddenLayerFactor, int outputSize)
         {
             var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize);
             var bpa = new BackPropagationLearning(network);
@@ -99,8 +119,12 @@ namespace LinqInfer.Learning.Nn
             var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample, false);
 
             network.Initialise(_config.FeatureExtractor.VectorSize, _config.FeatureExtractor.VectorSize / 2 * hiddenLayerFactor, outputSize);
-            
-            return pipeline;
+
+            return new Pipeline()
+            {
+                Instance = pipeline,
+                Parameters = network.Parameters
+            };
         }
 
         private static Config Setup(
@@ -116,6 +140,13 @@ namespace LinqInfer.Learning.Nn
                 FeatureExtractor = featureExtractor,
                 OutputMapper = outputMapper
             };
+        }
+
+        private class Pipeline
+        {
+            public ClassificationPipeline<TClass, TInput, double> Instance { get; set; }
+
+            public NetworkParameters Parameters { get; set; }
         }
 
         private class Config

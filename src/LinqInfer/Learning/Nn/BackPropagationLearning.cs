@@ -12,13 +12,14 @@ namespace LinqInfer.Learning.Nn
         private double _learningRate;
         protected readonly double _momentum;
 
-        public BackPropagationLearning(MultilayerNetwork network, double learningRate = 0.1, double momentum = 0.05)
+        public BackPropagationLearning(MultilayerNetwork network, double momentum = 0.05)
         {
-            Contract.Assert(learningRate > 0 && learningRate <= 1);
+            network.Parameters.Validate();
+
             Contract.Assert(momentum >= 0 && momentum <= 1);
 
             _network = network;
-            _learningRate = learningRate;
+            _learningRate = network.Parameters.LearningRate;
             _momentum = momentum;
         }
         
@@ -74,7 +75,7 @@ namespace LinqInfer.Learning.Nn
                     {
                         var e = targetOutput[k] - n.Output;
                         error += e * e;
-                        return e * _network.Activator.Derivative(n.Output);
+                        return e * _network.Parameters.Activator.Derivative(n.Output);
                     });
                 }
                 else
@@ -87,7 +88,7 @@ namespace LinqInfer.Learning.Nn
                             //return nk.Calculate(w => w * lastError[k]).Sum();
                         });
 
-                        return err.Sum() * _network.Activator.Derivative(n.Output);
+                        return err.Sum() * _network.Parameters.Activator.Derivative(n.Output);
                     });
                 }
 

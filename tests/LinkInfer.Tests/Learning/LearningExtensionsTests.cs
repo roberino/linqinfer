@@ -121,7 +121,7 @@ namespace LinqInfer.Tests.Learning
                 }
             }
 
-            Assert.That(successCounter / failureCounter > 1.5);
+            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(1.5f));
         }
 
         [Test]

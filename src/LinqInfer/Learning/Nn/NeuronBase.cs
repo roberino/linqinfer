@@ -16,14 +16,8 @@ namespace LinqInfer.Learning.Nn
 
         public NeuronBase(int inputVectorSize, Range range)
         {
-            Bias = range.Min + Functions.RandomDouble(range.Size);
+            Bias = 0;
             _weights = Functions.RandomVector(inputVectorSize, range);
-        }
-
-        public NeuronBase(ColumnVector1D weights)
-        {
-            Bias = -0.3 + Functions.RandomDouble(0.6);
-            _weights = weights;
         }
 
         public Func<double, double> Activator { get; set; }
