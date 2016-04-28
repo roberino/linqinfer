@@ -10,11 +10,12 @@ namespace LinqInfer.Maths
         private static readonly Random _random = new System.Random((int)DateTime.UtcNow.Ticks);
 
         /// <summary>
-        /// Returns either A or B.
+        /// Randomly returns either A or B.
         /// </summary>
-        public static T AorB<T>(T a, T b)
+        public static T AorB<T>(T a, T b, double biasTowardA = 0.5)
         {
-            return RandomDouble() > 0.5d ? a : b;
+            Contract.Assert(biasTowardA >= 0 && biasTowardA <= 1);
+            return RandomDouble() < biasTowardA ? a : b;
         }
 
         /// <summary>

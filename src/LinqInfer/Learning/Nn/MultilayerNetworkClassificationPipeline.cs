@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using LinqInfer.Utility;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Nn
 {
@@ -111,7 +112,8 @@ namespace LinqInfer.Learning.Nn
 
         private Pipeline SetupNetwork(int hiddenLayerFactor, int outputSize)
         {
-            var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize);
+            var activator = Functions.AorB(Activators.Sigmoid(), Activators.Threshold(), 0.7);
+            var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize, activator);
             var bpa = new BackPropagationLearning(network);
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
             var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
@@ -147,6 +149,11 @@ namespace LinqInfer.Learning.Nn
             public ClassificationPipeline<TClass, TInput, double> Instance { get; set; }
 
             public NetworkParameters Parameters { get; set; }
+
+            public override string ToString()
+            {
+                return Parameters.ToString();
+            }
         }
 
         private class Config

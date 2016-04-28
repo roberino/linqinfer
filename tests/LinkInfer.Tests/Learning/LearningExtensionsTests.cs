@@ -65,7 +65,7 @@ namespace LinqInfer.Tests.Learning
             var xor1 = new XorNode() { X = true, Y = false };
             var xor2 = new XorNode() { X = false, Y = false };
             var xor3 = new XorNode() { X = true, Y = true };
-            var xor4 = new XorNode() { X = false, Y = false };
+            var xor4 = new XorNode() { X = false, Y = true };
 
             var samples = new[] { xor1, xor2, xor3, xor4 };
 
