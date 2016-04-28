@@ -14,7 +14,7 @@ namespace LinqInfer.Api.Controllers
             var sample = await GetSampleById(id);           
 
             var sofm = sample.CreateSofm();
-
+            
             return new
             {
                 metadata = sample.Metadata,

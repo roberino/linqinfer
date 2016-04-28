@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
+    [Serializable]
     internal class NetworkLayer : ILayer
     {
         private readonly IList<INeuron> _neurons;

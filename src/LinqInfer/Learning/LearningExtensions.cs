@@ -102,10 +102,11 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
-        public static Func<TInput, ClassifyResult<TClass>> ToMultilayerNetworkClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class where TClass : IEquatable<TClass>
+        public static Func<TInput, ClassifyResult<TClass>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
         {
             var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
-            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor);
+            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor, errorTolerance);
 
             classifierPipe.Train(trainingData, classf);
 

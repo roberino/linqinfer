@@ -62,20 +62,40 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
         {
-            var xor1 = new XorNode() { X = true, Y = false };
-            var xor2 = new XorNode() { X = false, Y = false };
-            var xor3 = new XorNode() { X = true, Y = true };
-            var xor4 = new XorNode() { X = false, Y = true };
+            int successCounter = 0; int failureCounter = 0;
 
-            var samples = new[] { xor1, xor2, xor3, xor4 };
+            foreach (var i in Enumerable.Range(1, 50))
+            {
+                var xor1 = new XorNode() { X = true, Y = false };
+                var xor2 = new XorNode() { X = false, Y = false };
+                var xor3 = new XorNode() { X = true, Y = true };
+                var xor4 = new XorNode() { X = false, Y = true };
 
-            var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output);
+                var samples = new[] { xor1, xor2, xor3, xor4 };
 
-            var classResults1 = classifier.Invoke(xor1);
-            var classResults2 = classifier.Invoke(xor2);
+                var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output, 0.2f);
 
-            Assert.That(classResults1.ClassType == xor1.Output);
-            Assert.That(classResults2.ClassType == xor2.Output);
+                var classResults1 = classifier.Invoke(xor1);
+                var classResults2 = classifier.Invoke(xor2);
+                var classResults3 = classifier.Invoke(xor3);
+                var classResults4 = classifier.Invoke(xor4);
+
+                try
+                {
+                    Assert.That(classResults1.ClassType == xor1.Output);
+                    Assert.That(classResults2.ClassType == xor2.Output);
+                    Assert.That(classResults3.ClassType == xor3.Output);
+                    Assert.That(classResults4.ClassType == xor4.Output);
+                    successCounter++;
+                }
+                catch
+                {
+                    failureCounter++;
+                }
+            }
+
+            Console.WriteLine("successes:{0},failures:{1}", successCounter, failureCounter);
+            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(0.25f));
         }
 
         [Test]
@@ -86,7 +106,7 @@ namespace LinqInfer.Tests.Learning
             foreach (var i in Enumerable.Range(1, 50))
             {
                 var pirateSample = TestData.CreatePirates().ToList();
-                var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young");
+                var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f);
 
                 // In the original predicate, if age > 25 then old.
                 // But this pirate shares many features of other young pirates
@@ -121,7 +141,7 @@ namespace LinqInfer.Tests.Learning
                 }
             }
 
-            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(1.5f));
+            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(2f));
         }
 
         [Test]

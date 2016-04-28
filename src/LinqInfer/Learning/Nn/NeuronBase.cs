@@ -4,9 +4,13 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
+    [Serializable]
     public class NeuronBase : INeuron
     {
         private readonly ColumnVector1D _weights;
+
+        [NonSerialized]
+        private Func<double, double> _activator;
 
         public NeuronBase(int inputVectorSize)
         {
@@ -20,7 +24,7 @@ namespace LinqInfer.Learning.Nn
             _weights = Functions.RandomVector(inputVectorSize, range);
         }
 
-        public Func<double, double> Activator { get; set; }
+        public Func<double, double> Activator { get { return _activator; } set { _activator = value; } }
 
         public int Size { get { return _weights.Size; } }
 

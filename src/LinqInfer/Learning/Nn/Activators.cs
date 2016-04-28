@@ -1,9 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
     public static class Activators
     {
+        public static IEnumerable<ActivatorFunc> All()
+        {
+            yield return Sigmoid();
+            yield return Threshold();
+        }
+
+        public static ActivatorFunc Create(string name, double parameter)
+        {
+            return (ActivatorFunc)typeof(Activators)
+                .GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                .Where(m => m.Name == name && m.GetParameters().Length == 1)
+                .FirstOrDefault()
+                .Invoke(null, new object[] { parameter });
+        }
+
         public static ActivatorFunc Sigmoid(double alpha = 2)
         {
             return new ActivatorFunc()

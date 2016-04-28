@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
+    [Serializable]
     public class NetworkParameters
     {
         public NetworkParameters(int inputVectorSize, int[] neuronSizes = null, ActivatorFunc activator = null)
@@ -28,7 +29,7 @@ namespace LinqInfer.Learning.Nn
         {
             var newParams = new NetworkParameters()
             {
-                Activator = Functions.Random() > 50 ? other.Activator : this.Activator,
+                Activator = Breed(other.Activator, Activator),
                 InitialWeightRange = new Range(Functions.Mutate(other.InitialWeightRange.Max, this.InitialWeightRange.Max, 0.1d), Functions.Mutate(other.InitialWeightRange.Min, this.InitialWeightRange.Min, 0.1d)),
                 LayerSizes = Breed(LayerSizes, other.LayerSizes),
                 LearningRate = Math.Max(Math.Min(Functions.Mutate(LearningRate, other.LearningRate, 0.05), 1), 0.01)
@@ -43,7 +44,7 @@ namespace LinqInfer.Learning.Nn
         {
             if (string.Equals(a.Name, b.Name))
             {
-                return a.Create(Functions.Mutate(a.Parameter, b.Parameter, 0.3));
+                return a.Create(Functions.Mutate(a.Parameter, b.Parameter, Math.Min(a.Parameter, b.Parameter) / 3d));
             }
             else
             {

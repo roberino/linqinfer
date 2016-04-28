@@ -7,6 +7,7 @@ using System.Text;
 
 namespace LinqInfer.Maths
 {
+    [Serializable]
     public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
     {
         private readonly double[] _values;

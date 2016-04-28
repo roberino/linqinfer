@@ -1,5 +1,8 @@
-﻿namespace LinqInfer.Maths
+﻿using System;
+
+namespace LinqInfer.Maths
 {
+    [Serializable]
     public struct Range
     {
         public Range(double max = 1, double min = 0)
@@ -14,6 +17,10 @@
         public bool IsWithin(double value)
         {
             return value >= Min && value <= Max;
+        }
+        public override string ToString()
+        {
+            return string.Format("{0:0.00} - {1:0.00}", Min, Max);
         }
     }
 }

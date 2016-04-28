@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning
 {
-    public class InputAggregator
+    internal class InputAggregator
     {
         private readonly List<float> sample;
 
