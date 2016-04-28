@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,32 +8,30 @@ namespace LinqInfer.Learning.Nn
     internal class MultilayerNetwork
     {
         private readonly int _inputVectorSize;
-        private readonly Func<int, INeuron> _neuronFactory;
+        private readonly Func<int, Range, INeuron> _neuronFactory;
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
+        private bool initd;
 
-        public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
+        public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, Range, INeuron> neuronFactory = null)
         {
             _inputVectorSize = inputVectorSize;
             _neuronFactory = neuronFactory;
 
-            Activator = activator ?? Activators.Sigmoid();
-            
-            Initialise(neuronSizes);
+            _parameters = new NetworkParameters(inputVectorSize, neuronSizes, activator);
+
+            initd = false;
         }
 
-        internal MultilayerNetwork(int inputVectorSize, ActivatorFunc activator = null, Func<int, INeuron> neuronFactory = null)
+        public MultilayerNetwork(NetworkParameters parameters)
         {
-            _inputVectorSize = inputVectorSize;
-            _neuronFactory = neuronFactory;
+            _inputVectorSize = parameters.LayerSizes[0];
+            _parameters = parameters;
+            initd = false;
+        }
 
-            Activator = activator ?? Activators.Sigmoid();
-
-            _parameters = new NetworkParameters()
-            {
-                Activator = activator ?? Activators.Sigmoid(),
-                InitialWeightRange = new Range(0.7, -0.7)
-            };
+        internal MultilayerNetwork(int inputVectorSize) : this(inputVectorSize, null, null, null)
+        {
         }
 
         public NetworkParameters Parameters
@@ -47,39 +44,46 @@ namespace LinqInfer.Learning.Nn
 
         public void Initialise(params int[] neuronsPerLayer)
         {
-            if (neuronsPerLayer == null) neuronsPerLayer = new[] { _inputVectorSize };
-            
+            if (neuronsPerLayer == null || neuronsPerLayer.Length == 0) neuronsPerLayer = new[] { _inputVectorSize, _inputVectorSize };
+
+            _parameters.LayerSizes = neuronsPerLayer;
+
+            InitialiseLayers();
+        }
+
+        private void InitialiseLayers()
+        {   
             INetworkSignalFilter next = null;
 
             int lastN = 0;
 
-            foreach (var n in neuronsPerLayer.Where(x => x > 0))
+            Func<int, INeuron> neuronFactory;
+
+            if (_neuronFactory == null)
+                neuronFactory = (x => new NeuronBase(x, _parameters.InitialWeightRange));
+            else
+                neuronFactory = (x => _neuronFactory(x, _parameters.InitialWeightRange));
+
+            foreach (var n in _parameters.LayerSizes.Where(x => x > 0))
             {
                 var prev = next;
 
                 if (prev == null)
                 {
-                    next = new NetworkLayer(_inputVectorSize, _inputVectorSize, Activator, _neuronFactory);
+                    next = new NetworkLayer(_inputVectorSize, _inputVectorSize, _parameters.Activator, neuronFactory);
                     _rootLayer = next;
                 }
                 else
                 {
-                    next = new NetworkLayer(lastN, n, Activator, _neuronFactory);
+                    next = new NetworkLayer(lastN, n, _parameters.Activator, neuronFactory);
                     prev.Successor = next;
                 }
 
                 lastN = n;
             }
 
-            _parameters = new NetworkParameters()
-            {
-                Activator = Activator,
-                InitialWeightRange = _parameters.InitialWeightRange,
-                LayerSizes = neuronsPerLayer
-            };
+            initd = true;
         }
-
-        public ActivatorFunc Activator { get; private set; }
 
         public ILayer LastLayer { get { return Layers.Reverse().First(); } }
 
@@ -90,7 +94,7 @@ namespace LinqInfer.Learning.Nn
 
         public ColumnVector1D Evaluate(ColumnVector1D input)
         {
-            if (_rootLayer == null) throw new InvalidOperationException("Not initialised");
+            if (!initd) InitialiseLayers();
 
             var res = _rootLayer.Process(input);
 

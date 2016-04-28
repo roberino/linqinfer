@@ -25,8 +25,12 @@ namespace LinqInfer.Maths
         /// <param name="x1">Value 1</param>
         /// <param name="randomVariability">The random amount (+/-) of variance</param>
         /// <returns>A double</returns>
-        public static double Mutate(double x0, double x1, double randomVariability)
+        public static double Mutate(double x0, double x1, double randomVariability, bool logarithmic = false)
         {
+            if (logarithmic)
+            {
+                randomVariability = Math.Log(Math.Pow(2, randomVariability), 2);
+            }
             return ((x0 + x1) / 2) + RandomDouble(-randomVariability, randomVariability);
         }
 
