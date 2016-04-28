@@ -9,5 +9,10 @@ namespace LinqInfer.Learning.Nn
         public Func<double, double> Activator { get; set; }
         public Func<double, double> Derivative { get; set; }
         public Func<double, ActivatorFunc> Create { get; set; }
+
+        public override string ToString()
+        {
+            return Name + "(" + Parameter + ")";
+        }
     }
 }

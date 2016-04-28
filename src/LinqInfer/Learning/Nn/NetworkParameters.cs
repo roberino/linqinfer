@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Maths;
 using System;
+using System.Linq;
 
 namespace LinqInfer.Learning.Nn
 {
@@ -79,12 +80,24 @@ namespace LinqInfer.Learning.Nn
             return newArr;
         }
 
+        private string FormatLayers()
+        {
+            if (LayerSizes == null) return null;
+
+            return "[" + string.Join(",", LayerSizes.Select(x => x.ToString())) + "]";
+        }
+
         public void Validate()
         {
             if (LearningRate <= 0 && LearningRate > 1) throw new System.ArgumentException("Invalid learning rate");
             if (InitialWeightRange.Size == 0) throw new System.ArgumentException("Invalid weight range");
             if (Activator == null) throw new System.ArgumentException("Missing activator function");
             if (LayerSizes == null) throw new System.ArgumentException("Missing layer sizes");
+        }
+
+        public override string ToString()
+        {
+            return string.Format("weight initialiser:{0}, layers:{1}, activator:{2}", InitialWeightRange, FormatLayers(), Activator);
         }
     }
 }

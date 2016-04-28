@@ -30,7 +30,7 @@ namespace LinqInfer.Learning.Nn
             initd = false;
         }
 
-        internal MultilayerNetwork(int inputVectorSize) : this(inputVectorSize, null, null, null)
+        public MultilayerNetwork(int inputVectorSize, ActivatorFunc activator = null) : this(inputVectorSize, null, activator, null)
         {
         }
 

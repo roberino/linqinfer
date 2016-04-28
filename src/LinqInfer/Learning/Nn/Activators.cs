@@ -9,21 +9,23 @@ namespace LinqInfer.Learning.Nn
             return new ActivatorFunc()
             {
                 Name = "Sigmoid",
-                Activator = SigmoidF(alpha),
-                Derivative = SigmoidDerivative(alpha),
+                Activator = x => (1 / (1 + Math.Exp(-alpha * x))),
+                Derivative = x => (alpha * x * (1 - x)),
                 Parameter = alpha,
                 Create = (p) => Sigmoid(p)
             };
         }
 
-        private static Func<double, double> SigmoidF(double alpha = 1)
+        public static ActivatorFunc Threshold(double threshold = 0.5)
         {
-            return x => (1 / (1 + Math.Exp(-alpha * x)));
-        }
-
-        private static Func<double, double> SigmoidDerivative(double alpha = 1)
-        {
-            return x => (alpha * x * (1 - x));
+            return new ActivatorFunc()
+            {
+                Name = "Threshold",
+                Activator = x => x > threshold ? 1 : 0,
+                Derivative = x => 0,
+                Parameter = threshold,
+                Create = (p) => Threshold(p)
+            };
         }
     }
 }
