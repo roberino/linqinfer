@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -35,6 +36,11 @@ namespace LinqInfer.Tests.Probability
 
             var jacks = It.IsIn(Card_('C', 11), Card_('D', 11), Card_('H', 11), Card_('S', 11));
             var faces = It.IsAny<Card>(x => x.Item2 > 10);
+
+            Assert.That(calc.Count(faces), Is.EqualTo(12));
+            Assert.That(calc.ProbabilityOfEvent(jacks), Is.EqualTo(new Fraction(4, 52)));
+            Assert.That(calc.PosterierProbabilityOfEventBGivenA(jacks, faces), Is.EqualTo(new Fraction(4, 12)));
+            Assert.That(calc.ConditionalProbabilityOfEventAGivenB(jacks, faces), Is.EqualTo(new Fraction(4, 12)));
 
             Console.WriteLine("Probability of a jack: " + calc.ProbabilityOfEvent(jacks));
             Console.WriteLine("Number of a face cards: " + calc.Count(faces));

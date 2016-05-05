@@ -5,7 +5,7 @@ using System.Linq;
 namespace LinqInfer.Learning.Nn
 {
     [Serializable]
-    public class NetworkParameters
+    public class NetworkParameters : IEquatable<NetworkParameters>
     {
         public NetworkParameters(int inputVectorSize, int[] neuronSizes = null, ActivatorFunc activator = null)
         {
@@ -22,7 +22,6 @@ namespace LinqInfer.Learning.Nn
         public ActivatorFunc Activator { get; set; }
         public int[] LayerSizes {  get; set; }
         public Range InitialWeightRange { get; set; }
-
         public double LearningRate { get; set; }
 
         public NetworkParameters Breed(NetworkParameters other)
@@ -99,6 +98,32 @@ namespace LinqInfer.Learning.Nn
         public override string ToString()
         {
             return string.Format("weight initialiser:{0}, layers:{1}, activator:{2}", InitialWeightRange, FormatLayers(), Activator);
+        }
+
+        public bool Equals(NetworkParameters other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+            
+            if (Activator == null || other.Activator == null) return false;
+            if (LayerSizes == null || other.LayerSizes == null) return false;
+
+            return Activator.Equals(other.Activator)
+                && InitialWeightRange.Equals(other.InitialWeightRange)
+                && LayerSizes.Length == other.LayerSizes.Length
+                && LearningRate == other.LearningRate
+                && LayerSizes.Zip(other.LayerSizes, (s1, s2) => s1 == s2).All(x => x);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NetworkParameters);
+        }
+
+        public override int GetHashCode()
+        {
+            return new Tuple<double, int, int, int>(LearningRate, InitialWeightRange.GetHashCode(), Activator.GetHashCode(), LayerSizes.Sum(s => s * 7)).GetHashCode();
         }
     }
 }

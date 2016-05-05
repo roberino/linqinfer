@@ -1,31 +1,35 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using LinqInfer.Utility;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Nn
 {
     internal class MultilayerNetworkClassificationPipeline<TClass, TInput> where TClass : IEquatable<TClass>
     {
+        private readonly int _maxIterations;
         private readonly Config _config;
+        private readonly NetworkParameterCache _paramCache;
 
         private Pipeline _pipeline;
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
             float errorTolerance = 0.3f,
-            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)), errorTolerance)
+            int maxIterations = 200,
+            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)), errorTolerance, maxIterations)
         {
         }
 
-        private MultilayerNetworkClassificationPipeline(Config config, float errorTolerance) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
+        private MultilayerNetworkClassificationPipeline(Config config, float errorTolerance, int maxIterations) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
         {
             ErrorTolerance = errorTolerance;
             ParallelProcess = true;
             _config = config;
+            _paramCache = NetworkParameterCache.DefaultCache;
+            _maxIterations = maxIterations;
         }
 
         public float ErrorTolerance { get; set; }
@@ -45,7 +49,11 @@ namespace LinqInfer.Learning.Nn
                 _config.FeatureExtractor.NormaliseUsing(trainingData);
             }
 
-            var networks = Activators.All().SelectMany(a => GeneratePipelines(hiddenLayerFactor, outputs.Count, a)).ToList();
+            var networks = Activators
+                .All()
+                .SelectMany(a => GeneratePipelines(hiddenLayerFactor, outputs.Count, a))
+                .Concat(_paramCache.Get<TClass>().Take(2).Select(Create))
+                .ToList();
 
             var iterationReductionFactor = hiddenLayerFactor; // reduce by 1/iterationReductionFactor each iteration
             var classf = classifyingExpression.Compile();
@@ -53,7 +61,7 @@ namespace LinqInfer.Learning.Nn
             var trainingDataCount = trainingData.Count();
             var i = 0;
 
-            while (i < 200)
+            while (i < _maxIterations)
             {
                 var unconverged = (i == 0) ? networks : networks.Where(n => !n.HasConverged(trainingDataCount)).ToList();
 
@@ -85,20 +93,27 @@ namespace LinqInfer.Learning.Nn
 
             Debugger.Log(_pipeline);
 
-            return _pipeline.Instance.Error.GetValueOrDefault() / trainingDataCount;
+            var err = _pipeline.Instance.Error.GetValueOrDefault() / trainingDataCount;
+
+            _paramCache.Store<TClass>(_pipeline.Parameters, err);
+
+            return err;
         }
 
-        public ClassifyResult<TClass> Classify(TInput obj)
+        public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
         {
             if (_pipeline == null) throw new InvalidOperationException("Pipeline not trained");
 
-            return _pipeline.Instance.Classify(obj);
+            return _pipeline.Instance.FindPossibleMatches(obj);
         }
 
         private Pipeline Breed(Pipeline a, Pipeline b)
         {
-            var newParams = a.Parameters.Breed(b.Parameters);
+            return Create(a.Parameters.Breed(b.Parameters));
+        }
 
+        private Pipeline Create(NetworkParameters newParams)
+        {
             var network = new MultilayerNetwork(newParams);
             var bpa = new BackPropagationLearning(network);
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
@@ -157,9 +172,7 @@ namespace LinqInfer.Learning.Nn
         private class Pipeline
         {
             public ClassificationPipeline<TClass, TInput, double> Instance { get; set; }
-
             public NetworkParameters Parameters { get; set; }
-
             public float ErrorTolerance { get; set; }
 
             public bool HasConverged(int trainingDataCount)

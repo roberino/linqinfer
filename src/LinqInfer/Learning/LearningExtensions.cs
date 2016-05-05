@@ -1,9 +1,11 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -70,7 +72,7 @@ namespace LinqInfer.Learning
                 var matches = classifierPipe.FindPossibleMatches(x).ToList();
                 var factor = Math.Max(matches.Count, 100);
                 var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
-                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)System.Math.Round(m.Score * factor, 0), total));
+                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)Math.Round(m.Score * factor, 0), total));
                 return dist;
             };
         }
@@ -102,15 +104,49 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
-        public static Func<TInput, ClassifyResult<TClass>> ToMultilayerNetworkClassifier<TInput, TClass>(
+        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
         {
+            Contract.Assert(trainingData != null && classf != null && errorTolerance > 0);
+
             var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
             var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor, errorTolerance);
 
             classifierPipe.Train(trainingData, classf);
 
             return classifierPipe.Classify;
+        }
+
+        /// <summary>
+        /// Creates a multi-layer network classifier based on some training data. A solution will
+        /// continue to be sought until the goal function is satisfied.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="trainingData">The training data set</param>
+        /// <param name="classf">A function which will be used to classify the training data</param>
+        /// <param name="goalFunction">A function which returns true when the classifier is acceptable</param>
+        /// <returns>A function which can classify new objects, returning the best match</returns>
+        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, 
+            Func<Func<TInput, ClassifyResult<TClass>>, bool> goalFunction, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+        {
+            Contract.Assert(trainingData != null && classf != null && goalFunction != null && errorTolerance > 0);
+
+            foreach (var n in Enumerable.Range(1, 250))
+            {
+                var cls = ToMultilayerNetworkClassifier(trainingData, classf, errorTolerance);
+
+                try
+                {
+                    if (goalFunction(x => cls(x).FirstOrDefault())) return cls;
+                }
+                catch (NullReferenceException)
+                {
+                }
+            }
+
+            throw new ArgumentException("Solution not found");
         }
     }
 }

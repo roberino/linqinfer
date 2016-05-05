@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Nn;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System.IO;
 

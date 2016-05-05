@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     internal class ContinuousSample<T>
     {

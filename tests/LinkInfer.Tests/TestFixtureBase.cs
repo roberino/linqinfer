@@ -1,9 +1,10 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Linq;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Tests
 {

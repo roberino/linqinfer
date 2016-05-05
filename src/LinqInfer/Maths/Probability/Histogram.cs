@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     internal class Histogram : IDensityEstimationStrategy<Fraction>
     {

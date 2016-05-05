@@ -3,7 +3,7 @@
 namespace LinqInfer.Learning.Nn
 {
     [Serializable]
-    public class ActivatorFunc
+    public class ActivatorFunc : IEquatable<ActivatorFunc>
     {
         [NonSerialized]
         private Func<double, double> _activator;
@@ -21,6 +21,25 @@ namespace LinqInfer.Learning.Nn
         public override string ToString()
         {
             return Name + "(" + Parameter + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ActivatorFunc);
+        }
+
+        public bool Equals(ActivatorFunc other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            return string.Equals(Name, other.Name) && Parameter == other.Parameter;
+        }
+
+        public override int GetHashCode()
+        {
+            return (Name?.GetHashCode()).GetValueOrDefault() * Parameter.GetHashCode();
         }
     }
 }

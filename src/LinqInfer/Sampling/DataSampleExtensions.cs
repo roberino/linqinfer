@@ -1,5 +1,7 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,18 +23,20 @@ namespace LinqInfer.Sampling
             return null; // hist.Analyse()
         }
 
+        public static Func<DataItem, ClassifyResult<string>> CreateClassifier(this DataSample sample, int[] selectedFeatures = null)
+        {
+            var featureExtractor = sample.CreateFeatureExtractor(selectedFeatures);
+
+            var clsf = sample
+                .SampleData
+                .AsQueryable()
+                .ToMultilayerNetworkClassifier(x => x.Label);
+
+            return x => clsf(x).FirstOrDefault();
+        }
+
         public static FeatureMap<DataItem> CreateSofm(this DataSample sample, int nodeCount = 10, float learningRate = 0.5f, int[] selectedFeatures = null)
         {
-            //var maxSample = sample.SampleData.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
-            //var labels = sample.Metadata.Fields.Count > 0 ? sample.Metadata.Fields.Where(f => f.FieldUsage == FieldUsageType.Feature).Select(f => f.Label).ToArray() : null;
-
-            //var sofm = sample
-            //    .SampleData
-            //    .AsQueryable()
-            //    .ToSofm(
-            //        x => x == null ? maxSample : x.AsColumnVector().ToSingleArray(), 
-            //        labels, nodeCount, learningRate);
-
             var featureExtractor = sample.CreateFeatureExtractor(selectedFeatures);
 
             var sofm = sample

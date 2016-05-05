@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Maths.Probability;
 
 namespace LinqInfer.Maths
 {

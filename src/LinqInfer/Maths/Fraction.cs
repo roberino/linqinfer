@@ -7,7 +7,7 @@ using System.Linq;
 namespace LinqInfer.Maths
 {
     [DebuggerDisplay("{Numerator}/{Denominator}")]
-    public struct Fraction : IEquatable<Fraction>
+    public struct Fraction : IEquatable<Fraction>, IEquatable<int>, IComparable<Fraction>
     {
         public Fraction(int n, int d, bool reduce = true)
         {
@@ -518,6 +518,10 @@ namespace LinqInfer.Maths
 
             return Equals((Fraction)obj);
         }
+        public bool Equals(int x)
+        {
+            return Equals(new Fraction(x, 1));
+        }
 
         public bool Equals(int n, int d)
         {
@@ -535,6 +539,11 @@ namespace LinqInfer.Maths
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+
+        public int CompareTo(Fraction other)
+        {
+            return Value.CompareTo(other.Value);
         }
 
         private static Tuple<int, int> Reduce(long n, long d)

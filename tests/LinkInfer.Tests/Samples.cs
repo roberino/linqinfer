@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Language;
 using LinqInfer.Learning;
-using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;

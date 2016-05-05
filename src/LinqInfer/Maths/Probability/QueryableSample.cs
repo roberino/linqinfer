@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     internal class QueryableSample<T> : SampleBase<T>, IQueryableSample<T>
     {

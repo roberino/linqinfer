@@ -1,5 +1,5 @@
 ﻿using LinqInfer.Maths;
-using System;
+using LinqInfer.Maths.Probability;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -11,13 +11,14 @@ namespace LinqInfer.Language
 {
     public class EnglishDictionary
     {
-        private static readonly HashSet<string> _words;
+        private static readonly IDictionary<string, int> _words;
         private static readonly HashSet<string> _phonics;
         private static readonly List<Regex> _phonicsMapper;
 
         static EnglishDictionary()
         {
-            _words = ReadFile("en_dict.txt");
+            int i = 0;
+            _words = ReadFile("en_dict.txt").ToDictionary(w => w, _ => i++);
             _phonics = ReadFile("en_phonics.txt");
             _phonicsMapper = _phonics.Select(p => new Regex(p, RegexOptions.Compiled | RegexOptions.IgnoreCase)).ToList();
         }
@@ -25,7 +26,7 @@ namespace LinqInfer.Language
         /// <summary>
         /// Returns a enumeration of words.
         /// </summary>
-        public IEnumerable<string> Words { get { return _words; } }
+        public IEnumerable<string> Words { get { return _words.Keys; } }
 
         /// <summary>
         /// Returns true for a word found within the dictionary.
@@ -34,7 +35,14 @@ namespace LinqInfer.Language
         {
             if (word == null) return false;
 
-            return _words.Contains(word.ToLower());
+            return _words.ContainsKey(word.ToLower());
+        }
+
+        public int IdOf(string word)
+        {
+            int id = 0;
+            if (word != null) _words.TryGetValue(word.ToLowerInvariant(), out id);
+            return id;
         }
 
         /// <summary>
@@ -53,6 +61,7 @@ namespace LinqInfer.Language
             word = word.ToLower();
 
             return _words
+                .Keys
                 .Where(w => System.Math.Abs(w.Length - word.Length) < 3)
                 .Select(w => new
                 {

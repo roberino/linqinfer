@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     public class Hypothetheses<T>
     {
