@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     /// <summary>
     /// 1 dimentional KDE

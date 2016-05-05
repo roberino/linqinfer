@@ -96,7 +96,7 @@ namespace LinqInfer.Tests.Learning.Nn
             var word2a = "james";
             var word2b = "jamie";
 
-            var net = new SimpleNet<byte>(5);
+            var net = new SimpleNet<byte>(32);
 
             net.Train(1, StringToBytes(word1a));
             net.Train(1, StringToBytes(word1b));
@@ -112,7 +112,8 @@ namespace LinqInfer.Tests.Learning.Nn
 
         private byte[] StringToBytes(string data, int size = 5)
         {
-            return new WordVectoriser(size).ExtractVector(data);
+            return new WordVectoriser2().ExtractVector(data);
+            //return new WordVectoriser(size).ExtractVector(data);
         }
     }
 }

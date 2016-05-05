@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -152,6 +153,38 @@ namespace LinqInfer.Tests.Probability
             var sample = testData.AsSampleSpace();
 
             Assert.That(sample.IsSimple(p => p.Gold >= 1800), Is.True);
+        }
+
+
+        [Test]
+        public void PosterierProbabilityOfEventBGivenA()
+        {
+            var testData = new[] { 1, 2, 3, 4 }.AsQueryable();
+            var sample = testData.AsSampleSpace();
+            var cp = sample.PosterierProbabilityOfEventBGivenA(x => x == 1, x => x > 0 && x < 3);
+            var exp = (1).OutOf(2);
+            Assert.That(cp.Equals(exp));
+        }
+
+        [Test]
+        public void AsSampleSpace_ConditionalProbabilityOfEventAGivenB()
+        {
+            var testData = new[] { 1, 2, 3, 4 }.AsQueryable();
+            var sample = testData.AsSampleSpace();
+            var cp = sample.ConditionalProbabilityOfEventAGivenB(x => x == 1, x => x < 3);
+            var exp = (1).OutOf(2);
+            Assert.That(cp.Equals(exp));
+        }
+
+        [Test]
+        public void AsSampleSpace_ProbabilityOfEventAandB_ReturnsZeroForExclusiveEvents()
+        {
+            var testData = new[] { 1, 2, 3, 4 }.AsQueryable();
+            var sample = testData.AsSampleSpace();
+            var cp = sample.ProbabilityOfEventAandB(x => x > 1, x => x < 1);
+
+            Assert.That(cp.Equals(0));
+            Assert.That(sample.AreMutuallyExclusive(x => x > 1, x => x < 1));
         }
 
         [Test]

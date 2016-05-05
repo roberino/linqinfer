@@ -1,7 +1,8 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Maths
+namespace LinqInfer.Maths.Probability
 {
     internal abstract class SampleBase<T>
     {
@@ -19,19 +20,12 @@ namespace LinqInfer.Maths
 
         public Fraction ProbabilityOfEventAandB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)
         {
-            var pA = ProbabilityOfEvent(eventPredicateA);
-            var pB = ProbabilityOfEvent(eventPredicateB);
-
-            return pA * pB;
+            return ProbabilityOfEvent(eventPredicateA.ConjunctiveJoin(eventPredicateB));
         }
 
         public virtual Fraction ProbabilityOfEventAorB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)
         {
-            var pA = ProbabilityOfEvent(eventPredicateA);
-            var pB = ProbabilityOfEvent(eventPredicateB);
-            var pAB = ProbabilityOfEvent(x => eventPredicateA.Compile()(x) && eventPredicateB.Compile()(x));
-
-            return pA + pB - pAB;
+            return ProbabilityOfEvent(eventPredicateA.DisjunctiveJoin(eventPredicateB));
         }
 
         public Fraction ConditionalProbabilityOfEventAGivenB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)

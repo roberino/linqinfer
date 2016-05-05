@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using System;
 
 namespace LinqInfer.Language

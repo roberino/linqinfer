@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Maths
+﻿namespace LinqInfer.Maths.Probability
 {
     internal class HypotheticalOutcome<T> : IHypotheticalOutcome<T>
     {

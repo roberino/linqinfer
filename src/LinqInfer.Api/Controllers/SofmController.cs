@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using LinqInfer.Sampling;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace LinqInfer.Api.Controllers
         [Route("api/data/samples/{id}/sofm")]
         public async Task<object> GetSofm(string id, int nodeCount = 10, float learningRate = 0.5f)
         {
-            var sample = await GetSampleById(id);           
+            var sample = await GetSampleById(id);
 
             var sofm = sample.CreateSofm();
             

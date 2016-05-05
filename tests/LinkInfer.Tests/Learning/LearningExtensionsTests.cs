@@ -62,40 +62,31 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
         {
-            int successCounter = 0; int failureCounter = 0;
+            var xor1 = new XorNode() { X = true, Y = false };
+            var xor2 = new XorNode() { X = false, Y = false };
+            var xor3 = new XorNode() { X = true, Y = true };
+            var xor4 = new XorNode() { X = false, Y = true };
 
-            foreach (var i in Enumerable.Range(1, 50))
+            var samples = new[] { xor1, xor2, xor3, xor4 };
+
+            var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output, f =>
             {
-                var xor1 = new XorNode() { X = true, Y = false };
-                var xor2 = new XorNode() { X = false, Y = false };
-                var xor3 = new XorNode() { X = true, Y = true };
-                var xor4 = new XorNode() { X = false, Y = true };
+                return
+                    f(xor1).ClassType == xor1.Output
+                    && f(xor2).ClassType == xor2.Output
+                    && f(xor3).ClassType == xor3.Output
+                    && f(xor4).ClassType == xor4.Output;
+            }, 0.3f);
 
-                var samples = new[] { xor1, xor2, xor3, xor4 };
+            var classResults1 = classifier.Invoke(xor1).First();
+            var classResults2 = classifier.Invoke(xor2).First();
+            var classResults3 = classifier.Invoke(xor3).First();
+            var classResults4 = classifier.Invoke(xor4).First();
 
-                var classifier = samples.AsQueryable().ToMultilayerNetworkClassifier(x => x.Output, 0.2f);
-
-                var classResults1 = classifier.Invoke(xor1);
-                var classResults2 = classifier.Invoke(xor2);
-                var classResults3 = classifier.Invoke(xor3);
-                var classResults4 = classifier.Invoke(xor4);
-
-                try
-                {
-                    Assert.That(classResults1.ClassType == xor1.Output);
-                    Assert.That(classResults2.ClassType == xor2.Output);
-                    Assert.That(classResults3.ClassType == xor3.Output);
-                    Assert.That(classResults4.ClassType == xor4.Output);
-                    successCounter++;
-                }
-                catch
-                {
-                    failureCounter++;
-                }
-            }
-
-            Console.WriteLine("successes:{0},failures:{1}", successCounter, failureCounter);
-            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(0.25f));
+            Assert.That(classResults1.ClassType == xor1.Output);
+            Assert.That(classResults2.ClassType == xor2.Output);
+            Assert.That(classResults3.ClassType == xor3.Output);
+            Assert.That(classResults4.ClassType == xor4.Output);
         }
 
         [Test]
@@ -103,7 +94,7 @@ namespace LinqInfer.Tests.Learning
         {
             int successCounter = 0; int failureCounter = 0;
 
-            foreach (var i in Enumerable.Range(1, 50))
+            foreach (var i in Enumerable.Range(1, 25))
             {
                 var pirateSample = TestData.CreatePirates().ToList();
                 var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f);
@@ -117,7 +108,7 @@ namespace LinqInfer.Tests.Learning
                     Age = 5,
                     IsCaptain = false,
                     Ships = 1
-                });
+                }).FirstOrDefault();
 
                 var classOfPirate2 = classifier.Invoke(new TestData.Pirate()
                 {
@@ -125,7 +116,7 @@ namespace LinqInfer.Tests.Learning
                     Age = 61,
                     IsCaptain = true,
                     Ships = 7
-                });
+                }).FirstOrDefault();
 
                 try
                 {
@@ -141,7 +132,8 @@ namespace LinqInfer.Tests.Learning
                 }
             }
 
-            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(2f));
+            Console.WriteLine("successes:{0},failures:{1}", successCounter, failureCounter);
+            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(3f));
         }
 
         [Test]
