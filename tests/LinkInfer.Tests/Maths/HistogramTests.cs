@@ -61,7 +61,7 @@ namespace LinqInfer.Tests.Probability
             {
                 var kr = kRes[i++];
                 Console.WriteLine("{0}\t{1}\t{2}", x.n, x.p.Value, kr.Value);
-                Assert.That(System.Math.Round(x.p.Value, 4), Is.EqualTo(System.Math.Round(kr.Value, 4)));
+                Assert.That(Math.Round(x.p.Value, 4), Is.EqualTo(Math.Round(kr.Value, 4)));
             }
         }
     }

@@ -16,7 +16,7 @@ namespace LinqInfer.Maths
         public ColumnVector1D(double[] values)
         {
             _values = values;
-            _euclideanLength = new Lazy<double>(() => System.Math.Sqrt(_values.Select(x => x * x).Sum()));
+            _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
         }
 
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
@@ -203,7 +203,7 @@ namespace LinqInfer.Maths
 
         public string ToCsv(int precision = 8)
         {
-            return string.Join(",", _values.Select(v => System.Math.Round(v, precision).ToString()));
+            return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
         }
 
         public override int GetHashCode()

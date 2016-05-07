@@ -210,26 +210,26 @@ namespace LinqInfer.Maths
         {
             var mu = items.Mean();
 
-            return new Tuple<double, double>(mu, System.Math.Sqrt(items.Sum(x => System.Math.Pow(x - mu, 2)) / items.Count()));
+            return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
         public static Tuple<double, double> MeanStdDev(this IEnumerable<float> items)
         {
             var mu = items.Mean();
 
-            return new Tuple<double, double>(mu, System.Math.Sqrt(items.Sum(x => System.Math.Pow(x - mu, 2)) / items.Count()));
+            return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
 
         public static Tuple<double, double> MeanStdDev(this IEnumerable<double> items)
         {
             var mu = items.Mean();
 
-            return new Tuple<double, double>(mu, System.Math.Sqrt(items.Sum(x => System.Math.Pow(x - mu, 2)) / items.Count()));
+            return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
         public static Tuple<double, double> MeanStdDev(this IEnumerable<byte> items)
         {
             var mu = items.Mean();
 
-            return new Tuple<double, double>(mu, System.Math.Sqrt(items.Sum(x => System.Math.Pow(x - mu, 2)) / items.Count()));
+            return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
 
         public static double NormalDistribution(double x, double theta, double mu)
@@ -240,8 +240,8 @@ namespace LinqInfer.Maths
 
         internal static Tuple<double, double> NormalConst(double theta)
         {
-            double a = 1d / (theta * System.Math.Sqrt(System.Math.PI * 2d));
-            double b = 2 * System.Math.Pow(theta, 2);
+            double a = 1d / (theta * Math.Sqrt(Math.PI * 2d));
+            double b = 2 * Math.Pow(theta, 2);
 
             return new Tuple<double, double>(a, b);
         }
@@ -251,9 +251,9 @@ namespace LinqInfer.Maths
             var con = NormalConst(theta);
             double a = con.Item1;
             double b = con.Item2;
-            double c = System.Math.Pow(x - mu, 2);
+            double c = Math.Pow(x - mu, 2);
             double d = -(c / con.Item2);
-            double e = System.Math.Exp(d);
+            double e = Math.Exp(d);
 
             return new Tuple<double, double, double, double, double>(a, b, c, d, e);
 
@@ -269,8 +269,8 @@ namespace LinqInfer.Maths
 
             return (x) =>
             {
-                var b = 1d / System.Math.Pow(System.Math.PI * hSq2, x.Size / 2);
-                var c = sample.Select(x0 => b * System.Math.Exp(-System.Math.Pow((x - x0).EuclideanLength, 2) / hSq2)).Sum();
+                var b = 1d / Math.Pow(Math.PI * hSq2, x.Size / 2);
+                var c = sample.Select(x0 => b * Math.Exp(-Math.Pow((x - x0).EuclideanLength, 2) / hSq2)).Sum();
 
                 return a * c;
             };
@@ -278,11 +278,11 @@ namespace LinqInfer.Maths
 
         internal static Tuple<Fraction, Fraction, Fraction, Fraction, Fraction> NormalDistributionDebug(Fraction x, Fraction theta, Fraction mu)
         {
-            var a = Fraction.Divide(Fraction.One, Fraction.Multiply(theta, Fraction.ApproximateRational(System.Math.Sqrt(System.Math.PI * 2)), true).Approximate(), true);
+            var a = Fraction.Divide(Fraction.One, Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true).Approximate(), true);
             var b = Fraction.Multiply(theta.Sq(true), (2).OutOf(1), true);
             var c = Fraction.Add(x, -mu, true).Sq(true);
             var d = Fraction.Multiply(Fraction.Divide(c, b, true), (-1).OutOf(1), true);
-            var e = Fraction.ApproximateRational(System.Math.Exp(d.Value));
+            var e = Fraction.ApproximateRational(Math.Exp(d.Value));
 
             return new Tuple<Fraction, Fraction, Fraction, Fraction, Fraction>(a, b, c, d, e);
         }

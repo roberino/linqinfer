@@ -30,11 +30,11 @@ namespace LinqInfer.Maths.Probability
             if (_width.HasValue)
             {
                 h = _width.Value;
-                k = (int)System.Math.Ceiling(span / h);
+                k = (int)Math.Ceiling(span / h);
             }
             else {
                 var n = sample.Count();
-                k = (int)System.Math.Ceiling(System.Math.Log(n, 2) + 1);
+                k = (int)Math.Ceiling(Math.Log(n, 2) + 1);
                 h = span / k;
             }
 
@@ -59,7 +59,7 @@ namespace LinqInfer.Maths.Probability
 
             return (x) =>
             {
-                int k = (int)System.Math.Floor(((x.Value - sampleBins.Min) / sampleBins.Width));
+                int k = (int)Math.Floor(((x.Value - sampleBins.Min) / sampleBins.Width));
                 int f = 0;
                 if (sampleBins.Bins.TryGetValue(k, out f))
                 {

@@ -1,8 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
 using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;

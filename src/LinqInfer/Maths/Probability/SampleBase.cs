@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Utility;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
@@ -26,6 +27,34 @@ namespace LinqInfer.Maths.Probability
         public virtual Fraction ProbabilityOfEventAorB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)
         {
             return ProbabilityOfEvent(eventPredicateA.DisjunctiveJoin(eventPredicateB));
+        }
+
+        public virtual Fraction ProbabilityOfAny(params Expression<Func<T, bool>>[] eventPredicates)
+        {
+            if (eventPredicates.Length == 0) return Fraction.One;
+
+            var ev = eventPredicates.First();
+
+            foreach(var ev0 in eventPredicates.Skip(1))
+            {
+                ev = ev.DisjunctiveJoin(ev0);
+            }
+
+            return ProbabilityOfEvent(ev);
+        }
+
+        public virtual Fraction ProbabilityOfAll(params Expression<Func<T, bool>>[] eventPredicates)
+        {
+            if (eventPredicates.Length == 0) return Fraction.One;
+
+            var ev = eventPredicates.First();
+
+            foreach (var ev0 in eventPredicates.Skip(1))
+            {
+                ev = ev.ConjunctiveJoin(ev0);
+            }
+
+            return ProbabilityOfEvent(ev);
         }
 
         public Fraction ConditionalProbabilityOfEventAGivenB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB)

@@ -9,7 +9,15 @@ namespace LinqInfer.Tests
 {
     [TestFixture]
     public class Samples
-    {   
+    {
+        [Test]
+        public void CombineNetworkOutputAsHypothesis()
+        {
+            var x = new[] { 1, 2, 5 }.AsQueryable();
+
+            //x.AsSampleSpace().IsExhaustive()
+        }
+
         [Test]
         public void CombineWordSearchAsHypothesis()
         {
