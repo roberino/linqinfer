@@ -24,6 +24,10 @@ The Maths namespace consists of some basic numerical utilities including vector 
 
 #### Maths.Probability 
 
+This is a collection of functions and probability "objects" to help solve simple probability problems.
+
+* Sample spaces
+* Hypotheses
 
 ### Examples
 

@@ -180,16 +180,16 @@ namespace LinqInfer.Maths
 
             while (f < float.MaxValue)
             {
-                var sqD = System.Math.Pow(Denominator * f, 1d / nd);
-                var sqN = System.Math.Pow(Numerator * f, 1d / nd);
+                var sqD = Math.Pow(Denominator * f, 1d / nd);
+                var sqN = Math.Pow(Numerator * f, 1d / nd);
 
-                var res = new Fraction((int)System.Math.Round(sqN), (int)System.Math.Round(sqD));
+                var res = new Fraction((int)Math.Round(sqN), (int)Math.Round(sqD));
 
                 if (double.IsPositiveInfinity(res.Value)) break;
 
                 final = res;
 
-                if (System.Math.Round(System.Math.Pow(Value, 1d / nd), precision) == System.Math.Round(res.Value, precision))
+                if (Math.Round(Math.Pow(Value, 1d / nd), precision) == Math.Round(res.Value, precision))
                 {
                     break;
                 }
@@ -209,16 +209,16 @@ namespace LinqInfer.Maths
 
             while (f < float.MaxValue)
             {
-                var sqD = System.Math.Sqrt(Denominator * f);
-                var sqN = System.Math.Sqrt(Numerator * f);
+                var sqD = Math.Sqrt(Denominator * f);
+                var sqN = Math.Sqrt(Numerator * f);
 
-                var res = new Fraction((int)System.Math.Round(sqN), (int)System.Math.Round(sqD));
+                var res = new Fraction((int)Math.Round(sqN), (int)Math.Round(sqD));
 
                 if (double.IsPositiveInfinity(res.Value)) break;
 
                 final = res;
 
-                if (System.Math.Round(System.Math.Sqrt(Value), precision) == System.Math.Round(res.Value, precision))
+                if (Math.Round(Math.Sqrt(Value), precision) == Math.Round(res.Value, precision))
                 {
                     break;
                 }
@@ -243,7 +243,7 @@ namespace LinqInfer.Maths
             {
                 a = ApproximateRational(Value, i++);
 
-                if (System.Math.Round(a.Value, precision) == System.Math.Round(Value, precision)) break;
+                if (Math.Round(a.Value, precision) == Math.Round(Value, precision)) break;
             }
 
             return a;
@@ -267,7 +267,7 @@ namespace LinqInfer.Maths
                     lastR = 1 / (lastR - lastPq);
                 }
 
-                lastPq = (long)System.Math.Floor(lastR);
+                lastPq = (long)Math.Floor(lastR);
 
                 if (lastPq > int.MaxValue)
                 {
@@ -343,8 +343,8 @@ namespace LinqInfer.Maths
         {
             if (n == 0) return One;
 
-            var n1 = (long)System.Math.Pow(Numerator, n);
-            var d1 = (long)System.Math.Pow(Denominator, n);
+            var n1 = (long)Math.Pow(Numerator, n);
+            var d1 = (long)Math.Pow(Denominator, n);
 
             while (n1 > int.MaxValue || d1 > int.MaxValue)
             {

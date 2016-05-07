@@ -14,6 +14,8 @@ namespace LinqInfer.Maths.Probability
         Fraction ProbabilityOfEvent(Expression<Func<T, bool>> eventPredicate);
         Fraction ProbabilityOfEventAandB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB);
         Fraction ProbabilityOfEventAorB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB);
+        Fraction ProbabilityOfAny(params Expression<Func<T, bool>>[] eventPredicates);
+        Fraction ProbabilityOfAll(params Expression<Func<T, bool>>[] eventPredicates);
         Fraction ConditionalProbabilityOfEventAGivenB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB);
         Fraction PosterierProbabilityOfEventBGivenA(Expression<Func<T, bool>> eventPredicateB, Expression<Func<T, bool>> eventPredicateA);
         Fraction LikelyhoodOfB(Expression<Func<T, bool>> eventPredicateA, Expression<Func<T, bool>> eventPredicateB);

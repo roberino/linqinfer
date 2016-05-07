@@ -38,11 +38,11 @@ namespace LinqInfer.Tests.Probability
             var dist = hypos
                 .DistributionOver((h, v) => v > h.faces ? Fraction.Zero : (1).OutOf(h.faces) * h.n, Enumerable.Range(1, 12));
 
-            foreach(var h in dist)
+            foreach (var h in dist)
             {
                 Console.Write("{0}\t", h.Key.faces);
 
-                foreach(var v in h.Value)
+                foreach (var v in h.Value)
                 {
                     Console.Write("{0}\t", v.Value);
                 }
@@ -201,6 +201,44 @@ namespace LinqInfer.Tests.Probability
 
             Console.WriteLine("Hypothesis 1: Gold > 500 = {0}", hypo1.PosteriorProbability);
             Console.WriteLine("Hypothesis 2: Gold > 500 = {0}", hypo2.PosteriorProbability);
+        }
+
+        [Test]
+        public void AsSampleSpace_IsExhaustive_ReturnsCorrectResult()
+        {
+            var testData = TestData.CreateQueryablePirates();
+            var sample = testData.AsSampleSpace();
+
+            Assert.That(sample.IsExhaustive(p => p.Age > 0));
+            Assert.That(sample.IsExhaustive(p => p.IsCaptain), Is.False);
+        }
+
+        [Test]
+        public void AsSampleSpace_IsSimple_ReturnsCorrectResult()
+        {
+            var testData = TestData.CreateQueryablePirates();
+            var sample = testData.AsSampleSpace();
+
+            Assert.That(sample.IsSimple(p => p.Gold == 101));
+            Assert.That(sample.IsSimple(p => p.Gold > 101), Is.False);
+        }
+
+        [Test]
+        public void AsSampleSpace_ProbabilityOfAll_ReturnsCorrectResult()
+        {
+            var testData = new int[] { 1, 5, 8 }.AsQueryable();
+            var sample = testData.AsSampleSpace();
+
+            Assert.That(sample.ProbabilityOfAll(x => x > 1, x => x < 16, x => x != 4), Is.EqualTo((2).OutOf(3)));
+        }
+
+        [Test]
+        public void AsSampleSpace_ProbabilityOfAny_ReturnsCorrectResult()
+        {
+            var testData = new int[] { 1, 5, 8 }.AsQueryable();
+            var sample = testData.AsSampleSpace();
+
+            Assert.That(sample.ProbabilityOfAny(x => x > 1, x => x < 16, x => x != 4), Is.EqualTo((3).OutOf(3)));
         }
     }
 }
