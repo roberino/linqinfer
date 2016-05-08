@@ -51,7 +51,7 @@ namespace LinqInfer.Learning
         public void Refresh()
         {
             parameters = new Lazy<Tuple<double, double>>(() => sample.MeanStdDev());
-            pdf = new Lazy<Func<float, double>>(() => x => (float)Functions.AutoPdf(Theta, Mu)(x));
+            pdf = new Lazy<Func<float, double>>(() => x => Functions.AutoPdf(Theta, Mu)(x));
         }
     }
 }

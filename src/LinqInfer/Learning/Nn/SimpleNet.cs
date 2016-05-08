@@ -69,17 +69,21 @@ namespace LinqInfer.Learning.Nn
             }
 
             var results = new ConcurrentDictionary<T, double>();
+            var total = netData.Sum(n => n.Value.Count);
 
             netData.AsParallel().ForAll(s =>
             {
                 int i = 0;
-                double t = 0;
+                double t = (double)s.Value.Count / (double)total;
 
                 foreach (var x in data)
                 {
                     var n = s.Value[i++];
-
-                    t += n.Pdf(x);
+                    if (n.Theta != 0)
+                    {
+                        var p = n.Pdf(x);
+                        t *= p;
+                    }
                 }
 
                 results[s.Key] = t;
