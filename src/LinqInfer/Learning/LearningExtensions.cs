@@ -68,9 +68,8 @@ namespace LinqInfer.Learning
             return x =>
             {
                 var matches = classifierPipe.FindPossibleMatches(x).ToList();
-                var factor = Math.Max(matches.Count, 100);
-                var total = (int)Math.Round(matches.Sum(m => m.Score * factor), 0);
-                var dist = matches.ToDictionary(m => m.ClassType, m => new Fraction((int)Math.Round(m.Score * factor, 0), total));
+                var total = matches.Sum(m => m.Score);
+                var dist = matches.ToDictionary(m => m.ClassType, m => Fraction.ApproximateRational(m.Score / total));
                 return dist;
             };
         }
