@@ -144,7 +144,7 @@ namespace LinqInfer.Tests.Learning
 
             var distribution = classifier.Invoke(new TestData.Pirate()
             {
-                Gold = 120,
+                Gold = 1200,
                 Age = 26,
                 IsCaptain = false,
                 Ships = 1
