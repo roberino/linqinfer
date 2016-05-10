@@ -12,12 +12,15 @@ namespace LinqInfer.Learning
         public WordVectoriser(int maxWordSize)
         {
             _size = maxWordSize;
-            Labels = Enumerable.Range(0, _size).ToDictionary(n => "Char " + n, n => n);
+            IndexLookup = Enumerable.Range(0, _size).ToDictionary(n => "Char " + n, n => n);
+            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys);
         }
 
-        public IDictionary<string, int> Labels { get; private set; }
+        public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize { get { return _size; } }
+
+        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public byte[] NormaliseUsing(IEnumerable<string> samples)
         {

@@ -18,7 +18,8 @@ namespace LinqInfer.Learning.Features
         {
             int i = 0;
             _outputs = outputs.ToDictionary(o => o, o => i++);
-            Labels = _outputs.ToDictionary(o => o.Key.ToString(), o => o.Value);
+            IndexLookup = _outputs.ToDictionary(o => o.Key.ToString(), o => o.Value);
+            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys);
         }
 
         public virtual IEnumerable<ClassifyResult<T>> Map(ColumnVector1D output)
@@ -39,9 +40,11 @@ namespace LinqInfer.Learning.Features
             }
         } 
 
-        public IDictionary<string, int> Labels { get; private set; }
+        public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize { get { return _outputs == null ? 0 : _outputs.Count; } }
+
+        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public virtual double[] CreateNormalisingVector(T sample = default(T))
         {

@@ -24,12 +24,15 @@ namespace LinqInfer.Sampling
                 if (selectedFeatures != null)
                 {
                     int c = 0;
-                    Labels = selectedFeatures.Select(i => fieldsLookup[i]).OrderBy(f => f.Index.Value).ToDictionary(f => f.Label, f => c++);
+                    IndexLookup = selectedFeatures.Select(i => fieldsLookup[i]).OrderBy(f => f.Index.Value).ToDictionary(f => f.Label, f => c++);
                 }
                 else
                 {
-                    Labels = fieldsLookup.ToDictionary(f => f.Value.Label, f => f.Key);
+                    IndexLookup = fieldsLookup.ToDictionary(f => f.Value.Label, f => f.Key);
                 }
+
+
+                FeatureMetadata = IndexLookup.Select(l => new Feature() { Key = l.Key, Label = l.Key, Index = l.Value, DataType = fieldsLookup[l.Value].DataType, Model = Maths.Probability.DistributionModel.Unknown });
             }
             catch (KeyNotFoundException)
             {
@@ -39,15 +42,17 @@ namespace LinqInfer.Sampling
             NormaliseUsing(_sample.SampleData);
         }
 
-        public IDictionary<string, int> Labels { get; private set; }
+        public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize
         {
             get
             {
-                return Labels.Count;
+                return IndexLookup.Count;
             }
         }
+
+        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public float[] CreateNormalisingVector(DataItem sample = null)
         {
