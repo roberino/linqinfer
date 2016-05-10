@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Maths.Probability;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -38,10 +39,12 @@ namespace LinqInfer.Learning.Features
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, bool normaliseData = true, string setName = null) where T : class
         {
+            int i = 0;
+
             var featureProps = actualType
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .OrderBy(p => p.Name)
-                .Select(c => new { converter = CreateConverter<T>(c, setName), name = c.Name })
+                .Select(c => new { converter = CreateConverter<T>(c, setName), prop = c, index = i++ })
                 .Where(c => c.converter != null)
                 .ToList();
 
@@ -49,7 +52,21 @@ namespace LinqInfer.Learning.Features
                 featureProps.Select(c => x == null ? 1f : c.converter(x)).ToArray(),
                 featureProps.Count,
                 normaliseData,
-                featureProps.Select(f => f.name).ToArray());
+                featureProps.Select(f => new Feature()
+                {
+                    Key = f.prop.Name.ToLower(),
+                    DataType = Type.GetTypeCode(f.prop.PropertyType),
+                    Label = f.prop.Name,
+                    Index = f.index,
+                    Model = GetModel(f.prop, setName)
+                }).ToArray());
+        }
+
+        private DistributionModel GetModel(PropertyInfo prop, string setName)
+        {
+            var featureDef = prop.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
+
+            return featureDef == null ? DistributionModel.Unknown : featureDef.Model;
         }
 
         private Func<T, float> CreateConverter<T>(PropertyInfo prop, string setName)

@@ -1,6 +1,8 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Features;
 using LinqInfer.Learning.Nn;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -144,7 +146,7 @@ namespace LinqInfer.Tests.Learning
 
             var distribution = classifier.Invoke(new TestData.Pirate()
             {
-                Gold = 1200,
+                Gold = 70,
                 Age = 26,
                 IsCaptain = false,
                 Ships = 1
@@ -153,7 +155,33 @@ namespace LinqInfer.Tests.Learning
             var total = distribution.Values.Sum();
 
             Assert.That(total.Value, Is.EqualTo(1));
-            Assert.That(distribution.Values.All(v => v.Value > 0f));
+            Assert.That(distribution.Values.All(v => v.Value >= 0f));
+        }
+
+        [Test]
+        public void ToSimpleClassDistribution_SimpleSample_()
+        {
+            var pirateSample = TestData.CreatePirates().ToList();
+
+            var kde = new KernelDensityEstimator();
+            var fo = new ObjectFeatureExtractor();
+            var fe = fo.CreateFeatureExtractorFunc<TestData.Pirate>();
+            var dist = kde.Evaluate(pirateSample.Select(s => new ColumnVector1D(fe(s))).AsQueryable());
+
+            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => p.Age > 25 ? "old" : "young");
+
+            var distribution = classifier.Invoke(new TestData.Pirate()
+            {
+                Gold = 70,
+                Age = 26,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            var total = distribution.Values.Sum();
+
+            Assert.That(total.Value, Is.EqualTo(1));
+            Assert.That(distribution.Values.All(v => v.Value >= 0f));
         }
     }
 }

@@ -45,6 +45,7 @@
     <Compile Include="Learning\FeatureMap.cs" />
     <Compile Include="Learning\Features\DefaultConverter.cs" />
     <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
+    <Compile Include="Learning\Features\IFeature.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFloatingPointFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IOutputMapper.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="Maths\ColumnVector1D.cs" />
     <Compile Include="Maths\ColumnVector1DEventArgs.cs" />
     <Compile Include="Maths\Probability\ContinuousSample.cs" />
+    <Compile Include="Maths\Probability\DistributionModel.cs" />
     <Compile Include="Maths\Probability\Histogram.cs" />
     <Compile Include="Maths\Probability\HypothesisBuilder.cs" />
     <Compile Include="Maths\Probability\HypotheticalSubset.cs" />

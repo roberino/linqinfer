@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Learning.Features;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace LinqInfer.Learning
 {
@@ -9,17 +10,20 @@ namespace LinqInfer.Learning
         public WordVectoriser2()
         {
             int i = 0;
-            Labels = Enumerable.Range((int)'A', 26).ToDictionary(b => ((char)b).ToString(), b => i++);
-            Labels["Length"] = 27;
-            Labels["Check Sum"] = 28;
-            Labels["Null 1"] = 29;
-            Labels["Null 2"] = 30;
-            Labels["Null 3"] = 31;
+            IndexLookup = Enumerable.Range((int)'A', 26).ToDictionary(b => ((char)b).ToString(), b => i++);
+            IndexLookup["Length"] = 27;
+            IndexLookup["Check Sum"] = 28;
+            IndexLookup["Null 1"] = 29;
+            IndexLookup["Null 2"] = 30;
+            IndexLookup["Null 3"] = 31;
+            FeatureMetadata = IndexLookup.Select(l => new Feature() { Key = l.Key, Label = l.Key, Index = l.Value, DataType = TypeCode.Object, Model = Maths.Probability.DistributionModel.Binomial });
         }
 
-        public IDictionary<string, int> Labels { get; private set; }
+        public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize { get { return 32; } }
+
+        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public byte[] NormaliseUsing(IEnumerable<string> samples)
         {

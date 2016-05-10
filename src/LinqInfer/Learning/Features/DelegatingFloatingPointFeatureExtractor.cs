@@ -13,17 +13,22 @@ namespace LinqInfer.Learning.Features
         private readonly Func<T, float[]> _vectorFunc;
         private float[] _normalisingVector;
 
-        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, string[] labels = null)
+        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, string[] featureLabels)
+            : this(vectorFunc, vectorSize, normaliseData, featureLabels == null ? null : Feature.CreateDefault(featureLabels))
+        {
+        }
+
+        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, IFeature[] metadata = null)
         {
             _vectorFunc = vectorFunc;
             _vectorSize = vectorSize;
             _normaliseData = normaliseData;
+            
+            FeatureMetadata = metadata ?? Feature.CreateDefault(_vectorSize);
 
-            int i = 0;
+            IndexLookup = FeatureMetadata.ToDictionary(k => k.Label, v => v.Index);
 
-            Labels = (labels ?? Enumerable.Range(0, _vectorSize).Select(n => n.ToString()).ToArray()).ToDictionary(l => l, k => i++);
-
-            if (Labels.Count != _vectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
+            if (IndexLookup.Count != _vectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
         }
 
         public int VectorSize
@@ -34,7 +39,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public IDictionary<string, int> Labels { get; private set; }
+        public IDictionary<string, int> IndexLookup { get; private set; }
+
+        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public float[] CreateNormalisingVector(T sample = default(T))
         {

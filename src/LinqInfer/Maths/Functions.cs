@@ -131,6 +131,20 @@ namespace LinqInfer.Maths
             return total;
         }
 
+        public static double Factorial(double x)
+        {
+            return Factorial((int)x);
+        }
+
+        public static long Factorial(int x)
+        {
+            if (x >= 21) throw new ArgumentException(x.ToString());
+
+            if (x < 0) return -1; if (x == 0 || x == 1) return 1;
+
+            return Enumerable.Range(1, x).Select(n => (long)n).Aggregate((long)1, (t, n) => n * t);
+        }
+
         public static Func<ColumnVector1D, ColumnVector1D> CreateNormalisingFunction(this IEnumerable<ColumnVector1D> values)
         {
             var max = values.MaxOfEachDimension();
@@ -299,6 +313,35 @@ namespace LinqInfer.Maths
         public static Func<float, double> NormalPdf(double theta, double mu)
         {
             return x => NormalDistribution(x, theta, mu);
+        }
+
+        public static Func<float, double> BinomialPdf(int buckets = 10, Fraction? trueProbability = null)
+        {
+            Contract.Assert(buckets > 0);
+            Contract.Assert(buckets <= 20);
+            
+            var n = buckets;
+            var nf = (double)Factorial(buckets);
+            var p = (trueProbability ?? Fraction.Half).Value;
+
+            return x => (double)(nf / (Factorial(n - x) * Factorial(x))) * Math.Pow(p, x) * Math.Pow(1 - p, n - x);
+        }
+
+        public static Func<int[], double> MultinomialPdf(int buckets = 10, params Fraction[] events)
+        {
+            Contract.Assert(buckets > 0);
+            Contract.Assert(buckets <= 20);
+
+            var n = buckets;
+            var nf = (double)Factorial(buckets);
+            var probs = events.Select(e => e.Value).ToArray();
+
+            return v => (nf / FactorialProduct(v)) * v.Zip(probs, (x, p) => Math.Pow(p, x)).Aggregate(1d, (t, x) => x * t);
+        }
+
+        internal static long FactorialProduct(int[] vector)
+        {
+            return vector.Aggregate((long)1, (t, x) => Factorial(x) * t);
         }
 
         internal static Func<int, double> UniformPdf(double value) // ??

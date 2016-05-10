@@ -32,7 +32,7 @@ namespace LinqInfer.Learning
         {
             get
             {
-                return _featureExtractor.Labels;
+                return _featureExtractor.IndexLookup;
             }
         }
 
@@ -51,7 +51,7 @@ namespace LinqInfer.Learning
                 if (batch.Count < BATCH_SIZE) break;
             }
 
-            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor.Labels);
+            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor.IndexLookup);
         }
 
         private void Process(T value)

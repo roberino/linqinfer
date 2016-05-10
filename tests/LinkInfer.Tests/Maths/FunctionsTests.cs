@@ -9,6 +9,99 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FunctionsTests
     {
+        [TestCase(0, 1)]
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(5, 120)]
+        [TestCase(10, 3628800)]
+        public void Factorial_ReturnsCorrectResults(int n, long result)
+        {
+            var f = Functions.Factorial(n);
+            Assert.That(f, Is.EqualTo(result));
+        }
+
+        [Test]
+        public void BinomialPdf_Default_SumsToOneOverRange1To10()
+        {
+            var pdf = Functions.BinomialPdf();
+            double t = 0;
+
+            foreach (var n in Enumerable.Range(1, 10))
+            {
+                var p = pdf(n);
+                t += p;
+
+                Console.WriteLine("{0}\t{1}", n, p);
+            }
+
+            Assert.That((int)Math.Round(t, 2), Is.EqualTo(1));
+        }
+
+        [TestCase(20)]
+        [TestCase(19)]
+        [TestCase(15)]
+        [TestCase(12)]
+        [TestCase(5)]
+        //[TestCase(1)]
+        public void BinomialPdf_SumsToOneOverRange1ToX(int x)
+        {
+            var pdf = Functions.BinomialPdf(x);
+            double t = 0;
+
+            foreach (var n in Enumerable.Range(1, x))
+            {
+                var p = pdf(n);
+                t += p;
+
+                Console.WriteLine("{0}\t{1}", n, p);
+            }
+
+            Assert.That(pdf(2), Is.EqualTo(pdf(x - 2)));
+            Assert.That((int)Math.Round(t, 0), Is.EqualTo(1));
+        }
+
+        [TestCase(20)]
+        [TestCase(19)]
+        [TestCase(15)]
+        [TestCase(12)]
+        [TestCase(5)]
+        //[TestCase(1)]
+        public void MultinomialPdf_SumsToOneOverRange1ToX(int x)
+        {
+            var pdf = Functions.MultinomialPdf(x, (1).OutOf(3), (1).OutOf(3), (1).OutOf(3));
+            double t = 0;
+
+            foreach (var n in Enumerable.Range(1, x))
+            {
+                var p = pdf(new[] { 1, 1, 1 });
+                t += p;
+
+                Console.WriteLine("{0}\t{1}", n, p);
+            }
+
+            Assert.That((int)Math.Round(t, 0), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Factorial_GreaterThan20_ThrowsException()
+        {
+            long lastF = 0;
+
+            foreach(var n in Enumerable.Range(10, 10))
+            {
+                var f = Functions.Factorial(n);
+
+                if (f <= lastF)
+                {
+                    Assert.Fail(n.ToString());
+                }
+
+                lastF = f;
+            }
+
+            Assert.Throws<ArgumentException>(() => Functions.Factorial(21));
+        }
+
         [TestCase(0.1, 0.2, 0.1, true)]
         [TestCase(0.1, 0.2, 0.5, true)]
         [TestCase(3, 7, 2, true)]

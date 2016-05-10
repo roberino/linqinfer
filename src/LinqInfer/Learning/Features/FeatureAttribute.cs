@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Maths.Probability;
+using System;
 
 namespace LinqInfer.Learning.Features
 {
@@ -8,7 +9,7 @@ namespace LinqInfer.Learning.Features
         // public int Order { get; set; } ??
         public bool Ignore { get; set; }
         public Type Converter { get; set; }
-
         public string SetName { get; set; }
+        public DistributionModel Model { get; set; }
     }
 }
