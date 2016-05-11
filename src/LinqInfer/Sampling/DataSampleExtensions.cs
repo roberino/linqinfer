@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using System;

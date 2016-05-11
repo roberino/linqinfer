@@ -60,20 +60,33 @@ namespace LinqInfer.Tests.Probability
             Assert.That((int)Math.Round(t, 0), Is.EqualTo(1));
         }
 
+        [Test]
+        public void MultinomialPdf_SingleTrial()
+        {
+            var pdf = Functions.MultinomialPdf(1, (1).OutOf(6), (2).OutOf(6), (3).OutOf(6));
+
+            var p1 = pdf(new[] { 1, 0, 0 });
+            var p2 = pdf(new[] { 0, 1, 0 });
+            var p3 = pdf(new[] { 0, 0, 1 });
+
+            var t = p1 + p2 + p3;
+            
+            Assert.That((int)Math.Round(t, 4), Is.EqualTo(1));
+        }
+
         [TestCase(20)]
         [TestCase(19)]
         [TestCase(15)]
         [TestCase(12)]
         [TestCase(5)]
-        //[TestCase(1)]
         public void MultinomialPdf_SumsToOneOverRange1ToX(int x)
         {
-            var pdf = Functions.MultinomialPdf(x, (1).OutOf(3), (1).OutOf(3), (1).OutOf(3));
+            var pdf = Functions.MultinomialPdf(x, (1).OutOf(3), (2).OutOf(3));
             double t = 0;
 
             foreach (var n in Enumerable.Range(1, x))
             {
-                var p = pdf(new[] { 1, 1, 1 });
+                var p = pdf(new[] { n, x - n });
                 t += p;
 
                 Console.WriteLine("{0}\t{1}", n, p);

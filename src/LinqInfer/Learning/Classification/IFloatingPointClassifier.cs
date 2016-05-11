@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Learning.Nn
+﻿namespace LinqInfer.Learning.Classification
 {
     internal interface IFloatingPointClassifier<T> : IClassifier<T, float>
     {

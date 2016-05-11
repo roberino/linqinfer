@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Nn;
+using LinqInfer.Learning.Features;
+using LinqInfer.Learning.Classification;
 using NUnit.Framework;
 
 namespace LinqInfer.Tests.Learning.Nn
@@ -10,7 +11,7 @@ namespace LinqInfer.Tests.Learning.Nn
         [Test]
         public void TrainAndClassify_SimpleSample_ReturnsCorrectClass()
         {
-            var net = new SimpleNet<string>(4);
+            var net = new NaiveBayesNormalClassifier<string>(4);
 
             var a1 = new byte[] { 10, 10, 100, 10 };
             var a2 = new byte[] { 8, 9, 101, 7 };
@@ -44,7 +45,7 @@ namespace LinqInfer.Tests.Learning.Nn
         [Test]
         public void TrainAndClassify_HighVariance_ReturnsCorrectClass()
         {
-            var net = new SimpleNet<string>(4);
+            var net = new NaiveBayesNormalClassifier<string>(4);
 
             var a1 = new byte[] { 5, 5, 99, 9 };
             var a2 = new byte[] { 4, 4, 100, 90 };
@@ -67,7 +68,7 @@ namespace LinqInfer.Tests.Learning.Nn
         [Test]
         public void TrainAndClassify_NoVariance_ReturnsCorrectClass()
         {
-            var net = new SimpleNet<string>(4);
+            var net = new NaiveBayesNormalClassifier<string>(4);
 
             var a1 = new byte[] { 10, 1, 99, 0 };
             var a2 = new byte[] { 10, 1, 100, 0 };
@@ -96,7 +97,7 @@ namespace LinqInfer.Tests.Learning.Nn
             var word2a = "james";
             var word2b = "jamie";
 
-            var net = new SimpleNet<byte>(32);
+            var net = new NaiveBayesNormalClassifier<byte>(32);
 
             net.Train(1, StringToBytes(word1a));
             net.Train(1, StringToBytes(word1b));
@@ -112,7 +113,7 @@ namespace LinqInfer.Tests.Learning.Nn
 
         private byte[] StringToBytes(string data, int size = 5)
         {
-            return new WordVectoriser2().ExtractVector(data);
+            return new SingleWordVectoriser2().ExtractVector(data);
             //return new WordVectoriser(size).ExtractVector(data);
         }
     }

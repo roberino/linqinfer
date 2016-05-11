@@ -1,5 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
-using LinqInfer.Learning.Nn;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace LinqInfer.Learning
         public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
-            var net = new SimpleNet<TClass>(extractor.VectorSize);
+            var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
             classifierPipe.Train(trainingData, classf);
@@ -82,10 +82,10 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
-        public static Func<TInput, ClassifyResult<TClass>> ToSimpleClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static Func<TInput, ClassifyResult<TClass>> ToNaiveBayesClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
-            var net = new SimpleNet<TClass>(extractor.VectorSize);
+            var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
 
             classifierPipe.Train(trainingData, classf);

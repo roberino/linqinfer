@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LinqInfer.Learning
+namespace LinqInfer.Learning.Classification
 {
     public interface IClassifier<TClass, TVector>
     {

@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Maths;
 using System;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     public interface IAssistedLearningProcessor
     {

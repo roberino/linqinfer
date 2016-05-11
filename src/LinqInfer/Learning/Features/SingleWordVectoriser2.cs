@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using LinqInfer.Maths.Probability;
 
-namespace LinqInfer.Learning
+namespace LinqInfer.Learning.Features
 {
-    internal class WordVectoriser2 : IByteFeatureExtractor<string>
+    internal class SingleWordVectoriser2 : IByteFeatureExtractor<string>
     {
-        public WordVectoriser2()
+        public SingleWordVectoriser2()
         {
             int i = 0;
             IndexLookup = Enumerable.Range((int)'A', 26).ToDictionary(b => ((char)b).ToString(), b => i++);
@@ -16,7 +17,7 @@ namespace LinqInfer.Learning
             IndexLookup["Null 1"] = 29;
             IndexLookup["Null 2"] = 30;
             IndexLookup["Null 3"] = 31;
-            FeatureMetadata = IndexLookup.Select(l => new Feature() { Key = l.Key, Label = l.Key, Index = l.Value, DataType = TypeCode.Object, Model = Maths.Probability.DistributionModel.Binomial });
+            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys, DistributionModel.Unknown);
         }
 
         public IDictionary<string, int> IndexLookup { get; private set; }

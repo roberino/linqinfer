@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     public static class Activators
     {

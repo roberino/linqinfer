@@ -1,9 +1,8 @@
 ﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
 
-namespace LinqInfer.Learning
+namespace LinqInfer.Learning.Classification
 {
     internal class InputAggregator
     {

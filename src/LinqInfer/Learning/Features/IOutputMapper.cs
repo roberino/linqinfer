@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Learning.Classification;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 

@@ -4,6 +4,8 @@
     {
         Unknown,
         Normal,
-        Binomial
+        Binomial,
+        Multinomial,
+        Categorical
     }
 }

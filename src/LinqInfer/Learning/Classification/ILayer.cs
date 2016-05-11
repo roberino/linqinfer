@@ -3,7 +3,7 @@ using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     internal interface ILayer : INetworkSignalFilter
     {

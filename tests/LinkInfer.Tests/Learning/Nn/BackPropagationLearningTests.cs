@@ -1,4 +1,4 @@
-﻿using LinqInfer.Learning.Nn;
+﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;

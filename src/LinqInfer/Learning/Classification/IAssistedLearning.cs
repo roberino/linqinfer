@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Learning
+﻿namespace LinqInfer.Learning.Classification
 {
     public interface IAssistedLearning<TClass, TVector>
     {

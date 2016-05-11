@@ -72,7 +72,7 @@
     <Compile Include="Learning\Nn\INeuron.cs" />
     <Compile Include="Learning\Nn\INeuronGenerator.cs" />
     <Compile Include="Learning\Nn\ITextClassifier.cs" />
-    <Compile Include="Learning\Nn\InputAggregator.cs" />
+    <Compile Include="Learning\Nn\InputSampler.cs" />
     <Compile Include="Learning\Nn\MultilayerNetworkClassifier.cs" />
     <Compile Include="Learning\Nn\NetworkLayer.cs" />
     <Compile Include="Learning\Nn\MultilayerNetworkClassificationPipeline.cs" />
@@ -82,8 +82,8 @@
     <Compile Include="Learning\Nn\NeuronBase.cs" />
     <Compile Include="Learning\Features\OutputMapper.cs" />
     <Compile Include="Learning\Nn\SimpleNet.cs" />
-    <Compile Include="Learning\Nn\WordVectoriser2.cs" />
-    <Compile Include="Learning\Nn\WordVectoriser.cs" />
+    <Compile Include="Learning\Features\SingleWordVectoriser2.cs" />
+    <Compile Include="Learning\Features\SingleWordVectoriser.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\Nn\XorNode.cs" />
     <Compile Include="Learning\ObjectVector.cs" />

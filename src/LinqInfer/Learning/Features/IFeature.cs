@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Features
                     .ToArray();
         }
 
-        public static IFeature[] CreateDefault(IEnumerable<string> labels)
+        public static IFeature[] CreateDefault(IEnumerable<string> labels, DistributionModel model = DistributionModel.Unknown)
         {
             Contract.Assert(labels != null && labels.Any());
 
@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Features
                 Index = i++,
                 DataType = TypeCode.Object,
                 Label = l,
-                Model = DistributionModel.Unknown
+                Model = model
             }).ToArray();
         }
     }

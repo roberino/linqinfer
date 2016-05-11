@@ -3,7 +3,7 @@ using LinqInfer.Maths.Probability;
 using System;
 using System.Linq;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     [Serializable]
     public class NeuronBase : INeuron

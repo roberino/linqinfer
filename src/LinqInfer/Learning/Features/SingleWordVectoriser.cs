@@ -1,19 +1,19 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Learning
+namespace LinqInfer.Learning.Features
 {
-    internal class WordVectoriser : IByteFeatureExtractor<string>
+    internal class SingleWordVectoriser : IByteFeatureExtractor<string>
     {
         private readonly int _size;
 
-        public WordVectoriser(int maxWordSize)
+        public SingleWordVectoriser(int maxWordSize)
         {
             _size = maxWordSize;
             IndexLookup = Enumerable.Range(0, _size).ToDictionary(n => "Char " + n, n => n);
-            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys);
+            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys, DistributionModel.Categorical);
         }
 
         public IDictionary<string, int> IndexLookup { get; private set; }
