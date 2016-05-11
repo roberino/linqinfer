@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     [Serializable]
     public class ActivatorFunc : IEquatable<ActivatorFunc>

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqInfer.Learning
+namespace LinqInfer.Learning.Classification
 {
     [DebuggerDisplay("Error:{Error}")]
     internal class ClassificationPipeline<TClass, TInput, TVector> where TVector : struct

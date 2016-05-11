@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
-using LinqInfer.Learning.Nn;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
@@ -36,7 +36,7 @@ namespace LinqInfer.Tests.Learning
         public void ToSimpleClassifier_SimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = TestData.CreatePirates().ToList();
-            var classifier = pirateSample.AsQueryable().ToSimpleClassifier(p => p.Age > 25 ? "old" : "young");
+            var classifier = pirateSample.AsQueryable().ToNaiveBayesClassifier(p => p.Age > 25 ? "old" : "young");
 
             // In the original predicate, if age > 25 then old.
             // But this pirate shares many features of other young pirates

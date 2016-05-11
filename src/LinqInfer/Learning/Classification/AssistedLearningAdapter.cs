@@ -2,7 +2,7 @@
 using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     internal class AssistedLearningAdapter<TClass> : IAssistedLearning<TClass, double>
     {

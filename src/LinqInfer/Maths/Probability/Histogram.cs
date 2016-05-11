@@ -10,7 +10,7 @@ namespace LinqInfer.Maths.Probability
 
         public Histogram(double? width = null)
         {
-            if(width.HasValue && width.Value < 0)
+            if (width.HasValue && width.Value < 0)
             {
                 throw new ArgumentOutOfRangeException(string.Format("Must have a width > 0. Value supplied = {0}", width.Value));
             }
@@ -32,7 +32,8 @@ namespace LinqInfer.Maths.Probability
                 h = _width.Value;
                 k = (int)Math.Ceiling(span / h);
             }
-            else {
+            else
+            {
                 var n = sample.Count();
                 k = (int)Math.Ceiling(Math.Log(n, 2) + 1);
                 h = span / k;

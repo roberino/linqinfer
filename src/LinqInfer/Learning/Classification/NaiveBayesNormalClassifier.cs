@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
-    internal class SimpleNet<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
+    internal class NaiveBayesNormalClassifier<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
     {
         private readonly Dictionary<T, List<InputAggregator>> netData;
         private readonly int vectorSize;
         private readonly Func<InputAggregator> neuronGenerator;
 
-        public SimpleNet(int vectorSize, Func<InputAggregator> neuronGenerator = null)
+        public NaiveBayesNormalClassifier(int vectorSize, Func<InputAggregator> neuronGenerator = null)
         {
             this.vectorSize = vectorSize;
             this.neuronGenerator = neuronGenerator ?? (() => new InputAggregator());

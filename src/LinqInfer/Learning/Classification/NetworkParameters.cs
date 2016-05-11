@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     [Serializable]
     public class NetworkParameters : IEquatable<NetworkParameters>

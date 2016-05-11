@@ -327,16 +327,27 @@ namespace LinqInfer.Maths
             return x => (double)(nf / (Factorial(n - x) * Factorial(x))) * Math.Pow(p, x) * Math.Pow(1 - p, n - x);
         }
 
-        public static Func<int[], double> MultinomialPdf(int buckets = 10, params Fraction[] events)
+        public static Func<int[], double> MultinomialPdf(int buckets = 10, params Fraction[] eventProbabilities)
         {
             Contract.Assert(buckets > 0);
             Contract.Assert(buckets <= 20);
-
-            var n = buckets;
+            
             var nf = (double)Factorial(buckets);
-            var probs = events.Select(e => e.Value).ToArray();
+            var probs = eventProbabilities.Select(e => e.Value).ToArray();
 
             return v => (nf / FactorialProduct(v)) * v.Zip(probs, (x, p) => Math.Pow(p, x)).Aggregate(1d, (t, x) => x * t);
+        }
+
+        public static Func<bool[], double> CategoricalPdf(params Fraction[] categoryProbabilities)
+        {
+            var pdf = MultinomialPdf(1, categoryProbabilities);
+
+            return v =>
+            {
+                var vi = v.Select(x => x ? 1 : 0).ToArray();
+
+                return pdf(vi);
+            };
         }
 
         internal static long FactorialProduct(int[] vector)
@@ -352,6 +363,21 @@ namespace LinqInfer.Maths
         internal static Func<float, double> BinaryPdf(double value)
         {
             return x => value == x ? value : 0f;
+        }
+
+        internal static Func<float, double> Pdf(DistributionModel model, double theta, double mu)
+        {
+            switch (model)
+            {
+                case DistributionModel.Binomial:
+                    return BinomialPdf(1);
+                case DistributionModel.Multinomial:
+                    var approxP = Fraction.ApproximateRational(mu);
+                    var pdf = MultinomialPdf(1, approxP, approxP.Compliment());
+                    return x => (x > mu ? pdf(new[] { 1, 0 }) : pdf(new[] { 0, 1 }));
+                default:
+                    return NormalPdf(theta, mu);
+            }
         }
 
         internal static Func<float, double> AutoPdf(double theta, double mu)

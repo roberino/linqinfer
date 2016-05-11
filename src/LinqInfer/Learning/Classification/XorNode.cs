@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     internal class XorNode : IEquatable<XorNode>
     {

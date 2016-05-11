@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Maths;
 
-namespace LinqInfer.Learning.Nn
+namespace LinqInfer.Learning.Classification
 {
     internal interface INetworkSignalFilter
     {
