@@ -104,7 +104,7 @@ namespace LinqInfer.Learning.Classification
         {
             if (_pipeline == null) throw new InvalidOperationException("Pipeline not trained");
 
-            return _pipeline.Instance.FindPossibleMatches(obj);
+            return _pipeline.Instance.Classify(obj);
         }
 
         private Pipeline Breed(Pipeline a, Pipeline b)

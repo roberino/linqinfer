@@ -1,4 +1,4 @@
-﻿using LinqInfer.Sampling;
+﻿using LinqInfer.Data.Sampling;
 using System.Threading.Tasks;
 using System.Web.Http;
 

@@ -29,6 +29,10 @@ This is a collection of functions and probability "objects" to help solve simple
 * Sample spaces
 * Hypotheses
 
+#### Text
+
+Utilities for working with text and text documents.
+
 ### Examples
 
 See tests for usage examples.

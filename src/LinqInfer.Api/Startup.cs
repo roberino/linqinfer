@@ -1,5 +1,5 @@
-﻿using LinqInfer.Sampling;
-using LinqInfer.Sampling.File;
+﻿using LinqInfer.Data.Sampling;
+using LinqInfer.Data.Sampling.File;
 using Microsoft.Owin;
 using Owin;
 using System.Web.Hosting;

@@ -1,29 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    class CategoricalClassifier<T> : IClassifier<T, bool>, IAssistedLearning<T, bool>
+    internal class CategoricalClassifier<TClass> : IClassifier<TClass, bool>, IAssistedLearning<TClass, bool>
     {
-        private readonly IDictionary<T, ClassData> _histogram;
+        private readonly IDictionary<TClass, ClassData> _histogram;
+        private readonly int _vectorSize;
 
-        public CategoricalClassifier()
+        public CategoricalClassifier(int vectorSize)
         {
-            _histogram = new Dictionary<T, ClassData>();
+            _vectorSize = vectorSize;
+            _histogram = new Dictionary<TClass, ClassData>();
         }
 
-        public ClassifyResult<T> Classify(bool[] vector)
+        public ClassifyResult<TClass> ClassifyAsBestMatch(params bool[] vector)
         {
-            throw new NotImplementedException();
+            return Classify(vector).FirstOrDefault();
         }
 
-        public IEnumerable<ClassifyResult<T>> FindPossibleMatches(bool[] vector)
+        public IEnumerable<ClassifyResult<TClass>> Classify(params bool[] vector)
         {
-            throw new NotImplementedException();
+            return Calculate(vector).OrderByDescending(r => r.Score);
         }
 
-        public double Train(T item, bool[] sample)
+        public double Train(TClass item, params bool[] sample)
         {
+            Contract.Assert(sample.Length == _vectorSize);
+            
             ClassData data;
 
             if(!_histogram.TryGetValue(item, out data))
@@ -33,14 +38,38 @@ namespace LinqInfer.Learning.Classification
 
             int i = 0;
 
-            foreach(var x in sample)
+            foreach (var x in sample)
             {
-                data.CategoricalFrequencies[i]++;
+                int f;
+
+                data.CategoricalFrequencies.TryGetValue(i, out f);
+                
+                data.CategoricalFrequencies[i] = x ? f + 1 : f;
+
+                i++;
             }
 
             data.ClassFrequency += 1;
 
             return 0;
+        }
+
+        private IEnumerable<ClassifyResult<TClass>> Calculate(bool[] vector)
+        {
+            var total = (double)_histogram.Sum(x => x.Value.ClassFrequency);
+
+            foreach (var cls in _histogram)
+            {
+                var prior = cls.Value.ClassFrequency / total;
+
+                var likelyhood = vector
+                    .Zip(cls.Value.CategoricalFrequencies, (x, t) => ((x ? t.Value : 0) + 1d))
+                    .ToList();
+
+                var posterier = likelyhood.Aggregate(prior, (p, x) => x * p);
+
+                yield return new ClassifyResult<TClass>() { Score = posterier, ClassType = cls.Key };
+            }
         }
 
         private class ClassData

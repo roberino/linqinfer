@@ -48,6 +48,19 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Converts the results of a classifier into a distribution of probabilities by class type.
+        /// </summary>
+        /// <typeparam name="TClass">The class type</typeparam>
+        /// <param name="classifyResults">The classification results</param>
+        /// <returns>A dictionary of TClass / Fraction pairs</returns>
+        public static IDictionary<TClass, Fraction> ToDistribution<TClass>(this IEnumerable<ClassifyResult<TClass>> classifyResults)
+        {
+            var cr = classifyResults.ToList();
+            var total = cr.Sum(m => m.Score);
+            return cr.ToDictionary(m => m.ClassType, m => Fraction.ApproximateRational(m.Score / total));
+        }
+
+        /// <summary>
         /// Creates a function which, based on training data
         /// can classify a new object type and return a distribution
         /// of potential class matches.
@@ -65,13 +78,7 @@ namespace LinqInfer.Learning
 
             classifierPipe.Train(trainingData, classf);
 
-            return x =>
-            {
-                var matches = classifierPipe.FindPossibleMatches(x).ToList();
-                var total = matches.Sum(m => m.Score);
-                var dist = matches.ToDictionary(m => m.ClassType, m => Fraction.ApproximateRational(m.Score / total));
-                return dist;
-            };
+            return x => classifierPipe.Classify(x).ToDistribution();
         }
 
         /// <summary>
@@ -82,7 +89,7 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
-        public static Func<TInput, ClassifyResult<TClass>> ToNaiveBayesClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> ToNaiveBayesClassifier<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);

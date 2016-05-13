@@ -19,14 +19,14 @@ namespace LinqInfer.Learning.Classification
             netData = new Dictionary<T, List<InputAggregator>>();
         }
 
-        public ClassifyResult<T> Classify(byte[] data)
+        public ClassifyResult<T> ClassifyAsBestMatch(byte[] data)
         {
-            return FindPossibleMatches(data).FirstOrDefault();
+            return Classify(data).FirstOrDefault();
         }
 
-        public ClassifyResult<T> Classify(float[] data)
+        public ClassifyResult<T> ClassifyAsBestMatch(float[] data)
         {
-            return FindPossibleMatches(data).FirstOrDefault();
+            return Classify(data).FirstOrDefault();
         }
 
         public double Train(T dataClass, byte[] sample)
@@ -58,7 +58,7 @@ namespace LinqInfer.Learning.Classification
             return 0;
         }
 
-        public IEnumerable<ClassifyResult<T>> FindPossibleMatches(float[] data)
+        public IEnumerable<ClassifyResult<T>> Classify(float[] data)
         {
             Contract.Assert(data != null);
             Contract.Assert(data.Length == vectorSize);
@@ -94,11 +94,11 @@ namespace LinqInfer.Learning.Classification
                 .Select(r => new ClassifyResult<T>() { ClassType = r.Key, Score = r.Value });
         }
 
-        public IEnumerable<ClassifyResult<T>> FindPossibleMatches(byte[] vector)
+        public IEnumerable<ClassifyResult<T>> Classify(byte[] vector)
         {
             Contract.Assert(vector != null);
 
-            return FindPossibleMatches(vector.Select(v => (float)v).ToArray());
+            return Classify(vector.Select(v => (float)v).ToArray());
         }
     }
 }

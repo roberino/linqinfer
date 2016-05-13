@@ -70,14 +70,14 @@ namespace LinqInfer.Learning.Classification
             return e;
         }
 
-        public ClassifyResult<TClass> Classify(TInput obj)
+        public ClassifyResult<TClass> ClassifyAsBestMatch(TInput obj)
         {
-            return _classifier.Classify(_featureExtract.ExtractVector(obj));
+            return _classifier.ClassifyAsBestMatch(_featureExtract.ExtractVector(obj));
         }
 
-        public IEnumerable<ClassifyResult<TClass>> FindPossibleMatches(TInput obj)
+        public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
         {
-            return _classifier.FindPossibleMatches(_featureExtract.ExtractVector(obj));
+            return _classifier.Classify(_featureExtract.ExtractVector(obj));
         }
 
         public override string ToString()

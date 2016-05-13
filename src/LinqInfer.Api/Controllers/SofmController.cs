@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
-using LinqInfer.Sampling;
+using LinqInfer.Data.Sampling;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
