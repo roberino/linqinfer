@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Api.Models;
-using LinqInfer.Sampling;
-using LinqInfer.Sampling.Parsers;
+using LinqInfer.Data.Sampling;
+using LinqInfer.Data.Sampling.Parsers;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -3,8 +3,8 @@
 	<metadata> 
 		<id>$id$</id>
 		<version>1.0.1-beta</version>
-		<authors>Robert Eyres</authors>
-		<owners>Robert Eyres</owners>
+		<authors>R Eyres</authors>
+		<owners>R Eyres</owners>
 		<description>A lightweight and slightly experimental inference library for C#</description> 
 		<projectUrl>https://github.com/roberino/linqinfer</projectUrl>
 		<licenseUrl>http://www.gnu.org/licenses/gpl-3.0.en.html</licenseUrl>

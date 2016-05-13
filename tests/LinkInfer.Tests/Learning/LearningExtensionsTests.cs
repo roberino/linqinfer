@@ -33,7 +33,7 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
-        public void ToSimpleClassifier_SimpleSample_ClassifiesAsExpected()
+        public void ToNaiveBayesClassifier_SimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = TestData.CreatePirates().ToList();
             var classifier = pirateSample.AsQueryable().ToNaiveBayesClassifier(p => p.Age > 25 ? "old" : "young");
@@ -47,7 +47,7 @@ namespace LinqInfer.Tests.Learning
                 Age = 27,
                 IsCaptain = false,
                 Ships = 1
-            });
+            }).FirstOrDefault();
 
             var classOfPirate2 = classifier.Invoke(new TestData.Pirate()
             {
@@ -55,7 +55,7 @@ namespace LinqInfer.Tests.Learning
                 Age = 41,
                 IsCaptain = true,
                 Ships = 4
-            });
+            }).FirstOrDefault();
 
             Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
             Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));

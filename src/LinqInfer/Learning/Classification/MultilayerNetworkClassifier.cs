@@ -18,14 +18,14 @@ namespace LinqInfer.Learning.Classification
             _outputMapper = outputMapper;
         }
 
-        public ClassifyResult<TClass> Classify(double[] vector)
+        public ClassifyResult<TClass> ClassifyAsBestMatch(double[] vector)
         {
             var output = _network.Evaluate(new ColumnVector1D(vector));
 
             return _outputMapper(output).OrderByDescending(x => x.Score).FirstOrDefault();
         }
 
-        public IEnumerable<ClassifyResult<TClass>> FindPossibleMatches(double[] vector)
+        public IEnumerable<ClassifyResult<TClass>> Classify(double[] vector)
         {
             var output = _network.Evaluate(new ColumnVector1D(vector));
 
