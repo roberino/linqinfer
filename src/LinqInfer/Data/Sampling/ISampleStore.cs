@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Sampling
 {
-    public interface ISampleStorageProvider : IDisposable
+    public interface ISampleStore : IDisposable
     {
         IQueryable<DataSampleHeader> ListSamples();
 

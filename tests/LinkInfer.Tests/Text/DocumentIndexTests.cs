@@ -1,21 +1,17 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Text
 {
     [TestFixture]
-    public class TermFrequencyIdfDocumentSearchTests
+    public class DocumentIndexTests
     {
         [Test]
         public void Index_Then_Search()
         {
-            var search = new TermFrequencyIdfDocumentSearch();
+            var search = new DocumentIndex();
 
             var doc1 = @"<doc id='1'><line>Shall I compare thee to a summer’s day?</line><line>
                         Thou art more lovely and more temperate:</line><line>
@@ -84,12 +80,12 @@ namespace LinqInfer.Tests.Text
 
             var docs = new[] { doc1, doc2, doc3 }.Select(t => XDocument.Parse(t)).ToList().AsQueryable();
 
-            search.IndexDocuments(docs);
+            search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
-            var matches = search.Search(docs, "love time");
+            var matches = search.Search("love time");
 
             Assert.That(matches.All(m => m.Value > 0));
-            Assert.That(matches.First().Key.Root.Attribute("id").Value, Is.EqualTo("3"));
+            Assert.That(matches.First().Key, Is.EqualTo("3"));
         }
     }
 }

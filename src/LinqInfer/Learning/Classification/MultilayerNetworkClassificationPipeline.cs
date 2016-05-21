@@ -1,35 +1,31 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> where TClass : IEquatable<TClass>
+    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> : MultilayerNetworkObjectClassifier<TClass, TInput>, IBinaryPersistable where TClass : IEquatable<TClass>
     {
         private readonly int _maxIterations;
-        private readonly Config _config;
         private readonly NetworkParameterCache _paramCache;
 
-        private Pipeline _pipeline;
+        protected Pipeline _pipeline;
 
         public MultilayerNetworkClassificationPipeline(
             IFeatureExtractor<TInput, double> featureExtractor,
             float errorTolerance = 0.3f,
             int maxIterations = 200,
-            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)), errorTolerance, maxIterations)
+            IOutputMapper<TClass> outputMapper = null) : base(featureExtractor, outputMapper)
         {
-        }
-
-        private MultilayerNetworkClassificationPipeline(Config config, float errorTolerance, int maxIterations) // : base(config.Trainer, config.Classifier, config.FeatureExtractor, config.NormalisingSample)
-        {
-            ErrorTolerance = errorTolerance;
-            ParallelProcess = true;
-            _config = config;
-            _paramCache = NetworkParameterCache.DefaultCache;
             _maxIterations = maxIterations;
+            ErrorTolerance = errorTolerance;
+            _paramCache = new NetworkParameterCache();
+            ParallelProcess = true;
         }
 
         public float ErrorTolerance { get; set; }
@@ -96,15 +92,21 @@ namespace LinqInfer.Learning.Classification
             var err = _pipeline.Instance.Error.GetValueOrDefault() / trainingDataCount;
 
             _paramCache.Store<TClass>(_pipeline.Parameters, err);
+            _classifier = _pipeline.Instance;
 
             return err;
         }
 
-        public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
+        public void Save(Stream output)
         {
-            if (_pipeline == null) throw new InvalidOperationException("Pipeline not trained");
+            if (_pipeline == null)
+            {
+                throw new InvalidOperationException("No training data received");
+            }
 
-            return _pipeline.Instance.Classify(obj);
+            _config.OutputMapper.Save(output);
+            _config.FeatureExtractor.Save(output);
+            _pipeline.Network.Save(output);
         }
 
         private Pipeline Breed(Pipeline a, Pipeline b)
@@ -125,7 +127,8 @@ namespace LinqInfer.Learning.Classification
             {
                 Instance = pipeline,
                 Parameters = network.Parameters,
-                ErrorTolerance = ErrorTolerance
+                ErrorTolerance = ErrorTolerance,
+                Network = network
             };
         }
 
@@ -150,29 +153,16 @@ namespace LinqInfer.Learning.Classification
             {
                 Instance = pipeline,
                 Parameters = network.Parameters,
-                ErrorTolerance = ErrorTolerance
+                ErrorTolerance = ErrorTolerance,
+                Network = network
             };
         }
 
-        private static Config Setup(
-            IFeatureExtractor<TInput, double> featureExtractor,
-            IOutputMapper<TClass> outputMapper,
-            TInput normalisingSample)
-        {
-            if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-            
-            return new Config()
-            {
-                NormalisingSample = normalisingSample,
-                FeatureExtractor = featureExtractor,
-                OutputMapper = outputMapper
-            };
-        }
-
-        private class Pipeline
+        protected class Pipeline
         {
             public ClassificationPipeline<TClass, TInput, double> Instance { get; set; }
             public NetworkParameters Parameters { get; set; }
+            public MultilayerNetwork Network { get; set; }
             public float ErrorTolerance { get; set; }
 
             public bool HasConverged(int trainingDataCount)
@@ -186,11 +176,5 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        private class Config
-        {
-            public  TInput NormalisingSample { get; set; }
-            public IOutputMapper<TClass> OutputMapper { get; set; }
-            public IFeatureExtractor<TInput, double> FeatureExtractor { get; set; }
-        }
     }
 }

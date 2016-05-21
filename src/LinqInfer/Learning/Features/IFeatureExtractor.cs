@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using LinqInfer.Data;
+using System.Collections.Generic;
+using System.IO;
 
 namespace LinqInfer.Learning.Features
 {
-    public interface IFeatureExtractor<TInput, TVector> where TVector : struct
+    public interface IFeatureExtractor<TInput, TVector> : IBinaryPersistable where TVector : struct
     {
         /// <summary>
         /// The size of the feature vector.

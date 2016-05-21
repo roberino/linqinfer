@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -74,6 +75,16 @@ namespace LinqInfer.Data.Sampling
             if (arr.Length == VectorSize) return arr;
 
             return _selectedFeatures.Select(i => arr[i]).ToArray();
+        }
+
+        public void Save(Stream output)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Load(Stream input)
+        {
+            throw new NotSupportedException();
         }
     }
 }

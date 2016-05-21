@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace LinqInfer.Learning.Features
 {
@@ -42,6 +43,16 @@ namespace LinqInfer.Learning.Features
             }
 
             return arr;
+        }
+
+        public void Save(Stream output)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Load(Stream input)
+        {
+            throw new NotSupportedException();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using LinqInfer.Maths.Probability;
+using System.IO;
 
 namespace LinqInfer.Learning.Features
 {
@@ -65,6 +66,16 @@ namespace LinqInfer.Learning.Features
             }
 
             return vector;
+        }
+
+        public void Save(Stream output)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Load(Stream input)
+        {
+            throw new NotSupportedException();
         }
     }
 }

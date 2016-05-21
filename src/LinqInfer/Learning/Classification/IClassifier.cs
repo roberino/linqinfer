@@ -2,10 +2,8 @@
 
 namespace LinqInfer.Learning.Classification
 {
-    public interface IClassifier<TClass, TVector>
+    public interface IClassifier<TClass, TVector> : IObjectClassifier<TClass, TVector[]>
     {
         ClassifyResult<TClass> ClassifyAsBestMatch(TVector[] vector);
-
-        IEnumerable<ClassifyResult<TClass>> Classify(TVector[] vector);
     }
 }

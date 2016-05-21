@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,11 +8,9 @@ using System.Linq.Expressions;
 namespace LinqInfer.Learning.Classification
 {
     [DebuggerDisplay("Error:{Error}")]
-    internal class ClassificationPipeline<TClass, TInput, TVector> where TVector : struct
+    internal class ClassificationPipeline<TClass, TInput, TVector> : ObjectClassifier<TClass, TInput, TVector> where TVector : struct
     {
         private readonly IAssistedLearning<TClass, TVector> _learning;
-        private readonly IClassifier<TClass, TVector> _classifier;
-        private readonly IFeatureExtractor<TInput, TVector> _featureExtract;
 
         private double? error;
 
@@ -21,13 +18,11 @@ namespace LinqInfer.Learning.Classification
             IClassifier<TClass, TVector> classifier,
             IFeatureExtractor<TInput, TVector> featureExtract,
             TInput normalisingSample = default(TInput),
-            bool normalise = true)
+            bool normalise = true) : base(classifier, featureExtract)
         {
             _learning = learning;
-            _classifier = classifier;
-            _featureExtract = featureExtract;
 
-            if(normalise)
+            if (normalise)
                 _featureExtract.CreateNormalisingVector(normalisingSample);
         }
 
@@ -68,21 +63,6 @@ namespace LinqInfer.Learning.Classification
              var e = _learning.Train(classf(value), _featureExtract.ExtractVector(value));
             error += e;
             return e;
-        }
-
-        public ClassifyResult<TClass> ClassifyAsBestMatch(TInput obj)
-        {
-            return _classifier.ClassifyAsBestMatch(_featureExtract.ExtractVector(obj));
-        }
-
-        public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
-        {
-            return _classifier.Classify(_featureExtract.ExtractVector(obj));
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Classifier:{0}=>{1}", typeof(TInput).Name, _classifier);
         }
     }
 }

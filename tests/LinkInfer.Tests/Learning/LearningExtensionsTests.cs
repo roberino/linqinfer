@@ -6,6 +6,8 @@ using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.IO;
+using static LinqInfer.Tests.TestData;
 
 namespace LinqInfer.Tests.Learning
 {
@@ -90,6 +92,33 @@ namespace LinqInfer.Tests.Learning
             Assert.That(classResults3.ClassType == xor3.Output);
             Assert.That(classResults4.ClassType == xor4.Output);
         }
+
+        [Test]
+        public void ToMultilayerNetworkClassifier_SaveOutput_RestoresAsExpected()
+        {
+            var pirateSample = CreatePirates().ToList();
+
+            byte[] data;
+
+            using (var ms = new MemoryStream())
+            {
+                var classifier = pirateSample.AsQueryable().ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f, ms);
+
+                data = ms.ToArray();
+            }
+
+            using(var ms = new MemoryStream(data))
+            {
+                var classifier2 = ms.OpenAsMultilayerNetworkClassifier<Pirate, string>();
+
+                Assert.That(classifier2, Is.Not.Null);
+
+                var cls = classifier2(new Pirate() { Age = 10, Gold = 2, IsCaptain = false, Ships = 1 });
+
+                Assert.That(cls.Any(x => x.Score > 0));
+            }
+        }
+
 
         [Test]
         public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()

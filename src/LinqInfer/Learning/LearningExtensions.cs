@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.IO;
 
 namespace LinqInfer.Learning
 {
@@ -101,6 +102,23 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a stream.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="input">A stream of previously saved classifier data</returns>
+        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+            this Stream input) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
+            var classifierPipe = new MultilayerNetworkObjectClassifier<TClass, TInput>(extractor);
+
+            classifierPipe.Load(input);
+
+            return classifierPipe.Classify;
+        }
+
+        /// <summary>
         /// Creates a multi-layer network classifier based on some training data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -109,7 +127,7 @@ namespace LinqInfer.Learning
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning the best match</returns>
         public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+            this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f, Stream output = null) where TInput : class where TClass : IEquatable<TClass>
         {
             Contract.Assert(trainingData != null && classf != null && errorTolerance > 0);
 
@@ -117,6 +135,11 @@ namespace LinqInfer.Learning
             var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor, errorTolerance);
 
             classifierPipe.Train(trainingData, classf);
+
+            if (output != null)
+            {
+                classifierPipe.Save(output);
+            }
 
             return classifierPipe.Classify;
         }

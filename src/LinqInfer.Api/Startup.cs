@@ -10,7 +10,7 @@ namespace LinqInfer.Api
 {
     public partial class Startup
     {
-        public static ISampleStorageProvider Storage
+        public static ISampleStore Storage
         {
             get
             {
