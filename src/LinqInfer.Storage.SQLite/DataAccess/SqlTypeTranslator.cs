@@ -57,7 +57,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             if (value == DBNull.Value) return null;
 
-            var type = value.GetType();
+            var type = clrType;
             var tc = Type.GetTypeCode(type);
 
             switch (tc)

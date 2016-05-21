@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using LinqInfer.Data;
-using System.Data;
+﻿using LinqInfer.Data;
 using LinqInfer.Storage.SQLite.Models;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Storage.SQLite.Providers
 {
@@ -13,8 +12,12 @@ namespace LinqInfer.Storage.SQLite.Providers
         {
         }
 
-        public override Task Setup()
+        public override Task Setup(bool reset = false)
         {
+            if (reset)
+            {
+                _db.Destroy();
+            }
             _db.CreateTableFor<BlobItem>(true);
             return Task.FromResult(0);
         }

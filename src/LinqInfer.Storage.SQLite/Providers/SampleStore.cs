@@ -10,9 +10,9 @@ namespace LinqInfer.Storage.SQLite.Providers
     {
         public SampleStore(string dataDir) : base(dataDir) { }
 
-        public override Task Setup()
+        public override Task Setup(bool reset = true)
         {
-            return base.Setup();
+            return base.Setup(reset);
         }
 
         public Task<DataSample> DeleteSample(Uri sampleUri)

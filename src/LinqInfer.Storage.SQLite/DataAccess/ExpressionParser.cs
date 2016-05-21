@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
@@ -20,7 +21,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
             if (member == null) throw new NotSupportedException("Expecting member expression on LHS");
 
-            return string.Format("{0}{1}{2}", member.Member.Name, GetOp(binOp.NodeType), GetValue(binOp.Right));
+            return string.Format("{0}{1}{2}", member.Member.Name, GetOp(binOp.NodeType), FormatValue(GetValue(binOp.Right)));
         }
 
         private string GetOp(ExpressionType op)
@@ -43,23 +44,39 @@ namespace LinqInfer.Storage.SQLite.DataAccess
                     throw new NotSupportedException(op.ToString());
             }
         }
+        private object GetValue(MemberExpression exp)
+        {
+            var x = GetValue(exp.Expression);
 
-        private string GetValue(Expression exp)
+            if (exp.Member is PropertyInfo) return ((PropertyInfo)exp.Member).GetValue(x);
+            if (exp.Member is FieldInfo) return ((FieldInfo)exp.Member).GetValue(x);
+
+            throw new NotSupportedException(exp.Member.GetType().Name);
+        }
+
+        private object GetValue(Expression exp)
         {
             switch (exp.NodeType)
             {
                 case ExpressionType.MemberAccess:
-                    return FormatValue(_translator.ConvertToSqlValue(""));
+                    return GetValue(((MemberExpression)exp));
                 case ExpressionType.Constant:
-                    return FormatValue(_translator.ConvertToSqlValue(((ConstantExpression)exp).Value));
+                    return GetValue(((ConstantExpression)exp).Value);
                 default:
                     throw new NotSupportedException("Expecting constant expression on RHS");
             }
-            var cons = exp as ConstantExpression;
+        }
 
-            if (cons == null) throw new NotSupportedException("Expecting constant expression on RHS");
-
-            return FormatValue(_translator.ConvertToSqlValue(cons.Value));
+        private object GetValue(object value)
+        {
+            if (value is Expression)
+            {
+                return GetValue((Expression)value);
+            }
+            else
+            {
+                return _translator.ConvertToSqlValue(value);
+            }
         }
 
         private string FormatValue(object val)
