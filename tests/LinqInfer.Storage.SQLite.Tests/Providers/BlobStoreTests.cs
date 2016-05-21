@@ -42,9 +42,9 @@ namespace LinqInfer.Storage.SQLite.Tests.Providers
         {
             using (var store = new BlobStore())
             {
-                await store.Setup();
+                await store.Setup(true);
 
-                var binobj = new BinObj() { Data = "X O 9" };
+                var binobj = new BinObj() { Data = "X 0 9" };
 
                 await store.StoreAsync("K2", binobj);
 

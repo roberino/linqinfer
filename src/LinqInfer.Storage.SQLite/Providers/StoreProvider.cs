@@ -13,7 +13,7 @@ namespace LinqInfer.Storage.SQLite.Providers
             _db = new SQLiteDbController(GetType().Name, dataDir ?? Environment.CurrentDirectory);
         }
 
-        public virtual Task Setup()
+        public virtual Task Setup(bool reset = false)
         {
             return Task.FromResult(0);
         }

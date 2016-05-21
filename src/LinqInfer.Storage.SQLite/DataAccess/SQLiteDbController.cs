@@ -95,6 +95,8 @@ namespace LinqInfer.Storage.SQLite.DataAccess
                         c += cmd.ExecuteNonQuery();
                     }
                 }
+
+                tx.Commit();
             }
 
             return c;
@@ -114,8 +116,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
                 if (maxResults.HasValue)
                 {
-                    sql = string.Format("SELECT * FROM {0} {1};", TypeMetadataHelper.TableName<T>(), whereClause);
-                    // sql = string.Format("SELECT TOP({0}) * FROM {1} {2};", maxResults, TypeMetadataHelper.TableName<T>(), whereClause);
+                    sql = string.Format("SELECT * FROM {0} {1} LIMIT {2};", TypeMetadataHelper.TableName<T>(), whereClause, maxResults);
                 }
                 else
                 {
@@ -130,7 +131,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             try
             {
-                ExecuteReader("SELECT * FROM " + TypeMetadataHelper.TableName<T>());
+                ExecuteReader("SELECT 1 FROM " + TypeMetadataHelper.TableName<T>() + " LIMIT 1");
                 return true;
             }
             catch (SQLiteException ex)
@@ -142,7 +143,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         protected DataTable GetSqlSchema<T>()
         {
-            using (var reader = ExecuteReader("SELECT * FROM " + TypeMetadataHelper.TableName<T>()))
+            using (var reader = ExecuteReader("SELECT 1 FROM " + TypeMetadataHelper.TableName<T>() + " LIMIT 1"))
             {
                 return reader.GetSchemaTable();
             }
@@ -183,7 +184,10 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             var file = GetDbFile();
 
-            Dispose();
+            if (_conn.IsValueCreated)
+            {
+                _conn.Value.Dispose();
+            }
 
             file.Delete();
         }
