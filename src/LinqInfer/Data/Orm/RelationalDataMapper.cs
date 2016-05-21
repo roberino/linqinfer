@@ -9,25 +9,27 @@ namespace LinqInfer.Data.Orm
     internal class RelationalDataMapper : IDisposable
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly IObjectMapperFactory _mapperFactory;
         private Lazy<IDbConnection> _connection;
 
-        public RelationalDataMapper(IDbConnection connection) : this(() => connection)
+        public RelationalDataMapper(IDbConnection connection) : this(() => connection, null)
         {
         }
 
-        public RelationalDataMapper(Func<IDbConnection> connectionFactory)
+        public RelationalDataMapper(Func<IDbConnection> connectionFactory, IObjectMapperFactory mapperFactory = null)
         {
             _connectionFactory = connectionFactory;
+            _mapperFactory = mapperFactory ?? new DefaultMapperFactory();
             _connection = new Lazy<IDbConnection>(_connectionFactory);
         }
 
         public IEnumerable<T> Query<T>(string cmdText = null, CommandType cmdType = CommandType.Text) where T : new()
         {
-            Action<T, Type, string, object> mapper = null;
-
             //TODO: Clunky function call
 
-            return Read(cmdText ?? string.Format("select * from {0}", typeof(T).Name), cmdType, s => mapper = new ObjectMapper<T>(s).Map, () => new T(), (c, t, r, v) => mapper(r, t, c, v));
+            IObjectMapper<T> mapper = null;
+
+            return Read(cmdText ?? string.Format("select * from {0}", typeof(T).Name), cmdType, s => mapper = _mapperFactory.Create<T>(s), () => new T(), (c, t, r, v) => mapper.MapProperty(r, t, c, v));
         }
 
         public IEnumerable<dynamic> Query(string cmdText, CommandType cmdType = CommandType.Text)

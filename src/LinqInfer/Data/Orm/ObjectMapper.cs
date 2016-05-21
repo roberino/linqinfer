@@ -6,14 +6,13 @@ using System.Reflection;
 
 namespace LinqInfer.Data.Orm
 {
-    internal class ObjectMapper<T>
+    internal class ObjectMapper<T> : IObjectMapper<T>
     {
         private readonly IDictionary<string, Action<object, object>> _mappings;
 
         public ObjectMapper(DataTable schema)
         {
-            _mappings = typeof(T)
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            _mappings = GetMappedProperties()
                 .Join(schema.Rows.Cast<DataRow>(), o => o.Name.ToLowerInvariant(), i => i.Field<string>(0).ToLowerInvariant(), (o, i) => new
                 {
                     prop = o,
@@ -29,15 +28,19 @@ namespace LinqInfer.Data.Orm
                 });
         }
 
-        public Action<T, Type, string, object> Map
+        public void MapProperty(T instance, Type propertyType, string propertyName, object value)
         {
-            get
-            {
-                return (x, t, c, v) => _mappings[c](x, v);
-            }
+            _mappings[propertyName](instance, value);
         }
 
-        private Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)
+        protected IEnumerable<PropertyInfo> GetMappedProperties()
+        {
+            return typeof(T)
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(r => r.CanRead);
+        }
+
+        protected virtual Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)
         {
             var ct = Type.GetTypeCode(col.Field<Type>(12)); // TODO: Is this consistently implemented? - probably not
             var pt = Type.GetTypeCode(prop.PropertyType);

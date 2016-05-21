@@ -16,6 +16,16 @@ namespace LinqInfer.Learning.Classification
         private NetworkParameters _parameters;
         private bool initd;
 
+        public MultilayerNetwork(Stream input)
+        {
+            var n = Load(input);
+            _inputVectorSize = n._inputVectorSize;
+            _neuronFactory = n._neuronFactory;
+            _rootLayer = n._rootLayer;
+            _parameters = n._parameters;
+            initd = true;
+        }
+
         public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, Range, INeuron> neuronFactory = null)
         {
             _inputVectorSize = inputVectorSize;

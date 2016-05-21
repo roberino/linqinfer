@@ -1,7 +1,9 @@
 ﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
@@ -9,6 +11,11 @@ namespace LinqInfer.Learning.Features
     internal class OutputMapper<T> : IOutputMapper<T> where T : IEquatable<T>
     {
         private IDictionary<T, int> _outputs;
+
+        public OutputMapper(Stream input)
+        {
+            Load(input);
+        }
 
         public OutputMapper(IEnumerable<T> outputs = null)
         {
@@ -70,6 +77,20 @@ namespace LinqInfer.Learning.Features
             vector[o] = 1;
 
             return vector;
+        }
+
+        public virtual void Save(Stream stream)
+        {
+            var sz = new DictionarySerialiser<T, int>();
+
+            sz.Write(_outputs, stream);
+        }
+
+        public virtual void Load(Stream stream)
+        {
+            var sz = new DictionarySerialiser<T, int>();
+
+            _outputs = sz.Read(stream);
         }
     }
 }

@@ -17,12 +17,12 @@ namespace LinqInfer.Api.Controllers
             return sample;
         }
 
-        protected ISampleStorageProvider Storage
+        protected ISampleStore Storage
         {
             get
             {
                 var ctx = Request.GetOwinContext();
-                var store = ctx == null ? Startup.Storage : ctx.Get<ISampleStorageProvider>(typeof(ISampleStorageProvider).ToString());
+                var store = ctx == null ? Startup.Storage : ctx.Get<ISampleStore>(typeof(ISampleStore).ToString());
 
                 return store;
             }

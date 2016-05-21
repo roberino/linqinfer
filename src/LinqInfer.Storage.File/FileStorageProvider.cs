@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Sampling.File
 {
-    public class FileStorageProvider : ISampleStorageProvider
+    public class FileStorageProvider : ISampleStore
     {
         private readonly DirectoryInfo _baseDir;
         private readonly IUriProvider _uriProvider;

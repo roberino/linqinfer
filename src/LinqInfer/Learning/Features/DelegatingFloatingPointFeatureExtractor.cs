@@ -1,16 +1,20 @@
 ﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace LinqInfer.Learning.Features
 {
+    [Serializable]
     internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IFeatureExtractor<T, double>
     {
+        [NonSerialized]
+        private readonly Func<T, float[]> _vectorFunc;
+
         private readonly int _vectorSize;
         private readonly bool _normaliseData;
-        private readonly Func<T, float[]> _vectorFunc;
         private float[] _normalisingVector;
 
         public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, string[] featureLabels)
@@ -87,6 +91,22 @@ namespace LinqInfer.Learning.Features
         double[] IFeatureExtractor<T, double>.NormaliseUsing(IEnumerable<T> samples)
         {
             return NormaliseUsing(samples).Select(x => (double)x).ToArray();
+        }
+
+        public void Save(Stream output)
+        {
+            var sz = new BinaryFormatter();
+
+            sz.Serialize(output, _normalisingVector);
+        }
+
+        public void Load(Stream input)
+        {
+            var sz = new BinaryFormatter();
+
+            var normVect = sz.Deserialize(input) as float[];
+
+            _normalisingVector = normVect;
         }
     }
 }

@@ -41,12 +41,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DataExtensions.cs" />
+    <Compile Include="Data\IBinaryPersistable.cs" />
+    <Compile Include="Data\IBlobStore.cs" />
+    <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\Orm\DefaultMapperFactory.cs" />
+    <Compile Include="Data\Orm\IObjectMapper.cs" />
+    <Compile Include="Data\Orm\IObjectMapperFactory.cs" />
     <Compile Include="Data\Orm\RelationalDataMapper.cs" />
     <Compile Include="Data\Orm\ObjectMapper.cs" />
+    <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
+    <Compile Include="Learning\Classification\MultilayerNetworkObjectClassifier.cs" />
+    <Compile Include="Learning\Classification\ObjectClassifier.cs" />
+    <Compile Include="Learning\Classification\IObjectClassifier.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
     <Compile Include="Text\ITokeniser.cs" />
-    <Compile Include="Text\TermFrequencyIdfDocumentSearch.cs" />
+    <Compile Include="Text\DocumentIndex.cs" />
     <Compile Include="Text\TextExtensions.cs" />
     <Compile Include="Text\TextFuctions.cs" />
     <Compile Include="Learning\FeatureMap.cs" />
@@ -128,7 +138,6 @@
     <Compile Include="Data\Sampling\DataSampleMetadata.cs" />
     <Compile Include="Data\Sampling\FieldDescriptor.cs" />
     <Compile Include="Data\Sampling\FieldUsageType.cs" />
-    <Compile Include="Data\Sampling\ISampleStorageProvider.cs" />
     <Compile Include="Data\Sampling\IStorageObject.cs" />
     <Compile Include="Data\Sampling\IUriProvider.cs" />
     <Compile Include="Data\Sampling\Parsers\CsvSampleParser.cs" />
@@ -139,6 +148,7 @@
     <Compile Include="Data\Sampling\UriProvider.cs" />
     <Compile Include="Text\WordTokeniser.cs" />
     <Compile Include="Utility\Debugger.cs" />
+    <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
