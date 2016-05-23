@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqInfer.Data.Sampling
+namespace LinqInfer.Data
 {
     public interface IUriProvider
     {

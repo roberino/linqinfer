@@ -33,11 +33,11 @@ namespace LinqInfer.Data.Orm
             _mappings[propertyName](instance, value);
         }
 
-        protected IEnumerable<PropertyInfo> GetMappedProperties()
+        protected virtual IEnumerable<PropertyInfo> GetMappedProperties()
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(r => r.CanRead);
+                .Where(r => r.CanRead && r.CanWrite);
         }
 
         protected virtual Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)

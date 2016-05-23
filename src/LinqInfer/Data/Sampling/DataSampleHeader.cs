@@ -1,7 +1,4 @@
-﻿using LinqInfer.Maths.Probability;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -13,7 +10,7 @@ namespace LinqInfer.Data.Sampling
 
         public DataSampleHeader()
         {
-            Id = Guid.NewGuid().ToString();
+            Key = Guid.NewGuid().ToString();
             Created = DateTime.UtcNow;
             Modified = DateTime.UtcNow;
             Summary = new SampleSummary();
@@ -21,16 +18,18 @@ namespace LinqInfer.Data.Sampling
             _uriProvider = new UriProvider();
         }
 
+        public long Id { get; set; }
+
         public virtual Uri Uri
         {
             get
             {
                 if (_uriProvider == null) _uriProvider = new UriProvider();
-                return _uriProvider.Create("samples", Id);
+                return _uriProvider.Create("samples", Key);
             }
         }
 
-        public string Id { get; set; }
+        public string Key { get; set; }
 
         public string Label { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace LinqInfer.Storage.SQLite.Models
 {
@@ -10,5 +11,7 @@ namespace LinqInfer.Storage.SQLite.Models
         public bool Nullable { get; set; }
         public bool PrimaryKey { get; set; }
         public Type ClrType { get; set; }
+
+        public PropertyInfo MappedProperty { get; set; }
     }
 }

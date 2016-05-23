@@ -43,6 +43,7 @@
     <Compile Include="Data\DataExtensions.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
+    <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\Orm\DefaultMapperFactory.cs" />
     <Compile Include="Data\Orm\IObjectMapper.cs" />
@@ -139,7 +140,7 @@
     <Compile Include="Data\Sampling\FieldDescriptor.cs" />
     <Compile Include="Data\Sampling\FieldUsageType.cs" />
     <Compile Include="Data\Sampling\IStorageObject.cs" />
-    <Compile Include="Data\Sampling\IUriProvider.cs" />
+    <Compile Include="Data\IUriProvider.cs" />
     <Compile Include="Data\Sampling\Parsers\CsvSampleParser.cs" />
     <Compile Include="Data\Sampling\Parsers\ParserSettings.cs" />
     <Compile Include="Data\Sampling\ResourceSet.cs" />
