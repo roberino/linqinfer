@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Data.Orm
 {
@@ -66,7 +67,7 @@ namespace LinqInfer.Tests.Data.Orm
         }
 
         [Test]
-        public void Read_Dynamic_TestData_MappsCorrectly()
+        public void Query_Dynamic_TestData_MappsCorrectly()
         {
             using (var mapper = new RelationalDataMapper(_connFact))
             {
@@ -82,11 +83,27 @@ namespace LinqInfer.Tests.Data.Orm
         }
 
         [Test]
-        public void Read_Types_TestData_MappsCorrectly()
+        public void Query_Types_TestData_MappsCorrectly()
         {
             using (var mapper = new RelationalDataMapper(_connFact))
             {
                 var data = mapper.Query<Things>().ToList();
+
+                var name5 = (string)data[5].Name;
+                var int6 = (int)data[6].Frequency;
+
+                Assert.That(data.Count, Is.EqualTo(100));
+                Assert.That(name5, Is.EqualTo("Name 5"));
+                Assert.That(int6, Is.EqualTo(6));
+            }
+        }
+
+        [Test]
+        public async Task QueryAsync_Types_TestData_MappsCorrectly()
+        {
+            using (var mapper = new RelationalDataMapper(_connFact))
+            {
+                var data = (await mapper.QueryAsync<Things>()).ToList();
 
                 var name5 = (string)data[5].Name;
                 var int6 = (int)data[6].Frequency;

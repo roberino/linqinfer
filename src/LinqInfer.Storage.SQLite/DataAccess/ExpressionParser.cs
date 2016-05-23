@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
-    public class ExpressionParser
+    internal class ExpressionParser
     {
         private readonly SqlTypeTranslator _translator;
 
@@ -13,6 +13,12 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             _translator = new SqlTypeTranslator();
         }
 
+        /// <summary>
+        /// Currently this only supports a single boolean expression.
+        /// </summary>
+        /// <remarks>
+        /// To be replaced with a third party / fully implemented linq provider?
+        /// </remarks>
         public string ParseWhereClause<T>(Expression<Func<T, bool>> expression)
         {
             var binOp = expression.Body as BinaryExpression;
@@ -83,12 +89,17 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             if (val == null || val == DBNull.Value) return "NULL";
 
-            if(val is string)
+            if (val is string || val is Uri || val is DateTime || val is DateTime?)
             {
-                return "'" + ((string)val).Replace("'", "\\'") + "'";
+                return Enquote(val);
             }
 
             return val.ToString();
+        }
+
+        private string Enquote(object val)
+        {
+            return "'" + val.ToString().Replace("'", "\\'") + "'";
         }
     }
 }

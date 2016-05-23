@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Orm
 {
@@ -23,6 +25,15 @@ namespace LinqInfer.Data.Orm
             _connection = new Lazy<IDbConnection>(_connectionFactory);
         }
 
+        public async Task<IEnumerable<T>> QueryAsync<T>(string cmdText = null, CommandType cmdType = CommandType.Text) where T : new()
+        {
+            IObjectMapper<T> mapper = null;
+
+            var results = await ReadAsync(cmdText ?? string.Format("select * from {0}", typeof(T).Name), cmdType, s => mapper = _mapperFactory.Create<T>(s), () => new T(), (c, t, r, v) => mapper.MapProperty(r, t, c, v));
+
+            return results;
+        }
+
         public IEnumerable<T> Query<T>(string cmdText = null, CommandType cmdType = CommandType.Text) where T : new()
         {
             //TODO: Clunky function call
@@ -39,32 +50,81 @@ namespace LinqInfer.Data.Orm
             return Read<dynamic>(cmdText, cmdType, s => { names = s.Rows.Cast<DataRow>().GroupBy(c => c.Field<string>(0)).ToDictionary(k => k.Key, v => GetPropName(v.First())); }, () => new ExpandoObject(), (c, t, r, v) => ((IDictionary<string, object>)r)[names[c]] = v);
         }
 
+        protected async Task<IList<T>> ReadAsync<T>(string cmdText, CommandType cmdType, Action<DataTable> schemaInit, Func<T> rowFact, Action<string, Type, T, object> mapper)
+        {
+            using (var cmd = Open().CreateCommand())
+            {
+                cmd.CommandText = cmdText;
+                cmd.CommandType = cmdType;
+
+                IDataReader reader;
+
+                if(cmd is DbCommand)
+                {
+                    reader = await ((DbCommand)cmd).ExecuteReaderAsync();
+                }
+                else
+                {
+                    reader = cmd.ExecuteReader();
+                }
+
+                var results = new List<T>();
+                
+                using (reader)
+                {
+                    var schema = reader.GetSchemaTable();
+                    var rows = schema.Rows.Cast<DataRow>().ToList();
+
+                    schemaInit(schema);
+
+                    var advance = (reader is DbDataReader) ? () => ((DbDataReader)reader).ReadAsync() : (Func<Task<bool>>)(() => Task.FromResult(reader.Read()));
+                    
+                    while (await advance())
+                    {
+                        var row = rowFact();
+                        int i = 0;
+
+                        foreach (var fld in rows)
+                        {
+                            mapper(reader.GetName(i), reader.GetFieldType(i), row, reader.GetValue(i));
+                            i++;
+                        }
+
+                        results.Add(row);
+                    }
+                }
+
+                return results;
+            }
+        }
+
         protected IEnumerable<T> Read<T>(string cmdText, CommandType cmdType, Action<DataTable> schemaInit, Func<T> rowFact, Action<string, Type, T, object> mapper)
         {
-            var cmd = Open().CreateCommand();
-
-            cmd.CommandText = cmdText;
-            cmd.CommandType = cmdType;
-
-            using (var reader = cmd.ExecuteReader())
+            using (var cmd = Open().CreateCommand())
             {
-                var schema = reader.GetSchemaTable();
-                var rows = schema.Rows.Cast<DataRow>().ToList();
+                cmd.CommandText = cmdText;
+                cmd.CommandType = cmdType;
 
-                schemaInit(schema);
-
-                while (reader.Read())
+                using (var reader = cmd.ExecuteReader())
                 {
-                    var row = rowFact();
-                    int i = 0;
+                    var schema = reader.GetSchemaTable();
+                    var rows = schema.Rows.Cast<DataRow>().ToList();
 
-                    foreach (var fld in rows)
+                    schemaInit(schema);
+
+                    while (reader.Read())
                     {
-                        mapper(reader.GetName(i), reader.GetFieldType(i), row, reader.GetValue(i));
-                        i++;
-                    }
+                        var row = rowFact();
+                        int i = 0;
 
-                    yield return row;
+                        foreach (var fld in rows)
+                        {
+                            mapper(reader.GetName(i), reader.GetFieldType(i), row, reader.GetValue(i));
+                            i++;
+                        }
+
+                        yield return row;
+                    }
                 }
             }
         }

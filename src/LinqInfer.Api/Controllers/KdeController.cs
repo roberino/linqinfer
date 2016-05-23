@@ -13,13 +13,5 @@ namespace LinqInfer.Api.Controllers
 
             return sample.CreateMultiVariateDistribution();
         }
-
-        [Route("api/data/samples/{id}/histogram")]
-        public async Task<object> GetHistogram(string id, float bandwidth = 0.5f)
-        {
-            var sample = await GetSampleById(id);
-
-            return sample.CreateHistogram();
-        }
     }
 }

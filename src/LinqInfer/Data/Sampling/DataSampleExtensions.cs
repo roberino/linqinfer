@@ -17,14 +17,7 @@ namespace LinqInfer.Data.Sampling
             return kde.CreateMultiVariateDistribution(sample.SampleData.Select(d => d.AsColumnVector()).AsQueryable(), binCount);
         }
 
-        public static IDictionary<ColumnVector1D, double> CreateHistogram(this DataSample sample, int binCount = 10)
-        {
-            var hist = new Histogram();
-
-            return null; // hist.Analyse()
-        }
-
-        public static Func<DataItem, ClassifyResult<string>> CreateClassifier(this DataSample sample, int[] selectedFeatures = null)
+        public static Func<DataItem, ClassifyResult<string>> CreateMultilayerNetworkClassifier(this DataSample sample, int[] selectedFeatures = null)
         {
             var featureExtractor = sample.CreateFeatureExtractor(selectedFeatures);
 
@@ -32,6 +25,18 @@ namespace LinqInfer.Data.Sampling
                 .SampleData
                 .AsQueryable()
                 .ToMultilayerNetworkClassifier(x => x.Label);
+
+            return x => clsf(x).FirstOrDefault();
+        }
+
+        public static Func<DataItem, ClassifyResult<string>> CreateNaiveBayesClassifier(this DataSample sample, int[] selectedFeatures = null)
+        {
+            var featureExtractor = sample.CreateFeatureExtractor(selectedFeatures);
+
+            var clsf = sample
+                .SampleData
+                .AsQueryable()
+                .ToNaiveBayesClassifier(x => x.Label);
 
             return x => clsf(x).FirstOrDefault();
         }

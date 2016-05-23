@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -199,6 +200,20 @@ namespace LinqInfer.Maths
                 .Select(v => string.Format("|{0}|\n", v))
                 .Aggregate(new StringBuilder(), (s, v) => s.Append(v))
                 .ToString();
+        }
+
+        public byte[] ToByteArray()
+        {
+            var bytes = new byte[_values.Length * sizeof(double)];
+            Buffer.BlockCopy(_values, 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        public static ColumnVector1D FromByteArray(byte[] bytes)
+        {
+            var values = new double[bytes.Length / sizeof(double)];
+            Buffer.BlockCopy(bytes, 0, values, 0, bytes.Length);
+            return new ColumnVector1D(values);
         }
 
         public string ToCsv(int precision = 8)

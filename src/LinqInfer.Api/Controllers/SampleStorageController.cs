@@ -60,12 +60,12 @@ namespace LinqInfer.Api.Controllers
         {
             var sample = await GetSampleById(id);
 
-            var sampleItem = new Resource<DataItem>(sample.SampleData.FirstOrDefault(d => d.Id == itemId), ToConcreteUri(sample.Uri));
+            var sampleItem = new Resource<DataItem>(sample.SampleData.FirstOrDefault(d => d.Key == itemId), ToConcreteUri(sample.Uri));
 
             return sampleItem;
         }
 
-        [Route("sample-file")]
+        [Route("samples-file")]
         [HttpPost]
         public async Task<object> UploadFile()
         {

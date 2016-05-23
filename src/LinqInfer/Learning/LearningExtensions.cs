@@ -7,6 +7,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.IO;
+using LinqInfer.Data;
 
 namespace LinqInfer.Learning
 {
@@ -114,6 +115,23 @@ namespace LinqInfer.Learning
             var classifierPipe = new MultilayerNetworkObjectClassifier<TClass, TInput>(extractor);
 
             classifierPipe.Load(input);
+
+            return classifierPipe.Classify;
+        }
+
+        /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a blob store.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="input">A stream of previously saved classifier data</returns>
+        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+            this IBlobStore store, string key) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
+            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor);
+
+            store.Restore(key, classifierPipe);
 
             return classifierPipe.Classify;
         }
