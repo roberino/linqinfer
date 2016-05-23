@@ -18,11 +18,13 @@ namespace LinqInfer.Data.Sampling
         public DataItem(IUriProvider uriProvider = null)
         {
             _uriProvider = uriProvider ?? new UriProvider();
-            Id = Guid.NewGuid().ToString();
+            Key = Guid.NewGuid().ToString();
             Item = new object();
         }
 
-        public string Id { get; set; }
+        public long Id { get; set; }
+
+        public string Key { get; set; }
 
         public string Label { get; set; }
 
@@ -63,7 +65,7 @@ namespace LinqInfer.Data.Sampling
             get
             {
                 if (_uriProvider == null) _uriProvider = new UriProvider();
-                return _uriProvider.Create("item", Id);
+                return _uriProvider.Create("item", Key);
             }
         }
 

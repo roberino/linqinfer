@@ -47,10 +47,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataAccess\ExpressionParser.cs" />
+    <Compile Include="DataAccess\ITypeMapping.cs" />
     <Compile Include="DataAccess\SQLiteObjectMapper.cs" />
     <Compile Include="DataAccess\SQLiteObjectMapperFactory.cs" />
+    <Compile Include="DataAccess\TypeMapping.cs" />
     <Compile Include="Models\BlobItem.cs" />
+    <Compile Include="Models\DataItemBlob.cs" />
     <Compile Include="Models\Entity.cs" />
+    <Compile Include="Models\DataSampleItem.cs" />
+    <Compile Include="Models\SampleFieldMetadata.cs" />
     <Compile Include="Providers\BlobStore.cs" />
     <Compile Include="Models\ColumnDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,7 +64,7 @@
     <Compile Include="Providers\SampleStore.cs" />
     <Compile Include="Providers\StoreProvider.cs" />
     <Compile Include="DataAccess\TableDef.cs" />
-    <Compile Include="DataAccess\TypeMetadataHelper.cs" />
+    <Compile Include="DataAccess\TypeMappingCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LinqInfer\LinqInfer.csproj">

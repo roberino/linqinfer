@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
@@ -16,6 +17,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         private readonly DirectoryInfo _dataDir;
         private readonly string _dbName;
+        private readonly IList<IDbConnection> _openConnections;
         protected readonly Lazy<IDbConnection> _conn;
 
         private bool _disposed;
@@ -24,6 +26,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             _dbName = dbName;
             _dataDir = new DirectoryInfo(dataDir);
+            _openConnections = new List<IDbConnection>();
             _conn = new Lazy<IDbConnection>(() => CreateConnection());
         }
 
@@ -49,6 +52,8 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
             var conn = new SQLiteConnection(string.Format(ConnectionStringTemplate, _dbName));
 
+            _openConnections.Add(conn);
+
             if (open)
             {
                 conn.Open();
@@ -57,28 +62,177 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             return conn;
         }
 
-        public void CreateTableFor<T>(bool onlyCreateIfMissing = false) where T : class
+        public async Task CreateTableFor<T>(bool onlyCreateIfMissing = false) where T : class
         {
-            if (onlyCreateIfMissing)
-            {
-                if (Exists<T>()) return;
-            }
-
             var tbleSql = new TableDef<T>();
 
-            Execute(tbleSql.ToString());
+            if (Exists<T>())
+            {
+                if (onlyCreateIfMissing) return;
+
+                Execute("DROP TABLE " + tbleSql.Name);
+            }
+
+            await ExecuteAsync(tbleSql.ToString());
         }
 
-        public int Insert<T>(IEnumerable<T> data) where T : class
+        public void Transact(Action action)
+        {
+            using(var tx = _conn.Value.BeginTransaction())
+            {
+                action.Invoke();
+                tx.Commit();
+            }
+        }
+
+        public async Task TransactAsync(Func<Task> action)
+        {
+            using (var tx = _conn.Value.BeginTransaction())
+            {
+                await action.Invoke();
+                tx.Commit();
+            }
+        }
+
+        public Task<int> DeleteAsync<T>(Expression<Func<T, bool>> where = null)
+        {
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
+            string sql;
+            string whereClause = null;
+
+            if (where != null)
+            {
+                whereClause = "WHERE " + new ExpressionParser().ParseWhereClause(where);
+            }
+
+            sql = string.Format("DELETE FROM {0} {1};", tableName, whereClause);
+
+            return ExecuteAsync(sql);
+        }
+
+        public long? GetLastIdOf<T>() where T : class
+        {
+            using (var reader = ExecuteReader(string.Format("SELECT Id FROM {0} ORDER BY Id DESC LIMIT 1", TypeMappingCache.GetMapping<T>().TableName)))
+            {
+                if (reader.Read())
+                {
+                    return reader.GetInt64(0);
+                }
+            }
+
+            return null;
+        }
+
+        public long? Insert<T>(T data) where T : class
         {
             var mapper = new SQLiteObjectMapper<T>(GetSqlSchema<T>());
-
             var tblDef = new TableDef<T>();
-            var insert = "INSERT INTO " + tblDef.Name;
-            var cols = tblDef.ColumnsString;
-            var colParams = tblDef.ColumnsParametersString;
+            var cmdText = tblDef.GetInsertSql();
 
-            var cmdText = insert + " " + cols + " VALUES " + colParams;
+            int c = 0;
+            long? id = null;
+
+            using (var tx = _conn.Value.BeginTransaction())
+            {
+                using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
+                {
+                    tblDef.CreateColumnParameters(cmd, mapper.GetValues(data));
+
+                    cmd.CommandText = cmdText;
+
+                    c += cmd.ExecuteNonQuery();
+                }
+
+                tx.Commit();
+
+                if (c > 0 && tblDef.Mapping.HasPrimaryKey)
+                {
+                    id = GetLastIdOf<T>();
+
+                    if (id.HasValue) tblDef.Mapping.SetPrimaryKey(data, id.Value);
+                }
+            }
+
+            return id;
+        }
+
+        public async Task<long?> InsertAsync<T>(T data) where T : class
+        {
+            var mapper = new SQLiteObjectMapper<T>(GetSqlSchema<T>());
+            var tblDef = new TableDef<T>();
+            var cmdText = tblDef.GetInsertSql();
+
+            int c = 0;
+            long? id = null;
+
+            using (var tx = _conn.Value.BeginTransaction())
+            {
+                using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
+                {
+                    tblDef.CreateColumnParameters(cmd, mapper.GetValues(data));
+
+                    cmd.CommandText = cmdText;
+
+                    c += await cmd.ExecuteNonQueryAsync();
+                }
+
+                tx.Commit();
+
+                if (c > 0 && tblDef.Mapping.HasPrimaryKey)
+                {
+                    id = GetLastIdOf<T>();
+
+                    if (id.HasValue) tblDef.Mapping.SetPrimaryKey(data, id.Value);
+                }
+            }
+
+            return id;
+        }
+
+        public async Task<int> InsertManyAsync<T>(IEnumerable<T> data) where T : class
+        {
+            var mapper = new SQLiteObjectMapper<T>(GetSqlSchema<T>());
+            var tblDef = new TableDef<T>();
+            var cmdText = tblDef.GetInsertSql();
+            var hasPk = tblDef.Mapping.HasPrimaryKey;
+
+            int c = 0;
+
+            using (var tx = _conn.Value.BeginTransaction())
+            {
+                foreach (var row in data)
+                {
+                    using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
+                    {
+                        tblDef.CreateColumnParameters(cmd, mapper.GetValues(row));
+
+                        cmd.CommandText = cmdText;
+
+                        var n = await cmd.ExecuteNonQueryAsync();
+
+                        c += n;
+
+                        if (n > 0 && hasPk)
+                        {
+                            var id = await GetLastInsertedId();
+
+                            tblDef.Mapping.SetPrimaryKey(row, id);
+                        }
+                    }
+                }
+
+                tx.Commit();
+            }
+
+            return c;
+        }
+
+        public int InsertMany<T>(IEnumerable<T> data) where T : class
+        {
+            var mapper = new SQLiteObjectMapper<T>(GetSqlSchema<T>());
+            var tblDef = new TableDef<T>();
+            var cmdText = tblDef.GetInsertSql();
+            var hasPk = tblDef.Mapping.HasPrimaryKey;
 
             int c = 0;
 
@@ -92,7 +246,16 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
                         cmd.CommandText = cmdText;
 
-                        c += cmd.ExecuteNonQuery();
+                        var n = cmd.ExecuteNonQuery();
+
+                        c += n;
+
+                        if (n > 0 && hasPk)
+                        {
+                            var id = GetLastIdOf<T>();
+
+                            if (id.HasValue) tblDef.Mapping.SetPrimaryKey(row, id.Value);
+                        }
                     }
                 }
 
@@ -102,36 +265,38 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             return c;
         }
 
-        public IQueryable<T> Query<T>(Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
+        public Task<IEnumerable<T>> QueryAsync<T>(Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
         {
-            string sql;
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
+
+            string sql = GetQuerySql(where, maxResults);
+
             using (var mapper = new RelationalDataMapper(() => CreateConnection(false), new SQLiteObjectMapperFactory()))
             {
-                string whereClause = null;
+                return mapper.QueryAsync<T>(sql);
+            }
+        }
 
-                if (where != null)
-                {
-                    whereClause = "WHERE " + new ExpressionParser().ParseWhereClause(where);
-                }
+        public IQueryable<T> Query<T>(Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
+        {
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
 
-                if (maxResults.HasValue)
-                {
-                    sql = string.Format("SELECT * FROM {0} {1} LIMIT {2};", TypeMetadataHelper.TableName<T>(), whereClause, maxResults);
-                }
-                else
-                {
-                    sql = string.Format("SELECT * FROM {0} {1};", TypeMetadataHelper.TableName<T>(), whereClause);
-                }
+            string sql = GetQuerySql(where, maxResults);
 
+            using (var mapper = new RelationalDataMapper(() => CreateConnection(false), new SQLiteObjectMapperFactory()))
+            {
                 return mapper.Query<T>(sql).AsQueryable();
             }
         }
 
         public bool Exists<T>()
         {
+            if (!GetDbFile().Exists) return false;
+
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
             try
             {
-                ExecuteReader("SELECT 1 FROM " + TypeMetadataHelper.TableName<T>() + " LIMIT 1");
+                ExecuteReader("SELECT 1 FROM " + tableName + " LIMIT 1");
                 return true;
             }
             catch (SQLiteException ex)
@@ -143,15 +308,29 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         protected DataTable GetSqlSchema<T>()
         {
-            using (var reader = ExecuteReader("SELECT 1 FROM " + TypeMetadataHelper.TableName<T>() + " LIMIT 1"))
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
+            using (var reader = ExecuteReader("SELECT 1 FROM " + tableName + " LIMIT 1"))
             {
                 return reader.GetSchemaTable();
             }
         }
 
+        protected async Task<IDataReader> ExecuteReaderAsync(string sql)
+        {
+            using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.CommandType = CommandType.Text;
+
+                var reader = await cmd.ExecuteReaderAsync();
+
+                return reader;
+            }
+        }
+
         protected IDataReader ExecuteReader(string sql)
         {
-            using (var cmd = _conn.Value.CreateCommand())
+            using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
             {
                 cmd.CommandText = sql;
                 cmd.CommandType = CommandType.Text;
@@ -180,31 +359,125 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             }
         }
 
+        protected async Task<int> ExecuteAsync(string sql)
+        {
+            using (var tx = _conn.Value.BeginTransaction())
+            {
+                int x;
+
+                using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.CommandType = CommandType.Text;
+
+                    x = await cmd.ExecuteNonQueryAsync();
+                }
+
+                tx.Commit();
+
+                return x;
+            }
+        }
+
         public void Destroy()
         {
+            if (_disposed) throw new ObjectDisposedException(GetType().Name);
+            
+            CloseAll();
+
             var file = GetDbFile();
 
-            if (_conn.IsValueCreated)
+            if (file.Exists)
             {
-                _conn.Value.Dispose();
+                try
+                {
+                    file.Delete();
+                }
+                catch (IOException)
+                {
+                    AppDomain.CurrentDomain.DomainUnload += (s, e) =>
+                    {
+                        file.Delete();
+                    };
+                }
             }
-
-            file.Delete();
         }
 
         public void Dispose()
         {
-            if (_conn.IsValueCreated)
+            CloseAll();
+            _disposed = true;
+        }
+
+        private async Task<long> GetLastInsertedId()
+        {
+            using (var cmd = (SQLiteCommand)_conn.Value.CreateCommand())
             {
+                cmd.CommandText = "SELECT last_insert_rowid()";
+                cmd.CommandType = CommandType.Text;
+
+                var res = await cmd.ExecuteScalarAsync();
+
+                return (long)res;
+            }
+        }
+
+        private void CloseAll()
+        {
+            if (_conn.IsValueCreated && IsNotClosed(_conn.Value))
+            {
+                _conn.Value.Close();
                 _conn.Value.Dispose();
             }
-            _disposed = true;
+
+            foreach (var conn in _openConnections.Where(IsNotClosed))
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+
+            _openConnections.Clear();
         }
 
         private FileInfo GetDbFile()
         {
             var dbFile = new FileInfo(Path.Combine(_dataDir.FullName, _dbName + ".sqlite"));
             return dbFile;
+        }
+
+        private bool IsNotClosed(IDbConnection conn)
+        {
+            try
+            {
+                return conn.State != ConnectionState.Closed;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string GetQuerySql<T>(Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
+        {
+            var tableName = TypeMappingCache.GetMapping<T>().TableName;
+            string sql;
+            string whereClause = null;
+
+            if (where != null)
+            {
+                whereClause = "WHERE " + new ExpressionParser().ParseWhereClause(where);
+            }
+
+            if (maxResults.HasValue)
+            {
+                sql = string.Format("SELECT * FROM {0} {1} LIMIT {2};", tableName, whereClause, maxResults);
+            }
+            else
+            {
+                sql = string.Format("SELECT * FROM {0} {1};", tableName, whereClause);
+            }
+
+            return sql;
         }
     }
 }

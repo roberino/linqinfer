@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using LinqInfer.Data.Sampling;
 using System.Linq;
 using System.Threading.Tasks;

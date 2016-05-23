@@ -12,14 +12,10 @@ namespace LinqInfer.Storage.SQLite.Providers
         {
         }
 
-        public override Task Setup(bool reset = false)
+        public async override Task Setup(bool reset = false)
         {
-            if (reset)
-            {
-                _db.Destroy();
-            }
-            _db.CreateTableFor<BlobItem>(true);
-            return Task.FromResult(0);
+            await base.Setup(reset);
+            await _db.CreateTableFor<BlobItem>(!reset);
         }
 
         public T Restore<T>(string key, T obj) where T : IBinaryPersistable
@@ -55,14 +51,23 @@ namespace LinqInfer.Storage.SQLite.Providers
                 obj.Save(ms);
             }
 
-            _db.Insert(new[] { blob });
+            _db.Insert(blob);
 
             return true;
         }
 
-        public Task<bool> StoreAsync<T>(string key, T obj) where T : IBinaryPersistable
+        public async Task<bool> StoreAsync<T>(string key, T obj) where T : IBinaryPersistable
         {
-            return Task.FromResult(Store(key, obj));
+            var blob = new BlobItem() { Key = key, TypeName = typeof(T).FullName };
+
+            using (var ms = blob.Write())
+            {
+                obj.Save(ms);
+            }
+
+            await _db.InsertAsync(blob);
+
+            return true;
         }
     }
 }

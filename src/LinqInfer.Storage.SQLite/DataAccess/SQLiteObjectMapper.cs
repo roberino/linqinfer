@@ -3,6 +3,7 @@ using System;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
@@ -23,6 +24,11 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         protected override Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)
         {
             return x => _translator.ConvertToClrValue(x, prop.PropertyType);
+        }
+
+        protected override IEnumerable<PropertyInfo> GetMappedProperties()
+        {
+            return TypeMappingCache.GetMapping<T>().GetMappedProperties();
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Storage.SQLite.Providers;
 using NUnit.Framework;
-using System.Threading.Tasks;
-using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Storage.SQLite.Tests.Providers
 {
@@ -16,22 +15,22 @@ namespace LinqInfer.Storage.SQLite.Tests.Providers
         {
             using (var store = new BlobStore())
             {
-                await store.Setup();
+                await store.Setup(true);
 
                 store.Destroy();
             }
         }
 
         [Test]
-        public async Task StoreAsync()
+        public async Task Store()
         {
             using (var store = new BlobStore())
             {
-                await store.Setup();
+                await store.Setup(true);
 
                 var binobj = new BinObj() { Data = "X O 9" };
 
-                await store.StoreAsync("K1", binobj);
+                store.Store("K1", binobj);
 
                 store.Destroy();
             }
