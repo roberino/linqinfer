@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="DataAccess\ExpressionParser.cs" />
     <Compile Include="DataAccess\ITypeMapping.cs" />
+    <Compile Include="DataAccess\ReservedKeywords.cs" />
     <Compile Include="DataAccess\SQLiteObjectMapper.cs" />
     <Compile Include="DataAccess\SQLiteObjectMapperFactory.cs" />
     <Compile Include="DataAccess\TypeMapping.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="Models\DataSampleItem.cs" />
     <Compile Include="Models\SampleFieldMetadata.cs" />
     <Compile Include="Providers\BlobStore.cs" />
-    <Compile Include="Models\ColumnDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataAccess\SQLiteDbController.cs" />
     <Compile Include="DataAccess\SqlTypeTranslator.cs" />

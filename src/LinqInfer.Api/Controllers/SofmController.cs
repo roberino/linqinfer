@@ -18,7 +18,7 @@ namespace LinqInfer.Api.Controllers
             return new
             {
                 metadata = sample.Metadata,
-                features = sofm.FeatureLabels,
+                features = sofm.Features,
                 map = sofm.Select(m => new
                 {
                     weights = m.Weights,

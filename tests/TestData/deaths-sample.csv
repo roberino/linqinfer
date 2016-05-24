@@ -1,0 +1,105 @@
+Cause,Year,Rate per 100000 population (England),Number of deaths (England),Rate per 100000 population,Number of deaths (Wales)
+All avoidable causes,2001,313.8,131004,345.9,9037
+All avoidable causes,2002,303.3,127687,338.9,8932
+All avoidable causes,2003,297.3,126312,327.2,8747
+All avoidable causes,2004,282,120892,307.2,8295
+All avoidable causes,2005,273.6,118484,301.7,8234
+All avoidable causes,2006,263.7,115182,289.8,8007
+All avoidable causes,2007,255.4,113131,292.2,8197
+All avoidable causes,2008,252.3,113713,281.9,8028
+All avoidable causes,2009,240.7,110330,271.5,7858
+All avoidable causes,2010,234.4,108933,261.5,7657
+All avoidable causes,2011,225,105889,252.7,7470
+All avoidable causes,2012,218.2,104479,249.4,7486
+All avoidable causes,2013,218.7,106537,249.4,7601
+Infections,2001,3.3,1494,2.2,61
+Infections,2002,3.2,1429,3.2,87
+Infections,2003,3.4,1551,2.4,66
+Infections,2004,3.3,1495,3.6,98
+Infections,2005,3.3,1519,3.5,99
+Infections,2006,3.4,1553,3.3,91
+Infections,2007,3.2,1487,3.8,108
+Infections,2008,3.3,1562,3.1,87
+Infections,2009,3.3,1559,3.7,109
+Infections,2010,2.9,1412,2.9,85
+Infections,2011,2.6,1259,2.8,83
+Infections,2012,2.6,1293,2.9,87
+Infections,2013,2.7,1355,2.9,90
+Neoplasms,2001,94.9,39205,102,2660
+Neoplasms,2002,93.7,39037,100.7,2652
+Neoplasms,2003,91.1,38303,94,2514
+Neoplasms,2004,89.4,37932,93.9,2545
+Neoplasms,2005,88.2,37781,96.1,2628
+Neoplasms,2006,87,37559,96.5,2666
+Neoplasms,2007,86.5,37844,96,2693
+Neoplasms,2008,85.7,38107,94.2,2684
+Neoplasms,2009,84,37998,91.5,2647
+Neoplasms,2010,82.4,37817,86,2523
+Neoplasms,2011,81.7,37963,85.1,2517
+Neoplasms,2012,80.2,37985,85.3,2569
+Neoplasms,2013,79,38144,82,2514
+Drug use disorders,2001,12.1,5572,13.9,380
+Drug use disorders,2002,12.3,5658,12.7,352
+Drug use disorders,2003,12.9,5980,14.2,396
+Drug use disorders,2004,12.9,6014,13.9,390
+Drug use disorders,2005,13.1,6172,13.6,387
+Drug use disorders,2006,13.4,6399,15.2,436
+Drug use disorders,2007,13.4,6461,16.9,489
+Drug use disorders,2008,13.9,6756,18,526
+Drug use disorders,2009,12.9,6349,16.1,476
+Drug use disorders,2010,12.9,6396,16.8,496
+Drug use disorders,2011,11.7,5818,13.1,393
+Drug use disorders,2012,10.8,5432,14.1,424
+Drug use disorders,2013,11,5602,13.5,411
+Cardiovascular diseases,2001,127.4,51801,144.5,3732
+Cardiovascular diseases,2002,120.1,49291,140.1,3647
+Cardiovascular diseases,2003,113.5,47032,129.9,3430
+Cardiovascular diseases,2004,103.8,43341,114.1,3044
+Cardiovascular diseases,2005,96.2,40548,110.8,2981
+Cardiovascular diseases,2006,89.8,38102,101.1,2761
+Cardiovascular diseases,2007,83.9,36139,94.5,2625
+Cardiovascular diseases,2008,79.4,34884,88.1,2490
+Cardiovascular diseases,2009,73.3,32798,85.4,2452
+Cardiovascular diseases,2010,71.3,32439,78.6,2287
+Cardiovascular diseases,2011,64,29444,75.1,2205
+Cardiovascular diseases,2012,61.4,28821,71.2,2129
+Cardiovascular diseases,2013,60.4,28912,71,2160
+Respiratory diseases,2001,29.4,11917,30.1,773
+Respiratory diseases,2002,28.8,11749,30.2,782
+Respiratory diseases,2003,30.1,12384,34.5,902
+Respiratory diseases,2004,26.5,10986,29.3,776
+Respiratory diseases,2005,27,11276,28.6,765
+Respiratory diseases,2006,25.2,10608,25.9,700
+Respiratory diseases,2007,24.8,10599,28.1,772
+Respiratory diseases,2008,25.6,11150,28.1,785
+Respiratory diseases,2009,23.9,10601,25.4,722
+Respiratory diseases,2010,23.4,10559,26.4,760
+Respiratory diseases,2011,23.6,10775,28.7,839
+Respiratory diseases,2012,22.9,10586,25.7,771
+Respiratory diseases,2013,23,10878,27.4,836
+Injuries,2001,35.2,15930,41.5,1118
+Injuries,2002,34,15505,39.5,1071
+Injuries,2003,35.3,16085,40.5,1118
+Injuries,2004,35.2,16159,40.6,1115
+Injuries,2005,35.2,16307,38.6,1084
+Injuries,2006,34.6,16187,37.8,1067
+Injuries,2007,33.7,15985,42.2,1201
+Injuries,2008,34.9,16635,40.1,1152
+Injuries,2009,34.1,16457,40,1171
+Injuries,2010,32.2,15764,40,1183
+Injuries,2011,32.5,16183,38.8,1157
+Injuries,2012,31.6,15978,40.2,1204
+Injuries,2013,34.1,17353,42.9,1293
+Other,2001,11.4,5085,11.6,313
+Other,2002,11.2,5018,12.5,341
+Other,2003,10.9,4977,11.7,321
+Other,2004,10.8,4965,11.8,327
+Other,2005,10.6,4881,10.4,290
+Other,2006,10.3,4774,10,286
+Other,2007,9.7,4616,10.8,309
+Other,2008,9.6,4619,10.4,304
+Other,2009,9.3,4568,9.6,281
+Other,2010,9.2,4546,10.9,323
+Other,2011,8.9,4447,9.2,276
+Other,2012,8.7,4384,9.9,302
+Other,2013,8.4,4293,9.6,297

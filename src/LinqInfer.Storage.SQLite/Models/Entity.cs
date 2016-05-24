@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Storage.SQLite.Models
 {
-    public class Entity
+    internal class Entity
     {
         public long Id { get; set; }
     }

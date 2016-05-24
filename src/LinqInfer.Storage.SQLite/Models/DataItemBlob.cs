@@ -3,7 +3,7 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Storage.SQLite.Models
 {
-    public class DataItemBlob : DataItem
+    internal class DataItemBlob : DataItem
     {
         public static DataItemBlob Create(DataItem item, long sampleId)
         {

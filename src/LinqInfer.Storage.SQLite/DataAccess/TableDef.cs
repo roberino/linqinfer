@@ -1,4 +1,4 @@
-﻿using LinqInfer.Storage.SQLite.Models;
+﻿using LinqInfer.Data.Orm;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         public string Name { get; private set; } = _mapping.TableName;
 
-        public IDictionary<string, ColumnDef> Columns { get; private set; } = _mapping.GetSqlFieldDef();
+        public IDictionary<string, ColumnMapping> Columns { get; private set; } = _mapping.GetSqlFieldDef();
 
         public IEnumerable<IDbDataParameter> CreateColumnParameters(IDbCommand cmd, object[] values)
         {
@@ -39,7 +39,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             get
             {
-                return "(" + Columns.Where(c => !c.Value.PrimaryKey).Aggregate(new StringBuilder(), (s, c) => s.Append(c.Key).Append(",")).ToString().TrimEnd(',') + ")";
+                return "(" + Columns.Where(c => !c.Value.PrimaryKey).Aggregate(new StringBuilder(), (s, c) => s.Append(c.Value.QualifiedColumnName).Append(",")).ToString().TrimEnd(',') + ")";
             }
         }
 
@@ -62,7 +62,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         public string GetCreateSql()
         {
-            var cols = Columns.Aggregate(new StringBuilder(), (s, c) => (s.Length > 0 ? s.Append(',') : s).AppendFormat("{0} {1} {2}", c.Key, c.Value.DataType, c.Value.PrimaryKey ? "PRIMARY KEY" : ""));
+            var cols = Columns.OrderBy(c => c.Value.Index).Aggregate(new StringBuilder(), (s, c) => (s.Length > 0 ? s.Append(',') : s).AppendFormat("{0} {1} {2}", c.Value.QualifiedColumnName, c.Value.DataType, c.Value.PrimaryKey ? "PRIMARY KEY" : ""));
 
             return string.Format(Template, Name, cols);
         }
