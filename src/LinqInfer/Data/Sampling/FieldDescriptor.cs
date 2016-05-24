@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Maths.Probability;
+using System;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -10,6 +11,8 @@ namespace LinqInfer.Data.Sampling
         public virtual string Label { get; set; }
 
         public virtual FieldUsageType FieldUsage { get; set; }
+
+        public virtual DistributionModel DataModel { get; set; }
 
         public virtual TypeCode DataType { get; set; }
 

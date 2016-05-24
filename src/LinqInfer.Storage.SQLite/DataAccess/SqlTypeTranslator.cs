@@ -1,33 +1,24 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
     public class SqlTypeTranslator
     {
-        private static readonly Type nullableType = typeof(Nullable<>);
-
         public bool CanConvertToSql(Type type)
         {
-            return Type.GetTypeCode(type) != TypeCode.Object || IsByteArray(type) || IsStream(type) || IsUri(type) || type.IsEnum;
+            var innerType = type.GetNullableTypeType() ?? type;
+
+            return Type.GetTypeCode(innerType) != TypeCode.Object || IsByteArray(type) || IsStream(type) || IsUri(type) || innerType.IsEnum;
         }
 
-        public Type GetNullableTypeType(Type type)
+        public string TranslateToSqlTypeName(Type innerType)
         {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == nullableType)
-            {
-                return type.GetGenericArguments()[0];
-            }
-            return null;
-        }
-
-        public string TranslateToSqlTypeName(Type type)
-        {
-            var innerType = GetNullableTypeType(type) ?? type;
             var tc = Type.GetTypeCode(innerType);
 
-            if (type.IsEnum) return "text";
+            if (innerType.IsEnum) return "text";
 
             switch (tc)
             {
@@ -44,8 +35,8 @@ namespace LinqInfer.Storage.SQLite.DataAccess
                 case TypeCode.Single:
                     return "real";
                 default:
-                    if (IsStream(type) || IsByteArray(type)) return "blob";
-                    if (IsUri(type)) return "text";
+                    if (IsStream(innerType) || IsByteArray(innerType)) return "blob";
+                    if (IsUri(innerType)) return "text";
                     return "numeric";
             }
         }
@@ -55,7 +46,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             if (value == null) return DBNull.Value;
 
             var type = value.GetType();
-            var innerType = GetNullableTypeType(type);
+            var innerType = type.GetNullableTypeType();
             var isNullable = innerType != null;
             var tc = Type.GetTypeCode(innerType ?? type);
 
@@ -93,22 +84,19 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             }
         }
 
-        public object ConvertToClrValue(object value, Type clrType)
+        public object ConvertToClrValue(object value, Type innerClrType, bool isNullable)
         {
             if (value == DBNull.Value) return null;
 
-            var type = clrType;
-            var innerType = GetNullableTypeType(type);
-            var isNullable = innerType != null;
-            var tc = Type.GetTypeCode(innerType ?? type);
-            
-            if ((innerType ?? type).IsEnum)
+            var tc = Type.GetTypeCode(innerClrType);
+
+            if (innerClrType.IsEnum)
             {
-                var val = Enum.Parse((type ?? innerType), (string)value);
+                var val = Enum.Parse(innerClrType, (string)value);
 
                 if (isNullable)
                 {
-                    return MakeNullableType(innerType, val);
+                    return innerClrType.MakeNullableType(val);
                 }
 
                 return val;
@@ -186,25 +174,24 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
                     if (isNullable)
                     {
-                        return MakeNullableType(innerType, Convert.ChangeType(value, innerType));
+                        return innerClrType.MakeNullableType(Convert.ChangeType(value, innerClrType));
                     }
 
                     if (tc == TypeCode.Object)
                     {
-                        if (IsStream(type)) return new MemoryStream((byte[])value);
-                        if (IsUri(type)) return new Uri((string)value);
+                        if (IsStream(innerClrType)) return new MemoryStream((byte[])value);
+                        if (IsUri(innerClrType)) return new Uri((string)value);
                     }
 
                     return value;
             }
         }
 
-        private static object MakeNullableType(Type innerType, object value)
+        public object ConvertToClrValue(object value, Type clrType)
         {
-            return nullableType
-                .MakeGenericType(innerType)
-                .GetConstructor(new Type[] { innerType })
-                .Invoke(new object[] { value });
+            var innerType = clrType.GetNullableTypeType();
+
+            return ConvertToClrValue(value, innerType ?? clrType, innerType != null);
         }
 
         private static bool IsUri(Type type)

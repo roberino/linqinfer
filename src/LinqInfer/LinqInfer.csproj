@@ -45,6 +45,7 @@
     <Compile Include="Data\IBlobStore.cs" />
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\Orm\ColumnMapping.cs" />
     <Compile Include="Data\Orm\DefaultMapperFactory.cs" />
     <Compile Include="Data\Orm\IObjectMapper.cs" />
     <Compile Include="Data\Orm\IObjectMapperFactory.cs" />
@@ -151,6 +152,7 @@
     <Compile Include="Utility\Debugger.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
+    <Compile Include="Utility\TypeExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\en_dict.txt" />

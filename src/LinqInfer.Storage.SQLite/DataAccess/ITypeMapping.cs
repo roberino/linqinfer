@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using LinqInfer.Storage.SQLite.Models;
+using LinqInfer.Data.Orm;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
 {
@@ -9,7 +9,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         void SetPrimaryKey(object item, long id);
 
         IEnumerable<PropertyInfo> GetMappedProperties();
-        IDictionary<string, ColumnDef> GetSqlFieldDef();
+        IDictionary<string, ColumnMapping> GetSqlFieldDef();
         IEnumerable<string> GetSqlFieldNames();
         bool HasPrimaryKey { get; }
         bool IsPrimaryKey(PropertyInfo prop);

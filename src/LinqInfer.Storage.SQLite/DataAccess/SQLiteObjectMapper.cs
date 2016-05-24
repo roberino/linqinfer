@@ -2,7 +2,6 @@
 using System;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
 
 namespace LinqInfer.Storage.SQLite.DataAccess
@@ -18,17 +17,17 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         public object[] GetValues(T instance)
         {
-            return GetMappedProperties().Select(p => p.GetValue(instance)).ToArray();
+            return GetMappedProperties().Select(p => p.MappedProperty.GetValue(instance)).ToArray();
         }
 
-        protected override Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)
+        protected override Func<object, object> CreateConverter(DataRow col, ColumnMapping prop)
         {
-            return x => _translator.ConvertToClrValue(x, prop.PropertyType);
+            return x => _translator.ConvertToClrValue(x, prop.ClrType, prop.Nullable);
         }
 
-        protected override IEnumerable<PropertyInfo> GetMappedProperties()
+        protected override IEnumerable<ColumnMapping> GetMappedProperties()
         {
-            return TypeMappingCache.GetMapping<T>().GetMappedProperties();
+            return TypeMappingCache.GetMapping<T>().GetSqlFieldDef().Values;
         }
     }
 }

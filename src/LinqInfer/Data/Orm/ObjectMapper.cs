@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -15,35 +16,46 @@ namespace LinqInfer.Data.Orm
             _mappings = GetMappedProperties()
                 .Join(schema.Rows.Cast<DataRow>(), o => o.Name.ToLowerInvariant(), i => i.Field<string>(0).ToLowerInvariant(), (o, i) => new
                 {
-                    prop = o,
+                    mapping = o,
                     col = i
                 })
                 .GroupBy(g => g.col.Field<string>(0))
                 .ToDictionary(k => k.Key, p =>
                 {
-                    var prop = p.First().prop;
-                    var converter = CreateConverter(p.First().col, prop);
+                    var mapping = p.First().mapping;
+                    var converter = CreateConverter(p.First().col, mapping);
 
-                    return new Action<object, object>((x, v) => prop.SetValue(x, converter(v)));
+                    return new Action<object, object>((x, v) => mapping.MappedProperty.SetValue(x, converter(v)));
                 });
         }
 
-        public void MapProperty(T instance, Type propertyType, string propertyName, object value)
+        public virtual void MapProperty(T instance, Type fieldType, string columnName, object value)
         {
-            _mappings[propertyName](instance, value);
+            _mappings[columnName](instance, value);
         }
 
-        protected virtual IEnumerable<PropertyInfo> GetMappedProperties()
+        protected virtual IEnumerable<ColumnMapping> GetMappedProperties()
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(r => r.CanRead && r.CanWrite);
+                .Where(r => r.CanRead && r.CanWrite)
+                .Select(p => {
+                    var innerType = p.PropertyType.GetNullableTypeType();
+
+                    return new ColumnMapping()
+                    {
+                        ClrType = innerType ?? p.PropertyType,
+                        MappedProperty = p,
+                        Name = p.Name,
+                        Nullable = innerType != null
+                    };
+                });
         }
 
-        protected virtual Func<object, object> CreateConverter(DataRow col, PropertyInfo prop)
+        protected virtual Func<object, object> CreateConverter(DataRow col, ColumnMapping mapping)
         {
             var ct = Type.GetTypeCode(col.Field<Type>(12)); // TODO: Is this consistently implemented? - probably not
-            var pt = Type.GetTypeCode(prop.PropertyType);
+            var pt = Type.GetTypeCode(mapping.ClrType);
 
             if (ct == pt) return (v) => v;
 
