@@ -15,7 +15,7 @@
     <tbody>
         <tr ng-repeat="feature in features">
             <td>{{feature.label}}</td>
-            <td><input type="checkbox" name="field-selection" ng-value="{{field}}" ng-model="selection" /></td>
+            <td><input type="checkbox" name="field-selection" ng-value="{{feature.selected}}" ng-model="selection" /></td>
             <td><input type="radio" name="x-axis" ng-value="{{feature}}" ng-model="chart.xAxis" /></td>
             <td><input type="radio" name="y-axis" ng-value="{{feature}}" ng-model="chart.yAxis" /></td>
         </tr>
