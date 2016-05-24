@@ -86,6 +86,7 @@ namespace LinqInfer.Data.Sampling.Parsers
             {
                 firstFld.FieldUsage = FieldUsageType.Category;
                 firstFld.DataType = System.TypeCode.String;
+                firstFld.DataModel = Maths.Probability.DistributionModel.Categorical;
                 label = row[0];
             }
 
@@ -97,18 +98,31 @@ namespace LinqInfer.Data.Sampling.Parsers
 
             if (_settings.FirstRowIsHeader)
             {
-                var data = (IDictionary<string, object>)new ExpandoObject();
-
-                int i = 0;
-                foreach(var h in metadata.Fields.Select(f => f.Label))
-                {
-                    data[h] = dataItem.FeatureVector[i++];
-                }
-
-                dataItem.Item = data;
+                dataItem.Item = ConstructDataRowObject(metadata.Fields, label, dataItem.FeatureVector);
             }
 
             return dataItem;
+        }
+
+        private object ConstructDataRowObject(IEnumerable<FieldDescriptor> fields, string label, double[] features)
+        {
+            var data = (IDictionary<string, object>)new ExpandoObject();
+
+            var firstFld = fields.FirstOrDefault(f => f.FieldUsage == FieldUsageType.Category);
+
+            int i = 0;
+            foreach (var h in fields.Where(f => f.FieldUsage == FieldUsageType.Feature).Select(f => f.Label))
+            {
+                data[h] = features[i++];
+            }
+
+            if (firstFld.FieldUsage == FieldUsageType.Category && label != null)
+            {
+                data["Label"] = label;
+                data[firstFld.Label] = label;
+            }
+
+            return data;
         }
 
         private string Qname(string name)

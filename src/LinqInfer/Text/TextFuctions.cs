@@ -43,13 +43,9 @@ namespace LinqInfer.Text
             }
 
             // Step 2
-            for (var i = 0; i <= n; d[i, 0] = i++)
-            {
-            }
+            for (var i = 0; i <= n; d[i, 0] = i++) ;
 
-            for (var j = 0; j <= m; d[0, j] = j++)
-            {
-            }
+            for (var j = 0; j <= m; d[0, j] = j++) ;
 
             // Step 3
             for (var i = 1; i <= n; i++)

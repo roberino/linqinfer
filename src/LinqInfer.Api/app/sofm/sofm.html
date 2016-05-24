@@ -6,18 +6,18 @@
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Feature</th>
             <th>Selected</th>
             <th>X-Axis: {{chart.xAxis.label}}</th>
-            <th>y-Axis: {{chart.yAxis.label}}</th>
+            <th>Y-Axis: {{chart.yAxis.label}}</th>
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="field in metadata.fields">
-            <td>{{field.label}}</td>
+        <tr ng-repeat="feature in features">
+            <td>{{feature.label}}</td>
             <td><input type="checkbox" name="field-selection" ng-value="{{field}}" ng-model="selection" /></td>
-            <td><input type="radio" name="x-axis" ng-value="{{field}}" ng-model="chart.xAxis" /></td>
-            <td><input type="radio" name="y-axis" ng-value="{{field}}" ng-model="chart.yAxis" /></td>
+            <td><input type="radio" name="x-axis" ng-value="{{feature}}" ng-model="chart.xAxis" /></td>
+            <td><input type="radio" name="y-axis" ng-value="{{feature}}" ng-model="chart.yAxis" /></td>
         </tr>
     </tbody>
 </table>
@@ -28,7 +28,7 @@
     <thead>
         <tr>
             <th>#</th>
-            <th ng-repeat="node in data">{{metadata.fields[$index].label}}</th>
+            <th ng-repeat="feature in features">{{feature.label}}</th>
         </tr>
     </thead>
     <tbody>

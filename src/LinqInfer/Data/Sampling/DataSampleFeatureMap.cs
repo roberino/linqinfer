@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using LinqInfer.Maths.Probability;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -30,10 +31,18 @@ namespace LinqInfer.Data.Sampling
                 else
                 {
                     IndexLookup = fieldsLookup.ToDictionary(f => f.Value.Label, f => f.Key);
+                    _selectedFeatures = IndexLookup.Select(x => x.Value).ToArray();
                 }
 
-
-                FeatureMetadata = IndexLookup.Select(l => new Feature() { Key = l.Key, Label = l.Key, Index = l.Value, DataType = fieldsLookup[l.Value].DataType, Model = Maths.Probability.DistributionModel.Unknown });
+                FeatureMetadata = IndexLookup.Select(l =>
+                    new Feature()
+                    {
+                        Key = l.Key,
+                        Label = l.Key,
+                        Index = l.Value,
+                        DataType = fieldsLookup[l.Value].DataType,
+                        Model = fieldsLookup[l.Value].DataModel,
+                    });
             }
             catch (KeyNotFoundException)
             {

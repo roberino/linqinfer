@@ -13,7 +13,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 {
     internal class SQLiteDbController : IDisposable
     {
-        private const string ConnectionStringTemplate = "Data Source={0}.sqlite;Version=3;";
+        private const string ConnectionStringTemplate = "Data Source={0};Version=3;";
 
         private readonly DirectoryInfo _dataDir;
         private readonly string _dbName;
@@ -50,7 +50,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
                 }
             }
 
-            var conn = new SQLiteConnection(string.Format(ConnectionStringTemplate, _dbName));
+            var conn = new SQLiteConnection(string.Format(ConnectionStringTemplate, dbFile.FullName));
 
             _openConnections.Add(conn);
 

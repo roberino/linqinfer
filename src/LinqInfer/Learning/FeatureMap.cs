@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using LinqInfer.Learning.Features;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace LinqInfer.Learning
@@ -7,13 +8,13 @@ namespace LinqInfer.Learning
     {
         private readonly IEnumerable<ClusterNode<T>> _nodes;
 
-        public FeatureMap(IEnumerable<ClusterNode<T>> nodes, IDictionary<string, int> featureLabels)
+        public FeatureMap(IEnumerable<ClusterNode<T>> nodes, IEnumerable<IFeature> features)
         {
             _nodes = nodes;
-            FeatureLabels = featureLabels;
+            Features = features;
         }
 
-        public IDictionary<string, int> FeatureLabels { get; private set; }
+        public IEnumerable<IFeature> Features { get; private set; }
 
         public IEnumerator<ClusterNode<T>> GetEnumerator()
         {

@@ -1,4 +1,5 @@
-﻿using LinqInfer.Storage.SQLite.Models;
+﻿using LinqInfer.Data.Orm;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,20 +11,38 @@ namespace LinqInfer.Storage.SQLite.DataAccess
     {
         private static readonly SqlTypeTranslator _translator = new SqlTypeTranslator();
 
-        private Lazy<IDictionary<string, ColumnDef>> _cols;
+        private IDictionary<string, ColumnMapping> _cols;
 
         public TypeMapping()
         {
-            _cols = new Lazy<IDictionary<string, ColumnDef>>(() => GetMappedProperties()
-                  .Select(p => new ColumnDef()
-                  {
-                      Name = p.Name,
-                      DataType = _translator.TranslateToSqlTypeName(p.PropertyType),
-                      PrimaryKey = IsPrimaryKey(p),
-                      ClrType = p.PropertyType,
-                      MappedProperty = p                       
+            int i = 0;
+
+            _cols = GetMappedProperties()
+                  .Select(p => {
+
+                      var innerNullType = p.PropertyType.GetNullableTypeType();
+                      var innerType = innerNullType ?? p.PropertyType;
+
+                      return new ColumnMapping()
+                      {
+                          Name = p.Name,
+                          QualifiedColumnName = GetQualifiedName(p.Name),
+                          DataType = _translator.TranslateToSqlTypeName(innerType),
+                          PrimaryKey = IsPrimaryKey(p),
+                          ClrType = innerType,
+                          Nullable = innerNullType != null,
+                          MappedProperty = p
+                      };
                   })
-                  .ToDictionary(x => x.Name));
+                  .ToDictionary(x => x.Name);
+
+            _cols.Values
+                .OrderBy(x => x.PrimaryKey ? 0 : 1)
+                .ThenBy(x => x.Name).Select(c =>
+                {
+                    c.Index = i++;
+                    return c;
+                }).ToList();
         }
 
         public string TableName
@@ -36,7 +55,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         public void SetPrimaryKey(object item, long id)
         {
-            var col = _cols.Value.SingleOrDefault(c => c.Value.PrimaryKey);
+            var col = _cols.SingleOrDefault(c => c.Value.PrimaryKey);
 
             if (col.Key == null) throw new InvalidOperationException("No primary key defined");
 
@@ -48,9 +67,9 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             return GetMappedProperties().Select(p => p.Name);
         }
 
-        public IDictionary<string, ColumnDef> GetSqlFieldDef()
+        public IDictionary<string, ColumnMapping> GetSqlFieldDef()
         {
-            return _cols.Value;
+            return _cols;
         }
 
         public bool IsPrimaryKey(PropertyInfo prop)
@@ -70,6 +89,18 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             return typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanRead && p.CanWrite && _translator.CanConvertToSql(p.PropertyType));
+        }
+
+        private string GetQualifiedName(string name)
+        {
+            ReservedKeywords keyword;
+
+            if (Enum.TryParse(name, true, out keyword))
+            {
+                return "\"" + name + "\"";
+            }
+
+            return name;
         }
     }
 }

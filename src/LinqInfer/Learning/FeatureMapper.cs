@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,14 +27,6 @@ namespace LinqInfer.Learning
             _maxParallel = parallel ? 16 : 1;
         }
 
-        public IDictionary<string, int> FeatureLabels
-        {
-            get
-            {
-                return _featureExtractor.IndexLookup;
-            }
-        }
-
         public FeatureMap<T> Map(IQueryable<T> values)
         {
             int next = 0;
@@ -51,7 +42,7 @@ namespace LinqInfer.Learning
                 if (batch.Count < BATCH_SIZE) break;
             }
 
-            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor.IndexLookup);
+            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor.FeatureMetadata);
         }
 
         private void Process(T value)

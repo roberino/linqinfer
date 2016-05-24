@@ -15,10 +15,10 @@ angular.module('linqinfer.sofm', ['ngRoute'])
     var sofm = Sofm.get({ }, function () {
         $scope.data = sofm.map;
         $scope.metadata = sofm.metadata;
-        $scope.data.labels = getValues(sofm.features);
+        $scope.features = sofm.features;
         $scope.chart = {
-            xAxis: sofm.metadata.fields[0],
-            yAxis: sofm.metadata.fields[1]
+            xAxis: sofm.features[0],
+            yAxis: sofm.features[1]
         };
         google.charts.setOnLoadCallback(drawChart);
 

@@ -11,7 +11,7 @@ namespace LinqInfer.Storage.SQLite.Providers
     {
         public SampleStore(string dataDir = null) : base(dataDir) { }
 
-        public async override Task Setup(bool reset = true)
+        public async override Task Setup(bool reset = false)
         {
             await base.Setup(reset);
 
@@ -44,9 +44,25 @@ namespace LinqInfer.Storage.SQLite.Providers
         {
             if (!_db.Exists<DataSampleItem>()) return Enumerable.Empty<DataSampleHeader>().AsQueryable();
 
-            var samples = _db.Query<DataSampleItem>();
+            var samples = _db.Query<DataSampleItem>().ToList();
 
-            return samples;
+            foreach (var sample in samples)
+            {
+                var fields = _db.Query<SampleFieldMetadata>(x => x.SampleId == sample.Id);
+                var summary = _db.Query<SampleSummary>(x => x.Id == sample.SummaryId).SingleOrDefault();
+
+                if(summary != null)
+                {
+                    sample.Summary = summary;
+                }
+
+                sample.Metadata = new DataSampleMetadata()
+                {
+                    Fields = fields.Cast<FieldDescriptor>().ToList()
+                };
+            }
+
+            return samples.AsQueryable();
         }
 
         public async Task<DataItem> RetrieveItem(Uri itemUri)
@@ -133,7 +149,8 @@ namespace LinqInfer.Storage.SQLite.Providers
                         Index = f.Index,
                         Label = f.Label,
                         Name = f.Name,
-                        SampleId = sampleId.Value
+                        SampleId = sampleId.Value,
+                        DataModel = f.DataModel
                     });
 
                     var count = await _db.InsertManyAsync(flds);
