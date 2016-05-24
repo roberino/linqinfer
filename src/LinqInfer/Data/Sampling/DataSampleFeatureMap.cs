@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using LinqInfer.Maths.Probability;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -21,11 +20,18 @@ namespace LinqInfer.Data.Sampling
 
             try
             {
-                var fieldsLookup = _sample.Metadata.Fields.Where(f => f.Index.HasValue && f.FieldUsage == FieldUsageType.Feature).ToDictionary(f => f.Index.Value);
+                int c = 0;
+
+                var fieldsLookup = _sample
+                    .Metadata
+                    .Fields
+                    .Where(f => f.Index.HasValue && f.FieldUsage == FieldUsageType.Feature)
+                    .OrderBy(f => f.Index.Value)
+                    .ToDictionary(f => c++);
 
                 if (selectedFeatures != null)
                 {
-                    int c = 0;
+                    c = 0;
                     IndexLookup = selectedFeatures.Select(i => fieldsLookup[i]).OrderBy(f => f.Index.Value).ToDictionary(f => f.Label, f => c++);
                 }
                 else
@@ -34,7 +40,8 @@ namespace LinqInfer.Data.Sampling
                     _selectedFeatures = IndexLookup.Select(x => x.Value).ToArray();
                 }
 
-                FeatureMetadata = IndexLookup.Select(l =>
+                FeatureMetadata = IndexLookup                    
+                    .Select(l =>
                     new Feature()
                     {
                         Key = l.Key,
@@ -42,7 +49,8 @@ namespace LinqInfer.Data.Sampling
                         Index = l.Value,
                         DataType = fieldsLookup[l.Value].DataType,
                         Model = fieldsLookup[l.Value].DataModel,
-                    });
+                    })
+                   .ToList();
             }
             catch (KeyNotFoundException)
             {
