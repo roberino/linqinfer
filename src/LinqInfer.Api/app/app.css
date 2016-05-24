@@ -1,5 +1,10 @@
 /* app css stylesheet */
 
+body {
+    font-size: 1.2em;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
+}
+
 .menu {
   list-style: none;
   border-bottom: 0.1em solid black;
