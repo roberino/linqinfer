@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace LinqInfer.Data.Sampling
 {
@@ -11,7 +12,7 @@ namespace LinqInfer.Data.Sampling
     {
         private readonly DataSample _sample;
         private readonly int[] _selectedFeatures;
-        private float[] _maxSample;
+        private double[] _maxSample;
 
         public DataSampleFeatureMap(DataSample sample, int[] selectedFeatures = null)
         {
@@ -72,36 +73,53 @@ namespace LinqInfer.Data.Sampling
 
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
-        public float[] CreateNormalisingVector(DataItem sample = null)
+        public double[] CreateNormalisingVector(DataItem sample = null)
         {
             return _maxSample;
         }
 
-        public float[] NormaliseUsing(IEnumerable<DataItem> samples)
+        public double[] NormaliseUsing(IEnumerable<DataItem> samples)
         {
-            _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToSingleArray();
+            _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToDoubleArray();
             return _maxSample;
         }
 
-        public float[] ExtractVector(DataItem obj)
+        public double[] ExtractVector(DataItem obj)
         {
             if (obj == null) return _maxSample;
 
-            var arr = obj.AsColumnVector().ToSingleArray();
+            var arr = obj.AsColumnVector().ToDoubleArray();
 
             if (arr.Length == VectorSize) return arr;
 
             return _selectedFeatures.Select(i => arr[i]).ToArray();
         }
 
+        public ColumnVector1D ExtractColumnVector(DataItem obj)
+        {
+            if (obj == null) return new ColumnVector1D(_maxSample);
+
+            var arr = obj.AsColumnVector();
+
+            if (arr.Size == VectorSize) return arr;
+
+            return new ColumnVector1D(_selectedFeatures.Select(i => arr[i]).ToArray());
+        }
+
         public void Save(Stream output)
         {
-            throw new NotSupportedException();
+            var sz = new BinaryFormatter();
+
+            sz.Serialize(output, _maxSample);
         }
 
         public void Load(Stream input)
         {
-            throw new NotSupportedException();
+            var sz = new BinaryFormatter();
+
+            var normVect = sz.Deserialize(input) as double[];
+
+            _maxSample = normVect;
         }
     }
 }

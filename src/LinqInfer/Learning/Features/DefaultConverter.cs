@@ -11,13 +11,13 @@ namespace LinqInfer.Learning.Features
             return CanConvertToVector(type);
         }
 
-        public float Convert(object value)
+        public double Convert(object value)
         {
             if (value == null) return 0f;
-            if (value is bool) return ((bool)value) ? 1f : 0f;
-            if (value is DateTime) return (float)(((DateTime)value) - new DateTime(1900, 01, 01)).TotalMinutes;
+            if (value is bool) return ((bool)value) ? 1d : 0d;
+            if (value is DateTime) return (((DateTime)value) - new DateTime(1900, 01, 01)).TotalMinutes;
 
-            return System.Convert.ToSingle(value);
+            return System.Convert.ToDouble(value);
         }
 
         private bool CanConvertToVector(Type type)

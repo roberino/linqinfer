@@ -6,7 +6,7 @@ namespace LinqInfer.Learning
 {
     internal static class NetworkCalculator
     {
-        public static float CalculateDistance(float[] inputVector, float[] weights)
+        public static double CalculateDistance(double[] inputVector, double[] weights)
         {
             Validate(inputVector, weights);
 
@@ -17,10 +17,10 @@ namespace LinqInfer.Learning
                 d += Math.Pow(weights[i] - inputVector[i], 2f);
             }
 
-            return (float)d;
+            return d;
         }
 
-        public static float[] AdjustWeights(float[] inputVector, float[] weights, float learningRate)
+        public static double[] AdjustWeights(double[] inputVector, double[] weights, float learningRate)
         {
             Validate(inputVector, weights);
 
@@ -34,7 +34,7 @@ namespace LinqInfer.Learning
             return weights;
         }
 
-        private static void Validate(float[] inputVector, float[] weights)
+        private static void Validate(double[] inputVector, double[] weights)
         {
             Contract.Assert(weights != null && inputVector != null);
             Contract.Assert(weights.Length == inputVector.Length);

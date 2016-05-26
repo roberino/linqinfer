@@ -13,7 +13,7 @@ namespace LinqInfer.Learning.Classification
 
         public MultilayerNetworkObjectClassifier(
             IFeatureExtractor<TInput, double> featureExtractor,
-            IOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
+            ICategoricalOutputMapper<TClass> outputMapper = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
         }
 
@@ -42,7 +42,7 @@ namespace LinqInfer.Learning.Classification
 
         private static Config Setup(
             IFeatureExtractor<TInput, double> featureExtractor,
-            IOutputMapper<TClass> outputMapper,
+            ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
             if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
@@ -58,7 +58,7 @@ namespace LinqInfer.Learning.Classification
         protected class Config
         {
             public  TInput NormalisingSample { get; set; }
-            public IOutputMapper<TClass> OutputMapper { get; set; }
+            public ICategoricalOutputMapper<TClass> OutputMapper { get; set; }
             public IFeatureExtractor<TInput, double> FeatureExtractor { get; set; }
         }
     }

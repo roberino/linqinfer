@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Storage.SQLite.Models;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,8 @@ namespace LinqInfer.Storage.SQLite.Providers
 {
     public class BlobStore : StoreProvider, IBlobStore
     {
+        public BlobStore(DirectoryInfo dataDir) : base(dataDir.FullName) { }
+
         public BlobStore(string dataDir = null) : base(dataDir)
         {
         }

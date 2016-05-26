@@ -2,6 +2,7 @@
 using LinqInfer.Storage.SQLite.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,6 +10,8 @@ namespace LinqInfer.Storage.SQLite.Providers
 {
     public class SampleStore : StoreProvider, ISampleStore
     {
+        public SampleStore(DirectoryInfo dataDir) : base(dataDir.FullName) { }
+
         public SampleStore(string dataDir = null) : base(dataDir) { }
 
         public async override Task Setup(bool reset = false)
@@ -100,6 +103,7 @@ namespace LinqInfer.Storage.SQLite.Providers
                 Description = sampleHeader.Description,
                 StartDate = sampleHeader.StartDate,
                 EndDate = sampleHeader.EndDate,
+                SourceDataUrl = sampleHeader.SourceDataUrl,
                 Summary = summary,
                 SampleData = items.Select(s => s.Extract()).ToList(),
                 Metadata = new DataSampleMetadata()

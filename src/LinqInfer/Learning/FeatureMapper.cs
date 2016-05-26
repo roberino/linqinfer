@@ -13,7 +13,7 @@ namespace LinqInfer.Learning
         private readonly HashSet<ClusterNode<T>> _outputNodes;
         private readonly int _maxParallel;
 
-        public FeatureMapper(Func<T, float[]> featureExtractor, T initialSample, int outputNodeCount = 10, float learningRate = 0.5f, bool parallel = false)
+        public FeatureMapper(Func<T, double[]> featureExtractor, T initialSample, int outputNodeCount = 10, float learningRate = 0.5f, bool parallel = false)
         {
             _featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(featureExtractor, featureExtractor(initialSample).Length, false);
             _outputNodes = SetupOutputNodes(initialSample, outputNodeCount, learningRate);
@@ -65,7 +65,7 @@ namespace LinqInfer.Learning
                             new ClusterNode<T>(_featureExtractor, CreateInitialVector(sampleVector, (float)dist[n]), learningRate)));
         }
 
-        protected float[] CreateInitialVector(float[] sampleVector, float weight)
+        protected double[] CreateInitialVector(double[] sampleVector, float weight)
         {
             return Enumerable
                         .Range(0, sampleVector.Length)

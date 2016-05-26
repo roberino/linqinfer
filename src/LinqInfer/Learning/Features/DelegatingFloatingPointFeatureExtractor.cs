@@ -8,21 +8,21 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace LinqInfer.Learning.Features
 {
     [Serializable]
-    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IFeatureExtractor<T, double>
+    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
     {
         [NonSerialized]
-        private readonly Func<T, float[]> _vectorFunc;
+        private readonly Func<T, double[]> _vectorFunc;
 
         private readonly int _vectorSize;
         private readonly bool _normaliseData;
-        private float[] _normalisingVector;
+        private double[] _normalisingVector;
 
-        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, string[] featureLabels)
+        public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, bool normaliseData, string[] featureLabels)
             : this(vectorFunc, vectorSize, normaliseData, featureLabels == null ? null : Feature.CreateDefault(featureLabels))
         {
         }
 
-        public DelegatingFloatingPointFeatureExtractor(Func<T, float[]> vectorFunc, int vectorSize, bool normaliseData, IFeature[] metadata = null)
+        public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, bool normaliseData, IFeature[] metadata = null)
         {
             _vectorFunc = vectorFunc;
             _vectorSize = vectorSize;
@@ -47,28 +47,28 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
-        public float[] CreateNormalisingVector(T sample = default(T))
+        public double[] CreateNormalisingVector(T sample = default(T))
         {
             _normalisingVector = _vectorFunc(sample);
 
-            return _normaliseData ? _normalisingVector.Select(v => 1f).ToArray() : _normalisingVector; // TODO: Fix this odd logic
+            return _normaliseData ? _normalisingVector.Select(v => 1d).ToArray() : _normalisingVector; // TODO: Fix this odd logic
         }
 
-        public float[] NormaliseUsing(IEnumerable<T> samples)
+        public double[] NormaliseUsing(IEnumerable<T> samples)
         {
-            _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToSingleArray();
+            _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToDoubleArray();
 
             return _normalisingVector;
         }
 
-        public float[] ExtractVector(T obj)
+        public double[] ExtractVector(T obj)
         {
             if (!_normaliseData) return _vectorFunc(obj);
 
             if (_normalisingVector == null) throw new InvalidOperationException("Normalising vector not defined");
 
             var raw = _vectorFunc(obj);
-            var normalised = new float[raw.Length];
+            var normalised = new double[raw.Length];
 
             for (int i = 0; i < raw.Length; i++)
             {
@@ -76,21 +76,6 @@ namespace LinqInfer.Learning.Features
             }
 
             return normalised;
-        }
-
-        double[] IFeatureExtractor<T, double>.CreateNormalisingVector(T sample)
-        {
-            return CreateNormalisingVector(sample).Select(x => (double)x).ToArray();
-        }
-
-        double[] IFeatureExtractor<T, double>.ExtractVector(T obj)
-        {
-            return ExtractVector(obj).Select(x => (double)x).ToArray();
-        }
-
-        double[] IFeatureExtractor<T, double>.NormaliseUsing(IEnumerable<T> samples)
-        {
-            return NormaliseUsing(samples).Select(x => (double)x).ToArray();
         }
 
         public void Save(Stream output)
@@ -104,9 +89,14 @@ namespace LinqInfer.Learning.Features
         {
             var sz = new BinaryFormatter();
 
-            var normVect = sz.Deserialize(input) as float[];
+            var normVect = sz.Deserialize(input) as double[];
 
             _normalisingVector = normVect;
+        }
+
+        public ColumnVector1D ExtractColumnVector(T obj)
+        {
+            return new ColumnVector1D(ExtractVector(obj));
         }
     }
 }
