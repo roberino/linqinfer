@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class OutputMapper<T> : IOutputMapper<T> where T : IEquatable<T>
+    internal class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
     {
         private IDictionary<T, int> _outputs;
 
@@ -77,6 +77,11 @@ namespace LinqInfer.Learning.Features
             vector[o] = 1;
 
             return vector;
+        }
+
+        public virtual ColumnVector1D ExtractColumnVector(T obj)
+        {
+            return new ColumnVector1D(ExtractVector(obj));
         }
 
         public virtual void Save(Stream stream)

@@ -40,7 +40,7 @@ namespace LinqInfer.Learning
             return fm.Map(values);
         }
 
-        internal static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, Func<T, float[]> featureExtractorFunc, string[] featureLabels = null, int outputNodeCount = 10, float learningRate = 0.5f)
+        internal static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, Func<T, double[]> featureExtractorFunc, string[] featureLabels = null, int outputNodeCount = 10, float learningRate = 0.5f)
         {
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(featureExtractorFunc, featureExtractorFunc(default(T)).Length, false, featureLabels);
 
@@ -76,7 +76,7 @@ namespace LinqInfer.Learning
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
-            var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
+            var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
 
             classifierPipe.Train(trainingData, classf);
 
@@ -95,7 +95,7 @@ namespace LinqInfer.Learning
         {
             var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
-            var classifierPipe = new ClassificationPipeline<TClass, TInput, float>(net, net, extractor);
+            var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
 
             classifierPipe.Train(trainingData, classf);
 
@@ -111,27 +111,10 @@ namespace LinqInfer.Learning
         public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this Stream input) where TInput : class where TClass : IEquatable<TClass>
         {
-            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
+            var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var classifierPipe = new MultilayerNetworkObjectClassifier<TClass, TInput>(extractor);
 
             classifierPipe.Load(input);
-
-            return classifierPipe.Classify;
-        }
-
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="input">A stream of previously saved classifier data</returns>
-        public static Func<TInput, IEnumerable<ClassifyResult<TClass>>> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
-            this IBlobStore store, string key) where TInput : class where TClass : IEquatable<TClass>
-        {
-            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
-            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor);
-
-            store.Restore(key, classifierPipe);
 
             return classifierPipe.Classify;
         }
@@ -149,7 +132,7 @@ namespace LinqInfer.Learning
         {
             Contract.Assert(trainingData != null && classf != null && errorTolerance > 0);
 
-            var extractor = _ofo.CreateDoublePrecisionFeatureExtractor<TInput>();
+            var extractor = _ofo.CreateFeatureExtractor<TInput>();
             var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(extractor, errorTolerance);
 
             classifierPipe.Train(trainingData, classf);

@@ -296,8 +296,7 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             var tableName = TypeMappingCache.GetMapping<T>().TableName;
             try
             {
-                ExecuteReader("SELECT 1 FROM " + tableName + " LIMIT 1");
-                return true;
+                using (ExecuteReader("SELECT 1 FROM " + tableName + " LIMIT 1")) return true;
             }
             catch (SQLiteException ex)
             {

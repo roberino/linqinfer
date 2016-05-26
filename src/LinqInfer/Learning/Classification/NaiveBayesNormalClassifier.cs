@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveBayesNormalClassifier<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, float>
+    internal class NaiveBayesNormalClassifier<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, double>
     {
         private readonly Dictionary<T, List<InputAggregator>> netData;
         private readonly int vectorSize;
@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification
             return Classify(data).FirstOrDefault();
         }
 
-        public ClassifyResult<T> ClassifyAsBestMatch(float[] data)
+        public ClassifyResult<T> ClassifyAsBestMatch(double[] data)
         {
             return Classify(data).FirstOrDefault();
         }
@@ -33,10 +33,10 @@ namespace LinqInfer.Learning.Classification
         {
             Contract.Assert(sample != null);
 
-            return Train(dataClass, sample.Select(v => (float)v).ToArray());
+            return Train(dataClass, sample.Select(v => (double)v).ToArray());
         }
 
-        public double Train(T dataClass, float[] sample)
+        public double Train(T dataClass, double[] sample)
         {
             Contract.Assert(sample != null);
             Contract.Assert(sample.Length == vectorSize);
@@ -58,7 +58,7 @@ namespace LinqInfer.Learning.Classification
             return 0;
         }
 
-        public IEnumerable<ClassifyResult<T>> Classify(float[] data)
+        public IEnumerable<ClassifyResult<T>> Classify(double[] data)
         {
             Contract.Assert(data != null);
             Contract.Assert(data.Length == vectorSize);
@@ -98,7 +98,7 @@ namespace LinqInfer.Learning.Classification
         {
             Contract.Assert(vector != null);
 
-            return Classify(vector.Select(v => (float)v).ToArray());
+            return Classify(vector.Select(v => (double)v).ToArray());
         }
     }
 }

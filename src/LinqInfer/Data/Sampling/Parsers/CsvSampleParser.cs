@@ -116,7 +116,7 @@ namespace LinqInfer.Data.Sampling.Parsers
                 data[h] = features[i++];
             }
 
-            if (firstFld.FieldUsage == FieldUsageType.Category && label != null)
+            if (firstFld != null && firstFld.FieldUsage == FieldUsageType.Category && label != null)
             {
                 data["Label"] = label;
                 data[firstFld.Label] = label;

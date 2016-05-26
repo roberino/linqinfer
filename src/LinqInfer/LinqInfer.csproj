@@ -57,6 +57,8 @@
     <Compile Include="Learning\Classification\ObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IObjectClassifier.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
+    <Compile Include="Learning\Features\FeaturePipline.cs" />
+    <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
     <Compile Include="Text\TextExtensions.cs" />
@@ -67,7 +69,7 @@
     <Compile Include="Learning\Features\IFeature.cs" />
     <Compile Include="Learning\Features\IFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFloatingPointFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\IOutputMapper.cs" />
+    <Compile Include="Learning\Features\ICategoricalOutputMapper.cs" />
     <Compile Include="Learning\Features\IValueConverter.cs" />
     <Compile Include="Learning\LearningExtensions.cs" />
     <Compile Include="Text\EnglishDictionary.cs" />

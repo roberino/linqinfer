@@ -15,7 +15,7 @@ namespace LinqInfer.Learning
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
         private readonly float _learningRate;
 
-        public ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, float[] initialWeights, float learningRate = 0.5f)
+        public ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, double[] initialWeights, float learningRate = 0.5f)
         {
             Contract.Assert(initialWeights.Length > 0);
             Contract.Assert(learningRate > 0);
@@ -27,7 +27,7 @@ namespace LinqInfer.Learning
             _values = new ConcurrentDictionary<T, int>();
         }
 
-        public float[] Weights { get; private set; }
+        public double[] Weights { get; private set; }
 
         internal bool IsInitialised { get; private set; }
 
@@ -48,12 +48,12 @@ namespace LinqInfer.Learning
             return f;
         }
 
-        public float CalculateDifference(T value)
+        public double CalculateDifference(T value)
         {
             return NetworkCalculator.CalculateDistance(_featureExtractor.ExtractVector(value), Weights);
         }
 
-        internal float CalculateDifference(ObjectVector<T> dataItem)
+        internal double CalculateDifference(ObjectVector<T> dataItem)
         {
             if (IsMember(dataItem.Value)) return -1;
             return NetworkCalculator.CalculateDistance(dataItem.Attributes, Weights);

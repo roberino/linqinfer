@@ -1,5 +1,4 @@
-﻿using LinqInfer.Maths.Probability;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +21,7 @@ namespace LinqInfer.Learning.Features
                     .ToDictionary(x => x, x => (IValueConverter)Activator.CreateInstance(x));
         }
 
-        public Func<T, float[]> CreateFeatureExtractorFunc<T>(string setName = null) where T : class
+        public Func<T, double[]> CreateFeatureExtractorFunc<T>(string setName = null) where T : class
         {
             return CreateFeatureExtractor<T>(false, setName).ExtractVector;
         }
@@ -32,19 +31,26 @@ namespace LinqInfer.Learning.Features
             return CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
         }
 
-        public IFeatureExtractor<T, double> CreateDoublePrecisionFeatureExtractor<T>(bool normaliseData = true, string setName = null) where T : class
-        {
-            return (IFeatureExtractor<T, double>)CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
-        }
-
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, bool normaliseData = true, string setName = null) where T : class
         {
             int i = 0;
 
             var featureProps = actualType
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .OrderBy(p => p.Name)
-                .Select(c => new { converter = CreateConverter<T>(c, setName), prop = c, index = i++ })
+                .Select(p =>
+                {
+                    var featureDef = p.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
+
+                    return new
+                    {
+                        property = p,
+                        featureDef = featureDef ?? new FeatureAttribute()
+                    };
+                })
+                .Where(f => !f.featureDef.Ignore)
+                .OrderBy(f => f.featureDef.IndexOrder)
+                .ThenBy(f => f.property.Name)
+                .Select(f => new { converter = CreateConverter<T>(f.property, f.featureDef), feature = f, index = i++ })
                 .Where(c => c.converter != null)
                 .ToList();
 
@@ -54,25 +60,16 @@ namespace LinqInfer.Learning.Features
                 normaliseData,
                 featureProps.Select(f => new Feature()
                 {
-                    Key = f.prop.Name.ToLower(),
-                    DataType = Type.GetTypeCode(f.prop.PropertyType),
-                    Label = f.prop.Name,
+                    Key = f.feature.property.Name.ToLower(),
+                    DataType = Type.GetTypeCode(f.feature.property.PropertyType),
+                    Label = f.feature.property.Name,
                     Index = f.index,
-                    Model = GetModel(f.prop, setName)
+                    Model = f.feature.featureDef.Model
                 }).ToArray());
         }
 
-        private DistributionModel GetModel(PropertyInfo prop, string setName)
+        private Func<T, double> CreateConverter<T>(PropertyInfo prop, FeatureAttribute featureDef)
         {
-            var featureDef = prop.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
-
-            return featureDef == null ? DistributionModel.Unknown : featureDef.Model;
-        }
-
-        private Func<T, float> CreateConverter<T>(PropertyInfo prop, string setName)
-        {
-            var featureDef = prop.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
-
             IValueConverter converter = null;
 
             if (featureDef != null)
@@ -83,9 +80,13 @@ namespace LinqInfer.Learning.Features
                     {
                         lock (_converters)
                         {
-                            _converters[featureDef.Converter] = (IValueConverter)Activator.CreateInstance(featureDef.Converter);
+                            _converters[featureDef.Converter] = converter = (IValueConverter)Activator.CreateInstance(featureDef.Converter);
                         }
                     }
+                }
+                else
+                {
+                    converter = _converters.Values.FirstOrDefault(c => c.CanConvert(prop.PropertyType));
                 }
             }
             else

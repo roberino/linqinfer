@@ -310,12 +310,12 @@ namespace LinqInfer.Maths
             // 1 / (theta * SqrR(2 * Pi)) * e -((x - mu) ^ 2) / (2 * theta ^ 2)
         }
 
-        public static Func<float, double> NormalPdf(double theta, double mu)
+        public static Func<double, double> NormalPdf(double theta, double mu)
         {
             return x => NormalDistribution(x, theta, mu);
         }
 
-        public static Func<float, double> BinomialPdf(int buckets = 10, Fraction? trueProbability = null)
+        public static Func<double, double> BinomialPdf(int buckets = 10, Fraction? trueProbability = null)
         {
             Contract.Assert(buckets > 0);
             Contract.Assert(buckets <= 20);
@@ -360,12 +360,12 @@ namespace LinqInfer.Maths
             return x => value;
         }
 
-        internal static Func<float, double> BinaryPdf(double value)
+        internal static Func<double, double> BinaryPdf(double value)
         {
             return x => value == x ? value : 0f;
         }
 
-        internal static Func<float, double> Pdf(DistributionModel model, double theta, double mu)
+        internal static Func<double, double> Pdf(DistributionModel model, double theta, double mu)
         {
             switch (model)
             {
@@ -380,7 +380,7 @@ namespace LinqInfer.Maths
             }
         }
 
-        internal static Func<float, double> AutoPdf(double theta, double mu)
+        internal static Func<double, double> AutoPdf(double theta, double mu)
         {
             return theta == 0 ? BinaryPdf(mu) : NormalPdf(theta, mu);
         }
