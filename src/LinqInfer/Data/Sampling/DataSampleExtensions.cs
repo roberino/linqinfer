@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using System;
@@ -10,6 +11,14 @@ namespace LinqInfer.Data.Sampling
 {
     public static class DataSampleExtensions
     {
+        public static FeaturePipline<DataItem> CreatePipeline(this DataSample sample)
+        {
+            var featureExtractor = sample.CreateFeatureExtractor();
+            var data = sample.SampleData.AsQueryable();
+
+            return new FeaturePipline<DataItem>(data, featureExtractor);
+        }
+
         public static IDictionary<ColumnVector1D, double> CreateMultiVariateDistribution(this DataSample sample, int binCount = 10)
         {
             var kde = new KernelDensityEstimator();

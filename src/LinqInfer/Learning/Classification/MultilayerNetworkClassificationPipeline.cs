@@ -20,11 +20,12 @@ namespace LinqInfer.Learning.Classification
             IFeatureExtractor<TInput, double> featureExtractor,
             float errorTolerance = 0.3f,
             int maxIterations = 200,
-            IOutputMapper<TClass> outputMapper = null) : base(featureExtractor, outputMapper)
+            ICategoricalOutputMapper<TClass> outputMapper = null) : base(featureExtractor, outputMapper)
         {
             _maxIterations = maxIterations;
-            ErrorTolerance = errorTolerance;
             _paramCache = new NetworkParameterCache();
+
+            ErrorTolerance = errorTolerance;
             ParallelProcess = true;
         }
 

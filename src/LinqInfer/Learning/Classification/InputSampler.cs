@@ -6,18 +6,18 @@ namespace LinqInfer.Learning.Classification
 {
     internal class InputAggregator
     {
-        private readonly List<float> sample;
+        private readonly List<double> sample;
 
         private Lazy<Tuple<double, double>> parameters;
-        private Lazy<Func<float, double>> pdf;
+        private Lazy<Func<double, double>> pdf;
 
         public InputAggregator()
         {
-            sample = new List<float>();
+            sample = new List<double>();
             Refresh();
         }
 
-        public Func<float, double> Pdf
+        public Func<double, double> Pdf
         {
             get
             {
@@ -41,7 +41,7 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        public void AddSample(float data)
+        public void AddSample(double data)
         {
             sample.Add(data);
             Refresh();
@@ -50,7 +50,7 @@ namespace LinqInfer.Learning.Classification
         public void Refresh()
         {
             parameters = new Lazy<Tuple<double, double>>(() => sample.MeanStdDev());
-            pdf = new Lazy<Func<float, double>>(() => x => Functions.AutoPdf(Theta, Mu)(x));
+            pdf = new Lazy<Func<double, double>>(() => x => Functions.AutoPdf(Theta, Mu)(x));
         }
     }
 }
