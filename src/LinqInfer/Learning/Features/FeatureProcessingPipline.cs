@@ -55,6 +55,20 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        public FeatureProcessingPipline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
+        {
+            if (_transformation == null)
+            {
+                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, v => v, featureFilter);
+            }
+            else
+            {
+                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, _transformation.Transformation, featureFilter);
+            }
+
+            return this;
+        }
+
         public FeatureProcessingPipline<T> PreprocessWith(Func<double[], double[]> transformFunction)
         {
             _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction);
