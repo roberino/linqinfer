@@ -1,10 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using LinqInfer.Learning.Classification;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Maths.Probability
 {
     public static class P
     {
+        /// <summary>
+        /// Converts a classification result set into a set of hypothetical outcomes.
+        /// </summary>
+        /// <typeparam name="T">The class / outcome type</typeparam>
+        /// <param name="classifyResults">A set of classification results</param>
+        /// <returns>A set of hypotheses</returns>
+        public static Hypothetheses<T> ToHypotheses<T>(this IEnumerable<ClassifyResult<T>> classifyResults)
+        {
+            var cr = classifyResults.ToList();
+            var total = cr.Sum(m => m.Score);
+            var hypos = cr.Select(r => new HypotheticalOutcome<T>(r.ClassType, Fraction.ApproximateRational(r.Score / total)));
+            return new Hypothetheses<T>(hypos);
+        }
+
         /// <summary>
         /// Builds a hypothesis for an outcome.
         /// </summary>

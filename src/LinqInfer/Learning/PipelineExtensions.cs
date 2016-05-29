@@ -10,12 +10,12 @@ namespace LinqInfer.Learning
 {
     public static class PipelineExtensions
     {
-        public static FeaturePipline<T> CreatePipeline<T>(this IQueryable<T> data) where T : class
+        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data) where T : class
         {
-            return new FeaturePipline<T>(data);
+            return new FeatureProcessingPipline<T>(data);
         }
 
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeaturePipline<TInput> pipeline, TInput normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, TInput normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -25,7 +25,7 @@ namespace LinqInfer.Learning
             });
         }
 
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this FeaturePipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -38,7 +38,7 @@ namespace LinqInfer.Learning
             });
         }
         
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeaturePipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
         {
             var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(pipeline.FeatureExtractor, errorTolerance);
 

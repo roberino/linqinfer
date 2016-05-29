@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths;
-using System.Collections.Generic;
-using System.Linq;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
-using LinqInfer.Data;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
@@ -11,7 +11,7 @@ namespace LinqInfer.Learning.Features
     {
         private readonly Func<string, TResult> _execute;
 
-        public ExecutionPipline(Func<string, TResult> execute)
+        internal ExecutionPipline(Func<string, TResult> execute)
         {
             _execute = execute;
         }
@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Features
         }
     }
 
-    public sealed class FeaturePipline<T> where T : class
+    public sealed class FeatureProcessingPipline<T> where T : class
     {
         private static readonly ObjectFeatureExtractor _objExtractor = new ObjectFeatureExtractor();
 
@@ -30,7 +30,9 @@ namespace LinqInfer.Learning.Features
         private readonly IQueryable<T> _data;
         private readonly IList<IBlobStore> _outputs;
 
-        internal FeaturePipline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
+        private FloatingPointTransformingFeatureExtractor<T> _transformation;
+
+        internal FeatureProcessingPipline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             _data = data;
             _featureExtractor = featureExtractor ?? _objExtractor.CreateFeatureExtractor<T>();
@@ -49,18 +51,16 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                return _featureExtractor;
+                return _transformation ?? _featureExtractor;
             }
         }
 
-        internal IFloatingPointFeatureExtractor<ColumnVector1D> Preprocessor { get; set; }
+        public FeatureProcessingPipline<T> PreprocessWith(Func<double[], double[]> transformFunction)
+        {
+            _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction);
 
-        //public FeaturePipline<T> PreprocessWith(IFloatingPointFeatureExtractor<ColumnVector1D> preprocessor)
-        //{
-        //    Preprocessor = preprocessor;
-
-        //    return this;
-        //}
+            return this;
+        }
 
         internal void OutputResults(IBinaryPersistable result, string name)
         {
@@ -72,7 +72,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeaturePipline<T>, string, TResult> processor)
+        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeatureProcessingPipline<T>, string, TResult> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -82,7 +82,7 @@ namespace LinqInfer.Learning.Features
             });
         }
 
-        public FeaturePipline<T> OutputResultsTo(IBlobStore store)
+        public FeatureProcessingPipline<T> OutputResultsTo(IBlobStore store)
         {
             _outputs.Add(store);
 
@@ -91,9 +91,7 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<ColumnVector1D> ExtractVectors()
         {
-            var preprocess = Preprocessor;
-
-            if (preprocess == null)
+            if (_transformation == null)
             {
                 foreach (var batch in _data.Chunk())
                 {
@@ -109,7 +107,7 @@ namespace LinqInfer.Learning.Features
                 {
                     foreach (var item in batch)
                     {
-                        yield return preprocess.ExtractColumnVector(_featureExtractor.ExtractColumnVector(item));
+                        yield return _transformation.ExtractColumnVector(item);
                     }
                 }
             }

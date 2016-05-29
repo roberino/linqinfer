@@ -11,12 +11,12 @@ namespace LinqInfer.Data.Sampling
 {
     public static class DataSampleExtensions
     {
-        public static FeaturePipline<DataItem> CreatePipeline(this DataSample sample)
+        public static FeatureProcessingPipline<DataItem> CreatePipeline(this DataSample sample)
         {
             var featureExtractor = sample.CreateFeatureExtractor();
             var data = sample.SampleData.AsQueryable();
 
-            return new FeaturePipline<DataItem>(data, featureExtractor);
+            return new FeatureProcessingPipline<DataItem>(data, featureExtractor);
         }
 
         public static IDictionary<ColumnVector1D, double> CreateMultiVariateDistribution(this DataSample sample, int binCount = 10)
