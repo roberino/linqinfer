@@ -17,14 +17,14 @@ namespace LinqInfer.Learning
         {
             _featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(featureExtractor, featureExtractor(initialSample).Length, false);
             _outputNodes = SetupOutputNodes(initialSample, outputNodeCount, learningRate);
-            _maxParallel = parallel ? 16 : 1;
+            _maxParallel = parallel ? Environment.ProcessorCount : 1;
         }
 
         public FeatureMapper(IFloatingPointFeatureExtractor<T> featureExtractor, T initialSample, int outputNodeCount = 10, float learningRate = 0.5f, bool parallel = false)
         {
             _featureExtractor = featureExtractor;
             _outputNodes = SetupOutputNodes(initialSample, outputNodeCount, learningRate);
-            _maxParallel = parallel ? 16 : 1;
+            _maxParallel = parallel ? Environment.ProcessorCount : 1;
         }
 
         public FeatureMap<T> Map(IQueryable<T> values)
