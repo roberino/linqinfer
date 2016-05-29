@@ -5,7 +5,7 @@ namespace LinqInfer.Learning.Features
 {
     internal class FloatingPointTransformingFeatureExtractor<TInput> : TransformingFeatureExtractor<TInput, double>, IFloatingPointFeatureExtractor<TInput>
     {
-        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, Func<double[], double[]> transformation, int[] indexSelection = null) : base(baseFeatureExtractor, transformation, indexSelection)
+        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, Func<double[], double[]> transformation, Func<IFeature, bool> featureFilter = null) : base(baseFeatureExtractor, transformation, featureFilter)
         {
         }
 

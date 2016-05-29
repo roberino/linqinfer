@@ -13,14 +13,25 @@ namespace LinqInfer.Learning.Features
         private readonly IList<IFeature> _selectedFeatures;
         private readonly IDictionary<string, int> _indexLookup;
 
-        public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, int[] indexSelection = null)
+        public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, int[] indexSelection = null) : this(baseFeatureExtractor, transformation, indexSelection == null ? null : (Func<IFeature, bool>)(f => indexSelection.Contains(f.Index)))
+        {
+        }
+
+        public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, Func<IFeature, bool> featureFilter)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
             _transformation = transformation;
-            _selectedFeatures = (indexSelection == null) ? baseFeatureExtractor.FeatureMetadata.ToList() : baseFeatureExtractor.FeatureMetadata.Where(f => indexSelection.Contains(f.Index)).ToList();
+            _selectedFeatures = (featureFilter == null) ? baseFeatureExtractor.FeatureMetadata.ToList() : RebaseIndex(baseFeatureExtractor.FeatureMetadata.Where(featureFilter));
             _indexLookup = _selectedFeatures.ToDictionary(f => f.Key, f => f.Index);
             _vectorSize = transformation(new TVector[_baseFeatureExtractor.VectorSize]).Length;
+
+            FeatureFilter = featureFilter;
+            Transformation = transformation;
         }
+
+        internal Func<IFeature, bool> FeatureFilter { get; private set; }
+
+        internal Func<TVector[], TVector[]> Transformation { get; private set; }
 
         public IEnumerable<IFeature> FeatureMetadata
         {
@@ -79,6 +90,22 @@ namespace LinqInfer.Learning.Features
         private TVector[] Filter(TVector[] vector)
         {
             return _selectedFeatures.Select(f => vector[f.Index]).ToArray();
+        }
+
+        private static IList<IFeature> RebaseIndex(IEnumerable<IFeature> features)
+        {
+            var i = 0;
+            return features
+                .OrderBy(f => f.Index)
+                .Select(f => (IFeature)new Feature()
+                {
+                    DataType = f.DataType,
+                    Key = f.Key,
+                    Label = f.Label,
+                    Model = f.Model,
+                    Index = i++
+                })
+                .ToList();
         }
     }
 }
