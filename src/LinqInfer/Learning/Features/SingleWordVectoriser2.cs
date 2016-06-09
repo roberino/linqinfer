@@ -18,8 +18,9 @@ namespace LinqInfer.Learning.Features
             IndexLookup["Null 1"] = 29;
             IndexLookup["Null 2"] = 30;
             IndexLookup["Null 3"] = 31;
-            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys, DistributionModel.Unknown);
+            FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys, DistributionModel.Unknown);
         }
+        public bool IsNormalising { get { return false; } }
 
         public IDictionary<string, int> IndexLookup { get; private set; }
 

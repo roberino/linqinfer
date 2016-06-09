@@ -1,4 +1,6 @@
-﻿namespace LinqInfer.Maths.Probability
+﻿using System;
+
+namespace LinqInfer.Maths.Probability
 {
     public interface IHypothetical
     {

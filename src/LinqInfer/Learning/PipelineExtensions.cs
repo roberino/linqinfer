@@ -2,7 +2,6 @@
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -10,9 +9,9 @@ namespace LinqInfer.Learning
 {
     public static class PipelineExtensions
     {
-        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data) where T : class
+        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
-            return new FeatureProcessingPipline<T>(data);
+            return new FeatureProcessingPipline<T>(data, featureExtractor);
         }
 
         public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, TInput normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class

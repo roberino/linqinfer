@@ -53,7 +53,7 @@ namespace LinqInfer.Storage.SQLite.Tests
                 var sample = await store.RetrieveSample(item.Uri);
 
                 var pipe = sample.CreatePipeline();
-
+                
                 var classifier = pipe.ToNaiveBayesClassifier(x => x.Label).Execute();
 
                 var classOfFirst = classifier.Classify(sample.SampleData.First());

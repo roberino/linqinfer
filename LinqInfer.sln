@@ -22,6 +22,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite.Tests", "tests\LinqInfer.Storage.SQLite.Tests\LinqInfer.Storage.SQLite.Tests.csproj", "{3A540288-FF3C-424D-8E9C-9D4FB25B4328}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestData", "TestData", "{52EBE8AF-6A77-404A-AA7A-8A4A63502162}"
+	ProjectSection(SolutionItems) = preProject
+		tests\TestData\deaths-sample.csv = tests\TestData\deaths-sample.csv
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

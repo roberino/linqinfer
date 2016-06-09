@@ -18,7 +18,7 @@ namespace LinqInfer.Learning.Features
         private double[] _normalisingVector;
 
         public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, bool normaliseData, string[] featureLabels)
-            : this(vectorFunc, vectorSize, normaliseData, featureLabels == null ? null : Feature.CreateDefault(featureLabels))
+            : this(vectorFunc, vectorSize, normaliseData, featureLabels == null ? null : Feature.CreateDefaults(featureLabels))
         {
         }
 
@@ -28,12 +28,14 @@ namespace LinqInfer.Learning.Features
             _vectorSize = vectorSize;
             _normaliseData = normaliseData;
             
-            FeatureMetadata = metadata ?? Feature.CreateDefault(_vectorSize);
+            FeatureMetadata = metadata ?? Feature.CreateDefaults(_vectorSize);
 
             IndexLookup = FeatureMetadata.ToDictionary(k => k.Label, v => v.Index);
 
             if (IndexLookup.Count != _vectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
         }
+
+        public bool IsNormalising { get { return _normaliseData; } }
 
         public int VectorSize
         {
