@@ -12,6 +12,11 @@ namespace LinqInfer.Learning.Features
         int VectorSize { get; }
         
         /// <summary>
+        /// Returns true if a feature extractor normalises the data post extraction.
+        /// </summary>
+        bool IsNormalising { get; }
+
+        /// <summary>
         /// Creates a vector from a sample which will be used to normalise data.
         /// </summary>
         TVector[] CreateNormalisingVector(TInput sample = default(TInput));

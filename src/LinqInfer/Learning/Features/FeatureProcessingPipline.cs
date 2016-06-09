@@ -20,6 +20,16 @@ namespace LinqInfer.Learning.Features
         {
             return _execute(outputName);
         }
+
+        public TResult ExecuteUntil(Func<TResult, bool> condition, string outputName = null)
+        {
+            while (true)
+            {
+                var next = _execute(outputName);
+
+                if (condition(next)) return next;
+            }
+        }
     }
 
     public sealed class FeatureProcessingPipline<T> where T : class
@@ -55,11 +65,25 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        public FeatureProcessingPipline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
+        {
+            var ps = new PropertySelector<T>();
+
+            selector(ps);
+
+            if (ps.SelectedProperties.Any())
+            {
+                FilterFeatures(f => ps.SelectedProperties.Contains(f.Label));
+            }
+
+            return this;
+        }
+
         public FeatureProcessingPipline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             if (_transformation == null)
             {
-                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, v => v, featureFilter);
+                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, null, featureFilter);
             }
             else
             {
@@ -71,7 +95,14 @@ namespace LinqInfer.Learning.Features
 
         public FeatureProcessingPipline<T> PreprocessWith(Func<double[], double[]> transformFunction)
         {
-            _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction);
+            if (_transformation == null)
+            {
+                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction);
+            }
+            else
+            {
+                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction, _transformation.FeatureFilter);
+            }
 
             return this;
         }
@@ -107,6 +138,11 @@ namespace LinqInfer.Learning.Features
         {
             if (_transformation == null)
             {
+                if (_featureExtractor.IsNormalising)
+                {
+                    _featureExtractor.NormaliseUsing(_data);
+                }
+
                 foreach (var batch in _data.Chunk())
                 {
                     foreach (var item in batch)
@@ -117,6 +153,11 @@ namespace LinqInfer.Learning.Features
             }
             else
             {
+                if (_featureExtractor.IsNormalising)
+                {
+                    _transformation.NormaliseUsing(_data);
+                }
+
                 foreach (var batch in _data.Chunk())
                 {
                     foreach (var item in batch)

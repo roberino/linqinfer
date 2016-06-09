@@ -8,6 +8,11 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
+        {
+            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
+        }
+
         /// <summary>
         /// Inverts an expression e.g. not(exp).
         /// </summary>
