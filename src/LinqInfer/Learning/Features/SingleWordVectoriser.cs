@@ -14,14 +14,16 @@ namespace LinqInfer.Learning.Features
         {
             _size = maxWordSize;
             IndexLookup = Enumerable.Range(0, _size).ToDictionary(n => "Char " + n, n => n);
-            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys, DistributionModel.Categorical);
+            FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys, DistributionModel.Categorical);
         }
+        public bool IsNormalising { get { return false; } }
 
         public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize { get { return _size; } }
 
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
+
 
         public byte[] NormaliseUsing(IEnumerable<string> samples)
         {

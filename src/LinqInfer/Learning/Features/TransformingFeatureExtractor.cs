@@ -11,7 +11,9 @@ namespace LinqInfer.Learning.Features
         private readonly Func<TVector[], TVector[]> _transformation;
         private readonly int _vectorSize;
         private readonly IList<IFeature> _selectedFeatures;
+        private readonly IList<IFeature> _transformedFeatures;
         private readonly IDictionary<string, int> _indexLookup;
+        private readonly bool _isFiltered;
 
         public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, int[] indexSelection = null) : this(baseFeatureExtractor, transformation, indexSelection == null ? null : (Func<IFeature, bool>)(f => indexSelection.Contains(f.Index)))
         {
@@ -20,24 +22,36 @@ namespace LinqInfer.Learning.Features
         public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, Func<IFeature, bool> featureFilter)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
-            _transformation = transformation;
-            _selectedFeatures = (featureFilter == null) ? baseFeatureExtractor.FeatureMetadata.ToList() : RebaseIndex(baseFeatureExtractor.FeatureMetadata.Where(featureFilter));
+            _transformation = transformation ?? (x => x);
+            _isFiltered = featureFilter != null;
+            _selectedFeatures = (!_isFiltered) ? baseFeatureExtractor.FeatureMetadata.ToList() : RebaseIndex(baseFeatureExtractor.FeatureMetadata.Where(featureFilter));
             _indexLookup = _selectedFeatures.ToDictionary(f => f.Key, f => f.Index);
-            _vectorSize = transformation(new TVector[_baseFeatureExtractor.VectorSize]).Length;
+
+            if (transformation == null)
+            {
+                _vectorSize = _baseFeatureExtractor.VectorSize;
+            }
+            else
+            {
+                _vectorSize = _transformation(new TVector[_selectedFeatures.Count]).Length;
+
+                _transformedFeatures = Feature.CreateDefaults(_vectorSize, TypeCode.Double, "Transform {0}");
+            }
 
             FeatureFilter = featureFilter;
-            Transformation = transformation;
         }
 
         internal Func<IFeature, bool> FeatureFilter { get; private set; }
 
-        internal Func<TVector[], TVector[]> Transformation { get; private set; }
+        internal Func<TVector[], TVector[]> Transformation { get { return _transformation; } }
+
+        public bool IsNormalising { get { return _baseFeatureExtractor.IsNormalising; } }
 
         public IEnumerable<IFeature> FeatureMetadata
         {
             get
             {
-                return _selectedFeatures;
+                return _transformedFeatures ?? _selectedFeatures;
             }
         }
 
@@ -67,7 +81,7 @@ namespace LinqInfer.Learning.Features
 
         public TVector[] ExtractVector(TInput obj)
         {
-            var bnv = _baseFeatureExtractor.CreateNormalisingVector(obj);
+            var bnv = _baseFeatureExtractor.ExtractVector(obj);
 
             return FilterAndTransform(bnv);
         }
@@ -89,7 +103,7 @@ namespace LinqInfer.Learning.Features
 
         private TVector[] Filter(TVector[] vector)
         {
-            return _selectedFeatures.Select(f => vector[f.Index]).ToArray();
+            return _isFiltered ? _selectedFeatures.Select(f => vector[f.Index]).ToArray() : vector;
         }
 
         private static IList<IFeature> RebaseIndex(IEnumerable<IFeature> features)

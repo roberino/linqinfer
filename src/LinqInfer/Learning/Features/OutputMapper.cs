@@ -22,12 +22,14 @@ namespace LinqInfer.Learning.Features
             if (outputs != null) Initialise(outputs);
         }
 
+        public bool IsNormalising { get { return false; } }
+
         public virtual void Initialise(IEnumerable<T> outputs)
         {
             int i = 0;
             _outputs = outputs.ToDictionary(o => o, o => i++);
             IndexLookup = _outputs.ToDictionary(o => o.Key.ToString(), o => o.Value);
-            FeatureMetadata = Feature.CreateDefault(IndexLookup.Keys);
+            FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys);
         }
 
         public virtual IEnumerable<ClassifyResult<T>> Map(ColumnVector1D output)

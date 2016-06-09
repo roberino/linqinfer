@@ -13,6 +13,8 @@ namespace LinqInfer.Maths.Probability
             _hypos = hypos.ToDictionary(h => h.Outcome);
         }
 
+        public event EventHandler Updated;
+
         public IEnumerable<IHypotheticalOutcome<T>> Hypotheses { get { return _hypos.Values; } }
 
         public IHypotheticalOutcome<T> this[T item] { get { return _hypos[item]; } }
@@ -69,6 +71,10 @@ namespace LinqInfer.Maths.Probability
             {
                 h.Update(newEvents[i++], nf);
             }
+
+            var ev = Updated;
+
+            if (ev != null) ev.Invoke(this, EventArgs.Empty);
         }
 
         private IDictionary<T, Fraction> CalculateDistribution(Func<T, Fraction> likelyhoodFunc)

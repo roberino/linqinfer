@@ -61,6 +61,8 @@ namespace LinqInfer.Data.Sampling
             NormaliseUsing(_sample.SampleData);
         }
 
+        public bool IsNormalising { get { return true; } }
+
         public IDictionary<string, int> IndexLookup { get; private set; }
 
         public int VectorSize
