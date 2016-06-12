@@ -55,7 +55,9 @@ This is a collection of functions and probability "objects" to help solve simple
 
 // Sample space
 
-queryableSampleDataset.AsSampleSpace()
+var sampleSpace = queryableSampleDataset.AsSampleSpace();
+
+var p = sampleSpace.ProbabilityOfEvent(p => p.Age > 25);
 
 // Hypotheses
 
