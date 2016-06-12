@@ -24,7 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestData", "TestData", "{52EBE8AF-6A77-404A-AA7A-8A4A63502162}"
 	ProjectSection(SolutionItems) = preProject
-		tests\TestData\deaths-sample.csv = tests\TestData\deaths-sample.csv
+		tests\TestData\dep-stats.csv = tests\TestData\dep-stats.csv
+		tests\TestData\health-sample.csv = tests\TestData\health-sample.csv
 	EndProjectSection
 EndProject
 Global
