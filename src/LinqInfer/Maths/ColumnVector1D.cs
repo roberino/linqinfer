@@ -12,18 +12,23 @@ namespace LinqInfer.Maths
     public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
     {
         private readonly double[] _values;
-        private readonly Lazy<double> _euclideanLength;
+        private Lazy<double> _euclideanLength;
 
         public ColumnVector1D(double[] values)
         {
             _values = values;
-            _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
+            Refresh();
         }
 
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
         {
         }
 
+        /// <summary>
+        /// Returns a value by index
+        /// </summary>
+        /// <param name="i">The index (base 0)</param>
+        /// <returns>A double value</returns>
         public double this[int i]
         {
             get
@@ -32,22 +37,37 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Applies a function of the values in the vector, modifying each value.
+        /// </summary>
+        /// <param name="func">A function to transform the value (takes the original value as input)</param>
         public void Apply(Func<double, double> func)
         {
             for (int i = 0; i < _values.Length; i++)
             {
                 _values[i] = func(_values[i]);
             }
+            Refresh();
         }
 
+        /// <summary>
+        /// Applies a function of the values in the vector, modifying each value.
+        /// </summary>
+        /// <param name="func">A function to transform the value (takes the original value and index as input)</param>
         public void Apply(Func<double, int, double> func)
         {
             for (int i = 0; i < _values.Length; i++)
             {
                 _values[i] = func(_values[i], i);
             }
+            Refresh();
         }
 
+        /// <summary>
+        /// Returns the Euclidean distance of this vector from another vector.
+        /// </summary>
+        /// <param name="input">The other vector</param>
+        /// <returns>A double value</returns>
         public double Distance(ColumnVector1D input)
         {
             double d = 0;
@@ -60,6 +80,13 @@ namespace LinqInfer.Maths
             return d;
         }
 
+        /// <summary>
+        /// Returns an enumeration of vectors ranging from this vector to the specified vector over a 
+        /// specified number of bins.
+        /// </summary>
+        /// <param name="to">The upper range</param>
+        /// <param name="binCount">The number of bins</param>
+        /// <returns></returns>
         public IEnumerable<ColumnVector1D> Range(ColumnVector1D to, int binCount)
         {
             Contract.Assert(binCount > -1);
@@ -87,17 +114,29 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Returns the sum of all values.
+        /// </summary>
+        /// <returns>A double</returns>
         public double Sum()
         {
             return _values.Sum();
         }
 
+        /// <summary>
+        /// Normalises each element over the sum of all values.
+        /// </summary>
+        /// <returns>A new normalised vector</returns>
         public ColumnVector1D Normalise()
         {
             var t = Sum();
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 
+        /// <summary>
+        /// Returns a copy of the values as a double array.
+        /// </summary>
+        /// <returns>A new double array</returns>
         public double[] ToDoubleArray()
         {
             var arr = new double[_values.Length];
@@ -107,11 +146,18 @@ namespace LinqInfer.Maths
             return arr;
         }
 
+        /// <summary>
+        /// Returns a copy of the values as a single array.
+        /// </summary>
+        /// <returns>A new single array</returns>
         public float[] ToSingleArray()
         {
             return _values.Select(v => (float)v).ToArray();
         }
 
+        /// <summary>
+        /// Returns the Euclidean length of the values.
+        /// </summary>
         public double EuclideanLength
         {
             get
@@ -120,6 +166,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Returns the vector size. This remains constant for the lifetime of the vector.
+        /// </summary>
         public int Size
         {
             get
@@ -202,6 +251,10 @@ namespace LinqInfer.Maths
                 .ToString();
         }
 
+        /// <summary>
+        /// Converts and exports the values to a byte array (for easy storage).
+        /// </summary>
+        /// <returns>An array of bytes</returns>
         public byte[] ToByteArray()
         {
             var bytes = new byte[_values.Length * sizeof(double)];
@@ -209,6 +262,11 @@ namespace LinqInfer.Maths
             return bytes;
         }
 
+        /// <summary>
+        /// Returns a column vector from a previous exported vector.
+        /// </summary>
+        /// <param name="bytes">An array of bytes</param>
+        /// <returns>A new column vector</returns>
         public static ColumnVector1D FromByteArray(byte[] bytes)
         {
             var values = new double[bytes.Length / sizeof(double)];
@@ -244,6 +302,11 @@ namespace LinqInfer.Maths
             int i = 0;
 
             return _values.All(x => x == other._values[i++]);
+        }
+
+        private void Refresh()
+        {
+            _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Maths;
 using LinqInfer.Data.Sampling;
+using LinqInfer.Learning;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -13,7 +14,7 @@ namespace LinqInfer.Api.Controllers
         {
             var sample = await GetSampleById(id);
 
-            var sofm = sample.CreateSofm();
+            var sofm = sample.CreatePipeline().ToSofm(null, nodeCount, true, learningRate).Execute();
             
             return new
             {
