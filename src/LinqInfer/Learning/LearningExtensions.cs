@@ -32,22 +32,6 @@ namespace LinqInfer.Learning
             return fm.Map(values);
         }
 
-        internal static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, IFloatingPointFeatureExtractor<T> featureExtractor, int outputNodeCount = 10, float learningRate = 0.5f)
-        {
-            var fm = new FeatureMapper<T>(featureExtractor, default(T), outputNodeCount, learningRate);
-
-            return fm.Map(values);
-        }
-
-        internal static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, Func<T, double[]> featureExtractorFunc, string[] featureLabels = null, int outputNodeCount = 10, float learningRate = 0.5f)
-        {
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(featureExtractorFunc, featureExtractorFunc(default(T)).Length, false, featureLabels);
-
-            var fm = new FeatureMapper<T>(featureExtractor, default(T), outputNodeCount, learningRate);
-
-            return fm.Map(values);
-        }
-
         /// <summary>
         /// Converts the results of a classifier into a distribution of probabilities by class type.
         /// </summary>

@@ -16,7 +16,8 @@ namespace LinqInfer.Storage.SQLite.Tests
         private const string StorageFolder = @"..\..\..\..\src\LinqInfer.Api\App_Data\storage";
         private const string TestDataFolder = @"..\..\..\TestData";
 
-        [TestCase("deaths-sample.csv")]
+        [TestCase("health-sample.csv")]
+        [TestCase("dep-stats.csv")]
         public async Task LoadTestData(string fileName)
         {
             var storagePath = GetStorageDir();
@@ -39,7 +40,7 @@ namespace LinqInfer.Storage.SQLite.Tests
             }
         }
 
-        [TestCase("deaths-sample.csv")]
+        [TestCase("health-sample.csv")]
         public async Task RetrieveTestData_ToNaiveBayesClassifier(string fileName)
         {
             var storagePath = GetStorageDir();
@@ -63,7 +64,7 @@ namespace LinqInfer.Storage.SQLite.Tests
             }
         }
 
-        [TestCase("deaths-sample.csv")]
+        [TestCase("health-sample.csv")]
         public async Task RetrieveTestData_ToMultilayerNetworkClassifier(string fileName)
         {
             var storagePath = GetStorageDir();
@@ -85,7 +86,7 @@ namespace LinqInfer.Storage.SQLite.Tests
 
                 var classOfFirst = classifier.Classify(sample.SampleData.First());
 
-                var blob = blobs.OpenAsMultilayerNetworkClassifier<DataItem, string>(fileName, sample.CreateFeatureExtractor());
+                var blob = blobs.OpenMultilayerNetworkClassifier<DataItem, string>(fileName, sample.CreateFeatureExtractor());
 
                 Assert.That(classOfFirst.Any());
                 Assert.That(classOfFirst.First().Score > 0);

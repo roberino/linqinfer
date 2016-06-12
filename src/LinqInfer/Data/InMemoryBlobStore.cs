@@ -22,13 +22,15 @@ namespace LinqInfer.Data
 
             using (var ms = new MemoryStream())
             {
+                obj.Save(ms);
+
                 var blob = new Blob()
                 {
                     Created = DateTime.UtcNow,
                     Data = ms.ToArray()
                 };
 
-                _data[GetKey<T>(key)] = blob;
+                _data[GetKey<T>(key, obj)] = blob;
             }
 
             return true;
@@ -38,7 +40,7 @@ namespace LinqInfer.Data
         {
             if (_isDisposed) throw new ObjectDisposedException(typeof(InMemoryBlobStore).Name);
 
-            var blob = _data[GetKey<T>(key)];
+            var blob = _data[GetKey<T>(key, obj)];
 
             using(var ms = new MemoryStream(blob.Data))
             {
@@ -68,9 +70,9 @@ namespace LinqInfer.Data
             }
         }
 
-        private string GetKey<T>(string key)
+        private string GetKey<T>(string key, T obj = default(T))
         {
-            return typeof(T).FullName + "$" + key;
+            return (obj == null ? typeof(T).FullName : obj.GetType().FullName) + "$" + key;
         }
 
         private class Blob

@@ -7,32 +7,81 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    public class ExecutionPipline<TResult>
+    public sealed class ExecutionPipline<TResult>
     {
+        private const int _errorThreshold = 5;
         private readonly Func<string, TResult> _execute;
+        private readonly Func<bool, TResult, bool> _feedback;
+        private readonly IList<Exception> _errors;
 
-        internal ExecutionPipline(Func<string, TResult> execute)
+        internal ExecutionPipline(Func<string, TResult> execute, Func<bool, TResult, bool> feedback)
         {
             _execute = execute;
+            _feedback = feedback;
+            _errors = new List<Exception>();
         }
 
         public TResult Execute(string outputName = null)
         {
-            return _execute(outputName);
+            try
+            {
+                var res = _execute(outputName);
+
+                _feedback(true, res);
+
+                return res;
+            }
+            catch (Exception ex)
+            {
+                _errors.Add(ex);
+                throw;
+            }
         }
 
         public TResult ExecuteUntil(Func<TResult, bool> condition, string outputName = null)
         {
+            int errorStart = _errors.Count;
+
             while (true)
             {
                 var next = _execute(outputName);
 
-                if (condition(next)) return next;
+                try
+                {
+                    if (condition(next))
+                    {
+                        if (_feedback(true, next))
+                        {
+                            return next;
+                        }
+                    }
+                    else
+                    {
+                        _feedback(false, next);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errors.Add(ex);
+
+                    if ((_errors.Count - errorStart) > _errorThreshold)
+                    {
+                        throw new AggregateException(_errors.Skip(errorStart));
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<Exception> Errors
+        {
+            get
+            {
+                return _errors;
             }
         }
     }
 
-    public sealed class FeatureProcessingPipline<T> where T : class
+    public sealed class FeatureProcessingPipline<T> : IFeatureDataSource, IFeatureTransformBuilder<T> where T : class
     {
         private static readonly ObjectFeatureExtractor _objExtractor = new ObjectFeatureExtractor();
 
@@ -49,6 +98,10 @@ namespace LinqInfer.Learning.Features
             _outputs = new List<IBlobStore>();
         }
 
+        internal FeatureProcessingPipline() : this(Enumerable.Empty<T>().AsQueryable())
+        {
+        }
+
         internal IQueryable<T> Data
         {
             get
@@ -57,11 +110,35 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        internal IFloatingPointFeatureExtractor<T> FeatureExtractor
+        public IEnumerable<IBlobStore> Outputs
+        {
+            get
+            {
+                return _outputs;
+            }
+        }
+
+        public IFloatingPointFeatureExtractor<T> FeatureExtractor
         {
             get
             {
                 return _transformation ?? _featureExtractor;
+            }
+        }
+
+        public int VectorSize
+        {
+            get
+            {
+                return FeatureExtractor.VectorSize;
+            }
+        }
+
+        public IEnumerable<IFeature> FeatureMetadata
+        {
+            get
+            {
+                return FeatureExtractor.FeatureMetadata;
             }
         }
 
@@ -124,7 +201,7 @@ namespace LinqInfer.Learning.Features
                 var res = processor.Invoke(this, n);
 
                 return res;
-            });
+            }, (x, o) => true);
         }
 
         public FeatureProcessingPipline<T> OutputResultsTo(IBlobStore store)
