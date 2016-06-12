@@ -3,13 +3,13 @@
 	<metadata> 
 		<id>$id$</id>
 		<version>1.1.4-beta</version>
-    <title>LinqInfer</title>
+		<title>LinqInfer</title>
 		<authors>R Eyres</authors>
 		<owners>R Eyres</owners>
 		<description>A lightweight and slightly experimental inference library for C#</description> 
 		<projectUrl>https://github.com/roberino/linqinfer</projectUrl>
-    <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.en.html</licenseUrl>
-		<tags>inference linq bayesian probability reasoning</tags>
+		<licenseUrl>http://www.gnu.org/licenses/gpl-3.0.en.html</licenseUrl>
+		<tags>inference linq bayesian probability reasoning machine learning</tags>
 		<language>en-UK</language>
 	</metadata>
 </package>
