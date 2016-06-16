@@ -81,7 +81,7 @@ namespace LinqInfer.Learning.Features
         }
     }
 
-    public sealed class FeatureProcessingPipline<T> : IFeatureDataSource, IFeatureTransformBuilder<T> where T : class
+    public sealed class FeatureProcessingPipline<T> : IFeatureProcessingPipeline<T> where T : class
     {
         private static readonly ObjectFeatureExtractor _objExtractor = new ObjectFeatureExtractor();
 

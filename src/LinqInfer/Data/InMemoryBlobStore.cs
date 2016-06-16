@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data
 {
+    /// <summary>
+    /// In memory implementation of <see cref="IBlobStore"/>
+    /// </summary>
     public class InMemoryBlobStore : IBlobStore
     {
         private readonly ConcurrentDictionary<string, Blob> _data;

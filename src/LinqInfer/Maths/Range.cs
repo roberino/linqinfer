@@ -2,6 +2,9 @@
 
 namespace LinqInfer.Maths
 {
+    /// <summary>
+    /// Represents a numeric range
+    /// </summary>
     [Serializable]
     public struct Range : IEquatable<Range>, IComparable<Range>
     {
@@ -11,9 +14,25 @@ namespace LinqInfer.Maths
             Max = max;
         }
 
+        /// <summary>
+        /// The minimum (inclusive) value
+        /// </summary>
         public double Min { get; private set; }
+
+        /// <summary>
+        /// The maximum (inclusive) value
+        /// </summary>
         public double Max { get; private set; }
+
+        /// <summary>
+        /// The size of the range
+        /// </summary>
         public double Size { get { return Max - Min; } }
+
+        /// <summary>
+        /// Returns true if a value falls within the bounds of the range
+        /// </summary>
+        /// <param name="value">The value</param>
         public bool IsWithin(double value)
         {
             return value >= Min && value <= Max;

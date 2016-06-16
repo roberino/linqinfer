@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace LinqInfer.Maths
 {
+    /// <summary>
+    /// Represent a fraction
+    /// </summary>
     [DebuggerDisplay("{Numerator}/{Denominator}")]
     public struct Fraction : IEquatable<Fraction>, IEquatable<int>, IComparable<Fraction>
     {
@@ -35,11 +38,17 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Creates a new fraction
+        /// </summary>
         public static Fraction Create(int n, int d)
         {
             return new Fraction(n, d);
         }
 
+        /// <summary>
+        /// The value 1
+        /// </summary>
         public static Fraction One
         {
             get
@@ -48,6 +57,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// The value 0
+        /// </summary>
         public static Fraction Zero
         {
             get
@@ -56,6 +68,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// The value 0.5
+        /// </summary>
         public static Fraction Half
         {
             get
@@ -117,6 +132,9 @@ namespace LinqInfer.Maths
             return fractions.Select(f => new Fraction(f.Numerator * (fLast.Denominator / f.Denominator), fLast.Denominator, false)).ToArray();
         }
 
+        /// <summary>
+        /// Returns true if the fraction is a proper number
+        /// </summary>
         public bool IsProper
         {
             get
@@ -125,10 +143,19 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// The numerator (top number)
+        /// </summary>
         public int Numerator;
 
+        /// <summary>
+        /// The denominator (bottom number)
+        /// </summary>
         public int Denominator;
 
+        /// <summary>
+        /// The value as a double precision floating point number
+        /// </summary>
         public double Value
         {
             get
@@ -139,6 +166,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Returns true if the fraction evaluates to 0
+        /// </summary>
         public bool IsZero
         {
             get
@@ -153,11 +183,17 @@ namespace LinqInfer.Maths
             return string.Format("{0}/{1}", Numerator, Denominator);
         }
 
+        /// <summary>
+        /// Flips the denominator and numerator (e.g. 2/5 becomes 5/2)
+        /// </summary>
         public Fraction Invert()
         {
             return new Fraction(Denominator, Numerator);
         }
 
+        /// <summary>
+        /// Returns the compliment value of a proper fraction (e.g. compliment of 2/5 = 3/5)
+        /// </summary>
         public Fraction Compliment(int total = 1)
         {
             Contract.Assert(total >= 1);
@@ -165,6 +201,10 @@ namespace LinqInfer.Maths
             return new Fraction(total, 1) - this;
         }
 
+
+        /// <summary>
+        /// Returns a new fraction with the numerator and denominator reduced to their simplest form.
+        /// </summary>
         public Fraction Reduce()
         {
             return new Fraction(Numerator, Denominator, true);
@@ -200,6 +240,9 @@ namespace LinqInfer.Maths
             return final;
         }
 
+        /// <summary>
+        /// Returns the square root as a new fraction
+        /// </summary>
         public Fraction Sqrt(int precision = 6)
         {
             //TODO: Clumbsy implementation
@@ -229,11 +272,20 @@ namespace LinqInfer.Maths
             return final;
         }
 
+        /// <summary>
+        /// Returns the fraction multiplied by itself as a new fraction
+        /// </summary>
+        /// <param name="approx">To approximate when dealing with large values to prevent overflow</param>
         public Fraction Sq(bool approx = false)
         {
             return Multiply(this, this, approx);
         }
 
+        /// <summary>
+        /// Returns an approximate representation of the current value
+        /// </summary>
+        /// <param name="precision"></param>
+        /// <returns></returns>
         public Fraction Approximate(int precision = 4)
         {
             Fraction a = this;
@@ -249,6 +301,13 @@ namespace LinqInfer.Maths
             return a;
         }
 
+
+        /// <summary>
+        /// Finds an approximate rational equivalent fraction given a floating point number
+        /// </summary>
+        /// <param name="x">The value</param>
+        /// <param name="iterations">The number iterations to find a value</param>
+        /// <returns>A new fraction</returns>
         public static Fraction ApproximateRational(double x, int iterations = 8)
         {
             if (x == 1) return One;

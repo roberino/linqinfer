@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Maths.Probability
 {
-    public class HypothesisBuilder<T>
+    public sealed class HypothesisBuilder<T>
     {
         private readonly T _outcome;
 
@@ -19,7 +19,7 @@
             return new HypotheticalOutcome<T>(_outcome, prior);
         }
 
-        public class FractionBuilder
+        public sealed class FractionBuilder
         {
             private readonly HypothesisBuilder<T> _owner;
             private readonly int _numerator;

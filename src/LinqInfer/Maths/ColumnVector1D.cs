@@ -8,6 +8,9 @@ using System.Text;
 
 namespace LinqInfer.Maths
 {
+    /// <summary>
+    /// Represents a 1 dimensional column vector
+    /// </summary>
     [Serializable]
     public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
     {

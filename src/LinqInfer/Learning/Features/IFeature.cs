@@ -8,10 +8,29 @@ namespace LinqInfer.Learning.Features
 {
     public interface IFeature
     {
+        /// <summary>
+        /// A unique key for the feature
+        /// </summary>
         string Key { get; }
+
+        /// <summary>
+        /// The feature label
+        /// </summary>
         string Label { get; }
+
+        /// <summary>
+        /// The feature vector index (base zero)
+        /// </summary>
         int Index { get; }
+
+        /// <summary>
+        /// The distribution model of the feature type
+        /// </summary>
         DistributionModel Model { get; }
+
+        /// <summary>
+        /// The raw type code of the feature
+        /// </summary>
         TypeCode DataType { get; }
     }
 
