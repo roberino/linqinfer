@@ -15,7 +15,7 @@ namespace LinqInfer.Learning
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
         private readonly float _learningRate;
 
-        public ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, double[] initialWeights, float learningRate = 0.5f)
+        internal ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, double[] initialWeights, float learningRate = 0.5f)
         {
             Contract.Assert(initialWeights.Length > 0);
             Contract.Assert(learningRate > 0);

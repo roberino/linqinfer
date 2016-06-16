@@ -8,12 +8,15 @@ namespace LinqInfer.Learning
     {
         private readonly IEnumerable<ClusterNode<T>> _nodes;
 
-        public FeatureMap(IEnumerable<ClusterNode<T>> nodes, IEnumerable<IFeature> features)
+        internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IEnumerable<IFeature> features)
         {
             _nodes = nodes;
             Features = features;
         }
 
+        /// <summary>
+        /// Returns the features that where used by the mappper
+        /// </summary>
         public IEnumerable<IFeature> Features { get; private set; }
 
         public IEnumerator<ClusterNode<T>> GetEnumerator()

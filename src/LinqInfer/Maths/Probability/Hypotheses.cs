@@ -4,6 +4,10 @@ using System.Linq;
 
 namespace LinqInfer.Maths.Probability
 {
+    /// <summary>
+    /// Represents a set of hypotheses
+    /// </summary>
+    /// <typeparam name="T">The type of hypothesis</typeparam>
     public class Hypothetheses<T>
     {
         private readonly IDictionary<T, IHypotheticalOutcome<T>> _hypos;
@@ -13,17 +17,37 @@ namespace LinqInfer.Maths.Probability
             _hypos = hypos.ToDictionary(h => h.Outcome);
         }
 
+        /// <summary>
+        /// Fires when the set is updated with new evidence
+        /// </summary>
         public event EventHandler Updated;
 
+        /// <summary>
+        /// Returns the hypothetical outcomes
+        /// </summary>
         public IEnumerable<IHypotheticalOutcome<T>> Hypotheses { get { return _hypos.Values; } }
 
+        /// <summary>
+        /// Returns a hypothetical outcome by outcome type
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public IHypotheticalOutcome<T> this[T item] { get { return _hypos[item]; } }
 
+        /// <summary>
+        /// Returns the current posterior probability of an outcome
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public Fraction ProbabilityOf(T item)
         {
             return this[item].PosteriorProbability;
         }
 
+        /// <summary>
+        /// Returns the most probable outcome based on the posterior probability
+        /// </summary>
+        /// <returns></returns>
         public T MostProbable()
         {
             return _hypos
@@ -49,16 +73,28 @@ namespace LinqInfer.Maths.Probability
             return dist;
         }
 
+        /// <summary>
+        /// Returns the outcomes as a discrete distribution
+        /// </summary>
+        /// <returns></returns>
         public IDictionary<T, double> CurrentDistribution()
         {
             return Hypotheses.ToDictionary(h => h.Outcome, h => h.PosteriorProbability.Value);
         }
 
+        /// <summary>
+        /// Updates each hypothesis using a likelyhood function which takes each hypothetical outcome as a parameter and returns a likelyhood value
+        /// </summary>
+        /// <param name="likelyhoodFunc">The likelyhood funtion</param>
         public void Update(Func<T, Fraction> likelyhoodFunc)
         {
             Update(Hypotheses.Select(h => h.Outcome).Select(likelyhoodFunc).ToArray());
         }
 
+        /// <summary>
+        /// Updates each hypothesis using a new set of likelyhood values for each outcome
+        /// </summary>
+        /// <param name="newEvents"></param>
         public void Update(params Fraction[] newEvents)
         {
             int i = 0;
