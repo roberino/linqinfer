@@ -18,7 +18,7 @@ namespace LinqInfer.Text
 
         public DocumentIndex(ITokeniser tokeniser = null)
         {
-            _tokeniser = tokeniser ?? new WordTokeniser();
+            _tokeniser = tokeniser ?? new Tokeniser();
             _frequencies = new Dictionary<string, WordMap>();
         }
 
@@ -121,22 +121,23 @@ namespace LinqInfer.Text
 
         private IDictionary<string, WordMap> GetWordFrequencies(string text)
         {
-            var words = _tokeniser.Tokenise(text);
+            var words = _tokeniser.Tokenise(text).Where(t => t.Type == TokenType.Word);
 
             return words
+                .Where(t => t.Type == TokenType.Word)
                 .Distinct()
                 .Select(w =>
             {
                 WordMap m;
 
-                if (!_frequencies.TryGetValue(w, out m))
+                if (!_frequencies.TryGetValue(w.Text, out m))
                 {
                     m = new WordMap() { Count = 0 };
                 }
 
                 return new
                 {
-                    Word = w,
+                    Word = w.Text,
                     Map = m
                 };
             })
@@ -150,7 +151,7 @@ namespace LinqInfer.Text
             {
                 foreach (var word in _tokeniser.Tokenise(node.Value))
                 {
-                    yield return word;
+                    yield return word.Text;
                 }
             }
         }
