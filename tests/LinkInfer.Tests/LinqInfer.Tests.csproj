@@ -95,6 +95,7 @@
     <Compile Include="Text\DocumentIndexTests.cs" />
     <Compile Include="Text\HtmlEntityMapTests.cs" />
     <Compile Include="Text\HtmlParserTests.cs" />
+    <Compile Include="Text\HttpSemanticReaderTests.cs" />
     <Compile Include="Text\TextExtensionsTests.cs" />
     <Compile Include="Utility\DictionarySerialiserTests.cs" />
     <Compile Include="Utility\LinqExtensionsTests.cs" />

@@ -55,8 +55,11 @@ namespace LinqInfer.Text
                             yield return lastToken;
                         }
 
-                        type = TokenType.Null;
-                        currentToken.Append(c);
+                        if (!(lastToken.Type == TokenType.Space && char.IsWhiteSpace(c)))
+                        {
+                            type = TokenType.Null;
+                            currentToken.Append(c);
+                        }
                     }
                 }
 

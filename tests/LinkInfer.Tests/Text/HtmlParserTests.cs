@@ -1,6 +1,10 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
+using System;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Text
@@ -30,6 +34,7 @@ namespace LinqInfer.Tests.Text
         [TestCase("<p s=\"1\">Hello</p>", "<p s=\"1\">Hello</p>")]
         [TestCase("<p s='1p'>Hello</p>", "<p s=\"1p\">Hello</p>")]
         [TestCase("<p s='1p' new=\"abc\">Hello</p>", "<p s=\"1p\" new=\"abc\">Hello</p>")]
+        [TestCase("<p s='1 p' new=\"ab c\">Hello</p>", "<p s=\"1 p\" new=\"ab c\">Hello</p>")]
         [TestCase("<p x=15 y=20>Hello</p>", "<p x=\"15\" y=\"20\">Hello</p>")]
         [TestCase("<p x=15 y=20 >Hello</p>", "<p x=\"15\" y=\"20\">Hello</p>")]
         [TestCase("<p s='1'>Hello<a href='b'>...</a> </p>", "<p s=\"1\">Hello<a href=\"b\">...</a> </p>")]
@@ -69,6 +74,35 @@ namespace LinqInfer.Tests.Text
 
             Assert.That(root is XElement);
             Assert.That(root.ToString(SaveOptions.DisableFormatting), Is.EqualTo(expectedXml));
+        }
+
+        [TestCase("http://localhost/test.html")]
+        public async Task Parse_Uri(string uri)
+        {
+            var http = new HttpClient();
+
+            var response = await http.GetAsync(uri);
+
+            var stream = await response.Content.ReadAsStreamAsync();
+
+            using (stream)
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    var parser = new HtmlParser();
+
+                    var elements = parser.Parse(reader);
+
+                    var root = elements.First();
+
+                    //var n = ((XElement)root).Elements().SelectMany(r => r.Elements()).Where(r => r.n)
+
+                    foreach(var e in elements)
+                        Console.WriteLine(e.ToString());
+
+                    Assert.That(elements.Count(), Is.EqualTo(1));
+                }
+            }
         }
     }
 }
