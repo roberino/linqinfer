@@ -8,6 +8,9 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
+    /// <summary>
+    /// Crude HTML to Xml document parser.
+    /// </summary>
     internal class HtmlParser
     {
         private readonly Encoding _encoding;
@@ -98,24 +101,45 @@ namespace LinqInfer.Text
                                 _currentText.Append(c);
                                 // <!
                                 if (_state == XmlNodeType.Element && _lastChar == '<') _state = XmlNodeType.ProcessingInstruction;
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
+                                }
                                 break;
                             case '!':
                                 _currentText.Append(c);
                                 // <!
                                 if (_state == XmlNodeType.Element && _lastChar == '<') _state = XmlNodeType.Comment;
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
+                                }
                                 break;
                             case '/':
                                 // </end>
                                 _currentText.Append(c);
-                                if (_lastChar == '<' && !(_quotationOpen || _aposOpen))
+                                if (_lastChar == '<' && !IsAttributeRead)
                                 {
                                     _state = XmlNodeType.EndElement;
+                                }
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
                                 }
                                 break;
                             case ' ':
                             case '\n':
                                 _currentText.Append(c);
-                                if (_state == XmlNodeType.None || (_state == XmlNodeType.Element && _lastChar == '<'))
+                                if (_state == XmlNodeType.None || (_state == XmlNodeType.Element && _lastChar == '<' && !IsAttributeRead))
                                 {
                                     _state = XmlNodeType.Text;
                                 }
@@ -126,12 +150,26 @@ namespace LinqInfer.Text
                                 {
                                     _quotationOpen = !_quotationOpen;
                                 }
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
+                                }
                                 break;
                             case '\'':
                                 _currentText.Append(c);
                                 if (_state == XmlNodeType.Element && !_quotationOpen)
                                 {
                                     _aposOpen = !_aposOpen;
+                                }
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
                                 }
                                 break;
                             case ';':
@@ -141,17 +179,24 @@ namespace LinqInfer.Text
                                 {
                                     ReadNode();
                                 }
+                                else
+                                {
+                                    if (_state == XmlNodeType.None)
+                                    {
+                                        _state = XmlNodeType.Text;
+                                    }
+                                }
                                 break;
                             case '&':
 
-                                if (_state == XmlNodeType.Element)
+                                if (_state == XmlNodeType.Element && !IsAttributeRead)
                                 {
                                     _state = XmlNodeType.Text;
                                     ReadNode();
                                 }
                                 else
                                 {
-                                    _state = XmlNodeType.EntityReference;
+                                    if (_state == XmlNodeType.Text) _state = XmlNodeType.EntityReference;
                                 }
 
                                 _currentText.Append(c);
@@ -177,6 +222,14 @@ namespace LinqInfer.Text
                 return ((XElement)_rootNode).Nodes();
             }
 
+            private bool IsAttributeRead
+            {
+                get
+                {
+                    return _state == XmlNodeType.Element && (_aposOpen || _quotationOpen);
+                }
+            }
+
             private bool ReadNode()
             {
                 if (_currentText.Length == 0) return false;
@@ -191,27 +244,47 @@ namespace LinqInfer.Text
                         break;
                     case XmlNodeType.Element:
                         {
-                            var name = GetCurrentName();
-                            nextNode = new XElement(name, ReadAttributes(name.Length + 2).ToArray());
-                            isClosed = _currentText.ToString().EndsWith("/>");
+                            try
+                            {
+                                var name = GetCurrentName();
+                                var attrs = ReadAttributes(name.Length + 2).ToArray();
+                                var ns = attrs.FirstOrDefault(a => a.Name == "xmlns");
+                                var qname = GetValidName(name, ns == null ? CurrentNamespace() : CurrentNamespace(ns.Value));
+
+                                nextNode = new XElement(qname, attrs.Where(a => a != ns));
+                                isClosed = _currentText.ToString().EndsWith("/>") || IsAutoClosed(name);
+                            }
+                            catch (Exception)
+                            {
+                                DefaultState();
+                                return false;
+                            }
                         }
                         break;
                     case XmlNodeType.EndElement:
                         {
-                            var name = GetCurrentName();
-
-                            while (true)
+                            try
                             {
-                                if (_currentNode.NodeType == XmlNodeType.Element && name == ((XElement)_currentNode).Name.LocalName)
-                                {
-                                    MoveToParent();
-                                    break;
-                                }
+                                var qname = GetValidName();
 
-                                if(!MoveToParent())
+                                while (true)
                                 {
-                                    break;
+                                    if (_currentNode.NodeType == XmlNodeType.Element && qname.LocalName == ((XElement)_currentNode).Name.LocalName)
+                                    {
+                                        MoveToParent();
+                                        break;
+                                    }
+
+                                    if (!MoveToParent())
+                                    {
+                                        break;
+                                    }
                                 }
+                            }
+                            catch (Exception)
+                            {
+                                DefaultState();
+                                return false;
                             }
                         }
                         break;
@@ -221,7 +294,8 @@ namespace LinqInfer.Text
                 }
 
                 _currentText.Clear();
-                _state = XmlNodeType.None;
+
+                DefaultState();
 
                 if (nextNode != null)
                 {
@@ -252,6 +326,35 @@ namespace LinqInfer.Text
                 }
 
                 return false;
+            }
+
+            private XNamespace CurrentNamespace(string newNs = null)
+            {
+                if (!string.IsNullOrEmpty(newNs))
+                {
+                    return XNamespace.Get(newNs);
+                }
+
+                var c = _currentNode;
+
+                while (c != null)
+                {
+                    if(c.NodeType == XmlNodeType.Element)
+                    {
+                        return ((XElement)c).Name.Namespace;
+                    }
+
+                    c = c.Parent;
+                }
+
+                return XNamespace.None;
+            }
+
+            private void DefaultState()
+            {
+                _aposOpen = false;
+                _quotationOpen = false;
+                _state = XmlNodeType.Text;
             }
 
             private bool MoveToParent()
@@ -289,13 +392,27 @@ namespace LinqInfer.Text
                 throw new ArgumentException();
             }
 
+            private XName GetValidName(string name = null, XNamespace ns = null)
+            {
+                var ename = name ?? GetCurrentName();
+
+                var parts = ename.Split(':');
+
+                if (ns == null)
+                    return XName.Get(parts.Last());
+                else
+                    return XName.Get(parts.Last(), ns.NamespaceName);
+            }
+
             private string GetCurrentName()
             {
                 var name = _currentText.ToString().Substring(1);
 
                 if (name.StartsWith("/")) name = name.Substring(1);
 
-                return new string(name.TakeWhile(c => char.IsLetterOrDigit(c)).ToArray());
+                var n = new string(name.TakeWhile(c => char.IsLetterOrDigit(c) || c == ':').ToArray());
+
+                return n;
             }
 
             private class AttributeReader
@@ -320,7 +437,7 @@ namespace LinqInfer.Text
                 public XAttribute ReadAttribute()
                 {
                     var t = Text.ToString();
-                    var n = t.Substring(0, SplitIndex).Trim();
+                    var n = t.Substring(0, SplitIndex).Trim().Split(':');
                     var v = t.Substring(SplitIndex).Trim();
 
                     if ((v.StartsWith("\"") && v.EndsWith("\"")) || (v.StartsWith("'") && v.EndsWith("'")))
@@ -328,7 +445,7 @@ namespace LinqInfer.Text
                         v = v.Substring(1, v.Length - 2);
                     }
 
-                    var attr = new XAttribute(n, v);
+                    var attr = new XAttribute(XName.Get(n.Last()), v); // TODO: support for XMLNS
 
                     Text.Clear();
                     State = ReadState.None;
@@ -359,7 +476,7 @@ namespace LinqInfer.Text
                             }
                             break;
                         case '\'':
-                            if (attrReader.State == ReadState.ReadName)
+                            if (attrReader.State == ReadState.ReadText)
                             {
                                 attrReader.State = ReadState.AposOpen;
                             }
@@ -381,7 +498,8 @@ namespace LinqInfer.Text
                             }
                             break;
                         case '"':
-                            if (attrReader.State == ReadState.ReadName)
+
+                            if (attrReader.State == ReadState.ReadText)
                             {
                                 attrReader.State = ReadState.QuoteOpen;
                             }
@@ -401,6 +519,7 @@ namespace LinqInfer.Text
                                     attrReader.Text.Append(c);
                                 }
                             }
+
                             break;
                         case ' ':
                             if (attrReader.State == ReadState.QuoteOpen || attrReader.State == ReadState.AposOpen)
@@ -441,6 +560,13 @@ namespace LinqInfer.Text
                 }
 
                 yield break;
+            }
+
+            private static readonly HashSet<string> _autoClosedElements = new HashSet<string>(new[] { "br", "link", "meta", "hr", "img", "input" });
+
+            private bool IsAutoClosed(string elementName)
+            {
+                return _autoClosedElements.Contains(elementName);
             }
 
             private enum TokenType : byte
