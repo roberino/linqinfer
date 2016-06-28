@@ -68,6 +68,10 @@
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />
     <Compile Include="Maths\Probability\HuffmanTree.cs" />
+    <Compile Include="Maths\Sequence.cs" />
+    <Compile Include="Text\Analysis\Corpus.cs" />
+    <Compile Include="Text\Analysis\Relationship.cs" />
+    <Compile Include="Text\Analysis\Word.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
     <Compile Include="Text\HttpSemanticReader.cs" />
@@ -167,6 +171,7 @@
     <Compile Include="Text\Token.cs" />
     <Compile Include="Text\Tokeniser.cs" />
     <Compile Include="Text\TokenType.cs" />
+    <Compile Include="Text\Analysis\WordGraph.cs" />
     <Compile Include="Text\WordTokeniser.cs" />
     <Compile Include="Utility\Debugger.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
