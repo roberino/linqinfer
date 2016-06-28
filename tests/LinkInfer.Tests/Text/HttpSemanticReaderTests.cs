@@ -11,17 +11,18 @@ namespace LinqInfer.Tests.Text
         [TestCase("http://localhost/test.html")]
         public async Task Read_TestUrl_ReturnsTokenStream(string url)
         {
-            var reader = new HttpSemanticReader();
-
-            await reader.Read(new Uri(url), x =>
+            using (var reader = new HttpSemanticReader())
             {
-                foreach(var t in x.Item2)
+                await reader.Read(new Uri(url), x =>
                 {
-                    Console.WriteLine(t);
-                }
+                    foreach (var t in x.Item2)
+                    {
+                        Console.WriteLine(t);
+                    }
 
-                return true;
-            });
+                    return false;
+                });
+            }
         }
     }
 }
