@@ -41,9 +41,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DataExtensions.cs" />
+    <Compile Include="Data\FileBlobStore.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
     <Compile Include="Data\IEntity.cs" />
+    <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\Orm\ColumnMapping.cs" />
     <Compile Include="Data\Orm\DefaultMapperFactory.cs" />
@@ -59,6 +61,7 @@
     <Compile Include="Learning\Classification\IObjectClassifier.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPipline.cs" />
+    <Compile Include="Learning\Features\FeatureReduction.cs" />
     <Compile Include="Learning\Features\FloatingPointTransformingFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureDataSource.cs" />
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
@@ -67,6 +70,16 @@
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />
+    <Compile Include="Maths\Probability\HuffmanTree.cs" />
+    <Compile Include="Maths\Sequence.cs" />
+    <Compile Include="Text\Analysis\Cluster.cs" />
+    <Compile Include="Text\Analysis\Corpus.cs" />
+    <Compile Include="Text\Analysis\Relationship.cs" />
+    <Compile Include="Text\Analysis\Word.cs" />
+    <Compile Include="Text\HtmlEntityMap.cs" />
+    <Compile Include="Text\HtmlParser.cs" />
+    <Compile Include="Text\HttpSemanticReader.cs" />
+    <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
     <Compile Include="Text\TextExtensions.cs" />
@@ -158,7 +171,12 @@
     <Compile Include="Data\Sampling\SampleSummary.cs" />
     <Compile Include="Data\Sampling\SerialisableDynamicObject.cs" />
     <Compile Include="Data\Sampling\UriProvider.cs" />
-    <Compile Include="Text\WordTokeniser.cs" />
+    <Compile Include="Text\TextMimeType.cs" />
+    <Compile Include="Text\Token.cs" />
+    <Compile Include="Text\Tokeniser.cs" />
+    <Compile Include="Text\TokenType.cs" />
+    <Compile Include="Text\Analysis\WordGraph.cs" />
+    <Compile Include="Text\RegexTokeniser.cs" />
     <Compile Include="Utility\Debugger.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />

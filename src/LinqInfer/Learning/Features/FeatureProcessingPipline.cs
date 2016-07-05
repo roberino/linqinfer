@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Features
 {
     public sealed class ExecutionPipline<TResult>
     {
-        private const int _errorThreshold = 5;
+        private const int _errorThreshold = 15;
         private readonly Func<string, TResult> _execute;
         private readonly Func<bool, TResult, bool> _feedback;
         private readonly IList<Exception> _errors;

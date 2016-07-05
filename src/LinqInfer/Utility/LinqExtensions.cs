@@ -8,6 +8,16 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        /// <summary>
+        /// Orders an enumeration of values randomly.
+        /// </summary>
+        /// <param name="source">The source items</param>
+        /// <returns></returns>
+        public static IOrderedEnumerable<T> RandomOrder<T>(this IEnumerable<T> source)
+        {
+            return source.OrderBy(_ => Guid.NewGuid());
+        }
+
         internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
         {
             return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
