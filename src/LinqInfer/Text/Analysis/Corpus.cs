@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    public sealed class Corpus : IBinaryPersistable
+    internal sealed class Corpus : IBinaryPersistable
     {
         private readonly IList<IToken> _tokens;
 

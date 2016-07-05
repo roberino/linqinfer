@@ -4,9 +4,15 @@ using System.Text.RegularExpressions;
 
 namespace LinqInfer.Text
 {
-    public class WordTokeniser : ITokeniser
+    public class RegexTokeniser : ITokeniser
     {
-        private readonly Regex _wordRegex = new Regex("[a-z0-9'’-]+", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex _defaultRegex = new Regex("[a-z0-9'’-]+", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _wordRegex;
+
+        public RegexTokeniser(string inputPattern = null, RegexOptions options = RegexOptions.None)
+        {
+            _wordRegex = inputPattern == null ? _defaultRegex : new Regex(inputPattern, options);
+        }
 
         public IEnumerable<IToken> Tokenise(string body)
         {

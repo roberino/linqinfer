@@ -53,6 +53,28 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the first value in the sequence
+        /// </summary>
+        public T First
+        {
+            get
+            {
+                return _values[0];
+            }
+        }
+
+        /// <summary>
+        /// Returns the last value in the sequence
+        /// </summary>
+        public T Last
+        {
+            get
+            {
+                return _values[_values.Length - 1];
+            }
+        }
+
+        /// <summary>
         /// Transforms each value in the sequence using a function
         /// </summary>
         public Sequence<T> Transform(Func<T, T> transformation)

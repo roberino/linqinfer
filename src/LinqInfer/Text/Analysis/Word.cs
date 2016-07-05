@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    public class Word : IEquatable<Word>
+    internal class Word : IEquatable<Word>
     {
         private readonly HashSet<Relationship> _rels;
 

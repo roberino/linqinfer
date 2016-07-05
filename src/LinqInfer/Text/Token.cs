@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LinqInfer.Text
 {
-    public class Token : IToken
+    internal class Token : IToken
     {
         public Token(string value, int index, TokenType? type = null)
         {
