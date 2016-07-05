@@ -98,7 +98,7 @@ namespace LinqInfer.Maths
         /// </summary>
         /// <param name="values">The values</param>
         /// <returns>The resultant sum</returns>
-        public static Fraction Sum(this IEnumerable<Fraction> values)
+        public static Fraction Sum(this IEnumerable<Fraction> values, bool approximate = false)
         {
             Contract.Assert(values != null);
 
@@ -106,7 +106,7 @@ namespace LinqInfer.Maths
 
             foreach (var v in values.Skip(1))
             {
-                total += v;
+                total = Fraction.Add(total, v, approximate);
             }
 
             return total;

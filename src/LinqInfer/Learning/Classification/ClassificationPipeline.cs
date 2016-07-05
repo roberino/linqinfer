@@ -60,7 +60,7 @@ namespace LinqInfer.Learning.Classification
         public virtual double Train(TInput value, Func<TInput, TClass> classf)
         {
             if (!error.HasValue) error = 0;
-             var e = _learning.Train(classf(value), _featureExtract.ExtractVector(value));
+            var e = _learning.Train(classf(value), _featureExtract.ExtractVector(value));
             error += e;
             return e;
         }

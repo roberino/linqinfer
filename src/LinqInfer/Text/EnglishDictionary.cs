@@ -38,6 +38,11 @@ namespace LinqInfer.Text
             return _words.ContainsKey(word.ToLower());
         }
 
+        /// <summary>
+        /// Returns the internal ID assigned to word or zero if the word isn't found.
+        /// </summary>
+        /// <param name="word">The word</param>
+        /// <returns>An integer</returns>
         public int IdOf(string word)
         {
             int id = 0;
