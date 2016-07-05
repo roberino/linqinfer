@@ -24,6 +24,19 @@ namespace LinqInfer.Learning
         /// Creates a feature processing pipeline from a set of data.
         /// </summary>
         /// <typeparam name="T">The input data type</typeparam>
+        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance</param>
+        /// <returns></returns>
+        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
+        {
+            var size = featureLabels == null ? vectorFunc(default(T)).Length : featureLabels.Length;
+            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, normaliseData, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
+            return new FeatureProcessingPipline<T>(data, featureExtractor);
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline from a set of data.
+        /// </summary>
+        /// <typeparam name="T">The input data type</typeparam>
         /// <param name="data">The data</param>
         /// <param name="featureExtractor">An optional feature extractor to extract feature vectors from the data</param>
         /// <returns></returns>
