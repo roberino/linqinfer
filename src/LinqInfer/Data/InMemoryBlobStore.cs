@@ -1,87 +1,51 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace LinqInfer.Data
 {
     /// <summary>
     /// In memory implementation of <see cref="IBlobStore"/>
     /// </summary>
-    public class InMemoryBlobStore : IBlobStore
+    public class InMemoryBlobStore : BlobStoreBase
     {
         private readonly ConcurrentDictionary<string, Blob> _data;
-
-        private bool _isDisposed;
-
+        
         public InMemoryBlobStore()
         {
             _data = new ConcurrentDictionary<string, Blob>();
         }
 
-        public bool Store<T>(string key, T obj) where T : IBinaryPersistable
+        protected override void OnWrite(string key, Stream stream)
         {
-            if (_isDisposed) throw new ObjectDisposedException(typeof(InMemoryBlobStore).Name);
+            var ms = (MemoryStream)stream;
 
-            using (var ms = new MemoryStream())
+            var blob = new Blob()
             {
-                obj.Save(ms);
+                Created = DateTime.UtcNow,
+                Data = ms.ToArray()
+            };
 
-                var blob = new Blob()
-                {
-                    Created = DateTime.UtcNow,
-                    Data = ms.ToArray()
-                };
-
-                _data[GetKey<T>(key, obj)] = blob;
-            }
-
-            return true;
+            _data[key] = blob;
         }
 
-        public T Restore<T>(string key, T obj) where T : IBinaryPersistable
+        protected override Stream GetReadStream(string key)
         {
-            if (_isDisposed) throw new ObjectDisposedException(typeof(InMemoryBlobStore).Name);
+            var blob = _data[key];
 
-            var blob = _data[GetKey<T>(key, obj)];
-
-            using(var ms = new MemoryStream(blob.Data))
-            {
-                obj.Load(ms);
-            }
-
-            return obj;
+            return new MemoryStream(blob.Data);
         }
 
-        public Task<bool> StoreAsync<T>(string key, T obj) where T : IBinaryPersistable
+        protected override Stream GetWriteStream(string key)
         {
-            return Task.FromResult(Store(key, obj));
+            return new MemoryStream();
         }
 
-        public Task<T> RestoreAsync<T>(string key, T obj) where T : IBinaryPersistable
+        public override void Dispose()
         {
-            return Task.FromResult(Restore(key, obj));
-        }
+            base.Dispose();
 
-        public void Dispose()
-        {
-            if (!_isDisposed)
-            {
-                _isDisposed = true;
-
-                _data.Clear();
-            }
-        }
-
-        private string GetKey<T>(string key, T obj = default(T))
-        {
-            return (obj == null ? typeof(T).FullName : obj.GetType().FullName) + "$" + key;
-        }
-
-        private class Blob
-        {
-            public DateTime Created;
-            public byte[] Data;
+            _data.Clear();
         }
     }
 }

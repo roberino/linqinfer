@@ -76,6 +76,7 @@ namespace LinqInfer.Tests.Text
             Assert.That(root.ToString(SaveOptions.DisableFormatting), Is.EqualTo(expectedXml));
         }
 
+        [Ignore("Integration only")]
         [TestCase("http://localhost/test.html")]
         public async Task Parse_Uri(string uri)
         {

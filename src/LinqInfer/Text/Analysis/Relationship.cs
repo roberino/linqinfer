@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Text.Analysis
 {
-    public class Relationship : IEquatable<Relationship>
+    internal class Relationship : IEquatable<Relationship>
     {
         public int FormId { get; set;}
         public float Weight { get; set; }

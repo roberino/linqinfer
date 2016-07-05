@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,6 +60,7 @@
       <HintPath>..\..\packages\System.Data.SQLite.Linq.1.0.101.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -72,6 +74,7 @@
     <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPiplineTests.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractorTests.cs" />
+    <Compile Include="Learning\ImageLearningExamples.cs" />
     <Compile Include="Learning\PipelineExtensionsTests.cs" />
     <Compile Include="TestFixtureBase.cs" />
     <Compile Include="Text\EnglishDictionaryTests.cs" />
