@@ -4,7 +4,7 @@ using System;
 
 namespace LinqInfer.Maths.Probability
 {
-    public class HuffmanTree<T> where T : IEquatable<T>, IComparable<T>
+    internal class HuffmanTree<T> where T : IEquatable<T>, IComparable<T>
     {
         private readonly Node _root;
         private readonly IDictionary<T, Node> _lookup;

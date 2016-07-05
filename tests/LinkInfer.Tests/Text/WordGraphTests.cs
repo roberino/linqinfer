@@ -11,13 +11,13 @@ namespace LinqInfer.Tests.Text
     [TestFixture]
     public class WordGraphTests
     {
-        [TestCase("https://en.wikipedia.org/wiki/Main_Page")]
+        //[Ignore("")]
+        //[TestCase("http://localhost/x")]
         public async Task Analise_AndFindRelationships(string url)
         {
-            int i = 0;
             var mapper = new WordGraph();
 
-            using (var reader = new HttpSemanticReader(a => Regex.IsMatch(a.PathAndQuery, @"\/wiki\/")))
+            using (var reader = new HttpSemanticReader(a => Regex.IsMatch(a.PathAndQuery, @"en\.wikipedia\.org\/wiki\/")))
             {
                 foreach (var u in url.Split(';'))
                 {

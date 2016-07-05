@@ -42,6 +42,8 @@ namespace LinqInfer.Learning.Classification
             {
                 outputs = trainingData.GroupBy(classifyingExpression).Select(o => o.Key).ToList();
 
+                if (outputs.Count == 0) throw new ArgumentException("No training data or classes found");
+
                 _config.OutputMapper.Initialise(outputs);
                 _config.FeatureExtractor.NormaliseUsing(trainingData);
             }

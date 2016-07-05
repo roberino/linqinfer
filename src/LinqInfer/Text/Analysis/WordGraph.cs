@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Maths;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,19 +9,19 @@ namespace LinqInfer.Text.Analysis
     {
         private const int MaxSize = 10000;
 
-        private readonly IDictionary<Tuple<int, int, int>, int> _syntaxMap;
+        private readonly IDictionary<Sequence<int>, int> _syntaxMap;
         private readonly IDictionary<int, Word> _words;
 
         public WordGraph()
         {
-            _syntaxMap = new Dictionary<Tuple<int, int, int>, int>();
+            _syntaxMap = new Dictionary<Sequence<int>, int>();
             _words = new Dictionary<int, Word>();
         }
 
         public void Analise(IEnumerable<IToken> wordStream)
         {
             const int size = 3;
-            Tuple<int, int, int> current;
+            Sequence<int> current;
             var corpus = new Corpus(wordStream);
 
             int? nextId;
@@ -34,7 +35,7 @@ namespace LinqInfer.Text.Analysis
 
                     if (first.Length < size) continue;
 
-                    current = new Tuple<int, int, int>(first[0], first[1], first[2]);
+                    current = new Sequence<int>(first);
                 }
 
                 _syntaxMap[current] = 1;
@@ -47,7 +48,7 @@ namespace LinqInfer.Text.Analysis
 
                         if (nextId.HasValue)
                         {
-                            current = new Tuple<int, int, int>(current.Item2, current.Item3, nextId.Value);
+                            current = current.Permutate(nextId.Value);
 
                             freq = 0;
 
@@ -71,16 +72,16 @@ namespace LinqInfer.Text.Analysis
 
         public IEnumerable<Word> FindRelationships()
         {
-            foreach (var g in _syntaxMap.GroupBy(s => new Tuple<int, int>(s.Key.Item1, s.Key.Item3)))
+            foreach (var g in _syntaxMap.GroupBy(s => new Tuple<int, int>(s.Key.First, s.Key.Last)))
             {
                 foreach (var w in g)
                 {
-                    var wm = GetWord(w.Key.Item2);
+                    var wm = GetWord(w.Key.Last);
 
                     wm.AddRelationships(g.Select(x => new Relationship()
                     {
                         FormId = g.Key.GetHashCode(),
-                        Target = GetWord(x.Key.Item2),
+                        Target = GetWord(x.Key.Last),
                         Type = RelationshipType.SyntacticSubstitute,
                         Weight = 1
                     }));

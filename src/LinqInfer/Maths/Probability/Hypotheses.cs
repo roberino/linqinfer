@@ -99,7 +99,7 @@ namespace LinqInfer.Maths.Probability
         {
             int i = 0;
 
-            var nf = Hypotheses.Select(h => newEvents[i++] * h.PriorProbability).ToList().Sum();
+            var nf = Hypotheses.Select(h => newEvents[i++] * h.PriorProbability).ToList().Sum(true);
 
             i = 0;
 

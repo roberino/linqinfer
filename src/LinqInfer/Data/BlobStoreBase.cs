@@ -1,0 +1,83 @@
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+
+namespace LinqInfer.Data
+{
+    /// <summary>
+    /// Base class for implementing <see cref="IBlobStore"/>
+    /// </summary>
+    public abstract class BlobStoreBase : IBlobStore
+    {
+        private bool _isDisposed;
+
+        public virtual bool Store<T>(string key, T obj) where T : IBinaryPersistable
+        {
+            if (_isDisposed) throw new ObjectDisposedException(GetType().Name);
+
+            var qkey = GetKey(key, obj);
+
+            using (var ms = GetWriteStream(qkey))
+            {
+                obj.Save(ms);
+
+                ms.Flush();
+
+                OnWrite(qkey, ms);
+            }
+
+            return true;
+        }
+
+        public virtual T Restore<T>(string key, T obj) where T : IBinaryPersistable
+        {
+            if (_isDisposed) throw new ObjectDisposedException(GetType().Name);
+
+            var qkey = GetKey(key, obj);
+
+            using (var ms = GetReadStream(qkey))
+            {
+                obj.Load(ms);
+            }
+
+            return obj;
+        }
+
+        public virtual Task<bool> StoreAsync<T>(string key, T obj) where T : IBinaryPersistable
+        {
+            return Task.FromResult(Store(key, obj));
+        }
+
+        public virtual Task<T> RestoreAsync<T>(string key, T obj) where T : IBinaryPersistable
+        {
+            return Task.FromResult(Restore(key, obj));
+        }
+
+        public virtual void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+            }
+        }
+
+        protected virtual void OnWrite(string key, Stream stream)
+        {
+        }
+
+        protected abstract Stream GetReadStream(string key);
+
+        protected abstract Stream GetWriteStream(string key);
+        
+        protected virtual string GetKey<T>(string key, T obj = default(T))
+        {
+            return (obj == null ? typeof(T).FullName : obj.GetType().FullName) + "$" + key;
+        }
+
+        protected class Blob
+        {
+            public DateTime Created;
+            public byte[] Data;
+        }
+    }
+}

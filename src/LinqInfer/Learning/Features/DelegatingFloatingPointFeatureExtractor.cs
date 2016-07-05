@@ -60,6 +60,14 @@ namespace LinqInfer.Learning.Features
         {
             _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToDoubleArray();
 
+            //for (int i = 0; i < _normalisingVector.Length; i++)
+            //{
+            //    if(_normalisingVector[i] == 0)
+            //    {
+            //        _normalisingVector[i] = 0.0000001;
+            //    }
+            //}
+
             return _normalisingVector;
         }
 
@@ -74,7 +82,8 @@ namespace LinqInfer.Learning.Features
 
             for (int i = 0; i < raw.Length; i++)
             {
-                normalised[i] = raw[i] / _normalisingVector[i];
+                var x = raw[i] / _normalisingVector[i];
+                normalised[i] = double.IsNaN(x) ? 0 : x;
             }
 
             return normalised;
