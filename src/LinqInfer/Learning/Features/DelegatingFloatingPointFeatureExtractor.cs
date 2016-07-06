@@ -49,11 +49,12 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
-        public double[] CreateNormalisingVector(T sample = default(T))
+        public double[] UpperVectorBounds
         {
-            _normalisingVector = _vectorFunc(sample);
-
-            return _normaliseData ? _normalisingVector.Select(v => 1d).ToArray() : _normalisingVector; // TODO: Fix this odd logic
+            get
+            {
+                return _normaliseData ? _normalisingVector.Select(v => 1d).ToArray() : _normalisingVector;
+            }
         }
 
         public double[] NormaliseUsing(IEnumerable<T> samples)
