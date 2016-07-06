@@ -64,6 +64,7 @@
     <Compile Include="Learning\Features\FeatureReduction.cs" />
     <Compile Include="Learning\Features\FloatingPointTransformingFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureDataSource.cs" />
+    <Compile Include="Learning\Features\IHasFeatureMetadata.cs" />
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />

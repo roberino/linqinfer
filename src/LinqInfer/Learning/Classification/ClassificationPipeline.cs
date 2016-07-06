@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Classification
             _learning = learning;
 
             if (normalise)
-                _featureExtract.CreateNormalisingVector(normalisingSample);
+                _featureExtract.NormaliseUsing(new[] { normalisingSample });
         }
 
         public virtual double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)
