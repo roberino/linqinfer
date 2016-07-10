@@ -102,7 +102,7 @@ namespace LinqInfer.Learning.Features
         {
         }
 
-        internal IQueryable<T> Data
+        public IQueryable<T> Data
         {
             get
             {
@@ -241,6 +241,34 @@ namespace LinqInfer.Learning.Features
                     {
                         yield return _transformation.ExtractColumnVector(item);
                     }
+                }
+            }
+        }
+
+        public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
+        {
+            if (_transformation == null)
+            {
+                if (_featureExtractor.IsNormalising)
+                {
+                    _featureExtractor.NormaliseUsing(_data);
+                }
+
+                foreach (var batch in _data.Chunk(batchSize))
+                {
+                    yield return batch.Select(b => new ObjectVector<T>(b, _featureExtractor.ExtractColumnVector(b))).ToList();
+                }
+            }
+            else
+            {
+                if (_featureExtractor.IsNormalising)
+                {
+                    _transformation.NormaliseUsing(_data);
+                }
+
+                foreach (var batch in _data.Chunk(batchSize))
+                {
+                    yield return batch.Select(b => new ObjectVector<T>(b, _transformation.ExtractColumnVector(b))).ToList();
                 }
             }
         }

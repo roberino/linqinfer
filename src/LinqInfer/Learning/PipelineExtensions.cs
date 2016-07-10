@@ -95,17 +95,21 @@ namespace LinqInfer.Learning
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <param name="errorTolerance">The network error tolerance</param>
         /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(pipeline.FeatureExtractor, errorTolerance);
+                var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(p, classf);
+                var defaultStrategy = new MinErrorMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance);
+                var result = trainingPipline.TrainUsing(defaultStrategy);
 
-                classifierPipe.Train(pipeline.Data, classf);
+                //var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(pipeline.FeatureExtractor, errorTolerance);
 
-                if (n != null) pipeline.OutputResults(classifierPipe, n);
+                //classifierPipe.Train(pipeline.Data, classf);
 
-                return (IObjectClassifier<TClass, TInput>)classifierPipe;
+                if (n != null) pipeline.OutputResults(result, n);
+
+                return result; // (IPrunableObjectClassifier<TClass, TInput>)classifierPipe;
             });
         }
 
@@ -116,16 +120,16 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="store">A blob store</returns>
         /// <param name="key">The name of a previously stored classifier</returns>
-        public static IObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
+        public static IPrunableObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
             this IBlobStore store, string key, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             if (featureExtractor == null) featureExtractor = new FeatureProcessingPipline<TInput>().FeatureExtractor;
 
-            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(featureExtractor);
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor);
 
-            store.Restore(key, classifierPipe);
+            store.Restore(key, classifier);
 
-            return classifierPipe;
+            return classifier;
         }
     }
 }

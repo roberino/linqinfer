@@ -16,7 +16,7 @@ namespace LinqInfer.Tests.Learning
     [TestFixture]
     public class ImageLearningExamples
     {
-        private const int VectorWidth = 10;
+        private const int VectorWidth = 4;
 
         [Test]
         public void TrainNetwork_UsingCharacterBitmaps()
@@ -41,7 +41,7 @@ namespace LinqInfer.Tests.Learning
                 .ToList()
                 .AsQueryable();
 
-            var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[10] : m.VectorData);
+            var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[VectorWidth * VectorWidth] : m.VectorData);
 
             pipeline.PreprocessWith(m =>
             {
@@ -66,6 +66,12 @@ namespace LinqInfer.Tests.Learning
             var classifyResults = classifier.Classify(i).ToList();
 
             Assert.That(classifyResults.First().ClassType == 'I');
+
+            classifier.PruneFeatures(1, 2, 3);
+
+            var resultsAfterPruning = classifier.Classify(x).ToList();
+
+            // Assert.That(resultsAfterPruning.First().ClassType == 'X');
         }
 
         public Letter ToCharObj(int charVal)
