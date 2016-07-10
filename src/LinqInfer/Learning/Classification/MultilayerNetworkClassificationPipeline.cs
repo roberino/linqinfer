@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> : MultilayerNetworkObjectClassifier<TClass, TInput>, IBinaryPersistable where TClass : IEquatable<TClass>
+    internal class MultilayerNetworkClassificationPipeline<TClass, TInput> : MultilayerNetworkObjectClassifier<TClass, TInput>  where TClass : IEquatable<TClass>
     {
         private readonly int _maxIterations;
         private readonly NetworkParameterCache _paramCache;
@@ -96,6 +96,7 @@ namespace LinqInfer.Learning.Classification
 
             _paramCache.Store<TClass>(_pipeline.Parameters, err);
             _classifier = _pipeline.Instance;
+            _network = _pipeline.Network;
 
             return err;
         }
@@ -122,7 +123,7 @@ namespace LinqInfer.Learning.Classification
             var network = new MultilayerNetwork(newParams);
             var bpa = new BackPropagationLearning(network);
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
-            var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
+            var classifier = new MultilayerNetworkClassifier<TClass>(_config.OutputMapper, network);
 
             var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample, false);
             
@@ -146,7 +147,7 @@ namespace LinqInfer.Learning.Classification
             var network = new MultilayerNetwork(_config.FeatureExtractor.VectorSize, activator);
             var bpa = new BackPropagationLearning(network);
             var learningAdapter = new AssistedLearningAdapter<TClass>(bpa, _config.OutputMapper);
-            var classifier = new MultilayerNetworkClassifier<TClass>(network, _config.OutputMapper.Map);
+            var classifier = new MultilayerNetworkClassifier<TClass>(_config.OutputMapper, network);
 
             var pipeline = new ClassificationPipeline<TClass, TInput, double>(learningAdapter, classifier, _config.FeatureExtractor, _config.NormalisingSample, false);
 

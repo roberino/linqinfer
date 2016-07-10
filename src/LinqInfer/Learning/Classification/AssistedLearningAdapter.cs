@@ -14,13 +14,16 @@ namespace LinqInfer.Learning.Classification
             _outputVectorExtractor = outputVectorExtractor;
         }
 
-        public double Train(TClass item, double[] sample)
+        public double Train(TClass sampleClass, ColumnVector1D sample)
         {
-            var output = new ColumnVector1D(_outputVectorExtractor.ExtractVector(item));
+            var output = new ColumnVector1D(_outputVectorExtractor.ExtractVector(sampleClass));
 
-            var input = new ColumnVector1D(sample);
+            return _processor.Train(sample, output);
+        }
 
-            return _processor.Train(input, output);
+        public double Train(TClass sampleClass, double[] sample)
+        {
+            return Train(sampleClass, new ColumnVector1D(sample));
         }
     }
 }

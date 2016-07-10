@@ -1,26 +1,11 @@
-﻿using System;
+﻿using LinqInfer.Maths;
 using System.Diagnostics.Contracts;
-using System.Linq;
 
 namespace LinqInfer.Learning
 {
     internal static class NetworkCalculator
     {
-        public static double CalculateDistance(double[] inputVector, double[] weights)
-        {
-            Validate(inputVector, weights);
-
-            double d = 0;
-
-            for (int i = 0; i < weights.Length; i++)
-            {
-                d += Math.Pow(weights[i] - inputVector[i], 2f);
-            }
-
-            return d;
-        }
-
-        public static double[] AdjustWeights(double[] inputVector, double[] weights, float learningRate)
+        public static double[] AdjustWeights(ColumnVector1D inputVector, double[] weights, float learningRate)
         {
             Validate(inputVector, weights);
 
@@ -34,10 +19,10 @@ namespace LinqInfer.Learning
             return weights;
         }
 
-        private static void Validate(double[] inputVector, double[] weights)
+        private static void Validate(ColumnVector1D inputVector, double[] weights)
         {
             Contract.Assert(weights != null && inputVector != null);
-            Contract.Assert(weights.Length == inputVector.Length);
+            Contract.Assert(weights.Length == inputVector.Size);
         }
     }
 }

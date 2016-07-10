@@ -48,7 +48,15 @@ namespace LinqInfer.Learning.Features
                     };
                 }
             }
-        } 
+        }
+
+        public IEnumerable<T> OutputClasses
+        {
+            get
+            {
+                return _outputs.Keys;
+            }
+        }
 
         public IDictionary<string, int> IndexLookup { get; private set; }
 
