@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -50,13 +51,14 @@ namespace LinqInfer.Learning
 
         public double CalculateDifference(T value)
         {
-            return NetworkCalculator.CalculateDistance(_featureExtractor.ExtractVector(value), Weights);
+            return _featureExtractor.ExtractColumnVector(value).Distance(Weights);
         }
 
         internal double CalculateDifference(ObjectVector<T> dataItem)
         {
             if (IsMember(dataItem.Value)) return -1;
-            return NetworkCalculator.CalculateDistance(dataItem.Attributes, Weights);
+
+            return dataItem.Vector.Distance(new ColumnVector1D(Weights));
         }
 
         internal void AppendMember(ObjectVector<T> dataItem)
@@ -78,7 +80,7 @@ namespace LinqInfer.Learning
             {
                 lock(_values)
                 {
-                    Weights = NetworkCalculator.AdjustWeights(dataItem.Attributes, Weights, _learningRate);
+                    Weights = NetworkCalculator.AdjustWeights(dataItem.Vector, Weights, _learningRate);
                 }
             }
         }

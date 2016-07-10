@@ -6,12 +6,15 @@ using System.Linq;
 
 namespace LinqInfer.Maths
 {
+    /// <summary>
+    /// Represents a fixed sequence of values which can be equality compared.
+    /// </summary>
     public sealed class Sequence<T> : IEnumerable<T>, IEquatable<IEnumerable<T>>, IStructuralEquatable where T : IEquatable<T>
     {
         private readonly T[] _values;
 
         /// <summary>
-        /// Represents a fixed sequence of values which can be equality compared.
+        /// Creates a new sequence of a given size
         /// </summary>
         /// <param name="size">The size of the sequence</param>
         public Sequence(int size)
@@ -21,11 +24,9 @@ namespace LinqInfer.Maths
             _values = new T[size];
         }
 
-        public Sequence<T> Permutate(T nextItem)
-        {
-            return new Sequence<T>(_values.Skip(1).Concat(new[] { nextItem }));
-        }
-
+        /// <summary>
+        /// Creates a new sequence using the supplied values
+        /// </summary>
         public Sequence(IEnumerable<T> values)
         {
             Contract.Assert(values != null);
@@ -35,6 +36,17 @@ namespace LinqInfer.Maths
             Contract.Assert(values0.Length > 0);
 
             _values = values0;
+        }
+
+
+        /// <summary>
+        /// Returns a new sequence which is this sequence concatenated with the next item and the first item removed
+        /// </summary>
+        /// <param name="nextItem"></param>
+        /// <returns></returns>
+        public Sequence<T> Permutate(T nextItem)
+        {
+            return new Sequence<T>(_values.Skip(1).Concat(new[] { nextItem }));
         }
 
         /// <summary>
@@ -93,6 +105,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Returns true if the other enumeration of objects is structually equal to this sequence of values
+        /// </summary>
         public bool Equals(IEnumerable<T> other)
         {
             if (other == null) return false;

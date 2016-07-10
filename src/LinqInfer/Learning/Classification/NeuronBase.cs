@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using System;
 using System.Linq;
 
@@ -8,10 +7,16 @@ namespace LinqInfer.Learning.Classification
     [Serializable]
     public class NeuronBase : INeuron
     {
-        private readonly ColumnVector1D _weights;
+        private ColumnVector1D _weights;
 
         [NonSerialized]
         private Func<double, double> _activator;
+
+        private NeuronBase(ColumnVector1D weights, Func<double, double> activator)
+        {
+            _weights = weights;
+            _activator = activator;
+        }
 
         public NeuronBase(int inputVectorSize)
         {
@@ -58,6 +63,25 @@ namespace LinqInfer.Learning.Classification
             var sum = Bias + _weights.Zip(input, (w, m) => w * m).Sum();
 
             return Output = Activator == null ? sum : Activator(sum);
+        }
+        public void PruneWeights(params int[] indexes)
+        {
+            _weights = _weights.RemoveValuesAt(indexes);
+        }
+
+        public object Clone()
+        {
+            return Clone(true);
+        }
+
+        public INeuron Clone(bool deep)
+        {
+            var clone = new NeuronBase(_weights.Clone(true), _activator);
+
+            clone.Bias = Bias;
+            clone.Output = Output;
+
+            return clone;
         }
     }
 }

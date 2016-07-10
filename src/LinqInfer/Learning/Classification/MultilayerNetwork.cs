@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +8,11 @@ using System.Linq;
 namespace LinqInfer.Learning.Classification
 {
     [Serializable]
-    internal class MultilayerNetwork
+    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>
     {
-        private readonly int _inputVectorSize;
         private readonly Func<int, Range, INeuron> _neuronFactory;
+
+        private int _inputVectorSize;
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
         private bool initd;
@@ -40,6 +42,15 @@ namespace LinqInfer.Learning.Classification
             _inputVectorSize = parameters.LayerSizes[0];
             _parameters = parameters;
             initd = false;
+        }
+
+        private MultilayerNetwork(NetworkParameters parameters, Func<int, Range, INeuron> neuronFactory, INetworkSignalFilter rootLayer, int inputVectorSize)
+        {
+            _inputVectorSize = inputVectorSize;
+            _parameters = parameters;
+            _neuronFactory = neuronFactory;
+            _rootLayer = rootLayer;
+            initd = true;
         }
 
         public MultilayerNetwork(int inputVectorSize, ActivatorFunc activator = null) : this(inputVectorSize, null, activator, null)
@@ -115,6 +126,30 @@ namespace LinqInfer.Learning.Classification
             return res;
         }
 
+        /// <summary>
+        /// Reduces the networks input parameters and associated weights to improve it's efficiency.
+        /// </summary>
+        /// <param name="inputIndexes">One or more input indexes (base zero)</param>
+        public void PruneInputs(params int[] inputIndexes)
+        {
+            if (inputIndexes == null || inputIndexes.Length == 0) throw new ArgumentException("No inputs recieved");
+
+            var newSize = Enumerable.Range(0, _inputVectorSize).Except(inputIndexes).Count();
+
+            ForEachLayer(l =>
+            {
+                l.ForEachNeuron(n =>
+                {
+                    n.PruneWeights(inputIndexes);
+                    return 1;
+                }).ToList();
+
+                return 1;
+            }, false).ToList();
+
+            _inputVectorSize = newSize;
+        }
+
         public IEnumerable<ILayer> Layers
         {
             get
@@ -182,6 +217,16 @@ namespace LinqInfer.Learning.Classification
             }
 
             return string.Format("Network({0}):{1}", _inputVectorSize, s);
+        }
+
+        public MultilayerNetwork Clone(bool deep)
+        {
+            return new MultilayerNetwork(_parameters, _neuronFactory, _rootLayer.Clone(true), _inputVectorSize);
+        }
+
+        public object Clone()
+        {
+            return Clone(true);
         }
     }
 }
