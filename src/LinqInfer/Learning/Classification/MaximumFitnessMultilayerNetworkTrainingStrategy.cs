@@ -4,23 +4,27 @@ using System.Linq;
 using System.Linq.Expressions;
 using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
+using System.Diagnostics;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MinErrorMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
+    internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
-        private readonly int _maxIterations;
         private readonly NetworkParameterCache _paramCache;
+        private readonly Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> _fitnessFunction;
+        private readonly Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> _haltingFunction;
 
-        public MinErrorMultilayerNetworkTrainingStrategy(
+        public MaximumFitnessMultilayerNetworkTrainingStrategy(
             float errorTolerance = 0.3f,
-            int maxIterations = 200)
+            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
+            Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null)
         {
-            _maxIterations = maxIterations;
             _paramCache = new NetworkParameterCache();
+            _fitnessFunction = fitnessFunction ?? MultilayerNetworkFitnessFunctions.ErrorMinimisationFunction<TInput, TClass>();
+            _haltingFunction = haltingFunction ?? ((c, i, t) => i > 1000);
 
             ErrorTolerance = errorTolerance;
-            ParallelProcess = false;
+            ParallelProcess = true;
         }
 
         public float ErrorTolerance { get; set; }
@@ -31,6 +35,8 @@ namespace LinqInfer.Learning.Classification
         {
             const int hiddenLayerFactor = 8;
 
+            var timer = new Stopwatch();
+
             var pipelineFact = new PipelineFactory(trainingContextFactory, featureSet.FeatureExtractor.VectorSize, outputMapper.VectorSize);
 
             var networks = Activators
@@ -38,13 +44,14 @@ namespace LinqInfer.Learning.Classification
                 .SelectMany(a => pipelineFact.GeneratePipelines(hiddenLayerFactor, a))
                 .Concat(_paramCache.Get<TClass>().Take(2).Select(trainingContextFactory))
                 .ToList();
-
-            var iterationReductionFactor = hiddenLayerFactor; // reduce by 1/iterationReductionFactor each iteration
+            
             var classf = classifyingExpression.Compile();
             var nc = networks.Count;
             var i = 0;
 
-            while (i < _maxIterations)
+            timer.Start();
+
+            while (!_haltingFunction(networks.FirstOrDefault(), i, timer.Elapsed))
             {
                 var unconverged = (i == 0) ? networks : networks.Where(n => !HasConverged(n)).ToList();
 
@@ -61,25 +68,33 @@ namespace LinqInfer.Learning.Classification
                     });
                 }
 
-                nc = networks.Count * (iterationReductionFactor - 1) / iterationReductionFactor;
+                nc = (int)(networks.Count * (2f / 3f)); // (iterationReductionFactor - 1) / iterationReductionFactor;
 
-                if (networks.Count > 3) networks = networks.OrderBy(n => n.CumulativeError).Take(nc).ToList();
+                if (networks.Count > 3) networks = networks.OrderByDescending(n => _fitnessFunction(featureSet.FeatureExtractor, n)).Take(nc).ToList();
 
                 if (networks.All(n => HasConverged(n))) break;
 
                 networks.Add(Breed(trainingContextFactory, networks[0], networks[1]));
 
+                if (networks.Count > 2)
+                    networks.Add(Breed(trainingContextFactory, networks[1], networks[2]));
+
                 i++;
             }
 
+            timer.Stop();
 
-            var bestSolution = networks.OrderBy(n => n.CumulativeError).First();
+            var bestSolution = networks.OrderByDescending(n => _fitnessFunction(featureSet.FeatureExtractor, n)).First();
 
-            Debugger.Log(bestSolution);
+            DebugOutput.Log(bestSolution);
 
             _paramCache.Store<TClass>(bestSolution.Parameters, bestSolution.AverageError.GetValueOrDefault());
 
             return bestSolution;
+        }
+
+        protected virtual void OptimiseFeatures(IFeatureTransformBuilder<TInput> features, IEnumerable<IClassifierTrainingContext<TClass, NetworkParameters>> trainingSet)
+        {
         }
 
         private IClassifierTrainingContext<TClass, NetworkParameters> Breed(Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, IClassifierTrainingContext<TClass, NetworkParameters> contextA, IClassifierTrainingContext<TClass, NetworkParameters> contextB)
@@ -109,13 +124,14 @@ namespace LinqInfer.Learning.Classification
 
             public IEnumerable<IClassifierTrainingContext<TClass, NetworkParameters>> GeneratePipelines(int hiddenLayerFactor, ActivatorFunc activator)
             {
-                return Enumerable.Range(0, hiddenLayerFactor)
-                    .Select(n =>
-                    {
-                        var parameters = new NetworkParameters(1, new int[] { _vectorSize, _vectorSize / 2 * n, _outputSize }, activator);
+                var fact = new Func<int, IClassifierTrainingContext<TClass, NetworkParameters>>(n =>
+                {
+                    var parameters = new NetworkParameters(1, new int[] { _vectorSize, _vectorSize / 2 * n, _outputSize }, activator);
 
-                        return _trainingContextFactory(parameters);
-                    });
+                    return _trainingContextFactory(parameters);
+                });
+
+                return Enumerable.Range(0, hiddenLayerFactor).Select(fact);
             }
         }
     }

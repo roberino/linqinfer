@@ -94,22 +94,24 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <param name="errorTolerance">The network error tolerance</param>
+        /// <param name="fitnessFunction">An optional fitness function which is used to determine the best solution found during the training phase</param>
         /// <returns></returns>
-        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this FeatureProcessingPipline<TInput> pipeline, 
+            Expression<Func<TInput, TClass>> classf, 
+            float errorTolerance = 0.1f,
+            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
+            Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null) where TInput : class where TClass : IEquatable<TClass>
         {
             return pipeline.ProcessWith((p, n) =>
             {
                 var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(p, classf);
-                var defaultStrategy = new MinErrorMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance);
+                var defaultStrategy = new MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance, fitnessFunction, haltingFunction);
                 var result = trainingPipline.TrainUsing(defaultStrategy);
-
-                //var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(pipeline.FeatureExtractor, errorTolerance);
-
-                //classifierPipe.Train(pipeline.Data, classf);
 
                 if (n != null) pipeline.OutputResults(result, n);
 
-                return result; // (IPrunableObjectClassifier<TClass, TInput>)classifierPipe;
+                return result;
             });
         }
 
