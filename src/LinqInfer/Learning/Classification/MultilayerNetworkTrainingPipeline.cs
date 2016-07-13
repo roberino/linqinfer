@@ -1,8 +1,6 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Features;
+﻿using LinqInfer.Learning.Features;
 using System;
 using System.Linq.Expressions;
-using System.IO;
 
 namespace LinqInfer.Learning.Classification
 {

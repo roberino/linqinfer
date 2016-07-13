@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LinqInfer.Utility
 {
-    internal static class Debugger
+    internal static class DebugOutput
     {
         public static void Log(object obj)
         {
