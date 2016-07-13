@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths.Probability;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
@@ -16,7 +16,7 @@ namespace LinqInfer.Tests.Learning
     [TestFixture]
     public class ImageLearningExamples
     {
-        private const int VectorWidth = 4;
+        private const int VectorWidth = 5;
 
         [Test]
         public void TrainNetwork_UsingCharacterBitmaps()
@@ -35,33 +35,44 @@ namespace LinqInfer.Tests.Learning
                 .Families
                 .Where(f => f.IsStyleAvailable(FontStyle.Regular) && f != FontFamily.GenericSansSerif && f != FontFamily.GenericSerif)
                 .RandomOrder()
-                .Take(5)
-                .SelectMany(f => letters.Select(c => ToCharObj(c, f)))
+                .Take(15)
+                .SelectMany(f => letters.Select(c => ToCharObj(c, f, "training")))
                 .RandomOrder()
                 .ToList()
                 .AsQueryable();
 
+            var testSet = letters
+                .Select(c => ToCharObj(c, FontFamily.GenericSerif, "testing"))
+                .RandomOrder()
+                .Select(l => l.ClassifyAs(l.Character))
+                .ToArray();
+
             var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[VectorWidth * VectorWidth] : m.VectorData);
 
-            pipeline.PreprocessWith(m =>
-            {
-                return m.Skip(3).ToArray();
-            });
+            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
 
-            var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.Character, 0.3f).ExecuteUntil(c =>
-            {
-                var r = c.Classify(x);
-                var r2 = c.Classify(i);
+            pipeline.ReduceFeaturesByThreshold(0.2f);
 
-                return r.Any() && r.First().ClassType == 'X' && r2.First().ClassType == 'I';
-            });
+            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
 
-            var x2c = classifier.Classify(x2).ToHypotheses();
+            var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet);
 
-            x2c.Update(v => v == 'X' ? (1).OutOf(2) : (1).OutOf(5));
+            var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.Character, 0.35f, fitnessFunction)
+                .ExecuteUntil(c =>
+                {
+                    var score = MultilayerNetworkFitnessFunctions.ClassificationAccuracyPercentage(c, testSet);
 
-            Assert.That(classifier.Classify(x).First().ClassType == 'X');
+                    return score == 1;
+                });
+
             Assert.That(classifier.Classify(x2).First().ClassType == 'X');
+
+            var distOfOtherX = classifier.Classify(x).ToDistribution();
+
+            if(distOfOtherX.OrderBy(m => m.Value).FirstOrDefault().Key != 'X')
+            {
+                Console.WriteLine("other x = {0}", distOfOtherX['X']);
+            }
 
             var classifyResults = classifier.Classify(i).ToList();
 
@@ -81,8 +92,10 @@ namespace LinqInfer.Tests.Learning
             return ToCharObj(c);
         }
 
-        public Letter ToCharObj(char c, FontFamily font = null)
+        public Letter ToCharObj(char c, FontFamily font = null, string message = null)
         {
+            Console.WriteLine("{0} {1}", font.Name, message);
+
             using (var b = new Bitmap(VectorWidth, VectorWidth))
             {
                 using (var g = Graphics.FromImage(b))

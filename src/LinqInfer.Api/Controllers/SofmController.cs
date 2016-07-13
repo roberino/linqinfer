@@ -24,7 +24,7 @@ namespace LinqInfer.Api.Controllers
                 {
                     weights = m.Weights,
                     numberOfMembers = m.GetMembers().Sum(x => x.Value),
-                    euclideanLength = new ColumnVector1D(m.Weights).EuclideanLength
+                    euclideanLength = m.Weights.EuclideanLength
                 })
             };
         }

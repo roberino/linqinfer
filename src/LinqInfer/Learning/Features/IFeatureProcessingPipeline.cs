@@ -11,6 +11,11 @@ namespace LinqInfer.Learning.Features
         IQueryable<T> Data { get; }
 
         /// <summary>
+        /// Normalised the feature data (if normalisation is enabled on the feature extractor).
+        /// </summary>
+        IFeatureProcessingPipeline<T> NormaliseData();
+
+        /// <summary>
         /// Returns an enumeration of vector data in batches.
         /// </summary>
         /// <returns></returns>
