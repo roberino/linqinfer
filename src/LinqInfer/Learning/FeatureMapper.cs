@@ -54,7 +54,18 @@ namespace LinqInfer.Learning
 
         protected HashSet<ClusterNode<T>> SetupOutputNodes(T initialSample, int outputNodeCount = 10, float learningRate = 0.5f)
         {
-            var sampleVector = _featureExtractor.CreateNormalisingVector(initialSample);
+            double[] sampleVector;
+
+            if (_featureExtractor.IsNormalising)
+            {
+                _featureExtractor.NormaliseUsing(new[] { initialSample });
+                sampleVector = Enumerable.Range(0, _featureExtractor.VectorSize).Select(_ => 1d).ToArray();
+            }
+            else
+            {
+                sampleVector = _featureExtractor.ExtractVector(initialSample);
+            }
+
             var vectorSize = sampleVector.Length;
             var dist = Functions.PercentileRange(outputNodeCount);
 

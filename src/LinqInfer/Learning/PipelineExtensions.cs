@@ -87,25 +87,52 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates a multi-layer neural network, training the network using the supplied feature data.
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <param name="errorTolerance">The network error tolerance</param>
+        /// <param name="fitnessFunction">An optional fitness function which is used to determine the best solution found during the training phase</param>
+        /// <param name="haltingFunction">An optional halting function which halts training once a solution is found (or not) 
+        /// - the function takes the current fittest network, an interation index, and the elapsed time as parameters and
+        /// return a true to indicate the training should stop</param>
         /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, float errorTolerance = 0.1f) where TInput : class where TClass : IEquatable<TClass>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this FeatureProcessingPipline<TInput> pipeline, 
+            Expression<Func<TInput, TClass>> classf, 
+            float errorTolerance = 0.1f,
+            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
+            Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var defaultStrategy = new MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance, fitnessFunction, haltingFunction);
+
+            return ToMultilayerNetworkClassifier(pipeline, classf, defaultStrategy);
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data and training strategy.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
+        /// <param name="trainingStrategy">A implementation of a multilayer network training strategy</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this FeatureProcessingPipline<TInput> pipeline,
+            Expression<Func<TInput, TClass>> classf,
+            IMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(pipeline.FeatureExtractor, errorTolerance);
+                var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(p, classf);
+                var result = trainingPipline.TrainUsing(trainingStrategy);
 
-                classifierPipe.Train(pipeline.Data, classf);
+                if (n != null) pipeline.OutputResults(result, n);
 
-                if (n != null) pipeline.OutputResults(classifierPipe, n);
-
-                return (IObjectClassifier<TClass, TInput>)classifierPipe;
+                return result;
             });
         }
 
@@ -116,16 +143,16 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="store">A blob store</returns>
         /// <param name="key">The name of a previously stored classifier</returns>
-        public static IObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
+        public static IPrunableObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
             this IBlobStore store, string key, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             if (featureExtractor == null) featureExtractor = new FeatureProcessingPipline<TInput>().FeatureExtractor;
 
-            var classifierPipe = new MultilayerNetworkClassificationPipeline<TClass, TInput>(featureExtractor);
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor);
 
-            store.Restore(key, classifierPipe);
+            store.Restore(key, classifier);
 
-            return classifierPipe;
+            return classifier;
         }
     }
 }

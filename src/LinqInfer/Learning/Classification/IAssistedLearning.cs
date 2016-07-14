@@ -2,6 +2,9 @@
 {
     public interface IAssistedLearning<TClass, TVector>
     {
-        double Train(TClass item, TVector[] sample);
+        /// <summary>
+        /// Trains the classifier by associating the sample class with the sample vector.
+        /// </summary>
+        double Train(TClass sampleClass, TVector[] sample);
     }
 }
