@@ -1,10 +1,11 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal interface ILayer : INetworkSignalFilter
+    internal interface ILayer : INetworkSignalFilter, ICloneableObject<ILayer>
     {
         int Size { get; }
         INeuron this[int index] { get; }

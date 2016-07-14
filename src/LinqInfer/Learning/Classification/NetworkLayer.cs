@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,11 @@ namespace LinqInfer.Learning.Classification
                 nx.Activator = activator.Activator;
                 return nx;
             }).ToList();
+        }
+
+        private NetworkLayer(IEnumerable<INeuron> neurons)
+        {
+            _neurons = neurons.ToList();
         }
 
         public virtual ColumnVector1D Process(ColumnVector1D input)
@@ -68,6 +74,28 @@ namespace LinqInfer.Learning.Classification
             var ev = Calculation;
 
             if (ev != null) ev.Invoke(this, new ColumnVector1DEventArgs(vector));
+        }
+
+        public ILayer Clone(bool deep)
+        {
+            var layer = new NetworkLayer(_neurons.Select(n => n.Clone(true)));
+
+            if (layer.Successor != null)
+            {
+                layer.Successor = layer.Successor.Clone(true);
+            }
+
+            return layer;
+        }
+
+        public object Clone()
+        {
+            return Clone(true);
+        }
+
+        INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep)
+        {
+            return Clone(true);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;

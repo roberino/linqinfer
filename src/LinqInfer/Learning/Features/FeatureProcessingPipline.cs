@@ -91,6 +91,8 @@ namespace LinqInfer.Learning.Features
 
         private FloatingPointTransformingFeatureExtractor<T> _transformation;
 
+        private bool _normalisationCompleted;
+
         internal FeatureProcessingPipline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             _data = data;
@@ -102,7 +104,7 @@ namespace LinqInfer.Learning.Features
         {
         }
 
-        internal IQueryable<T> Data
+        public IQueryable<T> Data
         {
             get
             {
@@ -151,6 +153,8 @@ namespace LinqInfer.Learning.Features
             if (ps.SelectedProperties.Any())
             {
                 FilterFeatures(f => ps.SelectedProperties.Contains(f.Label));
+
+                _normalisationCompleted = false;
             }
 
             return this;
@@ -167,6 +171,8 @@ namespace LinqInfer.Learning.Features
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, _transformation.Transformation, featureFilter);
             }
 
+            _normalisationCompleted = false;
+
             return this;
         }
 
@@ -180,6 +186,8 @@ namespace LinqInfer.Learning.Features
             {
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction, _transformation.FeatureFilter);
             }
+
+            _normalisationCompleted = false;
 
             return this;
         }
@@ -211,37 +219,44 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
+        public IFeatureProcessingPipeline<T> NormaliseData()
+        {
+            var fe = FeatureExtractor;
+
+            if (fe.IsNormalising && !_normalisationCompleted)
+            {
+                fe.NormaliseUsing(_data);
+
+                _normalisationCompleted = true;
+            }
+
+            return this;
+        }
+
         public IEnumerable<ColumnVector1D> ExtractVectors()
         {
-            if (_transformation == null)
-            {
-                if (_featureExtractor.IsNormalising)
-                {
-                    _featureExtractor.NormaliseUsing(_data);
-                }
+            var fe = FeatureExtractor;
 
-                foreach (var batch in _data.Chunk())
+            NormaliseData();
+
+            foreach (var batch in _data.Chunk())
+            {
+                foreach (var item in batch)
                 {
-                    foreach (var item in batch)
-                    {
-                        yield return _featureExtractor.ExtractColumnVector(item);
-                    }
+                    yield return fe.ExtractColumnVector(item);
                 }
             }
-            else
-            {
-                if (_featureExtractor.IsNormalising)
-                {
-                    _transformation.NormaliseUsing(_data);
-                }
+        }
 
-                foreach (var batch in _data.Chunk())
-                {
-                    foreach (var item in batch)
-                    {
-                        yield return _transformation.ExtractColumnVector(item);
-                    }
-                }
+        public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
+        {
+            var fe = FeatureExtractor;
+
+            NormaliseData();
+
+            foreach (var batch in _data.Chunk(batchSize))
+            {
+                yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractColumnVector(b))).ToList();
             }
         }
     }

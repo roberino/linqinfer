@@ -1,9 +1,10 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 
 namespace LinqInfer.Learning.Classification
 {
-    public interface INeuron
+    public interface INeuron : ICloneableObject<INeuron>
     {
         int Size { get; }
         double Bias { get; }
@@ -13,5 +14,6 @@ namespace LinqInfer.Learning.Classification
         void Adjust(Func<double, int, double> func);
         double Evaluate(ColumnVector1D input);
         Func<double, double> Activator { get; set; }
+        void PruneWeights(params int[] indexes);
     }
 }

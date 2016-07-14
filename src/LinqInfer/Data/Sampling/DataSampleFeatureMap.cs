@@ -82,7 +82,9 @@ namespace LinqInfer.Data.Sampling
 
         public double[] NormaliseUsing(IEnumerable<DataItem> samples)
         {
-            _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToDoubleArray();
+            if(samples.Any())
+                _maxSample = samples.Select(d => d.AsColumnVector()).MaxOfEachDimension().ToDoubleArray();
+
             return _maxSample;
         }
 
