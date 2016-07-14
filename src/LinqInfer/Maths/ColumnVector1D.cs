@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -12,7 +13,7 @@ namespace LinqInfer.Maths
     /// Represents a 1 dimensional column vector
     /// </summary>
     [Serializable]
-    public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>
+    public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
     {
         private readonly double[] _values;
         private Lazy<double> _euclideanLength;
@@ -73,14 +74,25 @@ namespace LinqInfer.Maths
         /// <returns>A double value</returns>
         public double Distance(ColumnVector1D input)
         {
-            double d = 0;
+            return Distance(input._values);
+        }
+
+        /// <summary>
+        /// Returns the Euclidean distance of this vector from another vector.
+        /// </summary>
+        /// <param name="input">The other vector</param>
+        /// <returns>A double value</returns>
+        public double Distance(double[] input)
+        {
+            double dist = 0;
 
             for (int i = 0; i < _values.Length; i++)
             {
-                d += Math.Pow(_values[i] - input[i], 2f);
+                var d = _values[i] - input[i];
+                dist += d * d;
             }
 
-            return d;
+            return dist;
         }
 
         /// <summary>
@@ -284,14 +296,20 @@ namespace LinqInfer.Maths
 
         public override int GetHashCode()
         {
-            return _values.GetHashCode();
+            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_values);
         }
 
+        /// <summary>
+        /// Returns true if an other object is structually equal to this object
+        /// </summary>
         public override bool Equals(object obj)
         {
             return Equals(obj as ColumnVector1D);
         }
 
+        /// <summary>
+        /// Returns true if an other vector is structually equal to this vector
+        /// </summary>
         public bool Equals(ColumnVector1D other)
         {
             if (other == null) return false;
@@ -305,6 +323,34 @@ namespace LinqInfer.Maths
             int i = 0;
 
             return _values.All(x => x == other._values[i++]);
+        }
+
+        /// <summary>
+        /// Removes values at the specific indexes, returning a new column vector.
+        /// </summary>
+        /// <param name="indexes">The zero based indexes to remove</param>
+        /// <returns>A new <see cref="ColumnVector1D"/></returns>
+        public ColumnVector1D RemoveValuesAt(params int[] indexes)
+        {
+            return new ColumnVector1D(Enumerable.Range(0, _values.Length).Except(indexes).Select(i => _values[i]).ToArray());
+        }
+
+        /// <summary>
+        /// Clones the vector, returning a new vector containing the same values
+        /// </summary>
+        /// <param name="deep">Not applicable to this object type</param>
+        /// <returns>A new <see cref="ColumnVector1D"/></returns>
+        public ColumnVector1D Clone(bool deep)
+        {
+            return new ColumnVector1D(ToDoubleArray());
+        }
+
+        /// <summary>
+        /// Clones the object
+        /// </summary>
+        public object Clone()
+        {
+            return Clone(true);
         }
 
         private void Refresh()

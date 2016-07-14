@@ -65,13 +65,6 @@ namespace LinqInfer.Learning.Features
 
         public int VectorSize { get { return _vectorSize; } }
 
-        public TVector[] CreateNormalisingVector(TInput sample = default(TInput))
-        {
-            var bnv = _baseFeatureExtractor.CreateNormalisingVector(sample);
-
-            return FilterAndTransform(bnv);
-        }
-
         public TVector[] NormaliseUsing(IEnumerable<TInput> samples)
         {
             var bnv = _baseFeatureExtractor.NormaliseUsing(samples);
