@@ -20,6 +20,7 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 5;
 
         [Test]
+        [Ignore("")]
         public void TrainNetwork_UsingCharacterBitmaps_Cluster()
         {
             var x = ToCharObj('X', FontFamily.GenericSansSerif);
@@ -54,12 +55,12 @@ namespace LinqInfer.Tests.Learning
 
                 var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet);
 
-                var nn = pipeline.ToMultilayerNetworkClassifier(o => o.Character, 0.3f, fitnessFunction).Execute();
+                var pipelineA = cluster.AsQueryable().CreatePipeline(c => c.VectorData);
+
+                var nn = pipelineA.ToMultilayerNetworkClassifier(o => o.Character, 0.3f, fitnessFunction).Execute();
 
                 classifiers[nn] = clusters.Count();
             }
-
-
         }
 
         [Test]
