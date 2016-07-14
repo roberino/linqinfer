@@ -59,7 +59,14 @@ namespace LinqInfer.Learning.Features
 
         public double[] NormaliseUsing(IEnumerable<T> samples)
         {
-            _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToDoubleArray();
+            if (samples.Any())
+            {
+                _normalisingVector = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(_vectorFunc(s)))).ToDoubleArray();
+            }
+            else
+            {
+                _normalisingVector = _vectorFunc(default(T)); // TODO: remove this odd logic
+            }
 
             //for (int i = 0; i < _normalisingVector.Length; i++)
             //{
