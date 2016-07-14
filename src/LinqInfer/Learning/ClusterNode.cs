@@ -89,7 +89,7 @@ namespace LinqInfer.Learning
             {
                 lock (_values)
                 {
-                    Weights.Apply((w, i) => w * _learningRate * dataItem.Vector[i]);
+                    Weights.Apply((w, i) => w + _learningRate * (dataItem.Vector[i] - w));
                 }
             }
         }

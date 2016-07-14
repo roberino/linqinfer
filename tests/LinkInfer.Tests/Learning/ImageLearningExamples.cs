@@ -4,6 +4,7 @@ using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -17,6 +18,49 @@ namespace LinqInfer.Tests.Learning
     public class ImageLearningExamples
     {
         private const int VectorWidth = 5;
+
+        [Test]
+        public void TrainNetwork_UsingCharacterBitmaps_Cluster()
+        {
+            var x = ToCharObj('X', FontFamily.GenericSansSerif);
+
+            var letters = Enumerable.Range((int)'A', 26).Select(b => (char)b).ToList();
+
+            var randomTrainingSet = FontFamily
+                .Families
+                .Where(f => f.IsStyleAvailable(FontStyle.Regular) && f != FontFamily.GenericSansSerif && f != FontFamily.GenericSerif)
+                .RandomOrder()
+                .Take(15)
+                .SelectMany(f => letters.Select(c => ToCharObj(c, f, "training")))
+                .RandomOrder()
+                .ToList()
+                .AsQueryable();
+
+            var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[VectorWidth * VectorWidth] : m.VectorData);
+
+            pipeline.ReduceFeaturesByThreshold(0.2f);
+
+            var clusters = pipeline.ToSofm().Execute();
+
+            var classifiers = new Dictionary<IPrunableObjectClassifier<char, Letter>, int>();
+
+            foreach (var cluster in clusters)
+            {
+                var testSet = cluster
+                    .Select(c => ToCharObj(c.Character, FontFamily.GenericSerif, "testing"))
+                    .RandomOrder()
+                    .Select(l => l.ClassifyAs(l.Character))
+                    .ToArray();
+
+                var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet);
+
+                var nn = pipeline.ToMultilayerNetworkClassifier(o => o.Character, 0.3f, fitnessFunction).Execute();
+
+                classifiers[nn] = clusters.Count();
+            }
+
+
+        }
 
         [Test]
         public void TrainNetwork_UsingCharacterBitmaps()
