@@ -70,6 +70,7 @@
     <Compile Include="Learning\Classification\MultilayerNetworkTrainingContextFactory.cs" />
     <Compile Include="Learning\Classification\ObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IObjectClassifier.cs" />
+    <Compile Include="Learning\FeatureMapperV2.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPipline.cs" />
     <Compile Include="Learning\Features\FeatureTransformations.cs" />
