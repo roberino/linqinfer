@@ -24,12 +24,27 @@ namespace LinqInfer.Learning
         /// Creates a feature processing pipeline from a set of data.
         /// </summary>
         /// <typeparam name="T">The input data type</typeparam>
-        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance</param>
+        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
+        /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
         /// <returns></returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
         {
             var size = featureLabels == null ? vectorFunc(default(T)).Length : featureLabels.Length;
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, normaliseData, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
+            return new FeatureProcessingPipline<T>(data, featureExtractor);
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline from a set of data.
+        /// </summary>
+        /// <typeparam name="T">The input data type</typeparam>
+        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
+        /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
+        /// <param name="vectorSize">The size of the vector returned by the vector function</param>    
+        /// <returns></returns>
+        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
+        {
+            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, true, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
             return new FeatureProcessingPipline<T>(data, featureExtractor);
         }
 
@@ -55,13 +70,32 @@ namespace LinqInfer.Learning
         /// <param name="normaliseData">True if the data should be normalised prior to mapping</param>
         /// <param name="learningRate">The learning rate</param>
         /// <returns></returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, TInput normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, TInput normalisingSample, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
                 var fm = new FeatureMapper<TInput>(p.FeatureExtractor, normalisingSample, outputNodeCount, learningRate);
 
                 return fm.Map(p.Data);
+            });
+        }
+
+        /// <summary>
+        /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="outputNodeCount">The maximum number of output nodes</param>
+        /// <param name="learningRate">The learning rate</param>
+        /// <param name="initialiser">An initialisation function used to determine the initial value of a output vector weight, given the output node index</param>
+        /// <returns>An execution pipeline for creating a SOFM</returns>
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, Func<int, double> initialiser = null) where TInput : class
+        {
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var fm = new FeatureMapperV2<TInput>(outputNodeCount, learningRate, true, initialiser);
+
+                return fm.Map(p);
             });
         }
 

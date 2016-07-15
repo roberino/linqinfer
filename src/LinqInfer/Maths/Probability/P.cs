@@ -7,6 +7,24 @@ namespace LinqInfer.Maths.Probability
     public static class P
     {
         /// <summary>
+        /// Returns the product of a sequence of fraction values.
+        /// </summary>
+        public static Fraction Product(this IEnumerable<Fraction> values)
+        {
+            if (values.Any())
+            {
+                var t = Fraction.One;
+
+                foreach(var value in values)
+                {
+                    t = Fraction.Multiply(t, value, true);
+                }
+            }
+
+            return Fraction.Zero;
+        }
+
+        /// <summary>
         /// Converts a classification result set into a set of hypothetical outcomes.
         /// </summary>
         /// <typeparam name="T">The class / outcome type</typeparam>

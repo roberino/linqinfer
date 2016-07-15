@@ -58,7 +58,11 @@ namespace LinqInfer.Learning
 
             if (_featureExtractor.IsNormalising)
             {
-                _featureExtractor.NormaliseUsing(new[] { initialSample });
+                if (initialSample == null)
+                    _featureExtractor.NormaliseUsing(Enumerable.Empty<T>());
+                else
+                    _featureExtractor.NormaliseUsing(new[] { initialSample });
+
                 sampleVector = Enumerable.Range(0, _featureExtractor.VectorSize).Select(_ => 1d).ToArray();
             }
             else
@@ -79,9 +83,9 @@ namespace LinqInfer.Learning
         protected double[] CreateInitialVector(double[] sampleVector, float weight)
         {
             return Enumerable
-                        .Range(0, sampleVector.Length)
-                        .Select(x => weight * sampleVector[x])
-                        .ToArray();
+                    .Range(0, sampleVector.Length)
+                    .Select(x => weight * sampleVector[x])
+                    .ToArray();
         }
     }
 }
