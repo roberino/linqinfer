@@ -24,7 +24,7 @@ namespace LinqInfer.Maths.Probability
 
         public Fraction Calculate(Fraction likelyhoodGivenHypo, Fraction likelyhood)
         {
-            return (PosteriorProbability * likelyhoodGivenHypo) / likelyhood;
+            return Fraction.Divide(Fraction.Multiply(PosteriorProbability, likelyhoodGivenHypo, true), likelyhood, true);
         }
 
         public IHypotheticalOutcome<T> Update(Fraction likelyhoodGivenHypo, Fraction likelyhood)
