@@ -1,10 +1,12 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths.Probability;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -20,28 +22,24 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 5;
 
         [Test]
-        [Ignore("")]
+        [Ignore("WIP")]
         public void TrainNetwork_UsingCharacterBitmaps_Cluster()
         {
             var x = ToCharObj('X', FontFamily.GenericSansSerif);
 
             var letters = Enumerable.Range((int)'A', 26).Select(b => (char)b).ToList();
 
-            var randomTrainingSet = FontFamily
-                .Families
-                .Where(f => f.IsStyleAvailable(FontStyle.Regular) && f != FontFamily.GenericSansSerif && f != FontFamily.GenericSerif)
-                .RandomOrder()
-                .Take(15)
-                .SelectMany(f => letters.Select(c => ToCharObj(c, f, "training")))
-                .RandomOrder()
-                .ToList()
+            var initialTrainingSet = letters
+                .Select(c => ToCharObj(c, FontFamily.GenericMonospace))
                 .AsQueryable();
 
-            var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[VectorWidth * VectorWidth] : m.VectorData);
+            var s = VectorWidth * VectorWidth;
 
-            pipeline.ReduceFeaturesByThreshold(0.2f);
+            var initialPipeline = initialTrainingSet.CreatePipeline(m => m.VectorData, s);
 
-            var clusters = pipeline.ToSofm().Execute();
+            initialPipeline.ReduceFeaturesByThreshold(0.2f);
+
+            var clusters = initialPipeline.ToSofm(25, 0.25f).Execute();
 
             var classifiers = new Dictionary<IPrunableObjectClassifier<char, Letter>, int>();
 
@@ -53,14 +51,45 @@ namespace LinqInfer.Tests.Learning
                     .Select(l => l.ClassifyAs(l.Character))
                     .ToArray();
 
+                var randomTrainingSet = FontFamily
+                    .Families
+                    .Where(f => f.IsStyleAvailable(FontStyle.Regular) && f != FontFamily.GenericSansSerif && f != FontFamily.GenericSerif)
+                    .RandomOrder()
+                    .Take(15)
+                    .SelectMany(f => cluster.Select(c => ToCharObj(c.Character, f, "training")))
+                    .RandomOrder()
+                    .ToList()
+                    .AsQueryable();
+
                 var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet);
 
-                var pipelineA = cluster.AsQueryable().CreatePipeline(c => c.VectorData);
+                var pipelineA = randomTrainingSet.CreatePipeline(c => c.VectorData, s);
 
-                var nn = pipelineA.ToMultilayerNetworkClassifier(o => o.Character, 0.3f, fitnessFunction).Execute();
+                pipelineA.ReduceFeaturesByThreshold(0.2f);
+
+                var nn = pipelineA.ToMultilayerNetworkClassifier(o => o.Character, 0.3f, fitnessFunction).ExecuteUntil(c =>
+                {
+                    var score = MultilayerNetworkFitnessFunctions.ClassificationAccuracyPercentage(c, testSet);
+
+                    return score == 1;
+                });
 
                 classifiers[nn] = clusters.Count();
             }
+
+            var hypos = classifiers.AsHypotheses();
+
+            var results = hypos.Hypotheses.SelectMany(c => c.Outcome.Classify(x).ToDistribution()).GroupBy(c => c.Key).Select(c => new
+            {
+                cls = c.Key,
+                score = c.Aggregate(1d, (t, v) => v.Value.Value * t)
+            })
+            .OrderByDescending(c => c.score)
+            .ToList();
+
+            hypos.Update(h => h.HighestClassification(x).Item2);
+
+            var result = hypos.MostProbable().Classify(x);
         }
 
         [Test]
@@ -285,6 +314,7 @@ namespace LinqInfer.Tests.Learning
             //return colour.IsEmpty ? 0 : 1; // (1 - ((colour.R * 0.2126 + colour.G * 0.7152 + colour.B * 0.0722) / 255));
         }
 
+        [DebuggerDisplay("{Character}")]
         public class Letter
         {
             public char Character { get; set; }

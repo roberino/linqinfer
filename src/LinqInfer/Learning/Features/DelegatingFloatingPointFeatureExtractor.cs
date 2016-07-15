@@ -65,7 +65,8 @@ namespace LinqInfer.Learning.Features
             }
             else
             {
-                _normalisingVector = _vectorFunc(default(T)); // TODO: remove this odd logic
+                if (_normalisingVector == null)
+                    _normalisingVector = _vectorFunc(default(T)); // TODO: remove this odd logic
             }
 
             //for (int i = 0; i < _normalisingVector.Length; i++)
