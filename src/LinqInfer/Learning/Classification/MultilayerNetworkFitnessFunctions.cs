@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,23 @@ namespace LinqInfer.Learning.Classification
         public static Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> ErrorMinimisationFunction<TInput, TClass>()
         {
             return ((f, c) => c.CumulativeError.HasValue ? 1d / c.CumulativeError.Value : 0);
+        }
+
+        /// <summary>
+        /// Returns the highest classification returned and the relative score as a percent.
+        /// </summary>
+        public static Tuple<TClass, Fraction> HighestClassification<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, TInput input)
+        {
+            var results = classifier.Classify(input);
+            var total = results.Sum(r => r.Score);
+            var first = results.FirstOrDefault();
+
+            if (first == null)
+            {
+                return null;
+            }
+
+            return new Tuple<TClass, Fraction>(first.ClassType, Fraction.ApproximateRational(first.Score / total));
         }
 
         /// <summary>

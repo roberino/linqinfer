@@ -97,9 +97,14 @@ namespace LinqInfer.Maths.Probability
         /// <param name="newEvents"></param>
         public void Update(params Fraction[] newEvents)
         {
+            if(newEvents.Length != _hypos.Count)
+            {
+                throw new ArgumentException("Invalid number of events supplied (must be one value per hypothesis");
+            }
+
             int i = 0;
 
-            var nf = Hypotheses.Select(h => newEvents[i++] * h.PriorProbability).ToList().Sum(true);
+            var nf = Hypotheses.Select(h => Fraction.Multiply(newEvents[i++], h.PriorProbability, true)).ToList().Sum(true);
 
             i = 0;
 
