@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
+using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -11,6 +12,32 @@ namespace LinqInfer.Tests.Learning
     [TestFixture]
     public class PipelineExtensionsTests
     {
+        [Test]
+        public void ToSofm_WithoutSupplingRadius()
+        {
+            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
+            var pipeline = data.CreatePipeline();
+            var map = pipeline.ToSofm(3).Execute();
+
+            foreach (var m in map)
+            {
+                Console.WriteLine("{0} - {1}", m.Key, m.Count());
+            }
+        }
+
+        [Test]
+        public void ToSofm_WithAnInitialRadius()
+        {
+            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
+            var pipeline = data.CreatePipeline();
+            var map = pipeline.ToSofm(3, 0.2f, 0.1f).Execute();
+
+            foreach (var m in map)
+            {
+                Console.WriteLine("{0} - {1}", m.Key, m.Count());
+            }
+        }
+
         [Test]
         public void ToNaiveBayesClassifier_SimpleSample_ClassifiesAsExpected()
         {

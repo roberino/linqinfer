@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -26,7 +27,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input data type</typeparam>
         /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
-        /// <returns></returns>
+        /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
         {
             var size = featureLabels == null ? vectorFunc(default(T)).Length : featureLabels.Length;
@@ -40,8 +41,8 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input data type</typeparam>
         /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
-        /// <param name="vectorSize">The size of the vector returned by the vector function</param>    
-        /// <returns></returns>
+        /// <param name="vectorSize">The size of the vector returned by the vector function</param>
+        /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
         {
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, true, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
@@ -54,10 +55,21 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input data type</typeparam>
         /// <param name="data">The data</param>
         /// <param name="featureExtractor">An optional feature extractor to extract feature vectors from the data</param>
-        /// <returns></returns>
+        /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
             return new FeatureProcessingPipline<T>(data, featureExtractor);
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline from a set of vectors.
+        /// </summary>
+        /// <param name="data">The data</param>
+        /// <returns>A feature processing pipeline</returns>
+        public static FeatureProcessingPipline<ColumnVector1D> CreatePipeline(this IQueryable<ColumnVector1D> data)
+        {
+            var first = data.FirstOrDefault();
+            return CreatePipeline(data, v => v.GetUnderlyingArray(), first == null ? 0 : first.Size);
         }
 
         /// <summary>
@@ -82,18 +94,23 @@ namespace LinqInfer.Learning
 
         /// <summary>
         /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
+        /// If an initial node radius is supplied, a Kohonen SOFM implementation will be used, otherwise a simpler
+        /// k-means centroid calculation will be used.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="outputNodeCount">The maximum number of output nodes</param>
         /// <param name="learningRate">The learning rate</param>
-        /// <param name="initialiser">An initialisation function used to determine the initial value of a output vector weight, given the output node index</param>
+        /// <param name="initialNodeRadius">When supplied, this is used used to determine the radius of each cluster node 
+        /// which is used to calculate the influence a node has on neighbouring nodes
+        /// when updating weights</param>
+        /// <param name="initialiser">An initialisation function used to determine the initial value of a output nodes weights, given the output node index</param>
         /// <returns>An execution pipeline for creating a SOFM</returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, Func<int, double> initialiser = null) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var fm = new FeatureMapperV2<TInput>(outputNodeCount, learningRate, true, initialiser);
+                var fm = new FeatureMapperV2<TInput>(outputNodeCount, learningRate, true, initialNodeRadius, initialiser);
 
                 return fm.Map(p);
             });
