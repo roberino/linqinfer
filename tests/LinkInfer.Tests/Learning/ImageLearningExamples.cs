@@ -19,10 +19,10 @@ namespace LinqInfer.Tests.Learning
     [TestFixture]
     public class ImageLearningExamples
     {
-        private const int VectorWidth = 5;
+        private const int VectorWidth = 7;
 
         [Test]
-        [Ignore("WIP")]
+        //[Ignore("WIP")]
         public void TrainNetwork_UsingCharacterBitmaps_Cluster()
         {
             var x = ToCharObj('X', FontFamily.GenericSansSerif);
@@ -39,7 +39,7 @@ namespace LinqInfer.Tests.Learning
 
             initialPipeline.ReduceFeaturesByThreshold(0.2f);
 
-            var clusters = initialPipeline.ToSofm(25, 0.25f).Execute();
+            var clusters = initialPipeline.ToSofm(25, 0.25f, 0.1f).Execute();
 
             var classifiers = new Dictionary<IPrunableObjectClassifier<char, Letter>, int>();
 
@@ -71,7 +71,7 @@ namespace LinqInfer.Tests.Learning
                 {
                     var score = MultilayerNetworkFitnessFunctions.ClassificationAccuracyPercentage(c, testSet);
 
-                    return score == 1;
+                    return score >= 0.5f;
                 });
 
                 classifiers[nn] = clusters.Count();
@@ -90,6 +90,72 @@ namespace LinqInfer.Tests.Learning
             hypos.Update(h => h.HighestClassification(x).Item2);
 
             var result = hypos.MostProbable().Classify(x);
+        }
+
+
+
+        [Test]
+        public void TrainNetwork_UsingCharacterBitmaps_Adapt()
+        {
+            var x = ToCharObj('X', FontFamily.GenericSansSerif);
+
+            var letters = Enumerable.Range((int)'A', 26).Select(b => (char)b).ToList();
+
+            var randomTrainingSet =
+                new[] { FontFamily.GenericSansSerif, FontFamily.GenericSerif }
+                .SelectMany(f => letters.Select(c => ToCharObj(c, f, "training")))
+                .RandomOrder()
+                .ToList()
+                .AsQueryable();
+
+            var testSet = letters
+                .Select(c => ToCharObj(c, FontFamily.GenericMonospace, "testing"))
+                .RandomOrder()
+                .Select(l => l.ClassifyAs(l.Character))
+                .ToArray();
+
+            var pipeline = randomTrainingSet.CreatePipeline(m => m == null ? new double[VectorWidth * VectorWidth] : m.VectorData);
+
+            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
+
+            pipeline.ReduceFeaturesByThreshold(0.2f);
+
+            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
+
+            var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet);
+
+            var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.Character, 0.45f).Execute();
+
+            var errors = new List<List<char>>();
+
+            foreach(var testChar in testSet)
+            {
+                var results = classifier.Classify(testChar.ObjectInstance).ToList();
+
+                if (results.Count > 0)
+                {
+                    var first = results.First();
+
+                    if (!first.ClassType.Equals(testChar.ObjectInstance))
+                    {
+                        var cluster = errors.FirstOrDefault(e => e.Contains(testChar.Classification) || e.Contains(first.ClassType));
+
+                        if (cluster == null)
+                        {
+                            cluster = new List<char>();
+                            errors.Add(cluster);
+                        }
+
+                        cluster.Add(testChar.Classification);
+                        cluster.Add(first.ClassType);
+                    }
+                }
+            }
+
+            foreach(var err in errors)
+            {
+                Console.WriteLine(err);
+            }
         }
 
         [Test]
