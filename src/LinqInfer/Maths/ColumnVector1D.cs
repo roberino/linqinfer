@@ -92,7 +92,7 @@ namespace LinqInfer.Maths
                 dist += d * d;
             }
 
-            return dist;
+            return Math.Sqrt(dist);
         }
 
         /// <summary>
@@ -351,6 +351,11 @@ namespace LinqInfer.Maths
         public object Clone()
         {
             return Clone(true);
+        }
+
+        internal double[] GetUnderlyingArray()
+        {
+            return _values;
         }
 
         private void Refresh()
