@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using LinqInfer.Maths.Probability;
+using System.Collections.Concurrent;
 
 namespace LinqInfer.Maths
 {
@@ -310,9 +311,73 @@ namespace LinqInfer.Maths
             // 1 / (theta * SqrR(2 * Pi)) * e -((x - mu) ^ 2) / (2 * theta ^ 2)
         }
 
+        /// <summary>
+        /// Returns a random set of data which has a normal distribution
+        /// </summary>
+        /// <param name="theta">The std dev</param>
+        /// <param name="mu">The average value</param>
+        /// <param name="count">The number of items in the dataset</param>
+        /// <returns>A enumeration of double values</returns>
+        public static IEnumerable<double> NormalRandomDataset(double theta, double mu, int count = 1000)
+        {
+            Contract.Assert(count > -1);
+
+            var nr = NormalRandomiser(theta, mu);
+            return Enumerable.Range(1, count).Select(n => nr()).ToList();
+        }
+
+        /// <summary>
+        /// Returns a function which returns a random values having a normal distribution
+        /// </summary>
+        /// <param name="theta">The std dev</param>
+        /// <param name="mu">The average value</param>
+        /// <returns>A function</returns>
+        public static Func<double> NormalRandomiser(double theta, double mu)
+        {
+            var pdf = NormalPdf(theta, mu);
+
+            // var cache = new ConcurrentDictionary<double, double>();
+
+            return () =>
+            {
+                while (true)
+                {
+                    var p0 = _random.NextDouble();
+
+                    //var cacheVal = cache.FirstOrDefault(x => x.Value > p0);
+
+                    //if (cacheVal.Value != 0)
+                    //{
+                    //    double x;
+                    //    if (cache.TryRemove(cacheVal.Key, out x))
+                    //        return x;
+                    //}
+
+                    var r = _random.NextDouble() * mu * 2;
+                    var p1 = pdf(r);
+
+                    if (p1 > p0) return r;
+
+                    //if (cache.Count < 1000)
+                    //    cache[r] = p1;
+                }
+            };
+        }
+
         public static Func<double, double> NormalPdf(double theta, double mu)
         {
-            return x => NormalDistribution(x, theta, mu);
+            var con = NormalConst(theta);
+            double a = con.Item1;
+            double b = con.Item2;
+
+            return x =>
+            {
+                double c = Math.Pow(x - mu, 2);
+                double d = -(c / con.Item2);
+                double e = Math.Exp(d);
+
+                return a * e;
+            };
         }
 
         public static Func<double, double> BinomialPdf(int buckets = 10, Fraction? trueProbability = null)

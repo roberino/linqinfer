@@ -12,6 +12,27 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Net45|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\Net4.5\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-Net45|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\Net4.5\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -20,6 +41,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +50,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -56,13 +79,14 @@
     <Compile Include="Data\Orm\ObjectMapper.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
-    <Compile Include="Genetics\ICr.cs" />
+    <Compile Include="Genetics\IChromosome.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\ClassifierAlgorithm.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
+    <Compile Include="Learning\Classification\RegressiveAdaptationMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTrainingPipeline.cs" />
@@ -76,6 +100,7 @@
     <Compile Include="Learning\Features\FeatureTransformations.cs" />
     <Compile Include="Learning\Features\FloatingPointTransformingFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureDataSource.cs" />
+    <Compile Include="Learning\Features\IFeatureSpace.cs" />
     <Compile Include="Learning\Features\IHasFeatureMetadata.cs" />
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
@@ -189,7 +214,7 @@
     <Compile Include="Text\TokenType.cs" />
     <Compile Include="Text\Analysis\WordGraph.cs" />
     <Compile Include="Text\RegexTokeniser.cs" />
-    <Compile Include="Utility\Debugger.cs" />
+    <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\TypeExtensions.cs" />

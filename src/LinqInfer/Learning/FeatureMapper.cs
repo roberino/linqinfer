@@ -42,7 +42,7 @@ namespace LinqInfer.Learning
                 if (batch.Count < BATCH_SIZE) break;
             }
 
-            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor.FeatureMetadata);
+            return new FeatureMap<T>(_outputNodes.Where(n => n.IsInitialised), _featureExtractor);
         }
 
         private void Process(T value)

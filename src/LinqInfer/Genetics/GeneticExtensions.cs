@@ -6,14 +6,14 @@ namespace LinqInfer.Genetics
 {
     internal static class GeneticExtensions
     {
-        public static void EvolveOverIterations<P, O>(this IEnumerable<P> initialParameters, Func<P, O> factory, Func<O, double> fitnessFunction, Func<O, int, bool> haltingFunction = null) where P : ICr<P>
+        public static void EvolveOverIterations<P, O>(this IEnumerable<P> initialParameters, Func<P, O> factory, Func<O, double> fitnessFunction, Func<O, int, bool> haltingFunction = null) where P : IChromosome<P>
         {
             int i = 0;
 
             var breedingSet = initialParameters.Select(p => new Item<P, O> { Parameters = p, Instance = factory(p), Score = 0 }).ToList();
-            var fittest = breedingSet.Select(x => x.Instance).OrderByDescending(fitnessFunction).FirstOrDefault();
+            var fittest = breedingSet.Select(x => x.Instance).FirstOrDefault();
 
-            while (!haltingFunction(fittest, i))
+            while (true)
             {
                 breedingSet.AsParallel().ForAll(x =>
                 {
@@ -21,6 +21,10 @@ namespace LinqInfer.Genetics
                 });
 
                 breedingSet = breedingSet.OrderByDescending(x => x.Score).Take(Math.Max(breedingSet.Count - 4, 2)).ToList();
+
+                fittest = breedingSet[0].Instance;
+
+                if (haltingFunction(fittest, i)) break;
 
                 var newParam1 = breedingSet[0].Parameters.Breed(breedingSet[1].Parameters);
 
