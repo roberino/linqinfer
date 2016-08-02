@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
@@ -13,26 +14,35 @@ namespace LinqInfer.Learning.Features
         private readonly Func<string, TResult> _execute;
         private readonly Func<bool, TResult, bool> _feedback;
         private readonly IList<Exception> _errors;
+        private readonly Stopwatch _timer;
 
         internal ExecutionPipline(Func<string, TResult> execute, Func<bool, TResult, bool> feedback)
         {
             _execute = execute;
             _feedback = feedback;
             _errors = new List<Exception>();
+            _timer = new Stopwatch();
         }
+
+        public TimeSpan Elapsed { get { return _timer.Elapsed; } }
 
         public TResult Execute(string outputName = null)
         {
             try
             {
+                _timer.Start();
+
                 var res = _execute(outputName);
 
                 _feedback(true, res);
+
+                _timer.Stop();
 
                 return res;
             }
             catch (Exception ex)
             {
+                _timer.Stop();
                 _errors.Add(ex);
                 throw;
             }
@@ -41,9 +51,11 @@ namespace LinqInfer.Learning.Features
         public TResult ExecuteUntil(Func<TResult, bool> condition, string outputName = null)
         {
             int errorStart = _errors.Count;
-
+            
             while (true)
             {
+                if (!_timer.IsRunning) _timer.Start();
+
                 var next = _execute(outputName);
 
                 try
@@ -52,6 +64,8 @@ namespace LinqInfer.Learning.Features
                     {
                         if (_feedback(true, next))
                         {
+                            _timer.Stop();
+
                             return next;
                         }
                     }
@@ -62,6 +76,8 @@ namespace LinqInfer.Learning.Features
                 }
                 catch (Exception ex)
                 {
+                    _timer.Stop();
+
                     _errors.Add(ex);
 
                     if ((_errors.Count - errorStart) > _errorThreshold)

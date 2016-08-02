@@ -1,4 +1,8 @@
-﻿namespace LinqInfer.Learning.Classification
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace LinqInfer.Learning.Classification
 {
     public static class ClassifiedObjectExtensions
     {
@@ -9,6 +13,15 @@
                 ObjectInstance = instance,
                 Classification = classification
             };
+        }
+
+        public static IEnumerable<ClassifiedObject<TInput, TClass>> ClassifyUsing<TInput, TClass>(this IEnumerable<TInput> data, Func<TInput, TClass> classf)
+        {
+            return data.Select(x => new ClassifiedObject<TInput, TClass>()
+            {
+                ObjectInstance = x,
+                Classification = classf(x)
+            });
         }
 
         public class ClassifiedObject<TInput, TClass>

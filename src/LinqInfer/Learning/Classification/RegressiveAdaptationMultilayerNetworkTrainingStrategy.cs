@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
+    internal class RegressiveAdaptationMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
         private const float _minRateOfChange = 0.01f;
 
@@ -18,7 +18,7 @@ namespace LinqInfer.Learning.Classification
 
         private double _currentLearningRate = 0.1;
 
-        public MaximumFitnessMultilayerNetworkTrainingStrategy(
+        public RegressiveAdaptationMultilayerNetworkTrainingStrategy(
             float errorTolerance = 0.3f,
             Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
             Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null)

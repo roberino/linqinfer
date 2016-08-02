@@ -29,13 +29,9 @@ namespace LinqInfer.Learning.Classification
 
         public virtual ColumnVector1D Process(ColumnVector1D input)
         {
-            var output = _neurons.Select(n => n.Evaluate(input));
+            var outputVect = new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray());
 
-            var outputVect = new ColumnVector1D(output.ToArray());
-
-            if (Successor == null) return outputVect;
-
-            return Successor.Process(outputVect);
+            return (Successor == null) ? outputVect : Successor.Process(outputVect);
         }
 
         public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)

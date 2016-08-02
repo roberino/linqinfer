@@ -32,7 +32,7 @@ namespace LinqInfer.Learning.Classification
             _inputVectorSize = inputVectorSize;
             _neuronFactory = neuronFactory;
 
-            _parameters = new NetworkParameters(inputVectorSize, neuronSizes, activator);
+            _parameters = new NetworkParameters(neuronSizes, activator);
 
             initd = false;
         }
@@ -221,7 +221,7 @@ namespace LinqInfer.Learning.Classification
 
         public MultilayerNetwork Clone(bool deep)
         {
-            return new MultilayerNetwork(_parameters, _neuronFactory, _rootLayer.Clone(true), _inputVectorSize);
+            return new MultilayerNetwork(_parameters.Clone(deep), _neuronFactory, _rootLayer.Clone(deep), _inputVectorSize);
         }
 
         public object Clone()

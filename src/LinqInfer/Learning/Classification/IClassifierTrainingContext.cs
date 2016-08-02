@@ -3,8 +3,18 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification
 {
-    public interface IClassifierTrainingContext<TClass, TParameters> : IAssistedLearning<TClass, double>
+    public interface IClassifierTrainingContext<TClass, TParameters> : IAssistedLearning<TClass, double>, ICloneableObject<IClassifierTrainingContext<TClass, TParameters>>
     {
+        /// <summary>
+        /// Gets a localised id for the training context
+        /// </summary>
+        int Id { get; }
+
+        /// <summary>
+        /// A counter that can be incremented to track iterations for this context
+        /// </summary>
+        int IterationCounter { get; set; }
+
         /// <summary>
         /// Returns the parameters used by this training instance
         /// </summary>
@@ -22,6 +32,11 @@ namespace LinqInfer.Learning.Classification
         /// Gets the current classifier
         /// </summary>
         IFloatingPointClassifier<TClass> Classifier { get; }
+
+        /// <summary>
+        /// Returns the current rate of error change.
+        /// </summary>
+        double? RateOfErrorChange { get; }
 
         /// <summary>
         /// Returns the error accumulated from training
