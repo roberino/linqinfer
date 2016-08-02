@@ -8,16 +8,18 @@ using System.Linq;
 
 namespace LinqInfer.Learning
 {
+    /// <summary>
+    /// See  https://en.wikipedia.org/wiki/K-means_clustering and https://en.wikipedia.org/wiki/Self-organizing_map
+    /// </summary>
     internal class FeatureMapperV2<T> where T : class
     {
         private const int BATCH_SIZE = 1000;
-        private readonly int _maxParallel;
         private readonly int _outputNodeCount;
         private readonly float _learningRate;
         private readonly Func<int, ColumnVector1D> _initialiser;
         private readonly float? _radius;
 
-        public FeatureMapperV2(int outputNodeCount = 10, float learningRate = 0.5f, bool parallel = false, float? radius = null, Func<int, ColumnVector1D> initialiser = null)
+        public FeatureMapperV2(int outputNodeCount = 10, float learningRate = 0.5f, float? radius = null, Func<int, ColumnVector1D> initialiser = null)
         {
             Contract.Assert(outputNodeCount > 0);
             Contract.Assert(learningRate > 0);
@@ -25,7 +27,6 @@ namespace LinqInfer.Learning
 
             _outputNodeCount = outputNodeCount;
             _learningRate = learningRate;
-            _maxParallel = parallel ? Environment.ProcessorCount : 1;
             _initialiser = initialiser;
             _radius = radius;
         }
@@ -52,12 +53,7 @@ namespace LinqInfer.Learning
                 });
             }
 
-            return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised), pipeline.FeatureMetadata);
-        }
-
-        public static double RelativeInfluence(double neighbourhoodRadius, double distance)
-        {
-            return Math.Exp(-((distance * distance) / (2 * (neighbourhoodRadius * neighbourhoodRadius))));
+            return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised), pipeline.FeatureExtractor);
         }
 
         protected virtual HashSet<ClusterNode<T>> SetupOutputNodes(IFeatureProcessingPipeline<T> pipeline)

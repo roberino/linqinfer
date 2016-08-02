@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Learning.Features;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace LinqInfer.Learning.Classification
@@ -55,6 +56,11 @@ namespace LinqInfer.Learning.Classification
             if (_classifier == null) throw new InvalidOperationException("Pipeline not trained");
 
             return _classifier.Classify(obj);
+        }
+
+        public override string ToString()
+        {
+            return _network == null ? "Un-initialised classifier" : "NN classifier" + _network.ToString();
         }
 
         private static Config Setup(
