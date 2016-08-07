@@ -12,7 +12,6 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
-        private int _inputVectorSize;
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
         private bool initd;
@@ -20,33 +19,31 @@ namespace LinqInfer.Learning.Classification
         public MultilayerNetwork(Stream input)
         {
             var n = Load(input);
-            _inputVectorSize = n._inputVectorSize;
             _neuronFactory = n._neuronFactory;
             _rootLayer = n._rootLayer;
             _parameters = n._parameters;
             initd = true;
         }
 
-        public MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, Range, INeuron> neuronFactory = null)
+        public MultilayerNetwork(NetworkParameters parameters)
         {
-            _inputVectorSize = inputVectorSize;
-            _neuronFactory = neuronFactory;
+            parameters.Validate();
 
-            _parameters = new NetworkParameters(inputVectorSize, neuronSizes, activator);
-
+            _parameters = parameters;
             initd = false;
         }
 
-        public MultilayerNetwork(NetworkParameters parameters)
+        internal MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, Range, INeuron> neuronFactory = null)
         {
-            _inputVectorSize = parameters.LayerSizes[0];
-            _parameters = parameters;
+            _neuronFactory = neuronFactory;
+
+            _parameters = new NetworkParameters(new int[] { inputVectorSize }.Concat(neuronSizes).ToArray(), activator);
+
             initd = false;
         }
 
         private MultilayerNetwork(NetworkParameters parameters, Func<int, Range, INeuron> neuronFactory, INetworkSignalFilter rootLayer, int inputVectorSize)
         {
-            _inputVectorSize = inputVectorSize;
             _parameters = parameters;
             _neuronFactory = neuronFactory;
             _rootLayer = rootLayer;
@@ -65,17 +62,8 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        public void Initialise(params int[] neuronsPerLayer)
-        {
-            if (neuronsPerLayer == null || neuronsPerLayer.Length == 0) neuronsPerLayer = new[] { _inputVectorSize, _inputVectorSize };
-
-            _parameters.LayerSizes = neuronsPerLayer;
-
-            InitialiseLayers();
-        }
-
         private void InitialiseLayers()
-        {   
+        {
             INetworkSignalFilter next = null;
 
             int lastN = 0;
@@ -87,13 +75,13 @@ namespace LinqInfer.Learning.Classification
             else
                 neuronFactory = (x => _neuronFactory(x, _parameters.InitialWeightRange));
 
-            foreach (var n in _parameters.LayerSizes.Where(x => x > 0))
+            foreach (var n in _parameters.LayerSizes.Where(x => x > 0)) // Don't create empty layers
             {
                 var prev = next;
 
                 if (prev == null)
                 {
-                    next = new NetworkLayer(_inputVectorSize, _inputVectorSize, _parameters.Activator, neuronFactory);
+                    next = new NetworkLayer(Parameters.InputVectorSize, Parameters.InputVectorSize, _parameters.Activator, neuronFactory);
                     _rootLayer = next;
                 }
                 else
@@ -112,6 +100,8 @@ namespace LinqInfer.Learning.Classification
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
+            if (!initd) InitialiseLayers();
+
             return (reverse ? Layers.Reverse() : Layers).Select(l => func(l));
         }
 
@@ -134,7 +124,7 @@ namespace LinqInfer.Learning.Classification
         {
             if (inputIndexes == null || inputIndexes.Length == 0) throw new ArgumentException("No inputs recieved");
 
-            var newSize = Enumerable.Range(0, _inputVectorSize).Except(inputIndexes).Count();
+            var newSize = Enumerable.Range(0, Parameters.InputVectorSize).Except(inputIndexes).Count();
 
             ForEachLayer(l =>
             {
@@ -147,16 +137,18 @@ namespace LinqInfer.Learning.Classification
                 return 1;
             }, false).ToList();
 
-            _inputVectorSize = newSize;
+            Parameters.InputVectorSize = newSize;
         }
 
         public IEnumerable<ILayer> Layers
         {
             get
             {
+                if (!initd) InitialiseLayers();
+
                 var next = _rootLayer as ILayer;
 
-                while(next != null)
+                while (next != null)
                 {
                     yield return next;
 
@@ -211,17 +203,17 @@ namespace LinqInfer.Learning.Classification
         public override string ToString()
         {
             string s = string.Empty;
-            foreach(var layer in Layers)
+            foreach (var layer in Layers)
             {
                 s += "[Layer " + layer.Size + "]";
             }
 
-            return string.Format("Network({0}):{1}", _inputVectorSize, s);
+            return string.Format("Network({0}):{1}", Parameters.InputVectorSize, s);
         }
 
         public MultilayerNetwork Clone(bool deep)
         {
-            return new MultilayerNetwork(_parameters, _neuronFactory, _rootLayer.Clone(true), _inputVectorSize);
+            return new MultilayerNetwork(_parameters.Clone(deep), _neuronFactory, _rootLayer.Clone(deep), Parameters.InputVectorSize);
         }
 
         public object Clone()

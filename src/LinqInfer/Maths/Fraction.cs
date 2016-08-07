@@ -241,6 +241,15 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Rounds the fraction to the nearest whole percentage (e.g. x/100)
+        /// </summary>
+        /// <returns>A new fraction</returns>
+        public Fraction ToPercent()
+        {
+            return new Fraction((int)Math.Round(Value * 100d, 0), 100, false);
+        }
+
+        /// <summary>
         /// Returns the square root as a new fraction
         /// </summary>
         public Fraction Sqrt(int precision = 6)

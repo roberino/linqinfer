@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,14 +40,23 @@ namespace LinqInfer.Learning.Classification
             return parameters;
         }
 
-        public IEnumerable<NetworkParameters> Get<T>()
+        public IEnumerable<NetworkParameters> Get<T>(int inputVectorSize, int outputSize)
         {
             ConcurrentDictionary<NetworkParameters, double> p;
 
             if (_store.TryGetValue(typeof(T), out p))
             {
-                return p.OrderBy(x => x.Value).Select(x => x.Key);
+                var  parameters = p
+                    .Where(i => i.Key.InputVectorSize == inputVectorSize && i.Key.OutputVectorSize == outputSize)
+                    .OrderBy(x => x.Value).Select(x => x.Key)
+                    .ToList();
+
+                DebugOutput.Log("{0} items retrieved from cache", parameters.Count);
+
+                return parameters;
             }
+
+            DebugOutput.Log("No items for type found cache");
 
             return Enumerable.Empty<NetworkParameters>();
         }

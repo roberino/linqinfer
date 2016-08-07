@@ -1,51 +1,94 @@
 ﻿using LinqInfer.Learning.Features;
 using System;
 using LinqInfer.Maths;
+using System.Diagnostics;
 
 namespace LinqInfer.Learning.Classification
 {
     internal class MultilayerNetworkTrainingContextFactory<TClass> where TClass : IEquatable<TClass>
     {
+        private int _currentId;
         private readonly ICategoricalOutputMapper<TClass> _outputMapper;
 
         public MultilayerNetworkTrainingContextFactory(ICategoricalOutputMapper<TClass> outputMapper)
         {
             _outputMapper = outputMapper;
+            _currentId = 0;
         }
 
         public IClassifierTrainingContext<TClass, NetworkParameters> Create(NetworkParameters parameters)
         {
-            return new MlnTrainngContext(parameters, _outputMapper);
+            return new MlnTrainngContext(() => ++_currentId, parameters, _outputMapper);
         }
 
+        [DebuggerDisplay("{AverageError}:{Parameters}")]
         private class MlnTrainngContext : IClassifierTrainingContext<TClass, NetworkParameters>
         {
+            private readonly MultilayerNetwork _network;
             private readonly AssistedLearningAdapter<TClass> _learningAdapter;
-            private readonly BackPropagationLearning _bpa;
+            private readonly MultilayerNetworkClassifier<TClass> _classifier;
+            private readonly Func<int> _idFunc;
+
+            private double? _lastError;
             private double? _error;
             private int _trainingCounter;
 
-            public MlnTrainngContext(NetworkParameters parameters, ICategoricalOutputMapper<TClass> outputMapper)
+            public MlnTrainngContext(Func<int> idFunc, NetworkParameters parameters, ICategoricalOutputMapper<TClass> outputMapper)
             {
-                var network = new MultilayerNetwork(parameters);
+                _network = new MultilayerNetwork(parameters);
 
-                _bpa = new BackPropagationLearning(network);
-                _learningAdapter = new AssistedLearningAdapter<TClass>(_bpa, outputMapper);
+                var bpa = new BackPropagationLearning(_network);
 
+                _learningAdapter = new AssistedLearningAdapter<TClass>(bpa, outputMapper);
+                _classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, _network);
+
+                _idFunc = idFunc;
+
+                Id = idFunc();
                 Parameters = parameters;
-                Classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, network);
             }
 
-            public IFloatingPointClassifier<TClass> Classifier { get; private set; }
+            private MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network, ICategoricalOutputMapper<TClass> outputMapper)
+            {
+                _network = network;
+
+                var bpa = new BackPropagationLearning(_network);
+
+                _learningAdapter = new AssistedLearningAdapter<TClass>(bpa, outputMapper);
+                _classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, _network);
+                _idFunc = idFunc;
+
+                Id = idFunc();
+                Parameters = network.Parameters;
+            }
+
+            public int Id { get; private set; }
+
+            public int IterationCounter { get; set; }
+
+            public IFloatingPointClassifier<TClass> Classifier { get { return _classifier; } }
 
             public NetworkParameters Parameters { get; private set; }
 
             public double? CumulativeError { get { return _error; } }
 
-            public double? AverageError { get { return _error.HasValue ? _error / _trainingCounter : null; } }
+            public double? AverageError { get { return _error.HasValue && _trainingCounter > 0 ? _error / _trainingCounter : null; } }
+
+            public double? RateOfErrorChange
+            {
+                get
+                {
+                    if (_error.HasValue && _lastError.HasValue)
+                    {
+                        return _error / _lastError;
+                    }
+                    return null;
+                }
+            }
 
             public void ResetError()
             {
+                _lastError = _error;
                 _trainingCounter = 0;
                 _error = null;
             }
@@ -71,6 +114,26 @@ namespace LinqInfer.Learning.Classification
                 _trainingCounter++;
 
                 return err;
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError, Parameters);
+            }
+
+            public IClassifierTrainingContext<TClass, NetworkParameters> Clone(bool deep)
+            {
+                return new MlnTrainngContext(_idFunc, _network.Clone(true), _classifier.OutputMapper)
+                {
+                    _error = _error,
+                    _lastError = _lastError,
+                    _trainingCounter = _trainingCounter
+                };
+            }
+
+            public object Clone()
+            {
+                return Clone(true);
             }
         }
     }

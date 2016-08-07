@@ -13,7 +13,7 @@ namespace LinqInfer.Tests.Learning
         {
             var sample0 = new TestData.Pirate() { Gold = 1800, Age = 70, IsCaptain = true, Ships = 5 };
             var pirateSample = TestData.CreatePirates().ToList();
-            var featureMap = pirateSample.AsQueryable().ToSofm(sample0, 2).ToList();
+            var featureMap = pirateSample.AsQueryable().CreatePipeline().ToSofm(sample0, 2).Execute().ToList();
 
             Assert.That(featureMap.Count(), Is.EqualTo(2));
 
@@ -27,7 +27,7 @@ namespace LinqInfer.Tests.Learning
             Assert.That(oldRichPirates.GetMembers().Single(p => p.Key.Age == 45).Value == 1);
             Assert.That(oldRichPirates.GetMembers().Single(p => p.Key.Age == 52).Value == 1);
         }
-              
+
         [Test]
         public void ToSimpleClassDistribution_SimpleSample()
         {

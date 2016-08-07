@@ -1,4 +1,5 @@
-﻿using LinqInfer.Data.Sampling;
+﻿using LinqInfer.Data;
+using LinqInfer.Data.Sampling;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -8,14 +9,22 @@ namespace LinqInfer.Api.Controllers
 {
     public class DataApiControllerBase : ApiController
     {
-        private readonly Lazy<ISampleStore> _store;
+        private readonly Lazy<ISampleStore> _sampleStore;
+        private readonly Lazy<IBlobStore> _blobStore;
 
         public DataApiControllerBase()
         {
-            _store = new Lazy<ISampleStore>(() =>
+            _sampleStore = new Lazy<ISampleStore>(() =>
             {
                 var ctx = Request.GetOwinContext();
                 var store = ctx == null ? Startup.SampleStore : ctx.Get<ISampleStore>(typeof(ISampleStore).ToString());
+                return store;
+            });
+
+            _blobStore = new Lazy<IBlobStore>(() =>
+            {
+                var ctx = Request.GetOwinContext();
+                var store = ctx == null ? Startup.BlobStore : ctx.Get<IBlobStore>(typeof(IBlobStore).ToString());
                 return store;
             });
         }
@@ -29,20 +38,27 @@ namespace LinqInfer.Api.Controllers
             return sample;
         }
 
-
         protected ISampleStore Storage
         {
             get
             {
-                return _store.Value;
+                return _sampleStore.Value;
+            }
+        }
+
+        protected IBlobStore Blobs
+        {
+            get
+            {
+                return _blobStore.Value;
             }
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && _store.IsValueCreated)
+            if (disposing && _sampleStore.IsValueCreated)
             {
-                _store.Value.Dispose();
+                _sampleStore.Value.Dispose();
             }
 
             base.Dispose(disposing);
@@ -51,6 +67,11 @@ namespace LinqInfer.Api.Controllers
         protected Uri ToConcreteUri(Uri dataUri, string subView = null, string relPath = "/api/data")
         {
             return new Uri(Request.RequestUri, relPath + dataUri.PathAndQuery + subView);
+        }
+
+        protected Uri RelativeApiUri(string relPath)
+        {
+            return new Uri(Request.RequestUri, relPath);
         }
     }
 }
