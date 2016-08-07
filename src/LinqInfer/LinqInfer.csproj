@@ -84,6 +84,7 @@
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\ClassifierAlgorithm.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
+    <Compile Include="Learning\Classification\INeuralNetwork.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\RegressiveAdaptationMultilayerNetworkTrainingStrategy.cs" />

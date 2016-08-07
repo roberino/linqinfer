@@ -181,7 +181,7 @@ namespace LinqInfer.Learning.Classification
                 l[1] = L(d, d * 2, d * 2, o);
                 l[2] = L(d, d * 4, d * 2, o);
                 l[3] = L(d, d * (2 * d + 1), (2 * d + 1), o);
-                l[4] = L(d, d * 2, o * 2, o);
+                l[4] = L(d, o);
                 l[5] = L(d, d * 4, o);
 
                 var fact = new Func<int, IClassifierTrainingContext<TClass, NetworkParameters>>(n =>
