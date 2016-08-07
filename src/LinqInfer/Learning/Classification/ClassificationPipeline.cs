@@ -16,17 +16,9 @@ namespace LinqInfer.Learning.Classification
 
         public ClassificationPipeline(IAssistedLearning<TClass, TVector> learning,
             IClassifier<TClass, TVector> classifier,
-            IFeatureExtractor<TInput, TVector> featureExtract,
-            TInput normalisingSample = default(TInput),
-            bool normalise = true) : base(classifier, featureExtract)
+            IFeatureExtractor<TInput, TVector> featureExtract) : base(classifier, featureExtract)
         {
             _learning = learning;
-
-            if (normalise)
-                if (normalisingSample == null)
-                    _featureExtract.NormaliseUsing(new TInput[0]);
-                else
-                    _featureExtract.NormaliseUsing(new[] { normalisingSample });
         }
 
         public virtual double Train(IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classifyingExpression)

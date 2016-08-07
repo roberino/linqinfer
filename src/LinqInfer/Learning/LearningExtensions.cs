@@ -1,37 +1,15 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
-using System.IO;
 
 namespace LinqInfer.Learning
 {
     public static class LearningExtensions
     {
-        private static readonly ObjectFeatureExtractor _ofo = new ObjectFeatureExtractor();
-
-        /// <summary>
-        /// Creates a self-organising feature map
-        /// from an enumeration of objects.
-        /// </summary>
-        /// <typeparam name="T">The object type</typeparam>
-        /// <param name="values">The values</param>
-        /// <param name="normalisingSample">A sample which is used to normalise the data (provide an object which represents the maximum value for each parameter)</param>
-        /// <param name="outputNodeCount">The maximum number of cluster nodes to output</param>
-        /// <param name="normaliseData">True if the object vector should be normalised before processing</param>
-        /// <param name="learningRate">The rate of learning</param>
-        /// <returns>An enumeration of cluster nodes</returns>
-        public static FeatureMap<T> ToSofm<T>(this IQueryable<T> values, T normalisingSample = null, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where T : class
-        {
-            var fm = new FeatureMapper<T>(_ofo.CreateFeatureExtractor<T>(normaliseData), normalisingSample, outputNodeCount, learningRate);
-
-            return fm.Map(values);
-        }
-
         /// <summary>
         /// Converts the results of a classifier into a distribution of probabilities by class type.
         /// </summary>
@@ -57,9 +35,12 @@ namespace LinqInfer.Learning
         /// <returns>A function which can classify new objects, returning a dictionary of potential results</returns>
         public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
-            var extractor = _ofo.CreateFeatureExtractor<TInput>();
+            var extractor = new ObjectFeatureExtractor().CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
+
+            if(extractor.IsNormalising)
+                extractor.NormaliseUsing(trainingData);
 
             classifierPipe.Train(trainingData, classf);
 

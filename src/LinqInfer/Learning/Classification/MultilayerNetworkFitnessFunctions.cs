@@ -53,13 +53,28 @@ namespace LinqInfer.Learning.Classification
         }
 
         /// <summary>
-        /// Returns a percentage representing the number of items successfully classified by a classifier.
+        /// Returns a percentage representing the number of items successfully classified by a classifier
+        /// </summary>
+        public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TInput> testData, Func<TInput, TClass> classf)
+        {
+            var testSet = testData.ClassifyUsing(classf);
+            
+            return ClassificationAccuracyPercentageInternal(classifier, testSet);
+        }
+
+        /// <summary>
+        /// Returns a percentage representing the number of items successfully classified by a classifier
         /// </summary>
         public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)
         {
+            return ClassificationAccuracyPercentageInternal(classifier, testData);
+        }
+
+        private static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>> testData)
+        {
             var count = 0;
 
-            if (testData.Length == 0) return 0d;
+            if (!testData.Any()) return 0d;
 
             foreach (var item in testData)
             {
@@ -69,7 +84,7 @@ namespace LinqInfer.Learning.Classification
                 count += (match == null ? 0 : (match.ClassType.Equals(item.Classification) ? 1 : 0));
             }
 
-            return count / (double)testData.Length;
+            return count / (double)testData.Count();
         }
 
         private static double ClassificationAccuranyScore<TInput, TClass>(this Func<TInput, IEnumerable<ClassifyResult<TClass>>> classifier, params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)

@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification
@@ -11,15 +12,24 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly IList<INeuron> _neurons;
 
+        [NonSerialized]
+        private readonly Func<int, IList<INeuron>> _neuronsFactory;
+
         public NetworkLayer(int inputVectorSize, int neuronCount, ActivatorFunc activator, Func<int, INeuron> neuronFactory = null)
         {
             var nf = neuronFactory ?? (n => new NeuronBase(n));
-            _neurons = Enumerable.Range(1, neuronCount).Select(n =>
+
+            _neuronsFactory = new Func<int, IList<INeuron>>((c) =>
             {
-                var nx = nf(inputVectorSize);
-                nx.Activator = activator.Activator;
-                return nx;
-            }).ToList();
+                return Enumerable.Range(1, c).Select(n =>
+                {
+                    var nx = nf(inputVectorSize);
+                    nx.Activator = activator.Activator;
+                    return nx;
+                }).ToList();
+            });
+
+            _neurons = _neuronsFactory(neuronCount);
         }
 
         private NetworkLayer(IEnumerable<INeuron> neurons)
@@ -29,13 +39,25 @@ namespace LinqInfer.Learning.Classification
 
         public virtual ColumnVector1D Process(ColumnVector1D input)
         {
-            var output = _neurons.Select(n => n.Evaluate(input));
+            var outputVect = _neurons.Any() ? new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray()) : input;
 
-            var outputVect = new ColumnVector1D(output.ToArray());
+            return (Successor == null) ? outputVect : Successor.Process(outputVect);
+        }
 
-            if (Successor == null) return outputVect;
+        public void Grow(int numberOfNewNeurons = 1)
+        {
+            Contract.Assert(numberOfNewNeurons > 0);
 
-            return Successor.Process(outputVect);
+            var newNeurons = _neuronsFactory(numberOfNewNeurons);
+
+            foreach (var n in newNeurons) _neurons.Add(n);
+        }
+
+        public void Prune(Func<INeuron, bool> predicate)
+        {
+            var toBeRemoved = _neurons.Where(n => predicate(n)).ToList();
+
+            foreach (var n in toBeRemoved) _neurons.Remove(n);
         }
 
         public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
