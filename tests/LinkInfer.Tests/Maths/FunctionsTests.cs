@@ -9,6 +9,21 @@ namespace LinqInfer.Tests.Probability
     [TestFixture]
     public class FunctionsTests
     {
+        [Test]
+        public void NormalRandomiser()
+        {
+            var data = Functions.NormalRandomDataset(0.6, 78, 1000).ToList();
+
+            foreach (var d in data.GroupBy(r => Math.Round(r, 0)).OrderBy(d => d.Key))
+            {
+                Console.WriteLine("{0}\t{1}", d.Key, d.Count());
+            }
+
+            Assert.That(data.Average(), Is.GreaterThan(75));
+            Assert.That(data.Average(), Is.LessThan(81));
+        }
+
+
         [TestCase(0, 1)]
         [TestCase(1, 1)]
         [TestCase(2, 2)]
@@ -168,6 +183,30 @@ namespace LinqInfer.Tests.Probability
             var p = Functions.NormalDistribution(x, stdDevf, muf);
 
             TestFixtureBase.AssertEquiv(p, expected, 2);
+        }
+
+        [TestCase(0.5d, 0.5d, 0.04714d, 8.46)]
+        public void NormalPdf_ReturnsExpectedResult(double x, double mu, double stdDev, double expected)
+        {
+            var pdf = Functions.NormalPdf(stdDev, mu);
+
+            var p = pdf(x);
+
+            Assert.AreEqual(expected, Math.Round(p, 2));
+        }
+
+        [TestCase(0.5d, 0.04714d)]
+        public void NormalRandomiser_ReturnsValidRange(double mu, double stdDev)
+        {
+            var rnd = Functions.NormalRandomiser(stdDev, mu);
+
+            foreach(var r in Enumerable.Range(1, 1000))
+            {
+                var x = rnd();
+
+                Assert.That(x >= 0);
+                Assert.That(x <= mu * 2);
+            }
         }
 
         [Test]
