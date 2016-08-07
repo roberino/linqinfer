@@ -7,6 +7,11 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
+    /// <summary>
+    /// Used to specify the parameters that are used to create a new neural network architecture.
+    /// The parameters define the input, output and hidden layer sizes as well as the activator
+    /// and learning rate.
+    /// </summary>
     [Serializable]
     public class NetworkParameters : IChromosome<NetworkParameters>, ICloneableObject<NetworkParameters>
     {
@@ -51,6 +56,14 @@ namespace LinqInfer.Learning.Classification
             get
             {
                 return LayerSizes == null || LayerSizes.Length == 0 ? 0 : LayerSizes[0];
+            }
+            internal set
+            {
+                if (LayerSizes == null || LayerSizes.Length == 0)
+                {
+                    throw new InvalidOperationException();
+                }
+                LayerSizes[0] = value;
             }
         }
 
@@ -159,7 +172,9 @@ namespace LinqInfer.Learning.Classification
             if (LearningRate <= 0 && LearningRate > 1) throw new ArgumentException("Invalid learning rate");
             if (InitialWeightRange.Size == 0) throw new ArgumentException("Invalid weight range");
             if (Activator == null) throw new ArgumentException("Missing activator function");
-            if (LayerSizes == null || LayerSizes.Length < 2) throw new System.ArgumentException("Missing or invalid layer sizes");
+            if (LayerSizes == null || LayerSizes.Length < 2) throw new ArgumentException("Missing or invalid layer sizes");
+            if (InputVectorSize <= 0) throw new ArgumentException("Invalid input size");
+            if (OutputVectorSize <= 0) throw new ArgumentException("Invalid output size");
         }
 
         public override string ToString()
