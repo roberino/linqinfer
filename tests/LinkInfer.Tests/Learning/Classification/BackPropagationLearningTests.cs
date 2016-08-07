@@ -14,9 +14,9 @@ namespace LinqInfer.Tests.Learning.Classification
         [TestCase(6, 2)]
         public void InitialiseAndTrain_ReturnsErrorGt0(int layer1Size, int layer2Size)
         {
-            var network = new MultilayerNetwork(4);
+            var parameters = new NetworkParameters(new int[] { 4, layer1Size, layer2Size, 4 });
 
-            network.Initialise(4, layer1Size, layer2Size, 4);
+            var network = new MultilayerNetwork(parameters);
 
             var bp = new BackPropagationLearning(network);
 
