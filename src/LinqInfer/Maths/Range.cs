@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 
 namespace LinqInfer.Maths
 {
@@ -10,6 +11,8 @@ namespace LinqInfer.Maths
     {
         public Range(double max = 1, double min = 0)
         {
+            Contract.Assert(max > min);
+
             Min = min;
             Max = max;
         }
@@ -30,7 +33,7 @@ namespace LinqInfer.Maths
         public double Size { get { return Max - Min; } }
 
         /// <summary>
-        /// Returns true if a value falls within the bounds of the range
+        /// Returns true if a value falls within the bounds of the range (inclusive of min and max values)
         /// </summary>
         /// <param name="value">The value</param>
         public bool IsWithin(double value)
