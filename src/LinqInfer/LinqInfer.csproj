@@ -111,6 +111,7 @@
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />
     <Compile Include="Maths\Probability\HuffmanTree.cs" />
+    <Compile Include="Maths\Probability\MonteCarloSimulation.cs" />
     <Compile Include="Maths\Sequence.cs" />
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />

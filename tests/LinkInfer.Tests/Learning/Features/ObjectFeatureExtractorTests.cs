@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 
@@ -42,7 +43,7 @@ namespace LinqInfer.Tests.Learning.Features
             [Feature(Ignore = true)]
             public decimal Amount { get; set; }
 
-            [Feature(IndexOrder = 99, Converter = typeof(MyStringConverter), Model = Maths.Probability.DistributionModel.Categorical)]
+            [Feature(IndexOrder = 99, Converter = typeof(MyStringConverter), Model = DistributionModel.Categorical)]
             public string Category { get; set; }
         }
 

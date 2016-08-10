@@ -79,6 +79,7 @@
     <Compile Include="Learning\ImageLearningExamples.cs" />
     <Compile Include="Learning\LinearSeparabilityExample.cs" />
     <Compile Include="Learning\PipelineExtensionsTests.cs" />
+    <Compile Include="Maths\MonteCarloSimulationTests.cs" />
     <Compile Include="TestFixtureBase.cs" />
     <Compile Include="Text\EnglishDictionaryTests.cs" />
     <Compile Include="Maths\ColumnVector1DTests.cs" />
