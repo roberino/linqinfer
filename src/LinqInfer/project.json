@@ -1,0 +1,70 @@
+{
+  "version": "2.1.0-*",
+  "title": "LinqInfer",
+  "description": "A lightweight and slightly experimental inference library for C#",
+  "language": "en-GB",
+  "authors": [ "R Eyres" ],
+  "packOptions": {
+    "projectUrl": "https://github.com/roberino/linqinfer",
+    "tags": [ "inference linq bayesian probability reasoning machine learning" ],
+    "licenseUrl": "http://www.gnu.org/licenses/gpl-3.0.en.html",
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/roberino/linqinfer"
+    }
+  },
+  "frameworks": {
+    "net45": {
+      "frameworkAssemblies": {
+        "System.Xml": "",
+        "System.Xml.Linq": ""
+      }
+    },
+    "net461": {
+      "frameworkAssemblies": {
+        "System.Xml": "",
+        "System.Xml.Linq": ""
+      },
+      "dependencies": {
+        "System.Data.Common": "4.1.0",
+        "System.Runtime.Serialization.Formatters": "4.0.0-rc3-24212-01"
+      }
+    },
+    "netstandard1.6": {
+      "imports": "dnxcore50",
+      "dependencies": {
+        "System.Collections": "4.0.11",
+        "System.Diagnostics.Contracts": "4.0.1",
+        "System.IO": "4.1.0",
+        "System.Linq": "4.1.0",
+        "System.Linq.Expressions": "4.1.0",
+        "System.Reflection": "4.1.0",
+        "System.Resources.ResourceManager": "4.0.1",
+        "System.Text.Encoding": "4.0.11",
+        "System.Runtime": "4.1.0",
+        "System.Runtime.Extensions": "4.1.0",
+        "System.Threading": "4.0.11",
+        "System.Threading.Tasks": "4.0.11",
+        "System.Xml.ReaderWriter": "4.0.11",
+        "System.Xml.XDocument": "4.0.11",
+        "System.Data.Common": "4.1.0",
+        "System.Runtime.Serialization.Formatters": "4.0.0-rc3-24212-01"
+      }
+    }
+  },
+  "scripts": {
+    "postcompile": [
+      "dotnet pack --no-build --configuration %compile:Configuration% --output ..\\..\\artifacts"
+    ]
+  },
+  "dependencies": {
+    "System.Collections.Concurrent": "4.0.12",
+    "System.ComponentModel": "4.0.1",
+    "System.ComponentModel.Primitives": "4.1.0",
+    "System.Diagnostics.Debug": "4.0.11",
+    "System.Linq.Queryable": "4.0.1",
+    "System.Net.Http": "4.1.0",
+    "System.Runtime.Serialization.Primitives": "4.1.1",
+    "System.Text.RegularExpressions": "4.1.0"
+  }
+}

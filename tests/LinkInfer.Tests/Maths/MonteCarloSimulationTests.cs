@@ -7,8 +7,9 @@ namespace LinqInfer.Tests.Maths
     [TestFixture]
     public class MonteCarloSimulationTests : TestFixtureBase
     {
-        [Test]
-        public void Simulate_PI()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Simulate_PI(bool parallel)
         {
             var mcs = new MonteCarloSimulation(v =>
             {
@@ -19,7 +20,7 @@ namespace LinqInfer.Tests.Maths
 
             }, 2, e => e * 4);
 
-            mcs.ParallelProcess = true;
+            mcs.ParallelProcess = parallel;
 
             var estimate = mcs.Simulate();
 

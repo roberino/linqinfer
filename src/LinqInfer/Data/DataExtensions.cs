@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data.Orm;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 
 namespace LinqInfer.Data
@@ -15,7 +16,7 @@ namespace LinqInfer.Data
         /// <param name="connection">A database connection</param>
         /// <param name="queryText">The query text (optional)</param>
         /// <returns>An in memory enumeration of rows mapped as the specified type returned from the query</returns>
-        public static IQueryable<T> Query<T>(this IDbConnection connection, string queryText = null) where T : new()
+        public static IQueryable<T> Query<T>(this DbConnection connection, string queryText = null) where T : new()
         {
             using (var mapper = new RelationalDataMapper(connection))
             {
