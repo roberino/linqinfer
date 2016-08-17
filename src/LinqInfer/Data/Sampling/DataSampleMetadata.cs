@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Data.Sampling
 {
-    [Serializable]
     public class DataSampleMetadata
     {
         public DataSampleMetadata()

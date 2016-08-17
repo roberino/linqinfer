@@ -12,7 +12,6 @@ namespace LinqInfer.Learning.Classification
     /// The parameters define the input, output and hidden layer sizes as well as the activator
     /// and learning rate.
     /// </summary>
-    [Serializable]
     public class NetworkParameters : IChromosome<NetworkParameters>, ICloneableObject<NetworkParameters>
     {
         /// <summary>

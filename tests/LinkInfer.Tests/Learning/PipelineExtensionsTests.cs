@@ -112,7 +112,9 @@ namespace LinqInfer.Tests.Learning
             {
                 pipeline.OutputResultsTo(blob);
 
-                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f).Execute("x");
+                var classifier = pipeline
+                    .ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f)
+                    .Execute("x");
 
                 var classifier2 = blob.OpenMultilayerNetworkClassifier<Pirate, string>("x");
 

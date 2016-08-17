@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\BinaryVectorDocumentTests.cs" />
     <Compile Include="Data\Orm\DataMapperTests.cs" />
     <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />

@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace LinqInfer.Data.Sampling
 {
-    [Serializable]
     public class DataItem : IStorageObject
     {
         [NonSerialized]
