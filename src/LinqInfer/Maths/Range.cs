@@ -6,7 +6,6 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a numeric range
     /// </summary>
-    [Serializable]
     public struct Range : IEquatable<Range>, IComparable<Range>
     {
         public Range(double max = 1, double min = 0)

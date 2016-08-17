@@ -25,7 +25,6 @@ namespace LinqInfer.Tests
             yield return new Pirate() { Gold = 1100, Age = 58, IsCaptain = true, Ships = 4 };
         }
 
-        [Serializable]
         public class Pirate
         {
             public int Gold { get; set; }

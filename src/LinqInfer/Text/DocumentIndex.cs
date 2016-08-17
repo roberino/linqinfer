@@ -177,7 +177,6 @@ namespace LinqInfer.Text
             }
         }
 
-        [Serializable]
         private class WordMap
         {
             private Dictionary<string, int> _docFrequencies;
