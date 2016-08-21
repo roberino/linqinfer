@@ -67,6 +67,10 @@
     <Compile Include="DataAccess\TypeMappingCache.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LinqInfer.Data.Orm\LinqInfer.Data.Orm.csproj">
+      <Project>{e73c6638-485b-4b42-91dd-9c0dc257b7a8}</Project>
+      <Name>LinqInfer.Data.Orm</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LinqInfer\LinqInfer.csproj">
       <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
       <Name>LinqInfer</Name>

@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestData", "TestData", "{52
 		tests\TestData\health-sample.csv = tests\TestData\health-sample.csv
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Data.Orm", "src\LinqInfer.Data.Orm\LinqInfer.Data.Orm.csproj", "{E73C6638-485B-4B42-91DD-9C0DC257B7A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +86,14 @@ Global
 		{3A540288-FF3C-424D-8E9C-9D4FB25B4328}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A540288-FF3C-424D-8E9C-9D4FB25B4328}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 		{3A540288-FF3C-424D-8E9C-9D4FB25B4328}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
+		{E73C6638-485B-4B42-91DD-9C0DC257B7A8}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

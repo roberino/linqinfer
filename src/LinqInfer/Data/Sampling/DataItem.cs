@@ -7,11 +7,8 @@ namespace LinqInfer.Data.Sampling
 {
     public class DataItem : IStorageObject
     {
-        [NonSerialized]
         private IUriProvider _uriProvider;
-        [NonSerialized]
         private ColumnVector1D _vector;
-        [NonSerialized]
         private object _item;
 
         public DataItem(IUriProvider uriProvider = null)

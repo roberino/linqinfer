@@ -59,12 +59,10 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocument.cs" />
-    <Compile Include="Data\DataExtensions.cs" />
     <Compile Include="Data\FileBlobStore.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
@@ -72,12 +70,6 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
-    <Compile Include="Data\Orm\ColumnMapping.cs" />
-    <Compile Include="Data\Orm\DefaultMapperFactory.cs" />
-    <Compile Include="Data\Orm\IObjectMapper.cs" />
-    <Compile Include="Data\Orm\IObjectMapperFactory.cs" />
-    <Compile Include="Data\Orm\RelationalDataMapper.cs" />
-    <Compile Include="Data\Orm\ObjectMapper.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />

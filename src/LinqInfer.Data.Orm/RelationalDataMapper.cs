@@ -8,21 +8,21 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Orm
 {
-    internal class RelationalDataMapper : IDisposable
+    public class RelationalDataMapper : IDisposable
     {
-        private readonly Func<IDbConnection> _connectionFactory;
+        private readonly Func<DbConnection> _connectionFactory;
         private readonly IObjectMapperFactory _mapperFactory;
-        private Lazy<IDbConnection> _connection;
+        private Lazy<DbConnection> _connection;
 
-        public RelationalDataMapper(IDbConnection connection) : this(() => connection, null)
+        public RelationalDataMapper(DbConnection connection) : this(() => connection, null)
         {
         }
 
-        public RelationalDataMapper(Func<IDbConnection> connectionFactory, IObjectMapperFactory mapperFactory = null)
+        public RelationalDataMapper(Func<DbConnection> connectionFactory, IObjectMapperFactory mapperFactory = null)
         {
             _connectionFactory = connectionFactory;
             _mapperFactory = mapperFactory ?? new DefaultMapperFactory();
-            _connection = new Lazy<IDbConnection>(_connectionFactory);
+            _connection = new Lazy<DbConnection>(_connectionFactory);
         }
 
         public async Task<IEnumerable<T>> QueryAsync<T>(string cmdText = null, CommandType cmdType = CommandType.Text) where T : new()
@@ -129,7 +129,7 @@ namespace LinqInfer.Data.Orm
             }
         }
 
-        protected IDbConnection Open()
+        protected DbConnection Open()
         {
             if(_connection.Value.State == ConnectionState.Closed)
             {
@@ -144,7 +144,7 @@ namespace LinqInfer.Data.Orm
                 catch
                 {
                 }
-                _connection = new Lazy<IDbConnection>(_connectionFactory);
+                _connection = new Lazy<DbConnection>(_connectionFactory);
             }
             return _connection.Value;
         }
