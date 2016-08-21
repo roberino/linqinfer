@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace LinqInfer.Utility
@@ -106,7 +105,9 @@ namespace LinqInfer.Utility
                 case TypeCode.DateTime:
                     return (T)(object)DateTime.FromFileTimeUtc(reader.ReadInt64());
                 case TypeCode.Object:
-                    return (T)new BinaryFormatter().Deserialize(reader.BaseStream);
+                    break;
+
+                    //return (T)new BinaryFormatter().Deserialize(reader.BaseStream);
                     //var typeName = reader.ReadString();
                     //return (T)Type.GetType(typeName).GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
             }
@@ -152,7 +153,7 @@ namespace LinqInfer.Utility
                     break;
                 case TypeCode.Object:
                     //writer.Write(type.FullName);
-                    new BinaryFormatter().Serialize(writer.BaseStream, obj);
+                    //new BinaryFormatter().Serialize(writer.BaseStream, obj);
                     break;
                 default:
                     throw new NotSupportedException(type.FullName);

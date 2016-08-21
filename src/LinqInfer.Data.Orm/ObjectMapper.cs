@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace LinqInfer.Data.Orm
 {
-    internal class ObjectMapper<T> : IObjectMapper<T>
+    public class ObjectMapper<T> : IObjectMapper<T>
     {
         private readonly IDictionary<string, Action<object, object>> _mappings;
 

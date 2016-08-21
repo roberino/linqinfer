@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace LinqInfer.Tests.Data.Orm
     [TestFixture]
     public class DataMapperTests
     {
-        Func<IDbConnection> _connFact;
+        Func<DbConnection> _connFact;
 
         [OneTimeSetUp]
         public void Setup()

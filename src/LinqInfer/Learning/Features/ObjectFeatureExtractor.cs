@@ -11,14 +11,31 @@ namespace LinqInfer.Learning.Features
 
         static ObjectFeatureExtractor()
         {
+#if NET_STD
+            var type = typeof(ObjectFeatureExtractor)
+                    .GetTypeInfo();
+
             _converters =
-                typeof(ObjectFeatureExtractor)
+                type
+                    .Assembly
+                    .ExportedTypes
+                    .Select(t => t.GetTypeInfo())
+                    .Where(t =>
+                        t.IsPublic && t.GetConstructor(new Type[0]) != null && t.GetInterfaces()
+                            .Any(i => i == typeof(IValueConverter)))
+                    .ToDictionary(x => x.AsType(), x => (IValueConverter)Activator.CreateInstance(x.AsType()));
+#else
+            var type = typeof(ObjectFeatureExtractor);
+
+            _converters =
+                type
                     .Assembly
                     .ExportedTypes
                     .Where(t =>
                         t.IsPublic && t.GetConstructor(new Type[0]) != null && t.GetInterfaces()
                             .Any(i => i == typeof(IValueConverter)))
                     .ToDictionary(x => x, x => (IValueConverter)Activator.CreateInstance(x));
+#endif
         }
 
         public Func<T, double[]> CreateFeatureExtractorFunc<T>(string setName = null) where T : class
@@ -35,7 +52,13 @@ namespace LinqInfer.Learning.Features
         {
             int i = 0;
 
-            var featureProps = actualType
+#if NET_STD
+            var type = actualType.GetTypeInfo();
+#else
+            var type = actualType;
+#endif
+
+            var featureProps = type
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Select(p =>
                 {

@@ -8,8 +8,7 @@ namespace LinqInfer.Learning.Classification
     public class NeuronBase : INeuron
     {
         private ColumnVector1D _weights;
-
-        [NonSerialized]
+        
         private Func<double, double> _activator;
 
         private NeuronBase(ColumnVector1D weights, Func<double, double> activator, bool firstWeightIsBias = false)
