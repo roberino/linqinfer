@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Classification
                 .All()
                 .Where(a => a.Name.StartsWith("Sig"))
                 .SelectMany(a => pipelineFact.GeneratePipelines(a))
-                .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, outputMapper.VectorSize).Take(2).Select(trainingContextFactory))
+                .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, outputMapper.VectorSize).Take(1).Select(trainingContextFactory))
                 .ToList();
             
             var classf = classifyingExpression.Compile();
@@ -58,11 +58,20 @@ namespace LinqInfer.Learning.Classification
 
             while (!_haltingFunction(networks.FirstOrDefault(), i, timer.Elapsed))
             {
-                if (networks.All(n => n.AverageError.HasValue && double.IsNaN(n.AverageError.Value)) && _currentLearningRate > 0.05)
+                if (networks.All(n => n.AverageError.HasValue && double.IsNaN(n.AverageError.Value)))
                 {
-                    _currentLearningRate -= 0.05;
+                    if (_currentLearningRate > 0.05)
+                    {
+                        _currentLearningRate -= 0.05;
 
-                    return Train(featureSet, trainingContextFactory, classifyingExpression, outputMapper);
+                        DebugOutput.Log("Reducing learning rate: " + _currentLearningRate);
+
+                        return Train(featureSet, trainingContextFactory, classifyingExpression, outputMapper);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 var unconverged = (i == 0) ? networks : networks.Where(n => !HasConverged(n)).ToList();
@@ -147,7 +156,13 @@ namespace LinqInfer.Learning.Classification
 
         private bool HasConverged(IClassifierTrainingContext<TClass, NetworkParameters> context)
         {
-            return (context.AverageError.HasValue && context.AverageError <= ErrorTolerance) || (context.RateOfErrorChange.HasValue && context.RateOfErrorChange < _minRateOfChange);
+            return
+                (context.AverageError.HasValue &&
+                    (double.IsNaN(context.AverageError.Value) ||
+                    context.AverageError <= ErrorTolerance)) 
+                    ||
+                (context.RateOfErrorChange.HasValue &&
+                    context.RateOfErrorChange < _minRateOfChange);
         }
 
         private class PipelineFactory

@@ -127,6 +127,29 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
+        public void ToMultilayerNetworkClassifier_UsingParametersSimpleSample_ClassifiesAsExpected()
+        {
+            var pirateSample = CreatePirates().ToList();
+            var pipeline = pirateSample.AsQueryable().CreatePipeline();
+            var classifier = pipeline
+                .ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 8)
+                .Execute();
+
+            var results = classifier.Classify(new Pirate()
+            {
+                Gold = 120,
+                Age = 5,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            foreach (var cls in results)
+            {
+                Console.WriteLine(cls);
+            }
+        }
+
+        [Test]
         public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
         {
             int successCounter = 0; int failureCounter = 0;

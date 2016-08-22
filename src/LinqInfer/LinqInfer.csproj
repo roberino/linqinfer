@@ -80,6 +80,7 @@
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
+    <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\RegressiveAdaptationMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />

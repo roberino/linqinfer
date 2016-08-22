@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text
@@ -177,7 +178,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private class WordMap
+        private class WordMap : IBinaryPersistable
         {
             private Dictionary<string, int> _docFrequencies;
 
@@ -190,6 +191,33 @@ namespace LinqInfer.Text
             public IDictionary<string, int> DocFrequencies { get { return _docFrequencies; } }
 
             public long Count { get; set; }
+
+            public void Save(Stream output)
+            {
+                using (var writer = new BinaryWriter(output, Encoding.Default, true))
+                {
+                    writer.Write(Count);
+                }
+
+                var ds = DictionarySerialiserFactory.ForInstance(_docFrequencies);
+
+                ds.Write(_docFrequencies, output);
+            }
+
+            public void Load(Stream input)
+            {
+                using (var reader = new BinaryReader(input, Encoding.Default, true))
+                {
+                    Count = reader.ReadInt64();
+                }
+
+                var ds = DictionarySerialiserFactory.ForInstance(_docFrequencies);
+
+                foreach (var item in ds.Read(input))
+                {
+                    _docFrequencies[item.Key] = item.Value;
+                }
+            }
         }
     }
 }

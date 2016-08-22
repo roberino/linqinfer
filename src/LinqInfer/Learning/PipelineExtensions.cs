@@ -208,6 +208,41 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
+        /// <param name="errorTolerance">The network error tolerance</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this FeatureProcessingPipline<TInput> pipeline,
+            Expression<Func<TInput, TClass>> classf,
+            params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(pipeline, classf);
+
+            var inputSize = pipeline.VectorSize;
+            var outputSize = trainingPipline.OutputMapper.VectorSize;
+
+            var parameters = NetworkParameters.Sigmoidal(new[] { inputSize }.Concat(hiddenLayers).Concat(new[] { outputSize }).ToArray());
+
+            parameters.Validate();
+
+            var strategy = new StaticParametersMultilayerTrainingStrategy<TClass, TInput>(parameters);
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var result = trainingPipline.TrainUsing(strategy);
+
+                if (n != null) pipeline.OutputResults(result, n);
+
+                return result;
+            });
+        }
+
+        /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data and training strategy.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
