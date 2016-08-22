@@ -11,6 +11,7 @@ namespace LinqInfer.Learning.Classification
         {
             yield return Sigmoid();
             yield return Threshold();
+            // yield return HyperbolicTangent();
         }
 
         public static ActivatorFunc Create(string name, double parameter)
@@ -36,6 +37,19 @@ namespace LinqInfer.Learning.Classification
                 Name = "Sigmoid",
                 Activator = x => (1 / (1 + Math.Exp(-alpha * x))),
                 Derivative = x => (alpha * x * (1 - x)),
+                Parameter = alpha,
+                Create = (p) => Sigmoid(p)
+            };
+        }
+
+        public static ActivatorFunc HyperbolicTangent(double alpha = 2)
+        {
+            var e = Math.E;
+            return new ActivatorFunc()
+            {
+                Name = "Tanh",
+                Activator = x => (Math.Pow(e, x) - Math.Pow(e, -x)) / (Math.Pow(e, x) + Math.Pow(e, -x)),
+                Derivative = null, // TODO
                 Parameter = alpha,
                 Create = (p) => Sigmoid(p)
             };

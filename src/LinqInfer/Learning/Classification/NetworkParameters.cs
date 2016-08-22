@@ -47,6 +47,11 @@ namespace LinqInfer.Learning.Classification
         {
         }
 
+        public static NetworkParameters Sigmoidal(params int[] layerSizes)
+        {
+            return new NetworkParameters(layerSizes, Activators.Sigmoid());
+        }
+
         /// <summary>
         /// Returns the input vector size
         /// </summary>

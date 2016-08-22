@@ -1,8 +1,10 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace LinqInfer.Tests
 {
@@ -25,7 +27,7 @@ namespace LinqInfer.Tests
             yield return new Pirate() { Gold = 1100, Age = 58, IsCaptain = true, Ships = 4 };
         }
 
-        public class Pirate
+        public class Pirate : IBinaryPersistable
         {
             public int Gold { get; set; }
 
@@ -38,6 +40,28 @@ namespace LinqInfer.Tests
             public override string ToString()
             {
                 return string.Format("Age={0}, Gold={1}, IsCaptain={2}, Ships={3}", Age, Gold, IsCaptain, Ships);
+            }
+
+            public void Save(Stream output)
+            {
+                using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
+                {
+                    writer.Write(Gold);
+                    writer.Write(Age);
+                    writer.Write(Ships);
+                    writer.Write(IsCaptain);
+                }
+            }
+
+            public void Load(Stream input)
+            {
+                using (var reader = new BinaryReader(input, Encoding.UTF8, true))
+                {
+                    Gold = reader.ReadInt32();
+                    Age = reader.ReadInt32();
+                    Ships = reader.ReadInt32();
+                    IsCaptain = reader.ReadBoolean();
+                }
             }
         }
     }
