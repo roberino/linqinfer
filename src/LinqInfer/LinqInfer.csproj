@@ -81,7 +81,6 @@
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
-    <Compile Include="Learning\Classification\RegressiveAdaptationMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTrainingPipeline.cs" />
@@ -210,6 +209,7 @@
     <Compile Include="Text\TokenType.cs" />
     <Compile Include="Text\Analysis\WordGraph.cs" />
     <Compile Include="Text\RegexTokeniser.cs" />
+    <Compile Include="Text\VectorExtraction\VectorExtractor.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />

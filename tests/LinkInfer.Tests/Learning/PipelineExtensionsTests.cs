@@ -72,6 +72,8 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
         {
+            int i = 0;
+
             var xor1 = new XorNode() { X = true, Y = false };
             var xor2 = new XorNode() { X = false, Y = false };
             var xor3 = new XorNode() { X = true, Y = true };
@@ -84,6 +86,10 @@ namespace LinqInfer.Tests.Learning
                 .ToMultilayerNetworkClassifier(x => x.Output, 0.3f)
                 .ExecuteUntil(f =>
             {
+                i++;
+
+                if (i > 100) return true;
+
                 return
                     f.Classify(xor1).First().ClassType == xor1.Output
                     && f.Classify(xor2).First().ClassType == xor2.Output
