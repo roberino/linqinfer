@@ -4,6 +4,7 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -26,10 +27,12 @@ namespace LinqInfer.Text
 
         public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128)
         {
+            Contract.Assert(maxVectorSize > 0);
+
             var wf = WordFrequencies.ToList();
 
             return new VectorExtraction.VectorExtractor(wf
-                .OrderByDescending(w => Math.Log((double)w.Item2 / ((double)w.Item3) + 1))
+                .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
                 .Select(w => w.Item1)
                 .Take(maxVectorSize), wf.Max(f => f.Item3));
         }
@@ -50,13 +53,13 @@ namespace LinqInfer.Text
             }
         }
 
-        public void IndexDocuments(IQueryable<KeyValuePair<string, IEnumerable<IToken>>> documentKeyPairs)
+        public void IndexDocuments(IEnumerable<TokenisedTextDocument> documents)
         {
-            foreach (var kp in documentKeyPairs)
+            foreach (var doc in documents)
             {
                 _documentCount++;
 
-                foreach (var word in kp.Value.Where(t => t.Type == TokenType.Word))
+                foreach (var word in doc.Tokens.Where(t => t.Type == TokenType.Word))
                 {
                     WordMap wordData;
 
@@ -71,23 +74,23 @@ namespace LinqInfer.Text
 
                     int tf;
 
-                    wordData.DocFrequencies.TryGetValue(kp.Key, out tf);
+                    wordData.DocFrequencies.TryGetValue(doc.Id, out tf);
 
-                    wordData.DocFrequencies[kp.Key] = tf + 1;
+                    wordData.DocFrequencies[doc.Id] = tf + 1;
 
                     _frequencies[word.Text] = wordData;
                 }
             }
         }
 
-        public void IndexDocuments(IQueryable<KeyValuePair<string, XDocument>> documentKeyPairs)
+        public void IndexDocuments(IEnumerable<KeyValuePair<string, XDocument>> documentKeyPairs)
         {
-            var transformed = documentKeyPairs.Select(p => new KeyValuePair<string, IEnumerable<IToken>>(p.Key, ExtractWords(p.Value)));
+            var transformed = documentKeyPairs.Select(p => new TokenisedTextDocument(p.Key, ExtractWords(p.Value)));
 
             IndexDocuments(transformed.AsQueryable());
         }
 
-        public void IndexDocuments(IQueryable<XDocument> documents, Func<XDocument, string> keySelector)
+        public void IndexDocuments(IEnumerable<XDocument> documents, Func<XDocument, string> keySelector)
         {
             IndexDocuments(documents.Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d)));
         }

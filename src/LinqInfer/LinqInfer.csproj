@@ -116,6 +116,7 @@
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
+    <Compile Include="Text\TokenisedTextDocument.cs" />
     <Compile Include="Text\TextExtensions.cs" />
     <Compile Include="Text\TextFuctions.cs" />
     <Compile Include="Learning\FeatureMap.cs" />
