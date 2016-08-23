@@ -20,7 +20,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             return q => documents
                 .Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d))
@@ -39,7 +39,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             if(output != null)
             {
@@ -61,7 +61,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             if (output != null)
             {

@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -24,7 +25,6 @@ namespace LinqInfer.Tests.Text
             Assert.That(matches.First().Key, Is.EqualTo("3"));
         }
 
-
         [Test]
         public void CreateVectorExtractor()
         {
@@ -32,7 +32,15 @@ namespace LinqInfer.Tests.Text
 
             var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
 
-            index.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
+            int id = 0;
+
+            var blocks = docs.SelectMany(d => new Corpus(index.Tokeniser.Tokenise(d.Root.Value)).Blocks.ToList()).ToList();
+
+            var tdocs = blocks
+                .Select(b => new TokenisedTextDocument((id++).ToString(), b))
+                .ToList();
+
+            index.IndexDocuments(tdocs);
 
             var ve = index.CreateVectorExtractor();
 

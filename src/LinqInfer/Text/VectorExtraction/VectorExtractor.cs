@@ -80,7 +80,7 @@ namespace LinqInfer.Text.VectorExtraction
 
             return vectorRaw
                 .Select(v => v == 0 ? 0d :
-                    Math.Log(_normalisingFrequency - Math.Min(v, _normalisingFrequency)
+                    Math.Log(Math.Min(v + 1, _normalisingFrequency)
                     , _normalisingFrequency))
                 .ToArray();
         }
