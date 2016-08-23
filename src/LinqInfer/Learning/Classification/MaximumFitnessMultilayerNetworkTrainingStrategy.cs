@@ -10,7 +10,7 @@ namespace LinqInfer.Learning.Classification
 {
     internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
-        private const float _minRateOfChange = 0.01f;
+        private const float _minRateOfChange = 0.001f;
 
         private readonly NetworkParameterCache _paramCache;
         private readonly Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> _fitnessFunction;

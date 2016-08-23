@@ -36,7 +36,7 @@ namespace LinqInfer.Text.Analysis
         {
             get
             {
-                return _tokens.Where(t => t.Type == TokenType.Word);
+                return _tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.Symbol);
             }
         }
 
