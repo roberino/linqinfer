@@ -116,6 +116,7 @@
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
+    <Compile Include="Text\StreamTokeniser.cs" />
     <Compile Include="Text\TokenisedTextDocument.cs" />
     <Compile Include="Text\TextExtensions.cs" />
     <Compile Include="Text\TextFuctions.cs" />
@@ -210,7 +211,9 @@
     <Compile Include="Text\TokenType.cs" />
     <Compile Include="Text\Analysis\WordGraph.cs" />
     <Compile Include="Text\RegexTokeniser.cs" />
-    <Compile Include="Text\VectorExtraction\VectorExtractor.cs" />
+    <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />
+    <Compile Include="Text\VectorExtraction\ObjectTextVectorExtractor.cs" />
+    <Compile Include="Text\VectorExtraction\TextVectorExtractor.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />

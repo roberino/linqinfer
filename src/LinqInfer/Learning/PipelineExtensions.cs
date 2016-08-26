@@ -43,7 +43,8 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input data type</typeparam>
         /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
-        /// <param name="vectorSize">The size of the vector returned by the vector function</param>
+        /// <param name="vectorSize">The size of the vector returned by the vector function. 
+        /// IF YOU DO NOT provide this value, the vector function will be called with default arguments which may be null</param>
         /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
         {
