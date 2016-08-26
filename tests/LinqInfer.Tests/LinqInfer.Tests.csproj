@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LinqInfer.Tests</RootNamespace>
+    <AssemblyName>LinqInfer.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.0.5813.39031, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NUnit.3.0.1\lib\net45\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.101.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Data.SQLite.Core.1.0.101.0\lib\net46\System.Data.SQLite.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6, Version=1.0.101.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Data.SQLite.EF6.1.0.101.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.101.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Data.SQLite.Linq.1.0.101.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Data\BinaryVectorDocumentTests.cs" />
+    <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
+    <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
+    <Compile Include="Learning\Classification\MultilayerNetworkTests.cs" />
+    <Compile Include="Learning\Features\FeatureProcessingPiplineTests.cs" />
+    <Compile Include="Learning\Features\TransformingFeatureExtractorTests.cs" />
+    <Compile Include="Learning\ImageLearningExamples.cs" />
+    <Compile Include="Learning\LinearSeparabilityExample.cs" />
+    <Compile Include="Learning\PipelineExtensionsTests.cs" />
+    <Compile Include="Maths\MonteCarloSimulationTests.cs" />
+    <Compile Include="TestFixtureBase.cs" />
+    <Compile Include="Text\EnglishDictionaryTests.cs" />
+    <Compile Include="Maths\ColumnVector1DTests.cs" />
+    <Compile Include="Maths\ContinuousSampleTests.cs" />
+    <Compile Include="Maths\DensityEstimationTests.cs" />
+    <Compile Include="Maths\FunctionsTests.cs" />
+    <Compile Include="Maths\HistogramTests.cs" />
+    <Compile Include="Maths\KernelDensityEstimatorTests.cs" />
+    <Compile Include="Samples.cs" />
+    <Compile Include="Data\Storage\Parsers\CsvParserTests.cs" />
+    <Compile Include="TestData.cs" />
+    <Compile Include="Learning\LearningExtensionsTests.cs" />
+    <Compile Include="Learning\Features\ObjectFeatureExtractorTests.cs" />
+    <Compile Include="Maths\FractionTests.cs" />
+    <Compile Include="Maths\HypoSetTests.cs" />
+    <Compile Include="Maths\ProbabilityExtensionsTests.cs" />
+    <Compile Include="Maths\SampleTests.cs" />
+    <Compile Include="Learning\Classification\NaiveBayesNormalClassifierTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Text\DocumentIndexTests.cs" />
+    <Compile Include="Text\HtmlEntityMapTests.cs" />
+    <Compile Include="Text\HtmlParserTests.cs" />
+    <Compile Include="Text\HttpSemanticReaderTests.cs" />
+    <Compile Include="Text\TestData.cs" />
+    <Compile Include="Text\TextExtensionsTests.cs" />
+    <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />
+    <Compile Include="Text\WordGraphTests.cs" />
+    <Compile Include="Utility\DictionarySerialiserTests.cs" />
+    <Compile Include="Utility\LinqExtensionsTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj">
+      <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
+      <Name>LinqInfer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Data\Storage\example.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Orm\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Text\shakespeare.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer", "src\LinqInfer\LinqInfer.csproj", "{57818C8E-99BA-405E-A5C5-6DE2E54883EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Tests", "tests\LinkInfer.Tests\LinqInfer.Tests.csproj", "{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E5FE3E3C-B1F2-4DAA-8269-48781A1406F9}"
 	ProjectSection(SolutionItems) = preProject
 		backlog.md = backlog.md
@@ -32,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Data.Orm", "src\L
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.TestHarness", "tests\LinqInfer.TestHarness\LinqInfer.TestHarness.csproj", "{C594477A-87A6-43C4-A45B-64CD6CE99C34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Tests", "tests\LinqInfer.Tests\LinqInfer.Tests.csproj", "{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,14 +48,6 @@ Global
 		{57818C8E-99BA-405E-A5C5-6DE2E54883EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57818C8E-99BA-405E-A5C5-6DE2E54883EA}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 		{57818C8E-99BA-405E-A5C5-6DE2E54883EA}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
-		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D91E1181-6D01-475E-97C0-3C89CF3C8A17}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
@@ -104,6 +96,14 @@ Global
 		{C594477A-87A6-43C4-A45B-64CD6CE99C34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C594477A-87A6-43C4-A45B-64CD6CE99C34}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 		{C594477A-87A6-43C4-A45B-64CD6CE99C34}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
+		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

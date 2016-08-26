@@ -25,13 +25,25 @@ namespace LinqInfer.Text
             _frequencies = new Dictionary<string, WordMap>();
         }
 
+        public IFloatingPointFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
+        {
+            Contract.Assert(maxVectorSize > 0);
+
+            var wf = WordFrequencies.ToList();
+
+            return new VectorExtraction.TextVectorExtractor(wf
+                .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
+                .Select(w => w.Item1)
+                .Take(maxVectorSize), wf.Max(f => f.Item3)).CreateObjectTextVectoriser(tokeniser);
+        }
+
         public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128)
         {
             Contract.Assert(maxVectorSize > 0);
 
             var wf = WordFrequencies.ToList();
 
-            return new VectorExtraction.VectorExtractor(wf
+            return new VectorExtraction.TextVectorExtractor(wf
                 .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
                 .Select(w => w.Item1)
                 .Take(maxVectorSize), wf.Max(f => f.Item3));
@@ -63,7 +75,7 @@ namespace LinqInfer.Text
                 {
                     WordMap wordData;
 
-                    if (!_frequencies.TryGetValue(word.Text, out wordData))
+                    if (!_frequencies.TryGetValue(word.Text.ToLowerInvariant(), out wordData))
                     {
                         wordData = new WordMap();
                     }
@@ -78,7 +90,7 @@ namespace LinqInfer.Text
 
                     wordData.DocFrequencies[doc.Id] = tf + 1;
 
-                    _frequencies[word.Text] = wordData;
+                    _frequencies[word.Text.ToLowerInvariant()] = wordData;
                 }
             }
         }
