@@ -1,12 +1,12 @@
 {
-  "version": "2.1.0-*",
+  "version": "2.2.0-*",
   "title": "LinqInfer",
   "description": "A lightweight and slightly experimental inference library for C#",
   "language": "en-GB",
   "authors": [ "R Eyres" ],
   "packOptions": {
     "projectUrl": "https://github.com/roberino/linqinfer",
-    "tags": [ "inference linq bayesian probability reasoning machine learning" ],
+    "tags": [ "inference linq bayesian probability reasoning machine learning text" ],
     "licenseUrl": "http://www.gnu.org/licenses/gpl-3.0.en.html",
     "repository": {
       "type": "git",
@@ -31,8 +31,7 @@
       "dependencies": {
         "System.Console": "4.0.0",
         "System.Data.Common": "4.1.0",
-        "System.IO.FileSystem": "4.0.1",
-        "System.Runtime.Serialization.Formatters": "4.0.0-rc3-24212-01"
+        "System.IO.FileSystem": "4.0.1"
       }
     },
     //"netstandard1.6": {
@@ -73,7 +72,6 @@
     "System.Dynamic.Runtime": "4.0.11",
     "System.Linq.Queryable": "4.0.1",
     "System.Net.Http": "4.1.0",
-    "System.Runtime.Serialization.Primitives": "4.1.1",
     "System.Text.RegularExpressions": "4.1.0"
   }
 }
