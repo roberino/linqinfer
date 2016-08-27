@@ -201,7 +201,7 @@ namespace LinqInfer.Text
             {
                 foreach (var word in _tokeniser.Tokenise(node.Value).Where(t => t.Type == TokenType.Word))
                 {
-                    yield return word;
+                    yield return word.Text;
                 }
             }
         }

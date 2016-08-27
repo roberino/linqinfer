@@ -35,6 +35,11 @@ namespace LinqInfer.Learning.Classification
             _neurons = neurons.ToList();
         }
 
+        private NetworkLayer(IEnumerable<INeuron> neurons)
+        {
+            _neurons = neurons.ToList();
+        }
+
         public virtual ColumnVector1D Process(ColumnVector1D input)
         {
             var outputVect = _neurons.Any() ? new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray()) : input;
