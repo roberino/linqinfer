@@ -177,20 +177,20 @@ namespace LinqInfer.Text
                 .Where(t => t.Type == TokenType.Word)
                 .Distinct()
                 .Select(w =>
-            {
-                WordMap m;
-
-                if (!_frequencies.TryGetValue(w.Text, out m))
                 {
-                    m = new WordMap() { Count = 0 };
-                }
+                    WordMap m;
 
-                return new
-                {
-                    Word = w.Text,
-                    Map = m
-                };
-            })
+                    if (!_frequencies.TryGetValue(w.Text, out m))
+                    {
+                        m = new WordMap() { Count = 0 };
+                    }
+
+                    return new
+                    {
+                        Word = w.Text,
+                        Map = m
+                    };
+                })
             .Where(f => f.Map.Count > 0)
             .ToDictionary(w => w.Word, v => v.Map);
         }
@@ -201,7 +201,7 @@ namespace LinqInfer.Text
             {
                 foreach (var word in _tokeniser.Tokenise(node.Value).Where(t => t.Type == TokenType.Word))
                 {
-                    yield return word.Text;
+                    yield return word;
                 }
             }
         }
