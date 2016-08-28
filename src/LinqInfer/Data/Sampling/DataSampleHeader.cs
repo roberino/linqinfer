@@ -2,10 +2,8 @@
 
 namespace LinqInfer.Data.Sampling
 {
-    [Serializable]
     public class DataSampleHeader : IStorageObject
     {
-        [NonSerialized]
         private IUriProvider _uriProvider;
 
         public DataSampleHeader()

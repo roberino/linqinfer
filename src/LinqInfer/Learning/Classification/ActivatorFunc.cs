@@ -2,14 +2,12 @@
 
 namespace LinqInfer.Learning.Classification
 {
-    [Serializable]
     public class ActivatorFunc : IEquatable<ActivatorFunc>
     {
-        [NonSerialized]
         private Func<double, double> _activator;
-        [NonSerialized]
+     
         private Func<double, double> _derivative;
-        [NonSerialized]
+     
         private Func<double, ActivatorFunc> _recreate;
 
         public string Name { get; set; }

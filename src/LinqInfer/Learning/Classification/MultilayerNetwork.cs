@@ -7,7 +7,6 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    [Serializable]
     internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
@@ -48,10 +47,6 @@ namespace LinqInfer.Learning.Classification
             _neuronFactory = neuronFactory;
             _rootLayer = rootLayer;
             initd = true;
-        }
-
-        public MultilayerNetwork(int inputVectorSize, ActivatorFunc activator = null) : this(inputVectorSize, null, activator, null)
-        {
         }
 
         public NetworkParameters Parameters
@@ -159,43 +154,55 @@ namespace LinqInfer.Learning.Classification
 
         public void Save(Stream output)
         {
-            var bs = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            bs.Serialize(output, this);
+            doc.Properties["Activator"] = _parameters.Activator.Name;
+            doc.Properties["ActivatorParameter"] = _parameters.Activator.Parameter.ToString();
+            doc.Properties["InitialWeightRangeMin"] = _parameters.InitialWeightRange.Min.ToString();
+            doc.Properties["InitialWeightRangeMax"] = _parameters.InitialWeightRange.Max.ToString();
+            doc.Properties["LearningRate"] = _parameters.LearningRate.ToString();
+            
+            doc.Properties["Label"] = "Network";
+
+            int i = 0;
+
+            foreach (var layer in Layers)
+            {
+                i++;
+
+                var layerDoc = layer.Export();
+
+                layerDoc.Properties["Label"] = "Layer " + i;
+
+                doc.Children.Add(layerDoc);
+            }
+
+            doc.Save(output);
 
             output.Flush();
         }
 
-        protected virtual void OnLoad()
-        {
-            var activator = Activators.Create(Parameters.Activator.Name, Parameters.Activator.Parameter);
-
-            Parameters.Activator = activator;
-
-            ForEachLayer(x =>
-            {
-                if (x is NetworkLayer)
-                {
-                    ((NetworkLayer)x).ForEachNeuron((n, i) =>
-                    {
-                        if (n is NeuronBase)
-                        {
-                            ((NeuronBase)n).Activator = activator.Activator;
-                        }
-                        return 0;
-                    }).ToList();
-                }
-                return 0;
-            }).ToList();
-        }
-
         public static MultilayerNetwork Load(Stream input)
         {
-            var bs = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            var network = (MultilayerNetwork)bs.Deserialize(input);
+            doc.Load(input);
 
-            network.OnLoad();
+            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
+            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
+
+            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
+            {
+                LearningRate = double.Parse(doc.Properties["LearningRate"]),
+                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
+            });
+            
+            int i = 0;
+
+            foreach (var layer in network.Layers)
+            {
+                layer.Import(doc.Children[i++]);
+            }
 
             return network;
         }
@@ -209,6 +216,16 @@ namespace LinqInfer.Learning.Classification
             }
 
             return string.Format("Network({0}):{1}", Parameters.InputVectorSize, s);
+        }
+
+        public MultilayerNetwork Clone(bool deep)
+        {
+            return new MultilayerNetwork(_parameters.Clone(deep), _neuronFactory, _rootLayer.Clone(deep), Parameters.InputVectorSize);
+        }
+
+        public object Clone()
+        {
+            return Clone(true);
         }
 
         public MultilayerNetwork Clone(bool deep)

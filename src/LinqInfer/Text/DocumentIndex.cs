@@ -1,10 +1,13 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text
@@ -22,17 +25,57 @@ namespace LinqInfer.Text
             _frequencies = new Dictionary<string, WordMap>();
         }
 
-        public void IndexDocuments(IQueryable<KeyValuePair<string, XDocument>> documentKeyPairs)
+        public IFloatingPointFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
         {
-            foreach (var kp in documentKeyPairs)
+            Contract.Assert(maxVectorSize > 0);
+
+            var wf = WordFrequencies.ToList();
+
+            return new VectorExtraction.TextVectorExtractor(wf
+                .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
+                .Select(w => w.Item1)
+                .Take(maxVectorSize), wf.Max(f => f.Item3)).CreateObjectTextVectoriser(tokeniser);
+        }
+
+        public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128)
+        {
+            Contract.Assert(maxVectorSize > 0);
+
+            var wf = WordFrequencies.ToList();
+
+            return new VectorExtraction.TextVectorExtractor(wf
+                .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
+                .Select(w => w.Item1)
+                .Take(maxVectorSize), wf.Max(f => f.Item3));
+        }
+
+        public ITokeniser Tokeniser
+        {
+            get
+            {
+                return _tokeniser;
+            }
+        }
+
+        internal IEnumerable<Tuple<string, long, int>> WordFrequencies
+        {
+            get
+            {
+                return _frequencies.Select(f => new Tuple<string, long, int>(f.Key, f.Value.Count, f.Value.DocFrequencies.Count));
+            }
+        }
+
+        public void IndexDocuments(IEnumerable<TokenisedTextDocument> documents)
+        {
+            foreach (var doc in documents)
             {
                 _documentCount++;
 
-                foreach (var word in ExtractWords(kp.Value))
+                foreach (var word in doc.Tokens.Where(t => t.Type == TokenType.Word))
                 {
                     WordMap wordData;
 
-                    if (!_frequencies.TryGetValue(word, out wordData))
+                    if (!_frequencies.TryGetValue(word.Text.ToLowerInvariant(), out wordData))
                     {
                         wordData = new WordMap();
                     }
@@ -43,16 +86,23 @@ namespace LinqInfer.Text
 
                     int tf;
 
-                    wordData.DocFrequencies.TryGetValue(kp.Key, out tf);
+                    wordData.DocFrequencies.TryGetValue(doc.Id, out tf);
 
-                    wordData.DocFrequencies[kp.Key] = tf + 1;
+                    wordData.DocFrequencies[doc.Id] = tf + 1;
 
-                    _frequencies[word] = wordData;
+                    _frequencies[word.Text.ToLowerInvariant()] = wordData;
                 }
             }
         }
 
-        public void IndexDocuments(IQueryable<XDocument> documents, Func<XDocument, string> keySelector)
+        public void IndexDocuments(IEnumerable<KeyValuePair<string, XDocument>> documentKeyPairs)
+        {
+            var transformed = documentKeyPairs.Select(p => new TokenisedTextDocument(p.Key, ExtractWords(p.Value)));
+
+            IndexDocuments(transformed.AsQueryable());
+        }
+
+        public void IndexDocuments(IEnumerable<XDocument> documents, Func<XDocument, string> keySelector)
         {
             IndexDocuments(documents.Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d)));
         }
@@ -145,11 +195,11 @@ namespace LinqInfer.Text
             .ToDictionary(w => w.Word, v => v.Map);
         }
 
-        private IEnumerable<string> ExtractWords(XDocument doc)
+        private IEnumerable<IToken> ExtractWords(XDocument doc)
         {
             foreach (var node in AllText(doc.Root))
             {
-                foreach (var word in _tokeniser.Tokenise(node.Value))
+                foreach (var word in _tokeniser.Tokenise(node.Value).Where(t => t.Type == TokenType.Word))
                 {
                     yield return word.Text;
                 }
@@ -177,8 +227,7 @@ namespace LinqInfer.Text
             }
         }
 
-        [Serializable]
-        private class WordMap
+        private class WordMap : IBinaryPersistable
         {
             private Dictionary<string, int> _docFrequencies;
 
@@ -191,6 +240,33 @@ namespace LinqInfer.Text
             public IDictionary<string, int> DocFrequencies { get { return _docFrequencies; } }
 
             public long Count { get; set; }
+
+            public void Save(Stream output)
+            {
+                using (var writer = new BinaryWriter(output, Encoding.Default, true))
+                {
+                    writer.Write(Count);
+                }
+
+                var ds = DictionarySerialiserFactory.ForInstance(_docFrequencies);
+
+                ds.Write(_docFrequencies, output);
+            }
+
+            public void Load(Stream input)
+            {
+                using (var reader = new BinaryReader(input, Encoding.Default, true))
+                {
+                    Count = reader.ReadInt64();
+                }
+
+                var ds = DictionarySerialiserFactory.ForInstance(_docFrequencies);
+
+                foreach (var item in ds.Read(input))
+                {
+                    _docFrequencies[item.Key] = item.Value;
+                }
+            }
         }
     }
 }

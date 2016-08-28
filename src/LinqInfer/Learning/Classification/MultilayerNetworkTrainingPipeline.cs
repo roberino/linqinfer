@@ -19,6 +19,14 @@ namespace LinqInfer.Learning.Classification
             _outputMapper = new OutputMapperFactory<TInput, TClass>().Create(featureData.Data, classifyingExpression);
         }
 
+        public ICategoricalOutputMapper<TClass> OutputMapper
+        {
+            get
+            {
+                return _outputMapper;
+            }
+        }
+
         public IPrunableObjectClassifier<TClass, TInput> TrainUsing(IMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy)
         {
             var trainingContextFactory = new MultilayerNetworkTrainingContextFactory<TClass>(_outputMapper);

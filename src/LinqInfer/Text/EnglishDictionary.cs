@@ -108,7 +108,7 @@ namespace LinqInfer.Text
 
         private static Stream GetResource(string name)
         {
-            var asm = Assembly.GetExecutingAssembly();
+            var asm = typeof(EnglishDictionary).GetTypeInfo().Assembly; // Assembly.GetExecutingAssembly();
             var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
 
             return asm.GetManifestResourceStream(rname);
