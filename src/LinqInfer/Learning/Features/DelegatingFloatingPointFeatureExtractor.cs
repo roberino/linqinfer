@@ -132,10 +132,5 @@ namespace LinqInfer.Learning.Features
         {
             return new ColumnVector1D(ExtractVector(obj));
         }
-
-        public ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return new ColumnVector1D(ExtractVector(obj));
-        }
     }
 }

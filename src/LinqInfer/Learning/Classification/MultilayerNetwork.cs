@@ -227,15 +227,5 @@ namespace LinqInfer.Learning.Classification
         {
             return Clone(true);
         }
-
-        public MultilayerNetwork Clone(bool deep)
-        {
-            return new MultilayerNetwork(_parameters.Clone(deep), _neuronFactory, _rootLayer.Clone(deep), Parameters.InputVectorSize);
-        }
-
-        public object Clone()
-        {
-            return Clone(true);
-        }
     }
 }
