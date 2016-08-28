@@ -80,12 +80,14 @@ namespace LinqInfer.Maths.Probability
 
         protected T1 Output<T1>(T1 value)
         {
+#if !NET_STD
             if (Logger != null)
             {
                 var frame = new System.Diagnostics.StackFrame(1);
 
                 Output("{0} {1} = {2}", Name ?? GetType().Name, frame.GetMethod().Name, value);
             }
+#endif
 
             return value;
         }

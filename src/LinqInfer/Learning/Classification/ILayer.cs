@@ -13,5 +13,7 @@ namespace LinqInfer.Learning.Classification
         ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func);
         void Grow(int numberOfNewNeurons = 1);
         void Prune(Func<INeuron, bool> predicate);
+        BinaryVectorDocument Export();
+        void Import(BinaryVectorDocument data);
     }
 }

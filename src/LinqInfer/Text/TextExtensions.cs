@@ -1,14 +1,43 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
+using LinqInfer.Text.VectorExtraction;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
+        public static FeatureProcessingPipline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class
+        {
+            if (identityFunc == null) identityFunc = (x => x == null ? "" : x.GetHashCode().ToString());
+
+            var index = new DocumentIndex();
+            var tokeniser = new ObjectTextExtractor<T>(index.Tokeniser);
+            var objtokeniser = tokeniser.CreateObjectTextTokeniser();
+            var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), objtokeniser(x)));
+
+            index.IndexDocuments(docs);
+            
+            return new FeatureProcessingPipline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
+        }
+
+        /// <summary>
+        /// Converts a stream into an enumeration of tokens.
+        /// </summary>
+        /// <param name="stream">The stream of text</param>
+        /// <param name="encoding">An optional encoding</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns>An enumeration of <see cref="IToken"/></returns>
+        public static IEnumerable<IToken> Tokenise(this Stream stream, Encoding encoding = null, ITokeniser tokeniser = null)
+        {
+            return (new StreamTokeniser(encoding, tokeniser).Tokensise(stream));
+        }
+
         /// <summary>
         /// Searches documents using term frequency / inverse document frequency.
         /// </summary>
@@ -20,7 +49,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             return q => documents
                 .Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d))
@@ -39,7 +68,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             if(output != null)
             {
@@ -61,7 +90,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            search.IndexDocuments(documents.AsQueryable(), keySelector);
+            search.IndexDocuments(documents, keySelector);
 
             if (output != null)
             {

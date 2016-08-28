@@ -42,6 +42,11 @@ namespace LinqInfer.Learning.Features
         public string Label { get; set; }
         public DistributionModel Model { get; set; }
 
+        public override string ToString()
+        {
+            return Index + ':' + Label ?? Key;
+        }
+
         public static IFeature[] CreateDefaults(int vectorSize, TypeCode dataType = TypeCode.Object, string labelTemplate = "{0}")
         {
             Contract.Assert(vectorSize > 0);

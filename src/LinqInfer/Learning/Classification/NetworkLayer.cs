@@ -7,10 +7,11 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    [Serializable]
     internal class NetworkLayer : ILayer
     {
         private readonly IList<INeuron> _neurons;
+        
+        private readonly Func<int, IList<INeuron>> _neuronsFactory;
 
         [NonSerialized]
         private readonly Func<int, IList<INeuron>> _neuronsFactory;
@@ -30,6 +31,11 @@ namespace LinqInfer.Learning.Classification
             });
 
             _neurons = _neuronsFactory(neuronCount);
+        }
+
+        private NetworkLayer(IEnumerable<INeuron> neurons)
+        {
+            _neurons = neurons.ToList();
         }
 
         private NetworkLayer(IEnumerable<INeuron> neurons)
@@ -118,6 +124,30 @@ namespace LinqInfer.Learning.Classification
         INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep)
         {
             return Clone(true);
+        }
+
+        public BinaryVectorDocument Export()
+        {
+            var layerDoc = new BinaryVectorDocument();
+
+            layerDoc.Properties["Size"] = Size.ToString();
+
+            foreach (var neuron in _neurons)
+            {
+                layerDoc.Vectors.Add(neuron.Export());
+            }
+
+            return layerDoc;
+        }
+
+        public void Import(BinaryVectorDocument data)
+        {
+            int i = 0;
+
+            foreach (var neuron in _neurons)
+            {
+                neuron.Import(data.Vectors[i++]);
+            }
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;

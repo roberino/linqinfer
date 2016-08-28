@@ -3,7 +3,6 @@ using System;
 
 namespace LinqInfer.Data.Sampling
 {
-    [Serializable]
     public class FieldDescriptor
     {
         public virtual string Name { get; set; }

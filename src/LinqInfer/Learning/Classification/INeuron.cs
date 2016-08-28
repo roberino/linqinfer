@@ -15,5 +15,7 @@ namespace LinqInfer.Learning.Classification
         double Evaluate(ColumnVector1D input);
         Func<double, double> Activator { get; set; }
         void PruneWeights(params int[] indexes);
+        ColumnVector1D Export();
+        void Import(ColumnVector1D data);
     }
 }

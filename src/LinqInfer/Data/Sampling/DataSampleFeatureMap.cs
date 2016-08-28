@@ -112,18 +112,26 @@ namespace LinqInfer.Data.Sampling
 
         public void Save(Stream output)
         {
-            var sz = new BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            sz.Serialize(output, _maxSample);
+            if (_maxSample != null)
+                doc.Vectors.Add(new ColumnVector1D(_maxSample));
+
+            doc.Save(output);
         }
 
         public void Load(Stream input)
         {
-            var sz = new BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            var normVect = sz.Deserialize(input) as double[];
+            doc.Load(input);
 
-            _maxSample = normVect;
+            if (doc.Vectors.Any())
+            {
+                var nv = doc.Vectors.First();
+
+                _maxSample = nv.ToDoubleArray();
+            }
         }
     }
 }

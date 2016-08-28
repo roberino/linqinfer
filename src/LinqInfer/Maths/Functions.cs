@@ -68,7 +68,7 @@ namespace LinqInfer.Maths
         /// <returns>A vector containing random values</returns>
         public static ColumnVector1D RandomVector(int size, double min = 0, double max = 1)
         {
-            return RandomVector(size, new Range(min, max));
+            return RandomVector(size, new Range(max, min));
         }
 
         /// <summary>

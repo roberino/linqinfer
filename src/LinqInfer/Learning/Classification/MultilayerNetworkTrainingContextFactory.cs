@@ -80,7 +80,7 @@ namespace LinqInfer.Learning.Classification
                 {
                     if (_error.HasValue && _lastError.HasValue)
                     {
-                        return _error / _lastError;
+                        return (_lastError - _error) / _lastError;
                     }
                     return null;
                 }

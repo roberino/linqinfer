@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("LinqInfer.Storage.Sqlite")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Euromoney Institutional Investor Plc")]
 [assembly: AssemblyProduct("LinqInfer.Storage.Sqlite")]
-[assembly: AssemblyCopyright("Copyright © Euromoney Institutional Investor Plc 2016")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

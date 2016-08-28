@@ -43,7 +43,8 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input data type</typeparam>
         /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
-        /// <param name="vectorSize">The size of the vector returned by the vector function</param>
+        /// <param name="vectorSize">The size of the vector returned by the vector function. 
+        /// IF YOU DO NOT provide this value, the vector function will be called with default arguments which may be null</param>
         /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
         {
@@ -205,6 +206,41 @@ namespace LinqInfer.Learning
             var defaultStrategy = new MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance, fitnessFunction, haltingFunction);
 
             return ToMultilayerNetworkClassifier(pipeline, classf, defaultStrategy);
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
+        /// <param name="errorTolerance">The network error tolerance</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this FeatureProcessingPipline<TInput> pipeline,
+            Expression<Func<TInput, TClass>> classf,
+            params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(pipeline, classf);
+
+            var inputSize = pipeline.VectorSize;
+            var outputSize = trainingPipline.OutputMapper.VectorSize;
+
+            var parameters = NetworkParameters.Sigmoidal(new[] { inputSize }.Concat(hiddenLayers).Concat(new[] { outputSize }).ToArray());
+
+            parameters.Validate();
+
+            var strategy = new StaticParametersMultilayerTrainingStrategy<TClass, TInput>(parameters);
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var result = trainingPipline.TrainUsing(strategy);
+
+                if (n != null) pipeline.OutputResults(result, n);
+
+                return result;
+            });
         }
 
         /// <summary>

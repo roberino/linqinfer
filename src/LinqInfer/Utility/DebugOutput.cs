@@ -20,7 +20,7 @@ namespace LinqInfer.Utility
         {
             if (objs == null) return;
 
-#if DEBUG
+#if DEBUG && !NET_STD
             var callingMethod = new StackFrame(1).GetMethod();
             Log("{0}.{1}() => {2} items:", callingMethod.DeclaringType, callingMethod.Name, objs.Count());
 #endif
