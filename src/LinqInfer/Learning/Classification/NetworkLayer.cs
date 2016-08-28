@@ -13,9 +13,6 @@ namespace LinqInfer.Learning.Classification
         
         private readonly Func<int, IList<INeuron>> _neuronsFactory;
 
-        [NonSerialized]
-        private readonly Func<int, IList<INeuron>> _neuronsFactory;
-
         public NetworkLayer(int inputVectorSize, int neuronCount, ActivatorFunc activator, Func<int, INeuron> neuronFactory = null)
         {
             var nf = neuronFactory ?? (n => new NeuronBase(n));
@@ -31,11 +28,6 @@ namespace LinqInfer.Learning.Classification
             });
 
             _neurons = _neuronsFactory(neuronCount);
-        }
-
-        private NetworkLayer(IEnumerable<INeuron> neurons)
-        {
-            _neurons = neurons.ToList();
         }
 
         private NetworkLayer(IEnumerable<INeuron> neurons)
