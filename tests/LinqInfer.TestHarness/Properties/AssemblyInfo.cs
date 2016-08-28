@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("LinqInfer.TestHarness")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Euromoney Institutional Investor Plc")]
 [assembly: AssemblyProduct("LinqInfer.TestHarness")]
-[assembly: AssemblyCopyright("Copyright © Euromoney Institutional Investor Plc 2016")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
