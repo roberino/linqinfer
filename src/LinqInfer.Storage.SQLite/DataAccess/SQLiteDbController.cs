@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
@@ -17,8 +18,8 @@ namespace LinqInfer.Storage.SQLite.DataAccess
 
         private readonly DirectoryInfo _dataDir;
         private readonly string _dbName;
-        private readonly IList<IDbConnection> _openConnections;
-        protected readonly Lazy<IDbConnection> _conn;
+        private readonly IList<DbConnection> _openConnections;
+        protected readonly Lazy<DbConnection> _conn;
 
         private bool _disposed;
 
@@ -26,11 +27,11 @@ namespace LinqInfer.Storage.SQLite.DataAccess
         {
             _dbName = dbName;
             _dataDir = new DirectoryInfo(dataDir);
-            _openConnections = new List<IDbConnection>();
-            _conn = new Lazy<IDbConnection>(() => CreateConnection());
+            _openConnections = new List<DbConnection>();
+            _conn = new Lazy<DbConnection>(() => CreateConnection());
         }
 
-        public IDbConnection CreateConnection(bool open = true)
+        public DbConnection CreateConnection(bool open = true)
         {
             if (_disposed) throw new ObjectDisposedException(GetType().Name);
 

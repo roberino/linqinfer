@@ -16,7 +16,8 @@ bld/
 obj/
 [Bb]in/
 [Oo]bj/
-.Euromoney.Lmg.RegCap.boltdata/
+.vs/
+*.lock.json
 # Roslyn cache directories
 *.ide/
 # MSTest test Results

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace LinqInfer.Utility
@@ -106,9 +106,19 @@ namespace LinqInfer.Utility
                 case TypeCode.DateTime:
                     return (T)(object)DateTime.FromFileTimeUtc(reader.ReadInt64());
                 case TypeCode.Object:
-                    return (T)new BinaryFormatter().Deserialize(reader.BaseStream);
-                    //var typeName = reader.ReadString();
-                    //return (T)Type.GetType(typeName).GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
+
+                    if (typeof(IBinaryPersistable).IsAssignableFrom(type))
+                    {
+                        var typeName = reader.ReadString();
+                        var actualType = Type.GetType(typeName) ?? typeof(T);
+                        var instance = (IBinaryPersistable)actualType.GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
+
+                        instance.Load(reader.BaseStream);
+
+                        return (T)instance;
+                    }
+
+                    break;
             }
 
             throw new NotSupportedException(type.FullName);
@@ -151,8 +161,25 @@ namespace LinqInfer.Utility
                     writer.Write((string)(object)obj);
                     break;
                 case TypeCode.Object:
-                    //writer.Write(type.FullName);
-                    new BinaryFormatter().Serialize(writer.BaseStream, obj);
+                    if (typeof(IBinaryPersistable).IsAssignableFrom(type))
+                    {
+                        if (obj != null)
+                        {
+                            var actualType = obj.GetType();
+
+                            if(!actualType.GetConstructors().Any(c => !c.GetParameters().Any()))
+                            {
+                                throw new NotSupportedException(actualType.FullName + " missing default constructor");
+                            }
+
+                            writer.Write(actualType.AssemblyQualifiedName);
+                            ((IBinaryPersistable)obj).Save(writer.BaseStream);
+                        }
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(type.FullName);
+                    }
                     break;
                 default:
                     throw new NotSupportedException(type.FullName);

@@ -49,5 +49,26 @@ namespace LinqInfer.Text
         {
             return string.Format("{0}:\t[{1}]\t\t{2}", Index, Type, Text);
         }
+
+        public bool Equals(IToken other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            if (Index != other.Index || Weight != other.Weight || Type != other.Type) return false;
+
+            return (string.Equals(Text, other.Text));
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IToken);
+        }
+
+        public override int GetHashCode()
+        {
+            return new Tuple<TokenType, int, int, string>(Type, Index, Weight, Text).GetHashCode();
+        }
     }
 }

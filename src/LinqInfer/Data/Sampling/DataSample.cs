@@ -1,10 +1,8 @@
 ﻿using LinqInfer.Learning.Features;
-using System;
 using System.Collections.Generic;
 
 namespace LinqInfer.Data.Sampling
 {
-    [Serializable]
     public class DataSample : DataSampleHeader
     {
         public string Description { get; set; }

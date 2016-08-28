@@ -1,16 +1,14 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace LinqInfer.Learning.Features
 {
-    [Serializable]
     internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
     {
-        [NonSerialized]
         private readonly Func<T, double[]> _vectorFunc;
 
         private readonly int _vectorSize;
@@ -100,18 +98,39 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            var sz = new BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            sz.Serialize(output, _normalisingVector);
+            doc.Properties["VectorSize"] = _vectorSize.ToString();
+            doc.Properties["NormaliseData"] = _normaliseData.ToString();
+
+            if (_normalisingVector != null)
+                doc.Vectors.Add(new ColumnVector1D(_normalisingVector));
+
+            doc.Save(output);
         }
 
         public void Load(Stream input)
         {
-            var sz = new BinaryFormatter();
+            var doc = new BinaryVectorDocument();
 
-            var normVect = sz.Deserialize(input) as double[];
+            doc.Load(input);
 
-            _normalisingVector = normVect;
+            if (doc.Vectors.Any())
+            {
+                var nv = doc.Vectors.First();
+
+                if (nv.Size != _vectorSize)
+                {
+                    throw new ArgumentException("Invalid vector size");
+                }
+
+                _normalisingVector = nv.ToDoubleArray();
+            }
+        }
+
+        public ColumnVector1D ExtractColumnVector(T obj)
+        {
+            return new ColumnVector1D(ExtractVector(obj));
         }
 
         public ColumnVector1D ExtractColumnVector(T obj)

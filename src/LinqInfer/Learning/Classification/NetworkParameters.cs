@@ -12,7 +12,6 @@ namespace LinqInfer.Learning.Classification
     /// The parameters define the input, output and hidden layer sizes as well as the activator
     /// and learning rate.
     /// </summary>
-    [Serializable]
     public class NetworkParameters : IChromosome<NetworkParameters>, ICloneableObject<NetworkParameters>
     {
         /// <summary>
@@ -46,6 +45,11 @@ namespace LinqInfer.Learning.Classification
 
         private NetworkParameters()
         {
+        }
+
+        public static NetworkParameters Sigmoidal(params int[] layerSizes)
+        {
+            return new NetworkParameters(layerSizes, Activators.Sigmoid());
         }
 
         /// <summary>

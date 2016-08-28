@@ -10,7 +10,7 @@ namespace LinqInfer.Data
 
         public FileBlobStore(string baseDirectory = null)
         {
-            _baseDir = new DirectoryInfo(baseDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "blobs"));
+            _baseDir = new DirectoryInfo(baseDirectory ?? "blobs");
         }
 
         protected override Stream GetReadStream(string key)

@@ -1,20 +1,27 @@
 ﻿using LinqInfer.Maths;
 using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    [Serializable]
     public class NeuronBase : INeuron
     {
         private ColumnVector1D _weights;
-
-        [NonSerialized]
+        
         private Func<double, double> _activator;
 
-        private NeuronBase(ColumnVector1D weights, Func<double, double> activator)
+        private NeuronBase(ColumnVector1D weights, Func<double, double> activator, bool firstWeightIsBias = false)
         {
-            _weights = weights;
+            if (firstWeightIsBias)
+            {
+                _weights = new ColumnVector1D(weights.Skip(1).ToArray());
+                Bias = weights[0];
+            }
+            else
+            {
+                _weights = weights;
+            }
             _activator = activator;
         }
 
@@ -82,6 +89,23 @@ namespace LinqInfer.Learning.Classification
             clone.Output = Output;
 
             return clone;
+        }
+
+        public ColumnVector1D Export()
+        {
+            return new ColumnVector1D(new[] { Bias }.Concat(_weights).ToArray());
+        }
+
+        public void Import(ColumnVector1D data)
+        {
+            Contract.Assert(data != null);
+            Contract.Assert(data.Size == _weights.Size + 1);
+
+            Bias = data[0];
+
+            int i = 1;
+
+            _weights.Apply(w => data[i++]);
         }
     }
 }

@@ -52,6 +52,8 @@ namespace LinqInfer.Api.Controllers
             {
                 return _blobStore.Value;
             }
+
+            base.Dispose(disposing);
         }
 
         protected override void Dispose(bool disposing)
