@@ -10,7 +10,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    internal class HttpSemanticReader : IDisposable
+    internal class HttpTokenReader : IDisposable
     {
         private const int MaxVisited = 350;
 
@@ -25,7 +25,7 @@ namespace LinqInfer.Text
 
         private int _maxDepth = 10;
 
-        public HttpSemanticReader(ITokeniser tokeniser = null, Encoding encoding = null, TextMimeType mimeType = TextMimeType.Default, Func<Uri, bool> linkFilter = null, Func<XNode, bool> nodeFilter = null, Func<XElement, IEnumerable<string>> linkExtractor = null)
+        public HttpTokenReader(ITokeniser tokeniser = null, Encoding encoding = null, TextMimeType mimeType = TextMimeType.Default, Func<Uri, bool> linkFilter = null, Func<XNode, bool> nodeFilter = null, Func<XElement, IEnumerable<string>> linkExtractor = null)
         {
             _client = new HttpClient();
             _visited = new HashSet<Uri>();
@@ -37,7 +37,7 @@ namespace LinqInfer.Text
             _linkExtractor = linkExtractor ?? (e => e.Descendants().Where(x => x.Name.LocalName == "a").Select(a => a.Attribute("href")).Where(a => a != null).Select(a => a.Value));
         }
 
-        public HttpSemanticReader(Func<Uri, bool> linkFilter) : this()
+        public HttpTokenReader(Func<Uri, bool> linkFilter) : this()
         {
             _linkFilter = linkFilter;
         }
@@ -54,9 +54,9 @@ namespace LinqInfer.Text
             }
         }
 
-        public Task Read(Uri uri, Func<Tuple<Uri, IEnumerable<IToken>>, bool> tokenProcessor, Func<XElement, XElement> targetElement = null)
+        public Task Read(Uri rootUri, Func<Tuple<Uri, IEnumerable<IToken>>, bool> tokenProcessor, Func<XElement, XElement> targetElement = null)
         {
-            return Read(uri, tokenProcessor, targetElement, 0);
+            return Read(rootUri, tokenProcessor, targetElement, 0);
         }
 
         public IEnumerable<Uri> VisitedUrls
