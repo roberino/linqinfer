@@ -88,5 +88,46 @@ namespace LinqInfer.Tests.Text
 
             Assert.That(results.First().ClassType, Is.EqualTo("B"));
         }
+
+        [Test]
+        public void CreateSemanticClassifiier_()
+        {
+            var data = new[]
+            {
+                new
+                {
+                    data = "the time of love and fortune",
+                    cls = "G"
+                },
+                new
+                {
+                    data = "the pain and hate of loss",
+                    cls = "B"
+                },
+                new
+                {
+                    data = "of hurt and sorrow and hell",
+                    cls = "B"
+                },
+                new
+                {
+                    data = "rainbows and sunshine",
+                    cls = "G"
+                },
+                new
+                {
+                    data = "the loss and hell",
+                    cls = "?"
+                }
+            };
+
+            var classifier = data.Take(4).AsQueryable().CreateSemanticClassifiier(x => x.cls, 12);
+
+            var test = data.Last();
+
+            var results = classifier.Classify(test);
+
+            Assert.That(results.First().ClassType, Is.EqualTo("B"));
+        }
     }
 }
