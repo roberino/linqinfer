@@ -102,7 +102,7 @@
     <Compile Include="Text\DocumentIndexTests.cs" />
     <Compile Include="Text\HtmlEntityMapTests.cs" />
     <Compile Include="Text\HtmlParserTests.cs" />
-    <Compile Include="Text\HttpSemanticReaderTests.cs" />
+    <Compile Include="Text\HttpTokenReaderTests.cs" />
     <Compile Include="Text\TestData.cs" />
     <Compile Include="Text\TextExtensionsTests.cs" />
     <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />

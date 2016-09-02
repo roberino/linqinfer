@@ -26,7 +26,7 @@ namespace LinqInfer.Learning.Classification
             _paramCache = NetworkParameterCache.DefaultCache;
 
             _fitnessFunction = fitnessFunction ?? MultilayerNetworkFitnessFunctions.ErrorMinimisationFunction<TInput, TClass>();
-            _haltingFunction = haltingFunction ?? ((c, i, t) => i > 200 || t > TimeSpan.FromSeconds(10));
+            _haltingFunction = haltingFunction ?? ((c, i, t) => i > 500 || t > TimeSpan.FromSeconds(10));
 
             ErrorTolerance = errorTolerance;
             ParallelProcess = true;
@@ -126,19 +126,6 @@ namespace LinqInfer.Learning.Classification
             var bestSolution = networks.OrderByDescending(n => _fitnessFunction(featureSet.FeatureExtractor, n)).First();
 
             DebugOutput.Log("Best: {0}", bestSolution);
-
-            //while (!HasConverged(bestSolution))
-            //{
-            //    foreach (var batch in featureSet.ExtractBatches())
-            //    {
-            //        foreach (var value in batch.RandomOrder())
-            //        {
-            //            bestSolution.Train(classf(value.Value), value.Vector);
-            //        }
-
-            //        bestSolution.IterationCounter++;
-            //    }
-            //}
 
             _paramCache.Store<TClass>(bestSolution.Parameters, bestSolution.AverageError.GetValueOrDefault());
 

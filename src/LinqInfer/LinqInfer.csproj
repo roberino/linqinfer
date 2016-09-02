@@ -111,7 +111,7 @@
     <Compile Include="Text\Analysis\Word.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
-    <Compile Include="Text\HttpSemanticReader.cs" />
+    <Compile Include="Text\HttpTokenReader.cs" />
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
@@ -213,6 +213,7 @@
     <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />
     <Compile Include="Text\VectorExtraction\ObjectTextVectorExtractor.cs" />
     <Compile Include="Text\VectorExtraction\TextVectorExtractor.cs" />
+    <Compile Include="Utility\AsyncQueryable.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
