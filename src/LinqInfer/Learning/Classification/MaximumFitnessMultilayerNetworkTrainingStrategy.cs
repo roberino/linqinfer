@@ -48,7 +48,7 @@ namespace LinqInfer.Learning.Classification
                 .SelectMany(a => pipelineFact.GeneratePipelines(a))
                 .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, outputMapper.VectorSize).Take(1).Select(trainingContextFactory))
                 .ToList();
-            
+
             var classf = classifyingExpression.Compile();
             var nc = networks.Count;
             var onc = nc;
@@ -146,7 +146,7 @@ namespace LinqInfer.Learning.Classification
             return
                 (context.AverageError.HasValue &&
                     (double.IsNaN(context.AverageError.Value) ||
-                    context.AverageError <= ErrorTolerance)) 
+                    context.AverageError <= ErrorTolerance))
                     ||
                 (context.RateOfErrorChange.HasValue &&
                     context.RateOfErrorChange < _minRateOfChange);

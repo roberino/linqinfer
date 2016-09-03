@@ -18,6 +18,7 @@ namespace LinqInfer.Utility
         {
             _dataLoader = dataLoader;
             _enumerators = new List<AsyncEnumerator>();
+            _waitTasks = new List<Task>();
 
             var objQ = Enumerable.Empty<T>().AsQueryable();
 
