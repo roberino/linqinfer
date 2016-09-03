@@ -83,6 +83,36 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Returns a document index from an enumeration of tokenised documents
+        /// </summary>
+        /// <param name="tokenisedDocuments">An enumeration of tokenised documents</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns>A document index</returns>
+        public static IDocumentIndex CreateIndex(this IEnumerable<TokenisedTextDocument> tokenisedDocuments)
+        {
+            var index = new DocumentIndex();
+
+            index.IndexDocuments(tokenisedDocuments);
+
+            return index;
+        }
+
+        /// <summary>
+        /// Converts an enumeration of XML documents
+        /// into an enumeration of tokenised text documents.
+        /// </summary>
+        /// <param name="documents">The documents</param>
+        /// <param name="keySelector">A function which returns a unique document key for a document</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns></returns>
+        public static IEnumerable<TokenisedTextDocument> AsTokenisedDocuments(this IEnumerable<XDocument> documents, Func<XDocument, string> keySelector, ITokeniser tokeniser = null)
+        {
+            var index = new DocumentIndex(tokeniser);
+
+            return index.Tokenise(documents, keySelector);
+        }
+
+        /// <summary>
         /// Converts a stream into an enumeration of tokens.
         /// </summary>
         /// <param name="stream">The stream of text</param>
@@ -109,7 +139,7 @@ namespace LinqInfer.Text
 
             return q => documents
                 .Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d))
-                .Join(search.Search(q), o => o.Key, i => i.Key, (o, i) => new KeyValuePair<XDocument, float>(o.Value, i.Value));
+                .Join(search.SearchInternal(q), o => o.Key, i => i.Key, (o, i) => new KeyValuePair<XDocument, float>(o.Value, i.Value));
         }
 
         /// <summary>
@@ -131,7 +161,7 @@ namespace LinqInfer.Text
                 search.Save(output);
             }
 
-            return q => search.Search(q);
+            return q => search.SearchInternal(q);
         }
 
         /// <summary>
@@ -153,7 +183,7 @@ namespace LinqInfer.Text
                 output.Store(key, search);
             }
 
-            return q => search.Search(q);
+            return q => search.SearchInternal(q);
         }
 
         /// <summary>
@@ -168,7 +198,7 @@ namespace LinqInfer.Text
 
             search.Load(input);
 
-            return q => search.Search(q);
+            return q => search.SearchInternal(q);
         }
 
         /// <summary>
@@ -183,7 +213,7 @@ namespace LinqInfer.Text
 
             var blob = store.Restore(key, search);
 
-            return q => search.Search(q);
+            return q => search.SearchInternal(q);
         }
     }
 }

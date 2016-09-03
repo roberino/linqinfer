@@ -1,12 +1,8 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Text;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Text
@@ -14,6 +10,25 @@ namespace LinqInfer.Tests.Text
     [TestFixture]
     public class TextExtensionsTests
     {
+        [Test]
+        public void Tokenise_And_CreateIndex()
+        {
+            var docs = new[]
+            {
+                XDocument.Parse("<doc1>a b c</doc1>"),
+                XDocument.Parse("<doc2>a b c d e</doc2>"),
+                XDocument.Parse("<doc3>c d e f g</doc3>")
+            };
+
+            var index = docs
+                .AsTokenisedDocuments(d => d.Root.Name.LocalName)
+                .CreateIndex();
+
+            var results = index.Search("g");
+            
+            Assert.That(results.Single().DocumentKey == "doc3");
+        }
+
         [Test]
         public void TermFrequencyIndex_StoreAndRetrieve()
         {

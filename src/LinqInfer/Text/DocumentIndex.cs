@@ -12,7 +12,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    internal class DocumentIndex : IBinaryPersistable
+    internal class DocumentIndex : IBinaryPersistable, IDocumentIndex
     {
         private readonly ITokeniser _tokeniser;
         private readonly IDictionary<string, WordMap> _frequencies;
@@ -166,7 +166,23 @@ namespace LinqInfer.Text
             IndexDocuments(documents.Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d)));
         }
 
-        public IEnumerable<KeyValuePair<string, float>> Search(string query)
+        public IEnumerable<TokenisedTextDocument> Tokenise(IEnumerable<XDocument> documents, Func<XDocument, string> keySelector)
+        {
+            return documents
+                .Select(d => new KeyValuePair<string, XDocument>(keySelector(d), d))
+                .Select(p => new TokenisedTextDocument(p.Key, ExtractWords(p.Value)));
+        }
+
+        public IEnumerable<SearchResult> Search(string query)
+        {
+            return SearchInternal(query).Select(r => new SearchResult()
+            {
+                ClassType = r.Key,
+                Score = r.Value
+            });
+        }
+
+        internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
         {
             var results = new ConcurrentBag<KeyValuePair<XDocument, float>>();
 

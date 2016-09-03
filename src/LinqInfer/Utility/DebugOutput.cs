@@ -34,7 +34,8 @@ namespace LinqInfer.Utility
         {
 #if DEBUG
             Console.WriteLine("{0}: {1}", _timer.Elapsed, obj);
-#else            
+            Console.Out.Flush();
+#else
             Debug.WriteLine(obj);
 #endif
         }
