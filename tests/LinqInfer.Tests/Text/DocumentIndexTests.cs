@@ -23,7 +23,7 @@ namespace LinqInfer.Tests.Text
 
             search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
-            var matches = search.Search("love time");
+            var matches = search.SearchInternal("love time");
 
             Assert.That(matches.All(m => m.Value > 0));
             Assert.That(matches.First().Key, Is.EqualTo("3"));

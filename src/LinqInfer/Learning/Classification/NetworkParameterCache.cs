@@ -21,6 +21,8 @@ namespace LinqInfer.Learning.Classification
 
         public NetworkParameters Store<T>(NetworkParameters parameters, double rating)
         {
+            DebugOutput.Log("Caching parameters: {0}", parameters);
+
             _store.AddOrUpdate(typeof(T),
                 k => new ConcurrentDictionary<NetworkParameters, double>()
                 {
@@ -37,6 +39,7 @@ namespace LinqInfer.Learning.Classification
 
                     return l;
                 });
+
             return parameters;
         }
 

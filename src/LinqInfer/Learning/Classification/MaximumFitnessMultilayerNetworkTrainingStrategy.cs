@@ -26,7 +26,7 @@ namespace LinqInfer.Learning.Classification
             _paramCache = NetworkParameterCache.DefaultCache;
 
             _fitnessFunction = fitnessFunction ?? MultilayerNetworkFitnessFunctions.ErrorMinimisationFunction<TInput, TClass>();
-            _haltingFunction = haltingFunction ?? ((c, i, t) => i > 200 || t > TimeSpan.FromSeconds(10));
+            _haltingFunction = haltingFunction ?? ((c, i, t) => i > 500 || t > TimeSpan.FromSeconds(10));
 
             ErrorTolerance = errorTolerance;
             ParallelProcess = true;
@@ -48,7 +48,7 @@ namespace LinqInfer.Learning.Classification
                 .SelectMany(a => pipelineFact.GeneratePipelines(a))
                 .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, outputMapper.VectorSize).Take(1).Select(trainingContextFactory))
                 .ToList();
-            
+
             var classf = classifyingExpression.Compile();
             var nc = networks.Count;
             var onc = nc;
@@ -127,19 +127,6 @@ namespace LinqInfer.Learning.Classification
 
             DebugOutput.Log("Best: {0}", bestSolution);
 
-            //while (!HasConverged(bestSolution))
-            //{
-            //    foreach (var batch in featureSet.ExtractBatches())
-            //    {
-            //        foreach (var value in batch.RandomOrder())
-            //        {
-            //            bestSolution.Train(classf(value.Value), value.Vector);
-            //        }
-
-            //        bestSolution.IterationCounter++;
-            //    }
-            //}
-
             _paramCache.Store<TClass>(bestSolution.Parameters, bestSolution.AverageError.GetValueOrDefault());
 
             return bestSolution;
@@ -159,7 +146,7 @@ namespace LinqInfer.Learning.Classification
             return
                 (context.AverageError.HasValue &&
                     (double.IsNaN(context.AverageError.Value) ||
-                    context.AverageError <= ErrorTolerance)) 
+                    context.AverageError <= ErrorTolerance))
                     ||
                 (context.RateOfErrorChange.HasValue &&
                     context.RateOfErrorChange < _minRateOfChange);

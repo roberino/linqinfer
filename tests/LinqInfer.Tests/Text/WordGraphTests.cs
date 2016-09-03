@@ -17,7 +17,7 @@ namespace LinqInfer.Tests.Text
         {
             var mapper = new WordGraph();
 
-            using (var reader = new HttpSemanticReader(a => Regex.IsMatch(a.PathAndQuery, @"en\.wikipedia\.org\/wiki\/")))
+            using (var reader = new HttpTokenReader(a => Regex.IsMatch(a.PathAndQuery, @"en\.wikipedia\.org\/wiki\/")))
             {
                 foreach (var u in url.Split(';'))
                 {
