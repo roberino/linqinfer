@@ -74,6 +74,16 @@ hypos.ProbabilityOf(4);
 
 Utilities for working with text and text documents.
 
+```cs
+
+var index = docs // enumeration of XDocuments
+	.AsTokenisedDocuments(d => d.Root.Name.LocalName) // Use the root element name as the doc ID
+	.CreateIndex();
+
+var results = index.Search("brown fox");
+
+```
+
 ### Examples
 
 See tests for usage examples.
