@@ -12,4 +12,8 @@
 		<tags>inference linq bayesian probability reasoning machine learning</tags>
 		<language>en-UK</language>
 	</metadata>
+  <files>
+    <file src=".\bin\Release\" target="lib\dotnet" />
+    <file src=".\bin\Release\net45" target="lib\net40" />
+  </files>
 </package>

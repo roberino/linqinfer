@@ -111,10 +111,12 @@
     <Compile Include="Text\Analysis\Word.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
-    <Compile Include="Text\HttpSemanticReader.cs" />
+    <Compile Include="Text\HttpTokenReader.cs" />
+    <Compile Include="Text\IDocumentIndex.cs" />
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
     <Compile Include="Text\DocumentIndex.cs" />
+    <Compile Include="Text\SearchResult.cs" />
     <Compile Include="Text\StreamTokeniser.cs" />
     <Compile Include="Text\TokenisedTextDocument.cs" />
     <Compile Include="Text\TextExtensions.cs" />
@@ -222,7 +224,9 @@
     <EmbeddedResource Include="Resources\en_dict.txt" />
     <EmbeddedResource Include="Resources\en_phonics.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Data\Remoting\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
