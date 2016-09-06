@@ -69,6 +69,10 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\Remoting\SocketState.cs" />
+    <Compile Include="Data\Remoting\TransferHandle.cs" />
+    <Compile Include="Data\Remoting\VectorTransferClient.cs" />
+    <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
@@ -224,9 +228,7 @@
     <EmbeddedResource Include="Resources\en_dict.txt" />
     <EmbeddedResource Include="Resources\en_phonics.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Data\Remoting\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
