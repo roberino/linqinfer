@@ -1,33 +1,33 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Utility;
+﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class VectorTransferServer : IDisposable
+    internal class VectorTransferServer : IDisposable, IVectorTransferServer
     {
         public const int DefaultPort = 9012;
 
+        private readonly string _serverId;
         private readonly Socket _socket;
         private readonly ManualResetEvent _completedHandle;
-        private IDictionary<string, Func<BinaryVectorDocument, bool>> _messageHandlers;
+        private IDictionary<string, Func<DataBatch, bool>> _messageHandlers;
 
         private Thread _connectThread;
-        private bool _stop;
+        private volatile ServerStatus _status;
 
-        public VectorTransferServer(int port = DefaultPort, string host = "127.0.0.1")
+        public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
+            _serverId = serverId ?? Guid.NewGuid().ToString("N");
             _completedHandle = new ManualResetEvent(false);
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _socket.Bind(GetEndpoint(host, port));
-            _messageHandlers = new Dictionary<string, Func<BinaryVectorDocument, bool>>();
+            _messageHandlers = new Dictionary<string, Func<DataBatch, bool>>();
+            _status = ServerStatus.Stopped;
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
@@ -43,36 +43,46 @@ namespace LinqInfer.Data.Remoting
             return new IPEndPoint(ipAddress, port);
         }
 
-        public void AddHandler(string messageType, Func<BinaryVectorDocument, bool> handler)
+        public void AddHandler(string messageType, Func<DataBatch, bool> handler)
         {
             _messageHandlers[messageType] = handler;
         }
 
         public void Start()
         {
-            _socket.Listen(500);
-
-            if (_connectThread != null && _connectThread.IsAlive)
+            try
             {
-                throw new InvalidOperationException("Alread running");
+                _socket.Listen(500);
+            }
+            catch (Exception ex)
+            {
+                _status = ServerStatus.Error;
+                DebugOutput.Log(ex);
+                throw;
             }
 
-            _stop = false;
+            if (_status == ServerStatus.Running || (_connectThread != null && _connectThread.IsAlive))
+            {
+                throw new InvalidOperationException("Alread active (status = " + _status + ")");
+            }
+
+            _status = ServerStatus.Running;
 
             _connectThread = new Thread(() =>
             {
-                while (!_stop)
+                while (_status == ServerStatus.Running)
                 {
                     _completedHandle.Reset();
 
                     DebugOutput.Log("Waiting for a connection...");
 
-                    _socket.BeginAccept(
-                        new AsyncCallback(AcceptCallback),
-                        _socket);
+                    _socket.BeginAccept(AcceptCallback, _socket);
 
                     _completedHandle.WaitOne();
                 }
+
+                if (_status == ServerStatus.ShuttingDown)
+                    _status = ServerStatus.Stopped;
             });
 
             _connectThread.Start();
@@ -80,8 +90,10 @@ namespace LinqInfer.Data.Remoting
 
         public void Stop()
         {
-            _stop = true;
+            _status = ServerStatus.ShuttingDown;
         }
+
+        public ServerStatus Status { get { return _status; } }
 
         private void AcceptCallback(IAsyncResult ar)
         {
@@ -92,8 +104,7 @@ namespace LinqInfer.Data.Remoting
 
             var state = new SocketState(handler);
 
-            handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                new AsyncCallback(ReadCallback), state);
+            handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
         }
 
         private void ReadCallback(IAsyncResult ar)
@@ -122,22 +133,27 @@ namespace LinqInfer.Data.Remoting
                 else
                 {
                     state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                       new AsyncCallback(ReadCallback), state);
+                       ReadCallback, state);
                 }
             }
         }
 
         private void Process(SocketState state)
         {
-            state.Data.Position = 0;
+            try
+            {
+                state.Data.Position = 0;
 
-            var doc = new BinaryVectorDocument();
+                var doc = new DataBatch();
 
-            doc.Load(state.Data);
+                doc.Load(state.Data);
 
-            var opType = doc.Properties["OpType"];
-
-            _messageHandlers[opType](doc);
+                _messageHandlers[doc.OperationType](doc);
+            }
+            catch (Exception ex)
+            {
+                DebugOutput.Log(ex);
+            }
         }
 
         public void Dispose()
@@ -148,6 +164,7 @@ namespace LinqInfer.Data.Remoting
             {
                 try
                 {
+                    _socket.Shutdown(SocketShutdown.Both);
                     _socket.Close();
                 }
                 catch
