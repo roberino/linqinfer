@@ -69,6 +69,11 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\Remoting\DataBatch.cs" />
+    <Compile Include="Data\Remoting\ITransferHandle.cs" />
+    <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\RemotingExtensions.cs" />
+    <Compile Include="Data\Remoting\ServerStatus.cs" />
     <Compile Include="Data\Remoting\SocketState.cs" />
     <Compile Include="Data\Remoting\TransferHandle.cs" />
     <Compile Include="Data\Remoting\VectorTransferClient.cs" />
