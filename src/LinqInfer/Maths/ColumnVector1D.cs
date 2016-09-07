@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -41,7 +40,7 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Applies a function of the values in the vector, modifying each value.
+        /// Applies a function over all values in the vector, modifying each value.
         /// </summary>
         /// <param name="func">A function to transform the value (takes the original value as input)</param>
         public void Apply(Func<double, double> func)
@@ -54,7 +53,7 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Applies a function of the values in the vector, modifying each value.
+        /// Applies a function over all values in the vector, modifying each value.
         /// </summary>
         /// <param name="func">A function to transform the value (takes the original value and index as input)</param>
         public void Apply(Func<double, int, double> func)
@@ -64,6 +63,41 @@ namespace LinqInfer.Maths
                 _values[i] = func(_values[i], i);
             }
             Refresh();
+        }
+
+        /// <summary>
+        /// Concatinates two vectors together into one
+        /// </summary>
+        public ColumnVector1D Concat(ColumnVector1D other)
+        {
+            var arr = new double[_values.Length + other._values.Length];
+
+            Array.Copy(_values, arr, _values.Length);
+            Array.Copy(other._values, 0, arr, _values.Length, other._values.Length);
+
+            return new ColumnVector1D(arr);
+        }
+
+        /// <summary>
+        /// Splits a vector into two parts
+        /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
+        /// </summary>
+        /// <param name="index">The index where the vector will be split</param>
+        public ColumnVector1D[] Split(int index)
+        {
+            Contract.Assert(index > 0 && index < _values.Length - 1);
+
+            var arr1 = new double[index];
+            var arr2 = new double[_values.Length - index];
+
+            Array.Copy(_values, 0, arr1, 0, index);
+            Array.Copy(_values, index, arr2, 0, arr2.Length);
+
+            return new[]
+            {
+                new ColumnVector1D(arr1),
+                new ColumnVector1D(arr2),
+            };
         }
 
         /// <summary>
@@ -191,6 +225,9 @@ namespace LinqInfer.Maths
             }
         }
 
+        /// <summary>
+        /// Returns the square of the vector
+        /// </summary>
         public ColumnVector1D Sq()
         {
             return this * this;
@@ -206,6 +243,9 @@ namespace LinqInfer.Maths
             return _values.GetEnumerator();
         }
 
+        /// <summary>
+        /// Creates a new column vector with the supplied values
+        /// </summary>
         public static ColumnVector1D Create(params double[] values)
         {
             return new ColumnVector1D(values);
@@ -288,6 +328,11 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(values);
         }
 
+        /// <summary>
+        /// Returns the values as a comma separated string of values
+        /// </summary>
+        /// <param name="precision">The numeric precision of each member</param>
+        /// <returns>A CSV string</returns>
         public string ToCsv(int precision = 8)
         {
             return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
