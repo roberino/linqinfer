@@ -3,28 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class TransferHandle
+    internal class TransferHandle : ITransferHandle
     {
         private int _batchIndex;
 
-        public TransferHandle(string operationType, SocketState state, Action<TransferHandle> onConnect)
+        public TransferHandle(string operationType, string clientId, Socket clientSocket, Action<TransferHandle> onConnect)
         {
-            State = state;
+            ClientSocket = clientSocket;
+            ClientId = clientId;
             OperationType = operationType;
             OnConnect = onConnect ?? (h => { });
             Id = Guid.NewGuid().ToString();
+            BufferSize = 1024;
         }
+
+        public int BufferSize { get; private set; }
 
         public string Id { get; private set; }
 
+        public string ClientId { get; private set; }
+
         public string OperationType { get; private set; }
 
-        public SocketState State { get; private set; }
+        internal Socket ClientSocket { get; private set; }
 
         public Action<TransferHandle> OnConnect { get; private set; }
 
@@ -42,19 +49,21 @@ namespace LinqInfer.Data.Remoting
         {
             return Task.Factory.StartNew(() =>
             {
-                var doc = new BinaryVectorDocument();
+                var doc = new DataBatch()
+                {
+                    Id = Id,
+                    ClientId = ClientId,
+                    BatchNum = (_batchIndex++),
+                    KeepAlive = !isLast,
+                    OperationType = OperationType
+                };
 
                 foreach (var vec in data)
                 {
                     doc.Vectors.Add(vec);
                 }
 
-                doc.Properties["OpType"] = OperationType;
-                doc.Properties["Id"] = Id;
-                doc.Properties["Batch"] = (_batchIndex++).ToString();
-                doc.Properties["KeepAlive"] = (!isLast).ToString();
-
-                var buffer = new byte[State.Buffer.Length];
+                var buffer = new byte[BufferSize];
 
                 using (var ms = new MemoryStream())
                 {
@@ -86,11 +95,11 @@ namespace LinqInfer.Data.Remoting
 
                         if (read == 0) break;
 
-                        State.ClientSocket.BeginSend(buffer, 0, read, 0,
+                        ClientSocket.BeginSend(buffer, 0, read, 0,
                         a =>
                         {
                             var handle = (TransferHandle)a.AsyncState;
-                            handle.State.ClientSocket.EndSend(a);
+                            handle.ClientSocket.EndSend(a);
                             waitHandle.Set();
 
                         }, this);

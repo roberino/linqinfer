@@ -8,28 +8,30 @@ namespace LinqInfer.Data.Remoting
 {
     internal class VectorTransferClient : IDisposable
     {
+        private readonly string _clientId;
         private readonly EndPoint _endpoint;
         private readonly Socket _socket;
 
-        public VectorTransferClient(int port = VectorTransferServer.DefaultPort, string host = "127.0.0.1")
+        public VectorTransferClient(string clientId = null, int port = VectorTransferServer.DefaultPort, string host = "127.0.0.1")
         {
+            _clientId = clientId ?? Guid.NewGuid().ToString("N");
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _endpoint = VectorTransferServer.GetEndpoint(host, port);
         }
 
-        public Task<TransferHandle> BeginTransfer(string operationType, Action<TransferHandle> onConnect = null)
+        public Task<ITransferHandle> BeginTransfer(string operationType, Action<TransferHandle> onConnect = null)
         {
-            var state = new TransferHandle(operationType, new SocketState(_socket), onConnect);
+            var state = new TransferHandle(operationType, _clientId, _socket, onConnect);
             var connectedHandle = new ManualResetEvent(false);
 
-            return Task<TransferHandle>.Factory.StartNew(() =>
+            return Task<ITransferHandle>.Factory.StartNew(() =>
             {
                 _socket.BeginConnect(_endpoint, a =>
                 {
                     var handle = (TransferHandle)a.AsyncState;
 
-                    handle.State.ClientSocket.EndConnect(a);
+                    handle.ClientSocket.EndConnect(a);
                     handle.OnConnect(handle);
                     connectedHandle.Set();
                 }, state);
@@ -46,6 +48,7 @@ namespace LinqInfer.Data.Remoting
             {
                 try
                 {
+                    _socket.Shutdown(SocketShutdown.Both);
                     _socket.Close();
                 }
                 catch
