@@ -21,7 +21,7 @@ namespace LinqInfer.Data.Remoting
         /// </summary>
         public static async Task SendTo<T>(this FeatureProcessingPipline<T> pipeline, Uri endpoint) where T : class
         {
-            ValidateUri(endpoint);
+            Util.ValidateUri(endpoint);
 
             using (var client = new VectorTransferClient(null, endpoint.Port, endpoint.Host))
             {
@@ -38,10 +38,10 @@ namespace LinqInfer.Data.Remoting
 
         public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, bool> messageHandler, bool startService = true)
         {
-            ValidateUri(endpoint);
+            Util.ValidateUri(endpoint);
 
             var server = _defaultServers.GetOrAdd(endpoint.Host + ':' + endpoint.Port, e => new VectorTransferServer(null, endpoint.Port, endpoint.Host));
-
+            
             server.AddHandler(endpoint.PathAndQuery, messageHandler);
 
             if (startService && server.Status == ServerStatus.Stopped)
@@ -50,19 +50,6 @@ namespace LinqInfer.Data.Remoting
             }
 
             return server;
-        }
-
-        private static void ValidateUri(Uri uri)
-        {
-            if (uri == null)
-            {
-                throw new ArgumentNullException("uri");
-            }
-
-            if (uri.Scheme != "tcp")
-            {
-                throw new ArgumentException("Only TCP scheme supported e.g. tcp://host:3211");
-            }
         }
     }
 }
