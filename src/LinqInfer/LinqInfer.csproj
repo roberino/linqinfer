@@ -76,6 +76,7 @@
     <Compile Include="Data\Remoting\ServerStatus.cs" />
     <Compile Include="Data\Remoting\SocketState.cs" />
     <Compile Include="Data\Remoting\TransferHandle.cs" />
+    <Compile Include="Data\Remoting\Util.cs" />
     <Compile Include="Data\Remoting\VectorTransferClient.cs" />
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
@@ -83,11 +84,13 @@
     <Compile Include="Genetics\IChromosome.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
-    <Compile Include="Learning\Classification\ClassifierAlgorithm.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
+    <Compile Include="Learning\Classification\IRawClassifierTrainingContext.cs" />
+    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingClient.cs" />
+    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServer.cs" />
     <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />

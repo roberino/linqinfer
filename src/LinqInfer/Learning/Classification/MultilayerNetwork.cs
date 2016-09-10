@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>
+    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Classification
 
         public MultilayerNetwork(Stream input)
         {
-            var n = Load(input);
+            var n = LoadData(input);
             _neuronFactory = n._neuronFactory;
             _rootLayer = n._rootLayer;
             _parameters = n._parameters;
@@ -182,7 +182,15 @@ namespace LinqInfer.Learning.Classification
             output.Flush();
         }
 
-        public static MultilayerNetwork Load(Stream input)
+        public void Load(Stream input)
+        {
+            var nn = LoadData(input);
+
+            _parameters = nn._parameters;
+            _rootLayer = nn._rootLayer;
+        }
+
+        public static MultilayerNetwork LoadData(Stream input)
         {
             var doc = new BinaryVectorDocument();
 

@@ -76,6 +76,18 @@ namespace LinqInfer.Data
             }
         }
 
+        public T PropertyOrDefault<T>(string key, T defaultValue)
+        {
+            string val;
+
+            if (_properties.TryGetValue(key, out val))
+            {
+                return (T)Convert.ChangeType(val, typeof(T));
+            }
+
+            return defaultValue;
+        }
+
         public IList<ColumnVector1D> Vectors
         {
             get

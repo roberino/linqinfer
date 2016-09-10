@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 
@@ -12,6 +13,12 @@ namespace LinqInfer.Data.Remoting
             Buffer = new byte[bufferSize];
             Data = new MemoryStream();
             Header = new Dictionary<string, string>();
+        }
+
+        public void Reset()
+        {
+            ContentLength = null;
+            Data.Position = 0;
         }
 
         public long? ContentLength { get; set; }

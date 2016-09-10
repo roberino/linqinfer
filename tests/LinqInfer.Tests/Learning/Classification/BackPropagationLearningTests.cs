@@ -91,7 +91,7 @@ namespace LinqInfer.Tests.Learning.Classification
 
                 ms.Position = 0;
 
-                var network2 = MultilayerNetwork.Load(ms);
+                var network2 = MultilayerNetwork.LoadData(ms);
 
                 Assert.That(network2 != null);
 
