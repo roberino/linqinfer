@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -21,7 +22,7 @@ namespace LinqInfer.Data.Remoting
 
         public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
-            _serverId = serverId ?? Guid.NewGuid().ToString("N");
+            _serverId = serverId ?? Util.GenerateId();
             _completedHandle = new ManualResetEvent(false);
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -100,11 +101,25 @@ namespace LinqInfer.Data.Remoting
             _completedHandle.Set();
 
             var listener = (Socket)ar.AsyncState;
-            var handler = listener.EndAccept(ar);
 
-            var state = new SocketState(handler);
+            try
+            {
+                var handler = listener.EndAccept(ar);
 
-            handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
+                DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
+
+                var state = new SocketState(handler);
+
+                handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
+            }
+            catch
+            {
+                if (_status == ServerStatus.Running)
+                {
+                    _status = ServerStatus.Error;
+                    throw;
+                }
+            }
         }
 
         private void ReadCallback(IAsyncResult ar)
@@ -124,11 +139,27 @@ namespace LinqInfer.Data.Remoting
                     state.Data.Write(state.Buffer, 0, bytesRead);
                 }
 
-                if (state.Data.Length >= state.ContentLength) // End of transfer ??
+                if (state.Data.Position >= state.ContentLength) // End of transfer ??
                 {
-                    Process(state);
+                    var more = Process(state);
 
-                    return;
+                    var confirmResponse = BitConverter.GetBytes(state.Data.Position);
+
+                    state.Reset();
+
+                    state.ClientSocket.Send(confirmResponse);
+
+                    //state.ClientSocket.BeginSend(confirmResponse, 0, confirmResponse.Length, 0, a =>
+                    //{
+                    //    var s = (SocketState)a.AsyncState;
+
+                    //    s.ClientSocket.EndSend(a);
+                    //}, state);
+
+                    if (more)
+                        state.ClientSocket
+                            .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
+                                ReadCallback, state);
                 }
                 else
                 {
@@ -138,7 +169,25 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void Process(SocketState state)
+        private async Task EndRequest(SocketState state, DataBatch endBatch)
+        {
+            state.ClientSocket.Disconnect(true);
+
+            var fe = endBatch.ForwardingEndpoint;
+
+            if (fe != null)
+            {
+                using (var client = new VectorTransferClient(_serverId, fe.Port, fe.Host))
+                {
+                    var tx = await client.BeginTransfer(fe.PathAndQuery);
+
+                    await tx.Send(endBatch);
+                    await tx.End();
+                }
+            }
+        }
+
+        private bool Process(SocketState state)
         {
             try
             {
@@ -148,11 +197,25 @@ namespace LinqInfer.Data.Remoting
 
                 doc.Load(state.Data);
 
+                DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
+
                 _messageHandlers[doc.OperationType](doc);
+
+                if (!doc.KeepAlive)
+                {
+                    var end = EndRequest(state, doc);
+
+                    end.Wait();
+
+                    return false;
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
                 DebugOutput.Log(ex);
+                return false;
             }
         }
 
@@ -172,6 +235,8 @@ namespace LinqInfer.Data.Remoting
 
                 }
             }
+
+            _completedHandle.Dispose();
 
             _socket.Dispose();
         }

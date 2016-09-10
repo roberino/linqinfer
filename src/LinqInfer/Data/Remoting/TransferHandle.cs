@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,76 +38,106 @@ namespace LinqInfer.Data.Remoting
 
         public Task Send(IEnumerable<ColumnVector1D> data)
         {
-            return SendBatch(data, false);
-        }
+            var doc = new BinaryVectorDocument();
 
-        public Task End()
+            foreach (var d in data) doc.Vectors.Add(d);
+
+            return SendBatch(doc, false);
+        }
+        public Task Send(BinaryVectorDocument doc)
         {
-            return SendBatch(Enumerable.Empty<ColumnVector1D>(), true);
+            return SendBatch(doc, false);
         }
 
-        private Task SendBatch(IEnumerable<ColumnVector1D> data, bool isLast)
+        public Task End(Uri forwardResponseTo = null)
+        {
+            var doc = new DataBatch();
+
+            if (forwardResponseTo != null)
+            {
+                doc.ForwardingEndpoint = forwardResponseTo;
+            }
+
+            return SendBatch(doc, true);
+        }
+
+        private Task SendBatch(BinaryVectorDocument doc, bool isLast)
         {
             return Task.Factory.StartNew(() =>
             {
-                var doc = new DataBatch()
-                {
-                    Id = Id,
-                    ClientId = ClientId,
-                    BatchNum = (_batchIndex++),
-                    KeepAlive = !isLast,
-                    OperationType = OperationType
-                };
+                var transferDoc = new DataBatch();
 
-                foreach (var vec in data)
+                foreach (var prop in doc.Properties)
                 {
-                    doc.Vectors.Add(vec);
+                    transferDoc.Properties[prop.Key] = prop.Value;
                 }
+
+                foreach (var vec in doc.Vectors)
+                {
+                    transferDoc.Vectors.Add(vec);
+                }
+
+                foreach (var child in doc.Children)
+                {
+                    transferDoc.Children.Add(child);
+                }
+
+                transferDoc.Id = Id;
+                transferDoc.ClientId = ClientId;
+                transferDoc.BatchNum = (_batchIndex++);
+                transferDoc.KeepAlive = !isLast;
+                transferDoc.OperationType = OperationType;
 
                 var buffer = new byte[BufferSize];
 
+                DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
+
                 using (var ms = new MemoryStream())
                 {
-                    doc.Save(ms);
+                    transferDoc.Save(ms);
 
                     ms.Flush();
                     ms.Position = 0;
 
-                    var waitHandle = new ManualResetEvent(false);
-                    bool headSent = false;
-
-                    while (true)
+                    using (var waitHandle = new ManualResetEvent(false))
                     {
-                        int read;
+                        bool headSent = false;
 
-                        waitHandle.Reset();
-
-                        if (!headSent)
+                        while (true)
                         {
-                            var requestSize = BitConverter.GetBytes(ms.Length);
-                            headSent = true;
-                            read = requestSize.Length;
-                            Array.Copy(requestSize, buffer, read);
+                            int read;
+
+                            waitHandle.Reset();
+
+                            if (!headSent)
+                            {
+                                var requestSize = BitConverter.GetBytes(ms.Length);
+                                headSent = true;
+                                read = requestSize.Length;
+                                Array.Copy(requestSize, buffer, read);
+                            }
+                            else
+                            {
+                                read = ms.Read(buffer, 0, buffer.Length);
+                            }
+
+                            if (read == 0) break;
+
+                            ClientSocket.BeginSend(buffer, 0, read, 0,
+                            a =>
+                            {
+                                var handle = (TransferHandle)a.AsyncState;
+                                handle.ClientSocket.EndSend(a);
+                                waitHandle.Set();
+
+                            }, this);
+
+                            waitHandle.WaitOne();
                         }
-                        else
-                        {
-                            read = ms.Read(buffer, 0, buffer.Length);
-                        }
-
-                        if (read == 0) break;
-
-                        ClientSocket.BeginSend(buffer, 0, read, 0,
-                        a =>
-                        {
-                            var handle = (TransferHandle)a.AsyncState;
-                            handle.ClientSocket.EndSend(a);
-                            waitHandle.Set();
-
-                        }, this);
-
-                        waitHandle.WaitOne();
                     }
                 }
+
+                ClientSocket.Receive(buffer);
             });
         }        
     }

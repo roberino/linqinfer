@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -36,6 +32,18 @@ namespace LinqInfer.Data.Remoting
         {
             get { return bool.Parse(Properties["KeepAlive"] ?? "False"); }
             set { Properties["KeepAlive"] = value.ToString(); }
+        }
+        public Uri ForwardingEndpoint
+        {
+            get { return Parse(PropertyOrDefault("ForwardTo", null as string)); }
+            set { Properties["ForwardTo"] = value.ToString(); }
+        }
+
+        private Uri Parse(string value)
+        {
+            if (value == null) return null;
+
+            return new Uri(value);
         }
     }
 }
