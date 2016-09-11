@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace LinqInfer.Data.Remoting
         private readonly string _serverId;
         private readonly Socket _socket;
         private readonly ManualResetEvent _completedHandle;
-        private IDictionary<string, Func<DataBatch, bool>> _messageHandlers;
+        private IDictionary<string, Func<DataBatch, Stream, bool>> _messageHandlers;
 
         private Thread _connectThread;
         private volatile ServerStatus _status;
@@ -27,7 +28,7 @@ namespace LinqInfer.Data.Remoting
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _socket.Bind(GetEndpoint(host, port));
-            _messageHandlers = new Dictionary<string, Func<DataBatch, bool>>();
+            _messageHandlers = new Dictionary<string, Func<DataBatch, Stream, bool>>();
             _status = ServerStatus.Stopped;
         }
 
@@ -44,7 +45,7 @@ namespace LinqInfer.Data.Remoting
             return new IPEndPoint(ipAddress, port);
         }
 
-        public void AddHandler(string messageType, Func<DataBatch, bool> handler)
+        public void AddHandler(string messageType, Func<DataBatch, Stream, bool> handler)
         {
             _messageHandlers[messageType] = handler;
         }
@@ -136,25 +137,18 @@ namespace LinqInfer.Data.Remoting
                 }
                 else
                 {
-                    state.Data.Write(state.Buffer, 0, bytesRead);
+                    state.ReceivedData.Write(state.Buffer, 0, bytesRead);
                 }
 
-                if (state.Data.Position >= state.ContentLength) // End of transfer ??
+                if (state.ReceivedData.Position >= state.ContentLength)
                 {
                     var more = Process(state);
 
-                    var confirmResponse = BitConverter.GetBytes(state.Data.Position);
+                    var confirmResponse = BitConverter.GetBytes(state.ReceivedData.Position);
 
                     state.Reset();
 
-                    state.ClientSocket.Send(confirmResponse);
-
-                    //state.ClientSocket.BeginSend(confirmResponse, 0, confirmResponse.Length, 0, a =>
-                    //{
-                    //    var s = (SocketState)a.AsyncState;
-
-                    //    s.ClientSocket.EndSend(a);
-                    //}, state);
+                    SendResponse(state);
 
                     if (more)
                         state.ClientSocket
@@ -166,6 +160,20 @@ namespace LinqInfer.Data.Remoting
                     state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
                        ReadCallback, state);
                 }
+            }
+        }
+
+        private void SendResponse(SocketState state)
+        {
+            var len = BitConverter.GetBytes(state.ResponseData.Length);
+
+            state.ClientSocket.Send(len, len.Length, SocketFlags.None);
+
+            while (state.ResponseData.Position < state.ResponseData.Length - 1)
+            {
+                var read = state.ResponseData.Read(state.Buffer, 0, state.Buffer.Length);
+
+                state.ClientSocket.Send(state.Buffer, read, SocketFlags.None);
             }
         }
 
@@ -191,15 +199,15 @@ namespace LinqInfer.Data.Remoting
         {
             try
             {
-                state.Data.Position = 0;
+                state.ReceivedData.Position = 0;
 
                 var doc = new DataBatch();
 
-                doc.Load(state.Data);
+                doc.Load(state.ReceivedData);
 
                 DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
 
-                _messageHandlers[doc.OperationType](doc);
+                _messageHandlers[doc.OperationType](doc, state.ResponseData);
 
                 if (!doc.KeepAlive)
                 {

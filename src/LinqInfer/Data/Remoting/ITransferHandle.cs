@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using LinqInfer.Maths;
 using System;
+using System.IO;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -12,6 +13,6 @@ namespace LinqInfer.Data.Remoting
         string OperationType { get; }
         Task Send(BinaryVectorDocument doc);
         Task Send(IEnumerable<ColumnVector1D> data);
-        Task End(Uri forwardResponseTo = null);
+        Task<Stream> End(Uri forwardResponseTo = null);
     }
 }

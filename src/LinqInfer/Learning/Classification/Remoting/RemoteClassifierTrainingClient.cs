@@ -2,6 +2,7 @@
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             _client.Dispose();
         }
 
-        public async Task<string> Send<TInput, TClass>(
+        public async Task<KeyValuePair<string, IObjectClassifier<TClass, TInput>>> Send<TInput, TClass>(
             FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             float errorTolerance = 0.1f) 
@@ -58,9 +59,14 @@ namespace LinqInfer.Learning.Classification.Remoting
                 await txHandle.Send(doc);
             }
 
-            await txHandle.End();
+            var response = await txHandle.End();
 
-            return txHandle.Id;
+            var nn = new MultilayerNetwork(response);
+
+            var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(pipeline.FeatureExtractor, outputMapper, nn);
+
+            return new KeyValuePair<string, IObjectClassifier<TClass, TInput>>(
+                txHandle.Id, clsf);
         }
     }
 }

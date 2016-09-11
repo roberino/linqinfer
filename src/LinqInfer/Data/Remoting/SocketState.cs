@@ -11,14 +11,16 @@ namespace LinqInfer.Data.Remoting
         {
             ClientSocket = client;
             Buffer = new byte[bufferSize];
-            Data = new MemoryStream();
+            ReceivedData = new MemoryStream();
+            ResponseData = new MemoryStream();
             Header = new Dictionary<string, string>();
         }
 
         public void Reset()
         {
             ContentLength = null;
-            Data.Position = 0;
+            ReceivedData.Position = 0;
+            ResponseData.Position = 0;
         }
 
         public long? ContentLength { get; set; }
@@ -29,6 +31,8 @@ namespace LinqInfer.Data.Remoting
 
         public byte[] Buffer { get; private set; }
 
-        public Stream Data { get; private set; }
+        public Stream ReceivedData { get; private set; }
+
+        public Stream ResponseData { get; private set; }
     }
 }
