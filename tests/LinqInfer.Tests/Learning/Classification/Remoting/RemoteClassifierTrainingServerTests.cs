@@ -35,13 +35,11 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 var pipeline = data.CreatePipeline();
 
-                var id = await client.Send(pipeline, x => x.x > 10 ? 'a' : 'b');
-
-                Thread.Sleep(500);
-
+                var results = await client.Send(pipeline, x => x.x > 10 ? 'a' : 'b');
+                
                 var nn = new MultilayerNetwork(new NetworkParameters(1, 1));
 
-                blobs.Restore(id, nn);
+                blobs.Restore(results.Key, nn);
             }
         }
     }

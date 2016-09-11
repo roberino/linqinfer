@@ -25,7 +25,7 @@ namespace LinqInfer.Tests.Data.Remoting
                 y = Math.Log(x)
             }).AsQueryable();
 
-            var server = endpoint.CreateRemoteService(s =>
+            var server = endpoint.CreateRemoteService((s, r) =>
             {
                 foreach(var item in s.Vectors)
                 {
