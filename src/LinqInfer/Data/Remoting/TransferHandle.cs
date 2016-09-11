@@ -3,7 +3,6 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,8 @@ namespace LinqInfer.Data.Remoting
 {
     internal class TransferHandle : ITransferHandle
     {
+        private readonly MemoryStream _responseStream;
+
         private int _batchIndex;
 
         public TransferHandle(string operationType, string clientId, Socket clientSocket, Action<TransferHandle> onConnect)
@@ -22,6 +23,7 @@ namespace LinqInfer.Data.Remoting
             OnConnect = onConnect ?? (h => { });
             Id = Guid.NewGuid().ToString();
             BufferSize = 1024;
+            _responseStream = new MemoryStream();
         }
 
         public int BufferSize { get; private set; }
@@ -49,7 +51,7 @@ namespace LinqInfer.Data.Remoting
             return SendBatch(doc, false);
         }
 
-        public Task End(Uri forwardResponseTo = null)
+        public async Task<Stream> End(Uri forwardResponseTo = null)
         {
             var doc = new DataBatch();
 
@@ -58,7 +60,11 @@ namespace LinqInfer.Data.Remoting
                 doc.ForwardingEndpoint = forwardResponseTo;
             }
 
-            return SendBatch(doc, true);
+            await SendBatch(doc, true);
+
+            _responseStream.Position = 0;
+
+            return _responseStream;
         }
 
         private Task SendBatch(BinaryVectorDocument doc, bool isLast)
@@ -137,8 +143,27 @@ namespace LinqInfer.Data.Remoting
                     }
                 }
 
-                ClientSocket.Receive(buffer);
+                Receive();
             });
-        }        
+        }
+
+        private void Receive()
+        {
+            var buffer = new byte[BufferSize];
+
+            var pos = 0;
+            var len = ClientSocket.Receive(buffer);
+
+            while (pos < len)
+            {
+                var received = ClientSocket.Receive(buffer);
+
+                if (received == 0) break;
+
+                _responseStream.Write(buffer, 0, received);
+
+                pos += received;
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.Remoting
@@ -39,7 +40,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server.Stop();
         }
 
-        private bool Process(DataBatch batch)
+        private bool Process(DataBatch batch, Stream response)
         {
             IRawClassifierTrainingContext<NetworkParameters> ctx;
 
@@ -63,6 +64,8 @@ namespace LinqInfer.Learning.Classification.Remoting
                 if (!batch.KeepAlive)
                 {
                     _blobStore.Store(batch.Id, ctx.Output);
+
+                    ctx.Output.Save(response);
                 }
             }
 

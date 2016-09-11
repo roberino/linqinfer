@@ -15,9 +15,9 @@ namespace LinqInfer.Tests.Data.Remoting
         {
             using (var server = new VectorTransferServer())
             {
-                server.AddHandler("x", d =>
+                server.AddHandler("x", (d, r) =>
                 {
-                    foreach(var vect in d.Vectors)
+                    foreach (var vect in d.Vectors)
                     {
                         Console.WriteLine(vect);
                     }

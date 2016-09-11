@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,7 +37,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, bool> messageHandler, bool startService = true)
+        public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, Stream, bool> messageHandler, bool startService = true)
         {
             Util.ValidateUri(endpoint);
 
