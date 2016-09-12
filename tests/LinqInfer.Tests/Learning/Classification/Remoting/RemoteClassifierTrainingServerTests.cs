@@ -17,7 +17,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
     public class RemoteClassifierTrainingServerTests
     {
         [Test]
-        public async Task Send()
+        public async Task CreateClassifier_SavesOutput()
         {
             var endpoint = new Uri("tcp://localhost:9210");
 
@@ -35,11 +35,19 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 var pipeline = data.CreatePipeline();
 
-                var results = await client.Send(pipeline, x => x.x > 10 ? 'a' : 'b');
+                var keyAndclassifier = await client.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
                 
                 var nn = new MultilayerNetwork(new NetworkParameters(1, 1));
 
-                blobs.Restore(results.Key, nn);
+                blobs.Restore(keyAndclassifier.Key, nn);
+
+                var cls = keyAndclassifier.Value.Classify(new
+                {
+                    x = 12.432,
+                    y = Math.Log(12.432)
+                });
+
+                Assert.That(cls.Any());
             }
         }
     }

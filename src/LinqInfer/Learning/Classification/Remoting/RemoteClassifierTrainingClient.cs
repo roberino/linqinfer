@@ -28,9 +28,10 @@ namespace LinqInfer.Learning.Classification.Remoting
             _client.Dispose();
         }
 
-        public async Task<KeyValuePair<string, IObjectClassifier<TClass, TInput>>> Send<TInput, TClass>(
+        public async Task<KeyValuePair<string, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(
             FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
+            bool remoteSave = false,
             float errorTolerance = 0.1f) 
             where TInput : class
             where TClass : IEquatable<TClass>
@@ -59,7 +60,10 @@ namespace LinqInfer.Learning.Classification.Remoting
                 await txHandle.Send(doc);
             }
 
-            var response = await txHandle.End();
+            var response = await txHandle.End(new
+            {
+                SaveOutput = remoteSave
+            });
 
             var nn = new MultilayerNetwork(response);
 

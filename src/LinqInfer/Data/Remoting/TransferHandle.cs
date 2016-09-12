@@ -3,6 +3,7 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,9 +52,28 @@ namespace LinqInfer.Data.Remoting
             return SendBatch(doc, false);
         }
 
-        public async Task<Stream> End(Uri forwardResponseTo = null)
+        public Task<Stream> End(object parameters, Uri forwardResponseTo = null)
+        {
+            if (parameters != null)
+            {
+                return End(parameters
+                    .GetType()
+                    .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                    .ToDictionary(p => p.Name, p => p.GetValue(parameters)?.ToString())
+                    , forwardResponseTo);
+            }
+
+            return End(new Dictionary<string, string>(), forwardResponseTo);
+        }
+
+        public async Task<Stream> End(IDictionary<string, string> parameters = null, Uri forwardResponseTo = null)
         {
             var doc = new DataBatch();
+
+            if (parameters != null)
+            {
+                foreach (var kv in parameters) doc.Properties[kv.Key] = kv.Value;
+            }
 
             if (forwardResponseTo != null)
             {
@@ -118,9 +138,9 @@ namespace LinqInfer.Data.Remoting
                             if (!headSent)
                             {
                                 var requestSize = BitConverter.GetBytes(ms.Length);
-                                headSent = true;
                                 read = requestSize.Length;
                                 Array.Copy(requestSize, buffer, read);
+                                headSent = true;
                             }
                             else
                             {
@@ -143,26 +163,55 @@ namespace LinqInfer.Data.Remoting
                     }
                 }
 
-                Receive();
+                Receive(this);
             });
         }
 
-        private void Receive()
+        private static void Receive(TransferHandle state)
         {
-            var buffer = new byte[BufferSize];
+            var buffer = new byte[state.BufferSize];
 
             var pos = 0;
-            var len = ClientSocket.Receive(buffer);
 
-            while (pos < len)
+            int received = 0;
+
+            using (var waitHandle = new ManualResetEvent(false))
             {
-                var received = ClientSocket.Receive(buffer);
+                int len = 0;
 
-                if (received == 0) break;
+                state.ClientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, a =>
+                {
+                    var s = (TransferHandle)a.AsyncState;
+                    var headerLen = s.ClientSocket.EndReceive(a);
+                    len = headerLen == 0 ? 0 : BitConverter.ToInt32(buffer, 0);
+                    waitHandle.Set();
+                }, state);
 
-                _responseStream.Write(buffer, 0, received);
+                waitHandle.WaitOne();
 
-                pos += received;
+                DebugOutput.Log("Receiving response ({0} bytes)", len);
+
+                while (pos < len)
+                {
+                    waitHandle.Reset();
+
+                    state.ClientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, a =>
+                    {
+                        var tx = (TransferHandle)a.AsyncState;
+
+                        received = tx.ClientSocket.EndReceive(a);
+
+                        tx._responseStream.Write(buffer, 0, received);
+
+                        pos += received;
+
+                        waitHandle.Set();
+                    }, state);
+
+                    waitHandle.WaitOne();
+
+                    if (received == 0) break;
+                }
             }
         }
     }
