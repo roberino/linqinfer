@@ -13,6 +13,7 @@ namespace LinqInfer.Data.Remoting
         string OperationType { get; }
         Task Send(BinaryVectorDocument doc);
         Task Send(IEnumerable<ColumnVector1D> data);
-        Task<Stream> End(Uri forwardResponseTo = null);
+        Task<Stream> End(object parameters, Uri forwardResponseTo = null);
+        Task<Stream> End(IDictionary<string, string> parameters = null, Uri forwardResponseTo = null);
     }
 }

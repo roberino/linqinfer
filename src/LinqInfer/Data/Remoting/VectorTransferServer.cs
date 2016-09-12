@@ -144,16 +144,21 @@ namespace LinqInfer.Data.Remoting
                 {
                     var more = Process(state);
 
-                    var confirmResponse = BitConverter.GetBytes(state.ReceivedData.Position);
-
                     state.Reset();
 
                     SendResponse(state);
 
                     if (more)
+                    {
                         state.ClientSocket
                             .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
                                 ReadCallback, state);
+                    }
+                    else
+                    {
+                        DebugOutput.Log("Ending conversation");
+                        state.ClientSocket.Disconnect(true);
+                    }
                 }
                 else
                 {
@@ -165,32 +170,57 @@ namespace LinqInfer.Data.Remoting
 
         private void SendResponse(SocketState state)
         {
-            var len = BitConverter.GetBytes(state.ResponseData.Length);
+            DebugOutput.Log("Sending response ({0} bytes)", state.ResponseData.Length);
 
-            state.ClientSocket.Send(len, len.Length, SocketFlags.None);
-
-            while (state.ResponseData.Position < state.ResponseData.Length - 1)
+            using (var waitHandle = new ManualResetEvent(false))
             {
-                var read = state.ResponseData.Read(state.Buffer, 0, state.Buffer.Length);
+                var header = BitConverter.GetBytes(state.ResponseData.Length);
 
-                state.ClientSocket.Send(state.Buffer, read, SocketFlags.None);
+                state.ClientSocket.BeginSend(header, 0, header.Length, SocketFlags.None, a => {
+                    var ss = (SocketState)a.AsyncState;
+                    ss.ClientSocket.EndSend(a);
+                    waitHandle.Set();
+                }, state);
+
+                waitHandle.WaitOne();
+
+                while (state.ResponseData.Position < state.ResponseData.Length)
+                {
+                    var read = state.ResponseData.Read(state.Buffer, 0, state.Buffer.Length);
+
+                    if (read == 0) return;
+
+                    waitHandle.Reset();
+
+                    state.ClientSocket.BeginSend(state.Buffer, 0, read, SocketFlags.None, a =>
+                    {
+                        var s = (SocketState)a.AsyncState;
+
+                        s.ClientSocket.EndSend(a);
+
+                        waitHandle.Set();
+
+                    }, state);
+
+                    waitHandle.WaitOne();
+                }
             }
         }
 
         private async Task EndRequest(SocketState state, DataBatch endBatch)
         {
-            state.ClientSocket.Disconnect(true);
-
             var fe = endBatch.ForwardingEndpoint;
 
             if (fe != null)
             {
+                DebugOutput.Log("Forwarding to {0}", fe);
+
                 using (var client = new VectorTransferClient(_serverId, fe.Port, fe.Host))
                 {
                     var tx = await client.BeginTransfer(fe.PathAndQuery);
 
                     await tx.Send(endBatch);
-                    await tx.End();
+                    await tx.End(endBatch.Properties);
                 }
             }
         }

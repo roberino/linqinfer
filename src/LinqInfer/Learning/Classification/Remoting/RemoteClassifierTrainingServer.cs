@@ -63,7 +63,8 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                 if (!batch.KeepAlive)
                 {
-                    _blobStore.Store(batch.Id, ctx.Output);
+                    if (batch.PropertyOrDefault("SaveOutput", false))
+                        _blobStore.Store(batch.Id, ctx.Output);
 
                     ctx.Output.Save(response);
                 }
