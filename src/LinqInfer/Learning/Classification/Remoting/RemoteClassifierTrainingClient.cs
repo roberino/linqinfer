@@ -3,6 +3,7 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,8 @@ namespace LinqInfer.Learning.Classification.Remoting
             FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             bool remoteSave = false,
-            float errorTolerance = 0.1f) 
+            float errorTolerance = 0.1f,
+            params int[] hiddenLayers) 
             where TInput : class
             where TClass : IEquatable<TClass>
         {
@@ -40,7 +42,10 @@ namespace LinqInfer.Learning.Classification.Remoting
             var classfc = classf.Compile();
 
             var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery);
-            var np = new NetworkParameters(pipeline.VectorSize, outputMapper.VectorSize);
+
+            var layers = hiddenLayers == null ? new[] { pipeline.VectorSize, outputMapper.VectorSize } : new[] { pipeline.VectorSize }.Concat(hiddenLayers).Concat(new[] { outputMapper.VectorSize }).ToArray();
+
+            var np = new NetworkParameters(layers);
 
             foreach (var batch in pipeline.ExtractBatches())
             {

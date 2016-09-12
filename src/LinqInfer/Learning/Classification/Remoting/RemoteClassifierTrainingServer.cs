@@ -67,6 +67,8 @@ namespace LinqInfer.Learning.Classification.Remoting
                         _blobStore.Store(batch.Id, ctx.Output);
 
                     ctx.Output.Save(response);
+
+                    _trainingContexts.Remove(batch.Id);
                 }
             }
 

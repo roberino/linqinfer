@@ -37,15 +37,24 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 var keyAndclassifier = await client.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
                 
+                // We should be able to restore the raw blob back into a network
+
                 var nn = new MultilayerNetwork(new NetworkParameters(1, 1));
 
                 blobs.Restore(keyAndclassifier.Key, nn);
+
+                // We should receive a valid classifier object back
 
                 var cls = keyAndclassifier.Value.Classify(new
                 {
                     x = 12.432,
                     y = Math.Log(12.432)
                 });
+
+                foreach(var c in cls)
+                {
+                    Console.WriteLine(c);
+                }
 
                 Assert.That(cls.Any());
             }
