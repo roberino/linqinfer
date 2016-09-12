@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.Remoting
 {
-    internal class RemoteClassifierTrainingServer : IDisposable
+    internal class RemoteClassifierTrainingServer : IServer
     {
         private readonly IDictionary<string, IRawClassifierTrainingContext<NetworkParameters>> _trainingContexts;
 
@@ -16,6 +16,14 @@ namespace LinqInfer.Learning.Classification.Remoting
         private readonly IBlobStore _blobStore;
         private readonly MultilayerNetworkTrainingContextFactory<string> _trainingContextFactory;
         private readonly ICategoricalOutputMapper<string> _outputMapper;
+
+        public ServerStatus Status
+        {
+            get
+            {
+                return _server.Status;
+            }
+        }
 
         public RemoteClassifierTrainingServer(Uri uri, IBlobStore blobStore)
         {
