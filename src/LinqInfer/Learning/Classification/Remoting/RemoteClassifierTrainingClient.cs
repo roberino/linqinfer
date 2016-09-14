@@ -1,11 +1,11 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.Remoting
@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             Expression<Func<TInput, TClass>> classf,
             bool remoteSave = false,
             float errorTolerance = 0.1f,
-            params int[] hiddenLayers) 
+            params int[] hiddenLayers)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
@@ -47,35 +47,63 @@ namespace LinqInfer.Learning.Classification.Remoting
 
             var np = new NetworkParameters(layers);
 
-            foreach (var batch in pipeline.ExtractBatches())
+            bool hasConverged = false;
+
+            int i = 0;
+
+            while (!hasConverged && i < 10)
             {
-                var doc = new BinaryVectorDocument();
-
-                foreach (var obVec in batch)
+                foreach (var batch in pipeline.ExtractBatches())
                 {
-                    var cls = classfc(obVec.Value);
-                    var output = outputMapper.ExtractColumnVector(cls);
+                    var doc = new BinaryVectorDocument();
 
-                    doc.Vectors.Add(obVec.Vector.Concat(output));
+                    foreach (var obVec in batch)
+                    {
+                        var cls = classfc(obVec.Value);
+                        var output = outputMapper.ExtractColumnVector(cls);
+
+                        doc.Vectors.Add(obVec.Vector.Concat(output));
+                    }
+
+                    doc.Properties["VectorSize"] = pipeline.VectorSize.ToString();
+                    doc.Properties["LayerSizes"] = string.Join(",", np.LayerSizes);
+
+                    await txHandle.Send(doc);
                 }
 
-                doc.Properties["VectorSize"] = pipeline.VectorSize.ToString();
-                doc.Properties["LayerSizes"] = string.Join(",", np.LayerSizes);
+                float averageError;
 
-                await txHandle.Send(doc);
+                using (var response = await txHandle.Receive())
+                {
+                    var summary = new BinaryVectorDocument(response);
+
+                    averageError = summary.PropertyOrDefault("AverageError", 0f);
+                }
+
+                DebugOutput.Log("Average error = {0}", averageError);
+
+                hasConverged = averageError < errorTolerance;
+                i++;
             }
 
-            var response = await txHandle.End(new
+            var finalResponse = await txHandle.End(new
             {
                 SaveOutput = remoteSave
             });
 
-            var nn = new MultilayerNetwork(response);
+            try
+            {
+                var network = new MultilayerNetwork(finalResponse);
 
-            var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(pipeline.FeatureExtractor, outputMapper, nn);
+                var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(pipeline.FeatureExtractor, outputMapper, network);
 
-            return new KeyValuePair<string, IObjectClassifier<TClass, TInput>>(
-                txHandle.Id, clsf);
+                return new KeyValuePair<string, IObjectClassifier<TClass, TInput>>(
+                    txHandle.Id, clsf);
+            }
+            finally
+            {
+                finalResponse.Dispose();
+            }
         }
     }
 }

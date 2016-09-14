@@ -25,13 +25,18 @@ namespace LinqInfer.Data.Remoting
         }
         public int BatchNum
         {
-            get { return int.Parse(Properties["Batch"] ?? "0"); }
+            get { return PropertyOrDefault("Batch", 0); }
             set { Properties["Batch"] = value.ToString(); }
         }
         public bool KeepAlive
         {
-            get { return bool.Parse(Properties["KeepAlive"] ?? "False"); }
+            get { return PropertyOrDefault("KeepAlive", false); }
             set { Properties["KeepAlive"] = value.ToString(); }
+        }
+        public bool SendResponse
+        {
+            get { return PropertyOrDefault("SendResponse", false); }
+            set { Properties["SendResponse"] = value.ToString(); }
         }
         public Uri ForwardingEndpoint
         {

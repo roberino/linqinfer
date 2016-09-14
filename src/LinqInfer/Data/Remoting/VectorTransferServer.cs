@@ -142,11 +142,16 @@ namespace LinqInfer.Data.Remoting
 
                 if (state.ReceivedData.Position >= state.ContentLength)
                 {
-                    var more = Process(state);
+                    bool more = false;
 
-                    state.Reset();
+                    using (var response = new MemoryStream())
+                    {
+                        more = Process(state, response);
 
-                    SendResponse(state);
+                        SendResponse(state, response);
+
+                        state.Reset();
+                    }
 
                     if (more)
                     {
@@ -168,13 +173,17 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void SendResponse(SocketState state)
+        private void SendResponse(SocketState state, Stream response)
         {
-            DebugOutput.Log("Sending response ({0} bytes)", state.ResponseData.Length);
+            var len = response.Length;
+
+            response.Position = 0;
+
+            DebugOutput.Log("Sending response ({0} bytes)", len);
 
             using (var waitHandle = new ManualResetEvent(false))
             {
-                var header = BitConverter.GetBytes(state.ResponseData.Length);
+                var header = BitConverter.GetBytes(len);
 
                 state.ClientSocket.BeginSend(header, 0, header.Length, SocketFlags.None, a => {
                     var ss = (SocketState)a.AsyncState;
@@ -184,9 +193,9 @@ namespace LinqInfer.Data.Remoting
 
                 waitHandle.WaitOne();
 
-                while (state.ResponseData.Position < state.ResponseData.Length)
+                while (response.Position < len)
                 {
-                    var read = state.ResponseData.Read(state.Buffer, 0, state.Buffer.Length);
+                    var read = response.Read(state.Buffer, 0, state.Buffer.Length);
 
                     if (read == 0) return;
 
@@ -225,7 +234,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private bool Process(SocketState state)
+        private bool Process(SocketState state, Stream response)
         {
             try
             {
@@ -237,7 +246,7 @@ namespace LinqInfer.Data.Remoting
 
                 DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
 
-                _messageHandlers[doc.OperationType](doc, state.ResponseData);
+                _messageHandlers[doc.OperationType](doc, response);
 
                 if (!doc.KeepAlive)
                 {

@@ -67,7 +67,7 @@ namespace LinqInfer.Text
         /// <param name="classifyingFunction">A function which will return a class label for an object</param>
         /// <param name="maxVectorSize">The maximum number of terms (words) used to classify object</param>
         /// <returns>An object classifier</returns>
-        public static IObjectClassifier<string, T> CreateSemanticClassifiier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
+        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
         {
             var index = new DocumentIndex();
             var cf = classifyingFunction.Compile();
