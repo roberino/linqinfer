@@ -136,7 +136,7 @@ namespace LinqInfer.Tests.Text
                 }
             };
 
-            var classifier = data.Take(4).AsQueryable().CreateSemanticClassifiier(x => x.cls, 12);
+            var classifier = data.Take(4).AsQueryable().CreateSemanticClassifier(x => x.cls, 12);
 
             var test = data.Last();
 

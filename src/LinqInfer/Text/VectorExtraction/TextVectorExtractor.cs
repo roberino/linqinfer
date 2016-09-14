@@ -83,10 +83,12 @@ namespace LinqInfer.Text.VectorExtraction
                 }
             }
 
+            var nf = (double)_normalisingFrequency;
+
             return vectorRaw
                 .Select(v => v == 0 ? 0d :
-                    Math.Log(Math.Min(v + 1, _normalisingFrequency)
-                    , _normalisingFrequency))
+                    Math.Log((Math.Min(v + 1, nf)) / nf * 10d
+                    , 10))
                 .ToArray();
         }
 
