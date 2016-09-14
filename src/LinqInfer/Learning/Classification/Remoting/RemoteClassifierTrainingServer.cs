@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -64,23 +65,54 @@ namespace LinqInfer.Learning.Classification.Remoting
 
             lock (batch.Id)
             {
-                foreach (var inputOutputPair in batch.Vectors.Select(v => v.Split(ctx.Parameters.InputVectorSize)))
+                if (batch.Vectors.Any())
                 {
-                    ctx.Train(inputOutputPair[1], inputOutputPair[0]);
+                    var iterations = batch.PropertyOrDefault("Iterations", 1);
+
+                    foreach (var i in Enumerable.Range(0, iterations))
+                    {
+                        foreach (var inputOutputPair in batch
+                            .Vectors
+                            .Select(v => v.Split(ctx.Parameters.InputVectorSize))
+                            .RandomOrder()
+                            )
+                        {
+                            ctx.Train(inputOutputPair[1], inputOutputPair[0]);
+                        }
+                    }
                 }
 
                 if (!batch.KeepAlive)
                 {
                     if (batch.PropertyOrDefault("SaveOutput", false))
+                    {
                         _blobStore.Store(batch.Id, ctx.Output);
+                    }
 
                     ctx.Output.Save(response);
 
                     _trainingContexts.Remove(batch.Id);
                 }
+                else
+                {
+                    if (batch.SendResponse)
+                    {
+                        WriteSummaryResponse(ctx, response);
+                    }
+                }
             }
 
             return true;
+        }
+
+        private void WriteSummaryResponse(IRawClassifierTrainingContext<NetworkParameters> ctx, Stream response)
+        {
+            var summary = new BinaryVectorDocument();
+
+            summary.Properties["RateOfErrorChange"] = ctx.RateOfErrorChange.ToString();
+            summary.Properties["AverageError"] = ctx.AverageError.ToString();
+
+            summary.Save(response);
         }
 
         public void Dispose()

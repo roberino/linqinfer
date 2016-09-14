@@ -12,7 +12,7 @@ namespace LinqInfer.Data.Remoting
 {
     internal class TransferHandle : ITransferHandle
     {
-        private readonly MemoryStream _responseStream;
+        private MemoryStream _responseStream;
 
         private int _batchIndex;
 
@@ -47,23 +47,35 @@ namespace LinqInfer.Data.Remoting
 
             return SendBatch(doc, false);
         }
+
         public Task Send(BinaryVectorDocument doc)
         {
             return SendBatch(doc, false);
         }
 
-        public Task<Stream> End(object parameters, Uri forwardResponseTo = null)
+        public async Task<Stream> Receive(object parameters = null)
         {
-            if (parameters != null)
+            var doc = new BinaryVectorDocument();
+
+            foreach (var kv in ParamsToDict(parameters))
             {
-                return End(parameters
-                    .GetType()
-                    .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-                    .ToDictionary(p => p.Name, p => p.GetValue(parameters)?.ToString())
-                    , forwardResponseTo);
+                doc.Properties[kv.Key] = kv.Value;
             }
 
-            return End(new Dictionary<string, string>(), forwardResponseTo);
+            await SendBatch(doc, false, true);
+
+            var results = _responseStream;
+
+            results.Position = 0;
+
+            _responseStream = new MemoryStream();
+
+            return results;
+        }
+
+        public Task<Stream> End(object parameters, Uri forwardResponseTo = null)
+        {
+            return End(ParamsToDict(parameters), forwardResponseTo);
         }
 
         public async Task<Stream> End(IDictionary<string, string> parameters = null, Uri forwardResponseTo = null)
@@ -87,7 +99,7 @@ namespace LinqInfer.Data.Remoting
             return _responseStream;
         }
 
-        private Task SendBatch(BinaryVectorDocument doc, bool isLast)
+        private Task SendBatch(BinaryVectorDocument doc, bool isLast, bool sendResponse = false)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -112,6 +124,7 @@ namespace LinqInfer.Data.Remoting
                 transferDoc.ClientId = ClientId;
                 transferDoc.BatchNum = (_batchIndex++);
                 transferDoc.KeepAlive = !isLast;
+                transferDoc.SendResponse = sendResponse;
                 transferDoc.OperationType = OperationType;
 
                 var buffer = new byte[BufferSize];
@@ -213,6 +226,16 @@ namespace LinqInfer.Data.Remoting
                     if (received == 0) break;
                 }
             }
+        }
+
+        private IDictionary<string, string> ParamsToDict(object parameters)
+        {
+            if (parameters == null) return new Dictionary<string, string>();
+
+            return parameters
+                    .GetType()
+                    .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                    .ToDictionary(p => p.Name, p => p.GetValue(parameters)?.ToString());
         }
     }
 }

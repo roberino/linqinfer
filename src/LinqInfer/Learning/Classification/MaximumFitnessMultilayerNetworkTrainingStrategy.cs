@@ -155,48 +155,17 @@ namespace LinqInfer.Learning.Classification
         private class PipelineFactory
         {
             private readonly Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> _trainingContextFactory;
-            private readonly int _vectorSize;
-            private readonly int _outputSize;
-            private readonly double _learningRate;
+            private readonly NetworkParameterFactory _nwpf;
 
             public PipelineFactory(Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, int vectorSize, int outputSize, double learningRate = 0.1)
             {
                 _trainingContextFactory = trainingContextFactory;
-                _vectorSize = vectorSize;
-                _outputSize = outputSize;
-                _learningRate = learningRate;
+                _nwpf = new NetworkParameterFactory(vectorSize, outputSize, learningRate);
             }
 
             public IEnumerable<IClassifierTrainingContext<TClass, NetworkParameters>> GeneratePipelines(ActivatorFunc activator)
             {
-                // d | d(2d + 1) | (2d + 1) | o
-
-                int sizeOfGenePool = 6;
-
-                var d = _vectorSize;
-
-                var l = new int[sizeOfGenePool][];
-
-                var o = _outputSize;
-
-                l[0] = L(d, d * (2 * d + 1), (2 * d + 1), o);
-                l[1] = L(d, d * 2, d * 2, o);
-                l[2] = L(d, d * 4, d * 2, o);
-                l[3] = L(d, d * (2 * d + 1), (2 * d + 1), o);
-                l[4] = L(d, o);
-                l[5] = L(d, d * 4, o);
-
-                var fact = new Func<int, IClassifierTrainingContext<TClass, NetworkParameters>>(n =>
-                {
-                    var parameters = new NetworkParameters(l[n], activator)
-                    {
-                        LearningRate = _learningRate
-                    };
-
-                    return _trainingContextFactory(parameters);
-                });
-
-                return Enumerable.Range(0, sizeOfGenePool).Select(fact);
+                return _nwpf.GenerateParameters(activator).Select(_trainingContextFactory);
             }
 
             private static int[] L(params int[] n)

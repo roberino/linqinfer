@@ -27,6 +27,11 @@ namespace LinqInfer.Data
             Timestamp = DateTime.UtcNow;
         }
 
+        public BinaryVectorDocument(Stream data) : this()
+        {
+            Load(data);
+        }
+
         public int Version { get; set; }
 
         public DateTime Timestamp { get; private set; }
