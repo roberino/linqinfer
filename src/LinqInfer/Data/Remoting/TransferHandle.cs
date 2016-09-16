@@ -12,8 +12,6 @@ namespace LinqInfer.Data.Remoting
 {
     internal class TransferHandle : ITransferHandle
     {
-        private MemoryStream _responseStream;
-
         private int _batchIndex;
 
         public TransferHandle(string operationType, string clientId, Socket clientSocket, Action<TransferHandle> onConnect)
@@ -24,7 +22,6 @@ namespace LinqInfer.Data.Remoting
             OnConnect = onConnect ?? (h => { });
             Id = Guid.NewGuid().ToString();
             BufferSize = 1024;
-            _responseStream = new MemoryStream();
         }
 
         public int BufferSize { get; private set; }
@@ -62,13 +59,7 @@ namespace LinqInfer.Data.Remoting
                 doc.Properties[kv.Key] = kv.Value;
             }
 
-            await SendBatch(doc, false, true);
-
-            var results = _responseStream;
-
-            results.Position = 0;
-
-            _responseStream = new MemoryStream();
+            var results = await SendBatch(doc, false, true);
 
             return results;
         }
@@ -92,16 +83,37 @@ namespace LinqInfer.Data.Remoting
                 doc.ForwardingEndpoint = forwardResponseTo;
             }
 
-            await SendBatch(doc, true);
+            var response = await SendBatch(doc, true);
 
-            _responseStream.Position = 0;
+            DebugOutput.Log("Shutting down client socket");
 
-            return _responseStream;
+            ClientSocket.Shutdown(SocketShutdown.Both);
+
+            return response;
         }
 
-        private Task SendBatch(BinaryVectorDocument doc, bool isLast, bool sendResponse = false)
+        public void Dispose()
         {
-            return Task.Factory.StartNew(() =>
+            try
+            {
+                if (ClientSocket.Connected)
+                {
+                    DebugOutput.Log("Disconnecting");
+                    ClientSocket.Disconnect(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugOutput.Log(ex.Message);
+            }
+
+            DebugOutput.Log("Disposing");
+            ClientSocket.Dispose();
+        }
+
+        private async Task<Stream> SendBatch(BinaryVectorDocument doc, bool isLast, bool sendResponse = false)
+        {
+            await Task.Factory.StartNew(() =>
             {
                 var transferDoc = new DataBatch();
 
@@ -127,105 +139,81 @@ namespace LinqInfer.Data.Remoting
                 transferDoc.SendResponse = sendResponse;
                 transferDoc.OperationType = OperationType;
 
-                var buffer = new byte[BufferSize];
-
                 DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
 
-                using (var ms = new MemoryStream())
-                {
-                    transferDoc.Save(ms);
-
-                    ms.Flush();
-                    ms.Position = 0;
-
-                    using (var waitHandle = new ManualResetEvent(false))
-                    {
-                        bool headSent = false;
-
-                        while (true)
-                        {
-                            int read;
-
-                            waitHandle.Reset();
-
-                            if (!headSent)
-                            {
-                                var requestSize = BitConverter.GetBytes(ms.Length);
-                                read = requestSize.Length;
-                                Array.Copy(requestSize, buffer, read);
-                                headSent = true;
-                            }
-                            else
-                            {
-                                read = ms.Read(buffer, 0, buffer.Length);
-                            }
-
-                            if (read == 0) break;
-
-                            ClientSocket.BeginSend(buffer, 0, read, 0,
-                            a =>
-                            {
-                                var handle = (TransferHandle)a.AsyncState;
-                                handle.ClientSocket.EndSend(a);
-                                waitHandle.Set();
-
-                            }, this);
-
-                            waitHandle.WaitOne();
-                        }
-                    }
-                }
-
-                Receive(this);
+                Send(this, transferDoc);
             });
+
+            return await Receive(this);
         }
 
-        private static void Receive(TransferHandle state)
+        private static void Send(TransferHandle state, DataBatch transferDoc)
         {
             var buffer = new byte[state.BufferSize];
 
-            var pos = 0;
-
-            int received = 0;
-
-            using (var waitHandle = new ManualResetEvent(false))
+            using (var ms = new MemoryStream())
             {
-                int len = 0;
+                transferDoc.Save(ms);
 
-                state.ClientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, a =>
+                ms.Flush();
+                ms.Position = 0;
+
+                bool headSent = false;
+
+                int read;
+                int sent = 0;
+
+                using (var waitHandle = new ManualResetEvent(false))
                 {
-                    var s = (TransferHandle)a.AsyncState;
-                    var headerLen = s.ClientSocket.EndReceive(a);
-                    len = headerLen == 0 ? 0 : BitConverter.ToInt32(buffer, 0);
-                    waitHandle.Set();
-                }, state);
-
-                waitHandle.WaitOne();
-
-                DebugOutput.Log("Receiving response ({0} bytes)", len);
-
-                while (pos < len)
-                {
-                    waitHandle.Reset();
-
-                    state.ClientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, a =>
+                    while (true)
                     {
-                        var tx = (TransferHandle)a.AsyncState;
+                        waitHandle.Reset();
 
-                        received = tx.ClientSocket.EndReceive(a);
+                        if (!headSent)
+                        {
+                            var requestSize = BitConverter.GetBytes(ms.Length);
+                            read = requestSize.Length;
+                            Array.Copy(requestSize, buffer, read);
+                            headSent = true;
+                        }
+                        else
+                        {
+                            read = ms.Read(buffer, 0, buffer.Length);
+                        }
 
-                        tx._responseStream.Write(buffer, 0, received);
+                        if (read == 0) break;
 
-                        pos += received;
+                        var asyncRes = state.ClientSocket.BeginSend(buffer, 0, read, 0,
+                        a =>
+                        {
+                            var handle = (TransferHandle)a.AsyncState;
 
-                        waitHandle.Set();
-                    }, state);
+                            sent = handle.ClientSocket.EndSend(a);
 
-                    waitHandle.WaitOne();
+                            waitHandle.Set();
+                        }, state);
 
-                    if (received == 0) break;
+                        DebugOutput.Log("Waiting for send ({0} bytes)", read);
+
+                        waitHandle.WaitOne();
+
+                        DebugOutput.Log("Send complete ({0} bytes)", sent);
+
+                        if (sent != read)
+                        {
+                            throw new ApplicationException("Send failed");
+                        }
+
+                        if (sent == 0) break;
+                    }
                 }
             }
+        }
+
+        private static Task<Stream> Receive(TransferHandle state)
+        {
+            return new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize)
+                .ReadAsync();
         }
 
         private IDictionary<string, string> ParamsToDict(object parameters)
