@@ -19,6 +19,10 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
         [Test]
         public async Task CreateClassifier_SavesOutput()
         {
+            var bytes = BitConverter.GetBytes(0);
+
+            Assert.That(bytes.Length, Is.EqualTo(4));
+
             var endpoint = new Uri("tcp://localhost:9210");
 
             var data = Functions.NormalRandomDataset(3, 10).Select(x => new

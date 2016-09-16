@@ -6,7 +6,7 @@ using System.IO;
 
 namespace LinqInfer.Data.Remoting
 {
-    public interface ITransferHandle
+    public interface ITransferHandle : IDisposable
     {
         string Id { get; }
         string ClientId { get; }

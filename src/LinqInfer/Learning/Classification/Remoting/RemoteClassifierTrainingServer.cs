@@ -109,7 +109,7 @@ namespace LinqInfer.Learning.Classification.Remoting
         {
             var summary = new BinaryVectorDocument();
 
-            summary.Properties["RateOfErrorChange"] = ctx.RateOfErrorChange.ToString();
+            summary.Properties["RateOfErrorChange"] = ctx.RateOfErrorChange.GetValueOrDefault(1).ToString();
             summary.Properties["AverageError"] = ctx.AverageError.ToString();
 
             summary.Save(response);
