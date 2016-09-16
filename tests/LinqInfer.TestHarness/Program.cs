@@ -12,57 +12,16 @@ namespace LinqInfer.TestHarness
     {
         static void Main(string[] args)
         {
-            var serverEndpoint = new Uri("tcp://localhost:9033/");
-            var data = new List<string>();
+            var trainer = new SemanicNetworkTrainer();
+            ConsoleKeyInfo key;
 
-            while (true)
+            do
             {
-                Console.Write(":");
-                var text = Console.ReadLine();
+                trainer.Run();
 
-                if (string.IsNullOrEmpty(text)) break;
+                key = Console.ReadKey();
 
-                data.Add(text);
-            }
-
-            var pipeline = data.Select(t => new
-            {
-                text = t.Split('=').First(),
-                cls = t.Split('=').Last()
-            })
-            .AsQueryable()
-            .CreateTextFeaturePipeline(x => x.cls);
-
-            var task = pipeline
-                .ToMultilayerNetworkClassifier(x => x.cls, serverEndpoint, false, 0.1f, pipeline.VectorSize * 2, pipeline.VectorSize * 2);
-
-            task.Wait();
-
-            var nn = task.Result;
-
-            Console.WriteLine();
-            Console.WriteLine();
-
-            while (true)
-            {
-                var next = Console.ReadLine();
-
-                if (string.IsNullOrEmpty(next)) break;
-
-                var results = nn.Classify(new
-                {
-                    text = next,
-                    cls = "?"
-                });
-
-                foreach (var res in results)
-                {
-                    Console.WriteLine(res);
-                }
-
-                Console.WriteLine();
-                Console.WriteLine();
-            }
+            } while (key.Key != ConsoleKey.Escape);
         }
     }
 }

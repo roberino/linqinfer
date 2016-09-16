@@ -175,45 +175,15 @@ namespace LinqInfer.Data.Remoting
 
         private void SendResponse(SocketState state, Stream response)
         {
-            var len = response.Length;
+            response.Flush();
 
             response.Position = 0;
 
-            DebugOutput.Log("Sending response ({0} bytes)", len);
+            DebugOutput.Log("Sending response ({0} bytes)", response.Length);
 
-            using (var waitHandle = new ManualResetEvent(false))
-            {
-                var header = BitConverter.GetBytes(len);
+            var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 
-                state.ClientSocket.BeginSend(header, 0, header.Length, SocketFlags.None, a => {
-                    var ss = (SocketState)a.AsyncState;
-                    ss.ClientSocket.EndSend(a);
-                    waitHandle.Set();
-                }, state);
-
-                waitHandle.WaitOne();
-
-                while (response.Position < len)
-                {
-                    var read = response.Read(state.Buffer, 0, state.Buffer.Length);
-
-                    if (read == 0) return;
-
-                    waitHandle.Reset();
-
-                    state.ClientSocket.BeginSend(state.Buffer, 0, read, SocketFlags.None, a =>
-                    {
-                        var s = (SocketState)a.AsyncState;
-
-                        s.ClientSocket.EndSend(a);
-
-                        waitHandle.Set();
-
-                    }, state);
-
-                    waitHandle.WaitOne();
-                }
-            }
+            sockStream.Write(response);
         }
 
         private async Task EndRequest(SocketState state, DataBatch endBatch)
