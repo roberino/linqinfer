@@ -32,6 +32,9 @@ namespace LinqInfer.Learning.Classification.Remoting
 
             _server = uri.CreateRemoteService(Process, false);
 
+            _server.AddHandler(new Uri(uri, "delete").PathAndQuery, Delete);
+            _server.AddHandler(new Uri(uri, "restore").PathAndQuery, Restore);
+
             _outputMapper = new OutputMapperFactory<double, string>().Create(new string[] { "" });
 
             _trainingContextFactory = new MultilayerNetworkTrainingContextFactory<string>(_outputMapper);
@@ -47,6 +50,31 @@ namespace LinqInfer.Learning.Classification.Remoting
         public void Stop()
         {
             _server.Stop();
+        }
+
+        private bool Restore(DataBatch batch, Stream response)
+        {
+            var key = batch.Properties["Key"];
+            var nw = new MultilayerNetwork(NetworkParameters.Sigmoidal(1, 1));
+
+            var task = _blobStore.Transfer<MultilayerNetwork>(key, response);
+
+            task.Wait();
+
+            return true;
+        }
+
+        private bool Delete(DataBatch batch, Stream response)
+        {
+            var key = batch.Properties["Key"];
+
+            var deleted = _blobStore.Delete<MultilayerNetwork>(key);
+
+            batch.Properties["Deleted"] = deleted.ToString();
+
+            batch.Save(response);
+
+            return deleted;
         }
 
         private bool Process(DataBatch batch, Stream response)
@@ -86,7 +114,14 @@ namespace LinqInfer.Learning.Classification.Remoting
                 {
                     if (batch.PropertyOrDefault("SaveOutput", false))
                     {
-                        _blobStore.Store(batch.Id, ctx.Output);
+                        var network = (MultilayerNetwork)ctx.Output;
+
+                        foreach(var prop in batch.Properties)
+                        {
+                            network.Properties[prop.Key] = prop.Value;
+                        }
+
+                        _blobStore.Store(batch.Id, network);
                     }
 
                     ctx.Output.Save(response);

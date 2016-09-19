@@ -62,6 +62,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocument.cs" />
+    <Compile Include="Data\DataExtensions.cs" />
+    <Compile Include="Data\DeflateCompression.cs" />
     <Compile Include="Data\FileBlobStore.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
@@ -71,9 +73,12 @@
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
     <Compile Include="Data\Remoting\DataBatch.cs" />
+    <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\ICompressionProvider.cs" />
     <Compile Include="Data\Remoting\IServer.cs" />
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\ServerStatus.cs" />
     <Compile Include="Data\Remoting\SocketState.cs" />

@@ -11,6 +11,7 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
+        private IDictionary<string, string> _properties;
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
         private bool initd;
@@ -21,14 +22,17 @@ namespace LinqInfer.Learning.Classification
             _neuronFactory = n._neuronFactory;
             _rootLayer = n._rootLayer;
             _parameters = n._parameters;
+            _properties = n._properties;
             initd = true;
         }
 
-        public MultilayerNetwork(NetworkParameters parameters)
+        public MultilayerNetwork(NetworkParameters parameters, IDictionary<string, string> properties = null)
         {
             parameters.Validate();
 
             _parameters = parameters;
+            _properties = properties ?? new Dictionary<string, string>();
+
             initd = false;
         }
 
@@ -37,6 +41,7 @@ namespace LinqInfer.Learning.Classification
             _neuronFactory = neuronFactory;
 
             _parameters = new NetworkParameters(new int[] { inputVectorSize }.Concat(neuronSizes).ToArray(), activator);
+            _properties = new Dictionary<string, string>();
 
             initd = false;
         }
@@ -47,6 +52,11 @@ namespace LinqInfer.Learning.Classification
             _neuronFactory = neuronFactory;
             _rootLayer = rootLayer;
             initd = true;
+        }
+
+        public IDictionary<string, string> Properties
+        {
+            get { return _properties; }
         }
 
         public NetworkParameters Parameters
@@ -156,6 +166,11 @@ namespace LinqInfer.Learning.Classification
         {
             var doc = new BinaryVectorDocument();
 
+            foreach(var prop in _properties)
+            {
+                doc.Properties["_" + prop.Key] = prop.Value;
+            }
+
             doc.Properties["Activator"] = _parameters.Activator.Name;
             doc.Properties["ActivatorParameter"] = _parameters.Activator.Parameter.ToString();
             doc.Properties["InitialWeightRangeMin"] = _parameters.InitialWeightRange.Min.ToString();
@@ -199,11 +214,13 @@ namespace LinqInfer.Learning.Classification
             var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
             var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
 
+            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key, p => p.Value);
+
             var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
             {
                 LearningRate = double.Parse(doc.Properties["LearningRate"]),
                 InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
-            });
+            }, properties);
             
             int i = 0;
 

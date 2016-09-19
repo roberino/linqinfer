@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +16,11 @@ namespace LinqInfer.Data.Remoting
         static RemotingExtensions()
         {
             _defaultServers = new ConcurrentDictionary<string, IVectorTransferServer>();
+
+            Process.GetCurrentProcess().Exited += (s, e) =>
+            {
+                Shutdown();
+            };
         }
 
         /// <summary>
@@ -51,6 +57,24 @@ namespace LinqInfer.Data.Remoting
             }
 
             return server;
+        }
+
+        internal static void Shutdown()
+        {
+            foreach(var server in _defaultServers.ToList())
+            {
+                try
+                {
+                    server.Value.Dispose();
+                }
+                catch
+                {
+                }
+
+                IVectorTransferServer r;
+
+                _defaultServers.TryRemove(server.Key, out r);
+            }
         }
     }
 }
