@@ -12,9 +12,15 @@ namespace LinqInfer.Data.Remoting
 {
     internal class TransferHandle : ITransferHandle
     {
+        private readonly ICompressionProvider _compression;
         private int _batchIndex;
 
-        public TransferHandle(string operationType, string clientId, Socket clientSocket, Action<TransferHandle> onConnect)
+        public TransferHandle(
+            string operationType, 
+            string clientId, 
+            Socket clientSocket,
+            ICompressionProvider compression, 
+            Action<TransferHandle> onConnect)
         {
             ClientSocket = clientSocket;
             ClientId = clientId;
@@ -22,6 +28,7 @@ namespace LinqInfer.Data.Remoting
             OnConnect = onConnect ?? (h => { });
             Id = Guid.NewGuid().ToString();
             BufferSize = 1024;
+            _compression = compression;
         }
 
         public int BufferSize { get; private set; }
@@ -96,24 +103,18 @@ namespace LinqInfer.Data.Remoting
         {
             try
             {
-                if (ClientSocket.Connected)
-                {
-                    DebugOutput.Log("Disconnecting");
-                    ClientSocket.Disconnect(false);
-                }
+                DebugOutput.Log("Disconnecting");
+                ClientSocket.Shutdown(SocketShutdown.Both);
+                ClientSocket.Disconnect(true);
             }
             catch (Exception ex)
             {
                 DebugOutput.Log(ex.Message);
             }
-
-            DebugOutput.Log("Disposing");
-            ClientSocket.Dispose();
         }
 
         private async Task<Stream> SendBatch(BinaryVectorDocument doc, bool isLast, bool sendResponse = false)
         {
-            await Task.Factory.StartNew(() =>
             {
                 var transferDoc = new DataBatch();
 
@@ -141,21 +142,26 @@ namespace LinqInfer.Data.Remoting
 
                 DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
 
-                Send(this, transferDoc);
-            });
+                Send(this, transferDoc, _compression);
+            }
 
-            return await Receive(this);
+            return await ReceiveData(this, _compression);
         }
 
-        private static void Send(TransferHandle state, DataBatch transferDoc)
+        private static void Send(TransferHandle state, DataBatch transferDoc, ICompressionProvider compression)
         {
             var buffer = new byte[state.BufferSize];
 
             using (var ms = new MemoryStream())
+            using (var cs = compression.CompressTo(ms))
             {
-                transferDoc.Save(ms);
+                transferDoc.Save(cs);
+
+                cs.Flush();
+                cs.Dispose();
 
                 ms.Flush();
+
                 ms.Position = 0;
 
                 bool headSent = false;
@@ -193,11 +199,7 @@ namespace LinqInfer.Data.Remoting
                             waitHandle.Set();
                         }, state);
 
-                        DebugOutput.Log("Waiting for send ({0} bytes)", read);
-
                         waitHandle.WaitOne();
-
-                        DebugOutput.Log("Send complete ({0} bytes)", sent);
 
                         if (sent != read)
                         {
@@ -210,10 +212,14 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private static Task<Stream> Receive(TransferHandle state)
+        private static async Task<Stream> ReceiveData(TransferHandle state, ICompressionProvider compression)
         {
-            return new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize)
+            //TODO: Sometimes this blocks
+
+            var stream = await new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize)
                 .ReadAsync();
+
+            return compression.DecompressFrom(stream);
         }
 
         private IDictionary<string, string> ParamsToDict(object parameters)

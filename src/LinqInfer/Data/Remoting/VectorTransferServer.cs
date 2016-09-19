@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -21,6 +22,8 @@ namespace LinqInfer.Data.Remoting
         private Thread _connectThread;
         private volatile ServerStatus _status;
 
+        private ICompressionProvider _compression;
+
         public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
             _serverId = serverId ?? Util.GenerateId();
@@ -30,6 +33,8 @@ namespace LinqInfer.Data.Remoting
             _socket.Bind(GetEndpoint(host, port));
             _messageHandlers = new Dictionary<string, Func<DataBatch, Stream, bool>>();
             _status = ServerStatus.Stopped;
+
+            _compression = new DeflateCompressionProvider();
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
@@ -43,6 +48,13 @@ namespace LinqInfer.Data.Remoting
         {
             var ipAddress = IPAddress.Loopback;
             return new IPEndPoint(ipAddress, port);
+        }
+
+        public void CompressUsing(ICompressionProvider compressionProvider)
+        {
+            Contract.Assert(compressionProvider != null);
+
+            _compression = compressionProvider;
         }
 
         public void AddHandler(string messageType, Func<DataBatch, Stream, bool> handler)
@@ -144,9 +156,13 @@ namespace LinqInfer.Data.Remoting
                 {
                     bool more = false;
 
-                    using (var response = new MemoryStream())
-                    {
-                        more = Process(state, response);
+                    using (var response = new MemoryStream()) {
+                        using (var cs = _compression.CompressTo(response))
+                        {
+                            more = Process(state, cs);
+
+                            cs.Flush();
+                        }
 
                         SendResponse(state, response);
 
@@ -196,6 +212,8 @@ namespace LinqInfer.Data.Remoting
 
                 using (var client = new VectorTransferClient(_serverId, fe.Port, fe.Host))
                 {
+                    client.CompressUsing(_compression);
+
                     var tx = await client.BeginTransfer(fe.PathAndQuery);
 
                     await tx.Send(endBatch);
@@ -208,11 +226,17 @@ namespace LinqInfer.Data.Remoting
         {
             try
             {
+                DataBatch doc;
+
                 state.ReceivedData.Position = 0;
 
-                var doc = new DataBatch();
+                var cs = _compression.DecompressFrom(state.ReceivedData);
 
-                doc.Load(state.ReceivedData);
+                {
+                    doc = new DataBatch();
+
+                    doc.Load(cs);
+                }
 
                 DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
 

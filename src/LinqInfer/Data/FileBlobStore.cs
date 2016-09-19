@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -37,6 +38,30 @@ namespace LinqInfer.Data
             {
                 return new FileStream(Path.Combine(_baseDir.FullName, key), FileMode.Create, FileAccess.Write, FileShare.None);
             }
+        }
+
+        protected override bool RemoveBlob(string key)
+        {
+            var fullPath = Path.Combine(_baseDir.FullName, key);
+            var file = new FileInfo(fullPath);
+
+            if (file.Exists)
+            {
+                lock (key)
+                {
+                    try
+                    {
+                        file.Delete();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugOutput.Log(ex);
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected override string GetKey<T>(string key, T obj = default(T))

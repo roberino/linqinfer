@@ -77,7 +77,6 @@ namespace LinqInfer.Data.Remoting
                     {
                         receiveHeader = BitConverter.ToInt64(_readBuffer, 0);
                         offset = 8;
-                        DebugOutput.Log("Receiving {0} bytes", receiveHeader);
                     }
                     else
                     {
@@ -96,7 +95,7 @@ namespace LinqInfer.Data.Remoting
                     throw new InvalidOperationException("Invalid data received");
                 }
 
-                DebugOutput.Log("Received {0} bytes", receivedStream.Length);
+                //DebugOutput.Log("Received {0} bytes", receivedStream.Length);
 
                 receivedStream.Position = 0;
 
