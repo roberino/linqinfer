@@ -41,6 +41,12 @@ namespace LinqInfer.Data
             return new MemoryStream();
         }
 
+        protected override bool RemoveBlob(string key)
+        {
+            Blob blob;
+            return _data.TryRemove(key, out blob);
+        }
+
         public override void Dispose()
         {
             base.Dispose();

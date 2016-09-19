@@ -10,17 +10,20 @@ namespace LinqInfer.Data
     public class BinaryVectorDocument : IBinaryPersistable
     {
         private const string PropertiesName = "PROP";
+        private const string BlobName = "BLOB";
         private const string DataName = "DATA";
         private const string ChildrenName = "CLRN";
 
         private readonly IDictionary<string, string> _properties;
-        private readonly IList<ColumnVector1D> _binData;
+        private readonly IDictionary<string, byte[]> _blobs;
+        private readonly IList<ColumnVector1D> _vectorData;
         private readonly IList<BinaryVectorDocument> _children;
 
         public BinaryVectorDocument()
         {
             _properties = new Dictionary<string, string>();
-            _binData = new List<ColumnVector1D>();
+            _blobs = new Dictionary<string, byte[]>();
+            _vectorData = new List<ColumnVector1D>();
             _children = new List<BinaryVectorDocument>();
 
             Version = 1;
@@ -49,7 +52,7 @@ namespace LinqInfer.Data
                     checksum ^= prop.Key.GetHashCode() ^ prop.Value.GetHashCode();
                 }
 
-                foreach(var val in _binData)
+                foreach(var val in _vectorData)
                 {
                     checksum ^= val.GetHashCode();
                 }
@@ -81,6 +84,14 @@ namespace LinqInfer.Data
             }
         }
 
+        public IDictionary<string, byte[]> Blobs
+        {
+            get
+            {
+                return _blobs;
+            }
+        }
+
         public T PropertyOrDefault<T>(string key, T defaultValue)
         {
             string val;
@@ -97,7 +108,7 @@ namespace LinqInfer.Data
         {
             get
             {
-                return _binData;
+                return _vectorData;
             }
         }
 
@@ -108,6 +119,7 @@ namespace LinqInfer.Data
                 return _children;
             }
         }
+
         public void Load(Stream input)
         {
             var reader = new BinaryReader(input, Encoding.UTF8);
@@ -132,27 +144,40 @@ namespace LinqInfer.Data
 
             Timestamp = DateTime.FromBinary(reader.ReadInt64());
 
-            ReadSection(PropertiesName, reader, (n, r) =>
+            var actions = new Dictionary<string, Action<int, BinaryReader>>();
+
+            actions[PropertiesName] = (n, r) =>
             {
                 _properties[r.ReadString()] = r.ReadString();
-            });
+            };
 
-            ReadSection(DataName, reader, (n, r) =>
+            actions[DataName] = (n, r) =>
             {
                 var len = r.ReadInt32();
                 var vect = ColumnVector1D.FromByteArray(r.ReadBytes(len));
 
-                _binData.Add(vect);
-            });
+                _vectorData.Add(vect);
+            };
 
-            ReadSection(ChildrenName, reader, (n, r) =>
+            actions[BlobName] = (n, r) =>
+            {
+                var key = r.ReadString();
+                var len = r.ReadInt32();
+                var blob = r.ReadBytes(len);
+
+                _blobs[key] = blob;
+            };
+
+            actions[ChildrenName] = (n, r) =>
             {
                 var child = new BinaryVectorDocument();
 
                 child.Read(r, level + 1);
 
                 _children.Add(child);
-            });
+            };
+
+            ReadSections(reader, n => actions[n]);
 
             if (Checksum != checksum)
             {
@@ -160,14 +185,20 @@ namespace LinqInfer.Data
             }
         }
 
-        private void ReadSection(string name, BinaryReader reader, Action<int, BinaryReader> action)
+        private void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
         {
-            var currentName = reader.ReadString();
-            var currentCount = reader.ReadInt32();
-
-            foreach (var n in Enumerable.Range(0, currentCount))
+            while (true)
             {
-                action(n, reader);
+                var currentName = reader.ReadString();
+                var action = readActionMapper(currentName);
+                var currentCount = reader.ReadInt32();
+
+                foreach (var n in Enumerable.Range(0, currentCount))
+                {
+                    action(n, reader);
+                }
+
+                if (currentName == ChildrenName) break;
             }
         }
 
@@ -190,13 +221,23 @@ namespace LinqInfer.Data
             }
 
             writer.Write(DataName);
-            writer.Write(_binData.Count);
+            writer.Write(_vectorData.Count);
 
-            foreach (var data in _binData)
+            foreach (var data in _vectorData)
             {
                 var ba = data.ToByteArray();
                 writer.Write(ba.Length);
                 writer.Write(ba);
+            }
+
+            writer.Write(BlobName);
+            writer.Write(_blobs.Count);
+
+            foreach(var blob in _blobs)
+            {
+                writer.Write(blob.Key);
+                writer.Write(blob.Value.Length);
+                writer.Write(blob.Value);
             }
 
             writer.Write(ChildrenName);
