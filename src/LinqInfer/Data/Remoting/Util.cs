@@ -6,7 +6,7 @@ namespace LinqInfer.Data.Remoting
     {
         public static string GenerateId()
         {
-            return Environment.MachineName + '/' + Guid.NewGuid().ToString("N");
+            return Environment.MachineName + '-' + Guid.NewGuid().ToString("N");
         }
 
         public static void ValidateUri(Uri uri)

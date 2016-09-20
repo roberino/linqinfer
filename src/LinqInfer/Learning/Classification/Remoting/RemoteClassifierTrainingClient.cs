@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.Remoting
 {
-    internal class RemoteClassifierTrainingClient : IDisposable
+    internal class RemoteClassifierTrainingClient : IDisposable, IRemoteClassifierTrainingClient
     {
         private readonly Uri _serverEndpoint;
         private readonly VectorTransferClient _client;
@@ -81,6 +81,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             bool remoteSave = false,
+            string name = null,
             float errorTolerance = 0.1f,
             params int[] hiddenLayers)
             where TInput : class
@@ -139,6 +140,7 @@ namespace LinqInfer.Learning.Classification.Remoting
                 var finalResponse = await txHandle.End(new
                 {
                     SaveOutput = remoteSave,
+                    Name = name ?? txHandle.Id,
                     OutputMapper = outputMapper.ToClob(),
                     InputExtractor = pipeline.FeatureExtractor.ToClob()
                 });

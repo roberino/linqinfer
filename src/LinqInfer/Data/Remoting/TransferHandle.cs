@@ -29,7 +29,7 @@ namespace LinqInfer.Data.Remoting
             ClientId = clientId;
             Path = path;
             OnConnect = onConnect ?? (h => { });
-            Id = Guid.NewGuid().ToString();
+            Id = Util.GenerateId();
             BufferSize = 1024;
             Verb = verb;
 
