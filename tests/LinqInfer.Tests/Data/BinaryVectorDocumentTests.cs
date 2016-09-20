@@ -70,6 +70,7 @@ namespace LinqInfer.Tests.Data
             doc.Version = 1;
             doc.Properties["title"] = "abc";
             doc.Properties["value1"] = "12";
+            doc.Properties["null"] = null;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
             doc.Vectors.Add(ColumnVector1D.Create(0.2, 3.9));
@@ -83,9 +84,10 @@ namespace LinqInfer.Tests.Data
 
                 var doc2 = store.Restore("a", new BinaryVectorDocument());
 
-                Assert.That(doc.Properties.Count, Is.EqualTo(2));
-                Assert.That(doc.Properties["title"], Is.EqualTo("abc"));
-                Assert.That(doc.Properties["value1"], Is.EqualTo("12"));
+                Assert.That(doc2.Properties.Count, Is.EqualTo(3));
+                Assert.That(doc2.Properties["title"], Is.EqualTo("abc"));
+                Assert.That(doc2.Properties["value1"], Is.EqualTo("12"));
+                Assert.That(doc2.Properties["null"], Is.EqualTo(""));
 
                 Assert.That(doc.Vectors[1][1], Is.EqualTo(3.9));
             }

@@ -13,6 +13,9 @@ namespace LinqInfer.TestHarness
             var serverEndpoint = new Uri("tcp://localhost:9034/");
             var data = new List<string>();
 
+            Console.Write("Name:");
+            var name = Console.ReadLine();
+
             while (true)
             {
                 Console.Write(":");
@@ -31,8 +34,10 @@ namespace LinqInfer.TestHarness
             .AsQueryable()
             .CreateTextFeaturePipeline(x => x.cls);
 
-            var task = pipeline
-                .ToMultilayerNetworkClassifier(x => x.cls, serverEndpoint, false, 0.1f, pipeline.VectorSize * 2, pipeline.VectorSize * 2);
+            var client = serverEndpoint.CreateMultilayerNetworkClient();
+
+            var task = client
+                .CreateClassifier(pipeline, x => x.cls, true, name, 0.1f, pipeline.VectorSize * 2, pipeline.VectorSize * 2);
 
             task.Wait();
 
@@ -47,7 +52,7 @@ namespace LinqInfer.TestHarness
 
                 if (string.IsNullOrEmpty(next)) break;
 
-                var results = nn.Classify(new
+                var results = nn.Value.Classify(new
                 {
                     text = next,
                     cls = "?"
