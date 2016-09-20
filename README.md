@@ -38,7 +38,7 @@ var classifier2 = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGr
 
 ```
 
-See more documentation on [Neural Networks](linqinfer/tree/master/docs/neural-networks.md)
+See more documentation on [Neural Networks](docs/neural-networks.md)
 
 #### Maths
 
