@@ -10,7 +10,8 @@ namespace LinqInfer.Data.Remoting
     {
         string Id { get; }
         string ClientId { get; }
-        string OperationType { get; }
+        string Path { get; }
+        Verb Verb { get; }
         Task Send(BinaryVectorDocument doc);
         Task Send(IEnumerable<ColumnVector1D> data);
         Task<Stream> Receive(object parameters = null);

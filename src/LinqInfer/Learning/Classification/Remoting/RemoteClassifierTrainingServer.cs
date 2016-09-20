@@ -26,14 +26,23 @@ namespace LinqInfer.Learning.Classification.Remoting
             }
         }
 
+        public Uri BaseEndpoint
+        {
+            get
+            {
+                return _server.BaseEndpoint;
+            }
+        }
+
         public RemoteClassifierTrainingServer(Uri uri, IBlobStore blobStore)
         {
             _blobStore = blobStore;
 
-            _server = uri.CreateRemoteService(Process, false);
+            _server = uri.CreateRemoteService(null, false);
 
-            _server.AddHandler(new Uri(uri, "delete").PathAndQuery, Delete);
-            _server.AddHandler(new Uri(uri, "restore").PathAndQuery, Restore);
+            _server.AddHandler(new UriRoute(uri, null, Verb.Create), Process);
+            _server.AddHandler(new UriRoute(uri, "{key}", Verb.Delete), Delete);
+            _server.AddHandler(new UriRoute(uri, "{key}", Verb.Get), Restore);
 
             _outputMapper = new OutputMapperFactory<double, string>().Create(new string[] { "" });
 
@@ -54,8 +63,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
         private bool Restore(DataBatch batch, Stream response)
         {
-            var key = batch.Properties["Key"];
-            var nw = new MultilayerNetwork(NetworkParameters.Sigmoidal(1, 1));
+            var key = batch.Properties["key"];
 
             var task = _blobStore.Transfer<MultilayerNetwork>(key, response);
 
@@ -66,7 +74,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
         private bool Delete(DataBatch batch, Stream response)
         {
-            var key = batch.Properties["Key"];
+            var key = batch.Properties["key"];
 
             var deleted = _blobStore.Delete<MultilayerNetwork>(key);
 

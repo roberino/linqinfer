@@ -214,7 +214,7 @@ namespace LinqInfer.Learning.Classification
             var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
             var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
 
-            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key, p => p.Value);
+            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
 
             var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
             {

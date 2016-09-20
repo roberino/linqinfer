@@ -21,6 +21,32 @@ namespace LinqInfer.Storage.SQLite.Providers
             await _db.CreateTableFor<BlobItem>(!reset);
         }
 
+        public async Task<bool> Transfer<T>(string key, Stream output)
+        {
+            var blob = (await _db.QueryAsync<BlobItem>(x => x.Key == key, 1)).ToList();
+
+            if (blob.Any())
+            {
+                using (var ms = blob.First().Read())
+                {
+                    await ms.CopyToAsync(output);
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool Delete<T>(string key)
+        {
+            _db.DeleteAsync<BlobItem>(x => x.Key == key).Wait();
+
+            return true;
+        }
+
         public T Restore<T>(string key, T obj) where T : IBinaryPersistable
         {
             var blob = _db.Query<BlobItem>(x => x.Key == key, 1).ToList();

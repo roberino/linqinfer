@@ -19,7 +19,6 @@ namespace LinqInfer.Data.Remoting
         public VectorTransferClient(string clientId = null, int port = VectorTransferServer.DefaultPort, string host = "127.0.0.1")
         {
             _clientId = clientId ?? Util.GenerateId();
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _endpoint = VectorTransferServer.GetEndpoint(host, port);
             _compression = new DeflateCompressionProvider();
         }
@@ -30,14 +29,26 @@ namespace LinqInfer.Data.Remoting
             Contract.Assert(clientSocket != null);
 
             _clientId = clientId;
-            _socket = clientSocket;
+            _socket = SetupSocket(clientSocket);
             _endpoint = clientSocket.RemoteEndPoint;
             _compression = new DeflateCompressionProvider();
+        }
 
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 1500);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 1500);
+        public int Timeout { get; set; } = 1500;
+
+        private Socket CreateSocket()
+        {
+            return SetupSocket(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+        }
+
+        private Socket SetupSocket(Socket socket)
+        {
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, Timeout);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, Timeout);
+
+            return socket;
         }
 
         public void CompressUsing(ICompressionProvider compressionProvider)
@@ -47,20 +58,22 @@ namespace LinqInfer.Data.Remoting
             _compression = compressionProvider;
         }
 
-        public Task<ITransferHandle> BeginTransfer(string operationType, Action<TransferHandle> onConnect = null)
+        public Task<ITransferHandle> BeginTransfer(string path, Verb verb = Verb.Default, Action<TransferHandle> onConnect = null)
         {
-            if (_socket.Connected) throw new InvalidOperationException("Already connected");
+            var socket = _socket ?? CreateSocket();
 
-            var state = new TransferHandle(operationType, _clientId, _socket, _compression, onConnect);
+            if (socket.Connected) throw new InvalidOperationException("Already connected");
+
+            var state = new TransferHandle(path, verb, _clientId, socket, _socket == null, _compression, onConnect);
             var connectedHandle = new ManualResetEvent(false);
 
             return Task<ITransferHandle>.Factory.StartNew(() =>
             {
-                if (!_socket.Connected)
+                if (!socket.Connected)
                 {
                     DebugOutput.Log("Connecting to " + _endpoint);
 
-                    _socket.BeginConnect(_endpoint, a =>
+                    socket.BeginConnect(_endpoint, a =>
                     {
                         var handle = (TransferHandle)a.AsyncState;
 
@@ -71,7 +84,7 @@ namespace LinqInfer.Data.Remoting
 
                     connectedHandle.WaitOne();
 
-                    if (_socket.Connected) DebugOutput.Log("Connected to " + _endpoint);
+                    if (socket.Connected) DebugOutput.Log("Connected to " + _endpoint);
                 }
                 else
                 {
@@ -84,20 +97,23 @@ namespace LinqInfer.Data.Remoting
 
         public void Dispose()
         {
-            if (_socket.Connected)
+            if (_socket != null)
             {
-                try
+                if (_socket.Connected)
                 {
-                    _socket.Shutdown(SocketShutdown.Both);
-                    _socket.Close();
-                }
-                catch
-                {
+                    try
+                    {
+                        _socket.Shutdown(SocketShutdown.Both);
+                        _socket.Close();
+                    }
+                    catch
+                    {
 
+                    }
                 }
+
+                _socket.Dispose();
             }
-
-            _socket.Dispose();
         }
     }
 }

@@ -98,6 +98,18 @@ namespace LinqInfer.Data
 
             if (_properties.TryGetValue(key, out val))
             {
+                if (typeof(T).IsEnum)
+                {
+                    try
+                    {
+                        return (T)Enum.Parse(typeof(T), val);
+                    }
+                    catch
+                    {
+                        return defaultValue;
+                    }
+                }
+
                 return (T)Convert.ChangeType(val, typeof(T));
             }
 

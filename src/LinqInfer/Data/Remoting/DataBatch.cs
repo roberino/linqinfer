@@ -18,10 +18,15 @@ namespace LinqInfer.Data.Remoting
             get { return Properties["ClientId"]; }
             set { Properties["ClientId"] = value; }
         }
-        public string OperationType
+        public string Path
         {
-            get { return Properties["OpType"]; }
-            set { Properties["OpType"] = value; }
+            get { return Properties["Path"]; }
+            set { Properties["Path"] = value; }
+        }
+        public Verb Verb
+        {
+            get { return PropertyOrDefault("Verb", Verb.Default); }
+            set { Properties["Verb"] = value.ToString(); }
         }
         public int BatchNum
         {
