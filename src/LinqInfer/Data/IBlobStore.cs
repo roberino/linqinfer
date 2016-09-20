@@ -34,6 +34,7 @@ namespace LinqInfer.Data
         /// Asyncronously stores a binary object using the supplied key
         /// </summary>
         Task<bool> StoreAsync<T>(string key, T obj) where T : IBinaryPersistable;
+
         /// <summary>
         /// Asyncronously restores an object to it's previous state using state information stored against the supplied key
         /// </summary>

@@ -17,6 +17,9 @@ namespace LinqInfer.Data.Remoting
             _socket = socket;
             _readBuffer = new byte[bufferSize];
             _writeBuffer = new byte[bufferSize];
+
+            _socket.SendBufferSize = bufferSize;
+            _socket.ReceiveBufferSize = bufferSize;
         }
 
         public int Write(Stream input)
@@ -71,6 +74,11 @@ namespace LinqInfer.Data.Remoting
 
                 while (true)
                 {
+                    //if (_socket.Available == 0)
+                    //{
+                    //    DebugOutput.Log("Available = {0}", _socket.Available);
+                    //}
+
                     read = _socket.Receive(_readBuffer);
 
                     if (receiveHeader == -1)

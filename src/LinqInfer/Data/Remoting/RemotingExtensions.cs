@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,13 +42,25 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        public static UriRoute CreateRoute(this Uri endpoint, string routeTemplate)
+        {
+            return new UriRoute(endpoint, routeTemplate);
+        }
+
         public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, Stream, bool> messageHandler, bool startService = true)
         {
+            return CreateRemoteService(new UriRoute(endpoint), messageHandler, startService);
+        }
+
+        public static IVectorTransferServer CreateRemoteService(this UriRoute route, Func<DataBatch, Stream, bool> messageHandler = null, bool startService = true)
+        {
+            var endpoint = route.BaseUri;
+
             Util.ValidateUri(endpoint);
 
             var server = _defaultServers.GetOrAdd(endpoint.Host + ':' + endpoint.Port, e => new VectorTransferServer(null, endpoint.Port, endpoint.Host));
-            
-            server.AddHandler(endpoint.PathAndQuery, messageHandler);
+
+            if (messageHandler != null) server.AddHandler(route, messageHandler);
 
             if (startService && server.Status == ServerStatus.Stopped)
             {

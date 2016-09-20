@@ -14,13 +14,13 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
     public class RemoteClassifierTrainingServerTests
     {
         [Test]
-        public async Task RestoreClassifier()
+        public async Task RestoreClassifier_ReturnsValidObjectToClient()
         {
             var bytes = BitConverter.GetBytes(0);
 
             Assert.That(bytes.Length, Is.EqualTo(4));
 
-            var endpoint = new Uri("tcp://localhost:9210");
+            var endpoint = new Uri("tcp://localhost:9211");
 
             var data = Functions.NormalRandomDataset(3, 10).Select(x => new
             {
@@ -38,7 +38,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 var keyAndclassifier = await client.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
 
-                var restoredClassifier = await client.RestoreClassifier(keyAndclassifier.Key, data.First(), 'a');
+                var restoredClassifier = await client.RestoreClassifier(keyAndclassifier.Key, pipeline.FeatureExtractor, 'a');
 
                 var results = restoredClassifier.Classify(new
                 {
@@ -67,6 +67,8 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var server = new RemoteClassifierTrainingServer(endpoint, blobs))
             using (var client = new RemoteClassifierTrainingClient(endpoint))
             {
+                client.Timeout = 15000;
+
                 server.Start();
 
                 var pipeline = data.CreatePipeline();
@@ -77,7 +79,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 var nn = new MultilayerNetwork(new NetworkParameters(1, 1));
 
-                blobs.Restore(keyAndclassifier.Key, nn);
+                blobs.Restore(new string(keyAndclassifier.Key.PathAndQuery.Skip(1).ToArray()), nn);
 
                 // We should receive a valid classifier object back
 

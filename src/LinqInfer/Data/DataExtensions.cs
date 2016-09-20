@@ -72,7 +72,10 @@ namespace LinqInfer.Data
         {
             return FromClob(clob, t =>
             {
-                return (T)Type.GetType(t).GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
+                var type = Type.GetType(t);
+                var constr = type?.GetConstructor(Type.EmptyTypes);
+                if (constr == null) throw new ArgumentException("Cant find type or default constructor - " + t + ", " + type);
+                return (T)constr.Invoke(new object[0]);
             });
         }
 

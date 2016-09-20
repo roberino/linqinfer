@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocumentTests.cs" />
     <Compile Include="Data\Remoting\RemotingExtensionsTests.cs" />
+    <Compile Include="Data\Remoting\UriRouteParserTests.cs" />
     <Compile Include="Data\Remoting\VectorTransferServerTests.cs" />
     <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
