@@ -12,6 +12,10 @@ namespace LinqInfer.Learning.Features
     {
         private IDictionary<T, int> _outputs;
 
+        public OutputMapper()
+        {
+        }
+
         public OutputMapper(Stream input)
         {
             Load(input);

@@ -17,7 +17,8 @@ namespace LinqInfer.Data.Remoting
         private readonly string _serverId;
         private readonly Socket _socket;
         private readonly ManualResetEvent _completedHandle;
-        private IDictionary<string, Func<DataBatch, Stream, bool>> _messageHandlers;
+        private readonly RoutingTable _routes;
+        private readonly Uri _baseEndpoint;
 
         private Thread _connectThread;
         private volatile ServerStatus _status;
@@ -26,12 +27,13 @@ namespace LinqInfer.Data.Remoting
 
         public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
+            _baseEndpoint = new Uri("tcp://" + host + ":" + port);
             _serverId = serverId ?? Util.GenerateId();
             _completedHandle = new ManualResetEvent(false);
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _socket.Bind(GetEndpoint(host, port));
-            _messageHandlers = new Dictionary<string, Func<DataBatch, Stream, bool>>();
+            _routes = new RoutingTable();
             _status = ServerStatus.Stopped;
 
             _compression = new DeflateCompressionProvider();
@@ -50,6 +52,14 @@ namespace LinqInfer.Data.Remoting
             return new IPEndPoint(ipAddress, port);
         }
 
+        public Uri BaseEndpoint
+        {
+            get
+            {
+                return _baseEndpoint;
+            }
+        }
+
         public void CompressUsing(ICompressionProvider compressionProvider)
         {
             Contract.Assert(compressionProvider != null);
@@ -57,9 +67,9 @@ namespace LinqInfer.Data.Remoting
             _compression = compressionProvider;
         }
 
-        public void AddHandler(string messageType, Func<DataBatch, Stream, bool> handler)
+        public void AddHandler(UriRoute route, Func<DataBatch, Stream, bool> handler)
         {
-            _messageHandlers[messageType] = handler;
+            _routes.AddHandler(route, handler);
         }
 
         public void Start()
@@ -240,7 +250,16 @@ namespace LinqInfer.Data.Remoting
 
                 DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
 
-                _messageHandlers[doc.OperationType](doc, response);
+                var handler = _routes.Map(new Uri(_baseEndpoint, doc.Path), doc.Verb);
+
+                if (handler == null)
+                {
+                    DebugOutput.Log("Missing handler for route: {0}/{1}", doc.Path, doc.Verb);
+
+                    return false;
+                }
+
+                handler.Invoke(doc, response);
 
                 if (!doc.KeepAlive)
                 {

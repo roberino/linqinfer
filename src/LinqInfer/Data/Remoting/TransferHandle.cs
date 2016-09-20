@@ -12,23 +12,29 @@ namespace LinqInfer.Data.Remoting
 {
     internal class TransferHandle : ITransferHandle
     {
+        private readonly bool _disposeSocket;
         private readonly ICompressionProvider _compression;
         private int _batchIndex;
 
         public TransferHandle(
-            string operationType, 
+            string path, 
+            Verb verb,
             string clientId, 
             Socket clientSocket,
+            bool disposeSocket,
             ICompressionProvider compression, 
             Action<TransferHandle> onConnect)
         {
             ClientSocket = clientSocket;
             ClientId = clientId;
-            OperationType = operationType;
+            Path = path;
             OnConnect = onConnect ?? (h => { });
             Id = Guid.NewGuid().ToString();
             BufferSize = 1024;
+            Verb = verb;
+
             _compression = compression;
+            _disposeSocket = disposeSocket;
         }
 
         public int BufferSize { get; private set; }
@@ -37,7 +43,9 @@ namespace LinqInfer.Data.Remoting
 
         public string ClientId { get; private set; }
 
-        public string OperationType { get; private set; }
+        public string Path { get; private set; }
+
+        public Verb Verb { get; private set; }
 
         internal Socket ClientSocket { get; private set; }
 
@@ -105,12 +113,14 @@ namespace LinqInfer.Data.Remoting
             {
                 DebugOutput.Log("Disconnecting");
                 ClientSocket.Shutdown(SocketShutdown.Both);
-                ClientSocket.Disconnect(true);
+                ClientSocket.Disconnect(!_disposeSocket);
             }
             catch (Exception ex)
             {
                 DebugOutput.Log(ex.Message);
             }
+
+            if (_disposeSocket) ClientSocket.Dispose();
         }
 
         private async Task<Stream> SendBatch(BinaryVectorDocument doc, bool isLast, bool sendResponse = false)
@@ -138,7 +148,8 @@ namespace LinqInfer.Data.Remoting
                 transferDoc.BatchNum = (_batchIndex++);
                 transferDoc.KeepAlive = !isLast;
                 transferDoc.SendResponse = sendResponse;
-                transferDoc.OperationType = OperationType;
+                transferDoc.Path = Path;
+                transferDoc.Verb = Verb;
 
                 DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
 

@@ -2,6 +2,8 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,26 +17,45 @@ namespace LinqInfer.Tests.Data.Remoting
         {
             using (var server = new VectorTransferServer())
             {
-                server.AddHandler("x", (d, r) =>
+                server.AddHandler(server.BaseEndpoint.CreateRoute("x"), (d, r) =>
                 {
                     foreach (var vect in d.Vectors)
                     {
                         Console.WriteLine(vect);
                     }
+
+                    if (!d.KeepAlive)
+                    {
+                        var response = Encoding.ASCII.GetBytes("hi");
+                        r.Write(response, 0, response.Length);
+                    }
+
                     return true;
                 });
 
                 server.Start();
 
-                var client = new VectorTransferClient();
+                using (var client = new VectorTransferClient())
+                {
+                    client.Timeout = 25000;
 
-                var handle = await client.BeginTransfer("x");
+                    using (var handle = await client.BeginTransfer("x"))
+                    {
+                        var data = new[] { ColumnVector1D.Create(1, 2, 3), ColumnVector1D.Create(4, 5, 6) };
 
-                var data = new[] { ColumnVector1D.Create(1, 2, 3), ColumnVector1D.Create(4, 5, 6) };
+                        await handle.Send(data);
+                        var res = await handle.End();
 
-                await handle.Send(data);
+                        using (var ms = new MemoryStream())
+                        {
+                            await res.CopyToAsync(ms);
 
-                Thread.Sleep(500);
+                            var text = Encoding.ASCII.GetString(ms.ToArray());
+
+                            Assert.That(text, Is.EqualTo("hi"));
+                        }
+                    }
+                }
             }
         }
     }

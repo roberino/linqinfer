@@ -24,19 +24,18 @@ namespace LinqInfer.Learning.Classification.Remoting
             _client = new VectorTransferClient(null, _serverEndpoint.Port, _serverEndpoint.Host);
         }
 
+        public int Timeout { get { return _client.Timeout; } set { _client.Timeout = value; } }
+
         public void Dispose()
         {
-            _client.Dispose();
+            if (_client != null) _client.Dispose();
         }
 
-        public async Task<bool> Delete(string key)
+        public async Task<bool> Delete(Uri uri)
         {
-            using (var txHandle = await _client.BeginTransfer(new Uri(_serverEndpoint, "delete").PathAndQuery))
+            using (var txHandle = await _client.BeginTransfer(uri.PathAndQuery, Verb.Delete))
             {
-                var res = await txHandle.End(new
-                {
-                    TargetKey = key
-                });
+                var res = await txHandle.End(new { });
 
                 var doc = new BinaryVectorDocument(res);
 
@@ -45,24 +44,26 @@ namespace LinqInfer.Learning.Classification.Remoting
         }
 
         public async Task<IObjectClassifier<TClass, TInput>> RestoreClassifier<TInput, TClass>(
-            string key,
-            TInput exampleInstance = null,
+            Uri uri,
+            IFloatingPointFeatureExtractor<TInput> uninitialisedFeatureExtractor = null,
             TClass exampleClass = default(TClass))
            where TInput : class
            where TClass : IEquatable<TClass>
         {
-            using (var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery))
+            using (var txHandle = await _client.BeginTransfer(uri.PathAndQuery, Verb.Get))
             {
-                var data = await txHandle.End(new
+                var data = await txHandle.End(new { });
+
+                if (uninitialisedFeatureExtractor == null)
                 {
-                    Key = key
-                });
+                    uninitialisedFeatureExtractor = new ObjectFeatureExtractor().CreateFeatureExtractor<TInput>();
+                }
 
                 try
                 {
                     var network = new MultilayerNetwork(data);
                     var feClob = network.Properties["InputExtractor"];
-                    var featureExtractor = DataExtensions.FromTypeAnnotatedClob<IFloatingPointFeatureExtractor<TInput>>(feClob);
+                    var featureExtractor = DataExtensions.FromClob(feClob, t => uninitialisedFeatureExtractor);
                     var outputMapperClob = network.Properties["OutputMapper"];
                     var outputMapper = DataExtensions.FromTypeAnnotatedClob<ICategoricalOutputMapper<TClass>>(outputMapperClob);
                     var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor, outputMapper, network);
@@ -76,7 +77,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             }
         }
 
-        public async Task<KeyValuePair<string, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(
+        public async Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(
             FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             bool remoteSave = false,
@@ -88,7 +89,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             var outputMapper = new OutputMapperFactory<TInput, TClass>().Create(pipeline.Data, classf);
             var classfc = classf.Compile();
 
-            using (var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery))
+            using (var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery, Verb.Create))
             {
                 var layers = hiddenLayers == null ? new[] { pipeline.VectorSize, outputMapper.VectorSize } : new[] { pipeline.VectorSize }.Concat(hiddenLayers).Concat(new[] { outputMapper.VectorSize }).ToArray();
 
@@ -148,7 +149,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                     var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(pipeline.FeatureExtractor, outputMapper, network);
 
-                    return new KeyValuePair<string, IObjectClassifier<TClass, TInput>>(txHandle.Id, clsf);
+                    return new KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>(new Uri(_serverEndpoint, txHandle.Id), clsf);
                 }
                 finally
                 {

@@ -80,12 +80,16 @@
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
+    <Compile Include="Data\Remoting\RoutingTable.cs" />
     <Compile Include="Data\Remoting\ServerStatus.cs" />
     <Compile Include="Data\Remoting\SocketState.cs" />
     <Compile Include="Data\Remoting\TransferHandle.cs" />
+    <Compile Include="Data\Remoting\UriRoute.cs" />
+    <Compile Include="Data\Remoting\UriRoutingTemplate.cs" />
     <Compile Include="Data\Remoting\Util.cs" />
     <Compile Include="Data\Remoting\VectorTransferClient.cs" />
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
