@@ -38,6 +38,8 @@ var classifier2 = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGr
 
 ```
 
+See more documentation on [Neural Networks](linqinfer/tree/master/docs/neural-networks.md)
+
 #### Maths
 
 The Maths namespace consists of some basic numerical utilities including vector manipulation classes and fractions which can sometimes offer a nicer way of working with probabilities.

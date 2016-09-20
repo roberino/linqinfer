@@ -74,11 +74,6 @@ namespace LinqInfer.Data.Remoting
 
                 while (true)
                 {
-                    //if (_socket.Available == 0)
-                    //{
-                    //    DebugOutput.Log("Available = {0}", _socket.Available);
-                    //}
-
                     read = _socket.Receive(_readBuffer);
 
                     if (receiveHeader == -1)
