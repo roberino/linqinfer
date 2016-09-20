@@ -124,12 +124,14 @@ namespace LinqInfer.Learning.Classification.Remoting
                     {
                         var network = (MultilayerNetwork)ctx.Output;
 
-                        foreach(var prop in batch.Properties)
+                        foreach (var prop in batch.Properties)
                         {
                             network.Properties[prop.Key] = prop.Value;
                         }
 
-                        _blobStore.Store(batch.Id, network);
+                        var name = batch.PropertyOrDefault("Name", batch.Id);
+
+                        _blobStore.Store(name, network);
                     }
 
                     ctx.Output.Save(response);
