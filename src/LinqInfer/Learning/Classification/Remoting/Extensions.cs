@@ -14,6 +14,11 @@ namespace LinqInfer.Learning.Classification.Remoting
             return new RemoteClassifierTrainingClient(serverEndpoint);
         }
 
+        public static IServer CreateMultilayerNetworkServer(this Uri serverEndpoint, IBlobStore storage)
+        {
+            return new RemoteClassifierTrainingServer(serverEndpoint, storage);
+        }
+
         public static async Task<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
@@ -29,11 +34,6 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                 return nn.Value;
             }
-        }
-
-        public static IServer CreateClassifierTrainingServer(this Uri serverEndpoint, IBlobStore storage)
-        {
-            return new RemoteClassifierTrainingServer(serverEndpoint, storage);
         }
     }
 }
