@@ -164,7 +164,7 @@ namespace LinqInfer.Tests.Learning
             {
                 var pirateSample = TestData.CreatePirates().ToList();
                 var pipeline = pirateSample.AsQueryable().CreatePipeline();
-                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f).Execute();
+                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", errorTolerance: 0.1f).Execute();
 
                 // In the original predicate, if age > 25 then old.
                 // But this pirate shares many features of other young pirates
