@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +22,7 @@ namespace LinqInfer.Data
 
         public BinaryVectorDocument()
         {
-            _properties = new Dictionary<string, string>();
+            _properties = new ConstrainableDictionary<string, string>(v => v != null);
             _blobs = new Dictionary<string, byte[]>();
             _vectorData = new List<ColumnVector1D>();
             _children = new List<BinaryVectorDocument>();
