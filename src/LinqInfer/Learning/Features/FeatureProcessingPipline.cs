@@ -267,6 +267,16 @@ namespace LinqInfer.Learning.Features
             }, (x, o) => true);
         }
 
+        internal ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<FeatureProcessingPipline<T>, string, Task<TResult>> processor)
+        {
+            return new ExecutionPipline<TResult>((n) =>
+            {
+                var res = processor.Invoke(this, n);
+
+                return res;
+            }, (x, o) => true);
+        }
+
         public FeatureProcessingPipline<T> OutputResultsTo(IBlobStore store)
         {
             _outputs.Add(store);
