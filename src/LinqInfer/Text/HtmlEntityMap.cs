@@ -12,19 +12,12 @@ namespace LinqInfer.Text
         private readonly static IDictionary<string, int> _entityMap;
         private readonly static List<string> _validXmlEntities;
 
-        private readonly Encoding _encoding;
-
         static HtmlEntityMap()
         {
             _entityMap = new Dictionary<string, int>();
             _entRegex = new Regex(@"\&(#?[a-z0-9]+);", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             _validXmlEntities = new List<string>(new[] { "apos", "quot", "amp", "lt", "gt" });
             RegisterHtmlEntities();
-        }
-
-        public HtmlEntityMap(Encoding encoding = null)
-        {
-            _encoding = encoding ?? Encoding.UTF8;
         }
 
         public XText TryDecodeEntityString(string htmlEntity)

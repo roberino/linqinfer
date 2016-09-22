@@ -151,6 +151,8 @@ namespace LinqInfer.Data
         {
             var levelc = reader.ReadInt32();
 
+			if(levelc != level) throw new ArgumentException("Invalid data");
+
             Version = reader.ReadInt32();
 
             var checksum = reader.ReadInt64();

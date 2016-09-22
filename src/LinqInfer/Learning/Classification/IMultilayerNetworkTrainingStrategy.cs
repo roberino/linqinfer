@@ -28,20 +28,4 @@ namespace LinqInfer.Learning.Classification
         /// <returns></returns>
         Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory);
     }
-
-    public class V2MultilayerNetworkTrainingStrategyConverter<TClass, TInput> : IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput>
-         where TClass : IEquatable<TClass> where TInput : class
-    {
-        private readonly IMultilayerNetworkTrainingStrategy<TClass, TInput> _v1;
-
-        public V2MultilayerNetworkTrainingStrategyConverter(IMultilayerNetworkTrainingStrategy<TClass, TInput> v1Strategy)
-        {
-            _v1 = v1Strategy;
-        }
-
-        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
-        {
-            return Task.FromResult(_v1.Train(trainingSet.FeaturePipeline, trainingContextFactory, trainingSet.ClassifyingExpression, trainingSet.OutputMapper));
-        }
-    }
 }

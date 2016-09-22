@@ -200,7 +200,7 @@ namespace LinqInfer.Data.Remoting
 
                         if (read == 0) break;
 
-                        var asyncRes = state.ClientSocket.BeginSend(buffer, 0, read, 0,
+                        state.ClientSocket.BeginSend(buffer, 0, read, 0,
                         a =>
                         {
                             var handle = (TransferHandle)a.AsyncState;

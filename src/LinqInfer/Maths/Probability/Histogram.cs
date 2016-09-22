@@ -56,7 +56,6 @@ namespace LinqInfer.Maths.Probability
         public Func<Fraction, Fraction> Evaluate(IQueryable<Fraction> sample)
         {
             var sampleBins = Analyse(sample);
-            var hx = sampleBins.Width / 2d;
 
             return (x) =>
             {
