@@ -58,7 +58,13 @@ namespace LinqInfer.Data.Remoting
 
             Util.ValidateUri(endpoint);
 
+            var key = endpoint.Host + ':' + endpoint.Port;
             var server = _defaultServers.GetOrAdd(endpoint.Host + ':' + endpoint.Port, e => new VectorTransferServer(null, endpoint.Port, endpoint.Host));
+
+            if (server.Status == ServerStatus.Disposed)
+            {
+                _defaultServers[key] = server = new VectorTransferServer(null, endpoint.Port, endpoint.Host);
+            }
 
             if (messageHandler != null) server.AddHandler(route, messageHandler);
 

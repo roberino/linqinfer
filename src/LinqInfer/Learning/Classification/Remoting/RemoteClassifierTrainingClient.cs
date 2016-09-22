@@ -5,7 +5,6 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.Remoting
@@ -78,8 +77,7 @@ namespace LinqInfer.Learning.Classification.Remoting
         }
 
         public async Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(
-            FeatureProcessingPipline<TInput> pipeline,
-            Expression<Func<TInput, TClass>> classf,
+            ITrainingSet<TInput, TClass> trainingSet,
             bool remoteSave = false,
             string name = null,
             float errorTolerance = 0.1f,
@@ -87,12 +85,9 @@ namespace LinqInfer.Learning.Classification.Remoting
             where TInput : class
             where TClass : IEquatable<TClass>
         {
-            var outputMapper = new OutputMapperFactory<TInput, TClass>().Create(pipeline.Data, classf);
-            var classfc = classf.Compile();
-
             using (var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery, Verb.Create))
             {
-                var layers = hiddenLayers == null ? new[] { pipeline.VectorSize, outputMapper.VectorSize } : new[] { pipeline.VectorSize }.Concat(hiddenLayers).Concat(new[] { outputMapper.VectorSize }).ToArray();
+                var layers = hiddenLayers == null ? new[] { trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize } : new[] { trainingSet.FeaturePipeline.VectorSize }.Concat(hiddenLayers).Concat(new[] { trainingSet.OutputMapper.VectorSize }).ToArray();
 
                 var np = new NetworkParameters(layers);
 
@@ -102,19 +97,16 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                 while (!hasConverged && i < 100)
                 {
-                    foreach (var batch in pipeline.ExtractBatches())
+                    foreach (var batch in trainingSet.ExtractInputOutputVectorBatches())
                     {
                         var doc = new BinaryVectorDocument();
 
-                        foreach (var obVec in batch)
+                        foreach (var vectorPair in batch)
                         {
-                            var cls = classfc(obVec.Value);
-                            var output = outputMapper.ExtractColumnVector(cls);
-
-                            doc.Vectors.Add(obVec.Vector.Concat(output));
+                            doc.Vectors.Add(vectorPair.Item1.Concat(vectorPair.Item2));
                         }
 
-                        doc.Properties["VectorSize"] = pipeline.VectorSize.ToString();
+                        doc.Properties["VectorSize"] = trainingSet.FeaturePipeline.VectorSize.ToString();
                         doc.Properties["LayerSizes"] = string.Join(",", np.LayerSizes);
 
                         await txHandle.Send(doc);
@@ -141,15 +133,15 @@ namespace LinqInfer.Learning.Classification.Remoting
                 {
                     SaveOutput = remoteSave,
                     Name = name ?? txHandle.Id,
-                    OutputMapper = outputMapper.ToClob(),
-                    InputExtractor = pipeline.FeatureExtractor.ToClob()
+                    OutputMapper = trainingSet.OutputMapper.ToClob(),
+                    InputExtractor = trainingSet.FeaturePipeline.FeatureExtractor.ToClob()
                 });
 
                 try
                 {
                     var network = new MultilayerNetwork(finalResponse);
 
-                    var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(pipeline.FeatureExtractor, outputMapper, network);
+                    var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, network);
 
                     return new KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>(new Uri(_serverEndpoint, txHandle.Id), clsf);
                 }

@@ -105,7 +105,7 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
-        public void CreateSemanticClassifiier_()
+        public void CreateSemanticClassifier_ReturnsExpectedOutput()
         {
             var data = new[]
             {

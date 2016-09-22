@@ -108,7 +108,7 @@
     <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkTrainingPipeline.cs" />
+    <Compile Include="Learning\Classification\MultilayerNetworkTrainingRunner.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkObjectClassifier.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTrainingContextFactory.cs" />
     <Compile Include="Learning\Classification\ObjectClassifier.cs" />
@@ -123,8 +123,10 @@
     <Compile Include="Learning\Features\IHasFeatureMetadata.cs" />
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
+    <Compile Include="Learning\Features\ITrainingSet.cs" />
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
+    <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />

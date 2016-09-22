@@ -38,7 +38,7 @@ namespace LinqInfer.Data.Remoting
 
         private Socket CreateSocket()
         {
-            return SetupSocket(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+            return SetupSocket(new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp));
         }
 
         private Socket SetupSocket(Socket socket)

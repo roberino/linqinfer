@@ -142,9 +142,16 @@ namespace LinqInfer.Tests.Probability
             var min = ave - variance;
             var max = ave + variance;
 
-            var range = Enumerable.Range(1, 500).Select(n => Functions.Mutate(a, b, variance, true));
+            var range = Enumerable.Range(1, 500).Select(n => Functions.Mutate(a, b, variance, logarithmic));
 
-            Assert.That(range.All(x => x >= min && x <= max));
+            foreach(var r in range)
+            {
+                Console.WriteLine(r);
+
+                Assert.That(r >= min && r <= max);
+            }
+
+            //Assert.That(range.All(x => x >= min && x <= max));
         }
 
         [Test]

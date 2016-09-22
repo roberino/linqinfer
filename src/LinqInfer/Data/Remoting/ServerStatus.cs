@@ -6,6 +6,7 @@
         Running,
         ShuttingDown,
         Stopped,
-        Error
+        Error,
+        Disposed
     }
 }
