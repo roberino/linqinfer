@@ -184,8 +184,6 @@ namespace LinqInfer.Text
 
         internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
         {
-            var results = new ConcurrentBag<KeyValuePair<XDocument, float>>();
-
             var idfs = GetWordFrequencies(query);
 
             var docs = idfs.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);

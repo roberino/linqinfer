@@ -13,13 +13,11 @@ namespace LinqInfer.Text
     /// </summary>
     internal class HtmlParser
     {
-        private readonly Encoding _encoding;
         private readonly HtmlEntityMap _entityMap;
 
-        public HtmlParser(Encoding encoding = null)
+        public HtmlParser()
         {
-            _encoding = encoding ?? Encoding.UTF8;
-            _entityMap = new HtmlEntityMap(_encoding);
+            _entityMap = new HtmlEntityMap();
         }
 
         public IEnumerable<XNode> Parse(string text)
