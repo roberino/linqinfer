@@ -110,11 +110,9 @@ Global
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
-		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

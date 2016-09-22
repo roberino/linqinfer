@@ -273,11 +273,11 @@ namespace LinqInfer.Learning
             Expression<Func<TInput, TClass>> classf,
             IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
-            return pipeline.ProcessWith((p, n) =>
+            return pipeline.ProcessAsyncWith(async (p, n) =>
             {
                 var trainingSet = new TrainingSet<TInput, TClass>(pipeline, classf);
                 var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
-                var result = trainingPipline.TrainUsing(trainingStrategy).Result;
+                var result = await trainingPipline.TrainUsing(trainingStrategy);
 
                 if (n != null) pipeline.OutputResults(result, n);
 
