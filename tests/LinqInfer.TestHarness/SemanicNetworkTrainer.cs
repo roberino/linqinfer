@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning.Classification.Remoting;
+﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.Remoting;
 using LinqInfer.Text;
 using System;
 using System.Collections.Generic;
@@ -26,18 +27,19 @@ namespace LinqInfer.TestHarness
                 data.Add(text);
             }
 
-            var pipeline = data.Select(t => new
+            var trainingSet = data.Select(t => new
             {
                 text = t.Split('=').First(),
                 cls = t.Split('=').Last()
             })
             .AsQueryable()
-            .CreateTextFeaturePipeline(x => x.cls);
+            .CreateTextFeaturePipeline(x => x.cls)
+            .AsTrainingSet(x => x.cls);
 
             var client = serverEndpoint.CreateMultilayerNetworkClient();
 
             var task = client
-                .CreateClassifier(pipeline, x => x.cls, true, name, 0.1f, pipeline.VectorSize * 2, pipeline.VectorSize * 2);
+                .CreateClassifier(trainingSet, true, name, 0.1f, trainingSet.FeaturePipeline.VectorSize * 2, trainingSet.FeaturePipeline.VectorSize * 2);
 
             task.Wait();
 
@@ -46,21 +48,39 @@ namespace LinqInfer.TestHarness
             Console.WriteLine();
             Console.WriteLine();
 
+            var n = nn.Value;
+
             while (true)
             {
                 var next = Console.ReadLine();
 
                 if (string.IsNullOrEmpty(next)) break;
 
-                var results = nn.Value.Classify(new
-                {
-                    text = next,
-                    cls = "?"
-                });
+                var indent = 0;
 
-                foreach (var res in results)
+                while (n != null)
                 {
-                    Console.WriteLine(res);
+                    var results = n.Classify(new
+                    {
+                        text = next,
+                        cls = "?"
+                    });
+
+                    foreach (var res in results)
+                    {
+                        Console.WriteLine(res.ToString().PadLeft(indent));
+                    }
+
+                    try
+                    {
+                        n = client.RestoreClassifier(new Uri(nn.Key, results.First().ClassType), trainingSet.FeaturePipeline.FeatureExtractor, "?").Result;
+                    }
+                    catch
+                    {
+                        n = null;
+                    }
+
+                    indent++;
                 }
 
                 Console.WriteLine();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using LinqInfer.Learning.Features;
 
@@ -21,14 +20,13 @@ namespace LinqInfer.Learning.Classification.Remoting
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="pipeline">A pipeline of data</param>
-        /// <param name="classf">An expression which classifies training data</param>
+        /// <param name="trainingSet">A training set</param>
         /// <param name="remoteSave">True if a classifier should be saved</param>
         /// <param name="name">The name of the classifier</param>
         /// <param name="errorTolerance">The error tolerance</param>
         /// <param name="hiddenLayers">The hidden layer specification</param>
         /// <returns>A task which returns a classifier instance</returns>
-        Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf, bool remoteSave = false, string name = null, float errorTolerance = 0.1F, params int[] hiddenLayers)
+        Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(ITrainingSet<TInput, TClass> trainingSet, bool remoteSave = false, string name = null, float errorTolerance = 0.1F, params int[] hiddenLayers)
             where TInput : class
             where TClass : IEquatable<TClass>;
 

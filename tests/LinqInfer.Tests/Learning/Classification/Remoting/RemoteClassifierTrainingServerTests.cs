@@ -34,11 +34,11 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             {
                 server.Start();
 
-                var pipeline = data.CreatePipeline();
+                var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
 
-                var keyAndclassifier = await client.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
+                var keyAndclassifier = await client.CreateClassifier(trainingSet, true);
 
-                var restoredClassifier = await client.RestoreClassifier(keyAndclassifier.Key, pipeline.FeatureExtractor, 'a');
+                var restoredClassifier = await client.RestoreClassifier(keyAndclassifier.Key, trainingSet.FeaturePipeline.FeatureExtractor, 'a');
 
                 var results = restoredClassifier.Classify(new
                 {
@@ -71,9 +71,9 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 server.Start();
 
-                var pipeline = data.CreatePipeline();
+                var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
 
-                var keyAndclassifier = await client.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
+                var keyAndclassifier = await client.CreateClassifier(trainingSet, true);
 
                 // We should be able to restore the raw blob back into a network
 
@@ -120,10 +120,10 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             {
                 server.Start();
 
-                var pipeline = data.CreatePipeline();
+                var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
 
-                var task1 = client1.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
-                var task2 = client2.CreateClassifier(pipeline, x => x.x > 10 ? 'a' : 'b', true);
+                var task1 = client1.CreateClassifier(trainingSet, true);
+                var task2 = client2.CreateClassifier(trainingSet, true);
                 
                 await task1;
                 await task2;

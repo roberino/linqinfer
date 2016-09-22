@@ -2,9 +2,7 @@
 using LinqInfer.Learning.Classification.Remoting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
 
 namespace LinqInfer.NeuralServer
 {
@@ -12,12 +10,12 @@ namespace LinqInfer.NeuralServer
     {
         static void Main(string[] args)
         {
-            if (args.Length > 0 && args[0] == "trainer")
+            var endpoint = GetEndpoint(args);
+
+            Console.WriteLine("Binding to endpoint " + endpoint);
+
+            try
             {
-                var endpoint = GetEndpoint(args);
-
-                Console.WriteLine("Binding to endpoint " + endpoint);
-
                 using (var fbs = new FileBlobStore())
                 {
                     using (var server = endpoint.CreateMultilayerNetworkServer(fbs))
@@ -27,6 +25,10 @@ namespace LinqInfer.NeuralServer
                         Console.Read();
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(string.Format("Cant start server on address {0}", endpoint), ex);
             }
         }
 
@@ -44,12 +46,16 @@ namespace LinqInfer.NeuralServer
             }
             else
             {
-                port = 9033;
+                var envPortVar = GetConfigValue("PortEnvironmentVariable", string.Empty);
+                port = string.IsNullOrEmpty(envPortVar) ? GetConfigValue("FallbackPort", 9012) : int.Parse(Environment.GetEnvironmentVariable(envPortVar));
             }
 
             if (!parameters.TryGetValue("host", out host))
             {
-                host = "localhost";
+                var envHostVar = GetConfigValue("DnsEnvironmentVariable", string.Empty);
+                host = string.IsNullOrEmpty(envHostVar) ? null : Environment.GetEnvironmentVariable(envHostVar);
+
+                if (string.IsNullOrEmpty(host)) host = "localhost";
             }
 
             if (!parameters.TryGetValue("path", out path))
@@ -58,6 +64,20 @@ namespace LinqInfer.NeuralServer
             }
 
             return new Uri("tcp" + Uri.SchemeDelimiter + host + ":" + port + path);
+        }
+
+        private static readonly AppSettingsReader _reader = new AppSettingsReader();
+
+        private static T GetConfigValue<T>(string key, T defaultValue)
+        {
+            try
+            {
+                return (T)_reader.GetValue(key, typeof(T));
+            }
+            catch
+            {
+                return defaultValue;
+            }
         }
 
         private static IDictionary<string, string> ParseArgs(string[] args)
