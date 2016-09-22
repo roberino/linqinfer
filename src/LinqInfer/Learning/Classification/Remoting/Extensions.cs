@@ -30,7 +30,8 @@ namespace LinqInfer.Learning.Classification.Remoting
         {
             using (var client = new RemoteClassifierTrainingClient(serverEndpoint))
             {
-                var nn = await client.CreateClassifier(pipeline, classf, saveRemotely, name, errorTolerance, hiddenLayers);
+                var trainingSet = new TrainingSet<TInput, TClass>(pipeline, classf);
+                var nn = await client.CreateClassifier(trainingSet, saveRemotely, name, errorTolerance, hiddenLayers);
 
                 return nn.Value;
             }

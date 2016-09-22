@@ -90,6 +90,21 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Creates a training set from a feature pipeline
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A feature pipeline</param>
+        /// <param name="classf">A classifying expression</param>
+        /// <returns>A training set</returns>
+        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
+            where TInput : class
+            where TClass : IEquatable<TClass>
+        {
+            return new TrainingSet<TInput, TClass>(pipeline, classf);
+        }
+
+        /// <summary>
         /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -222,7 +237,8 @@ namespace LinqInfer.Learning
             Expression<Func<TInput, TClass>> classf,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
         {
-            var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(pipeline, classf);
+            var trainingSet = new TrainingSet<TInput, TClass>(pipeline, classf);
+            var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
 
             var inputSize = pipeline.VectorSize;
             var outputSize = trainingPipline.OutputMapper.VectorSize;
@@ -235,7 +251,7 @@ namespace LinqInfer.Learning
 
             return pipeline.ProcessWith((p, n) =>
             {
-                var result = trainingPipline.TrainUsing(strategy);
+                var result = trainingPipline.TrainUsing(strategy).Result;
 
                 if (n != null) pipeline.OutputResults(result, n);
 
@@ -255,12 +271,13 @@ namespace LinqInfer.Learning
         public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
-            IMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
+            IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var trainingPipline = new MultilayerNetworkTrainingPipeline<TClass, TInput>(p, classf);
-                var result = trainingPipline.TrainUsing(trainingStrategy);
+                var trainingSet = new TrainingSet<TInput, TClass>(pipeline, classf);
+                var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
+                var result = trainingPipline.TrainUsing(trainingStrategy).Result;
 
                 if (n != null) pipeline.OutputResults(result, n);
 

@@ -5,10 +5,11 @@ using System.Linq.Expressions;
 using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
+    internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
         private const float _minRateOfChange = 0.001f;
 
@@ -150,6 +151,14 @@ namespace LinqInfer.Learning.Classification
                     ||
                 (context.RateOfErrorChange.HasValue &&
                     context.RateOfErrorChange < _minRateOfChange);
+        }
+
+        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
+        {
+            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(() =>
+            {
+                return Train(trainingSet.FeaturePipeline, trainingContextFactory, trainingSet.ClassifyingExpression, trainingSet.OutputMapper);
+            });
         }
 
         private class PipelineFactory

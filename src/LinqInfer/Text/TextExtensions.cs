@@ -39,6 +39,26 @@ namespace LinqInfer.Text
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.
         /// </summary>
+        /// <param name="data">A queryable set of strings</param>
+        /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
+        /// <returns></returns>
+        public static FeatureProcessingPipline<string> CreateTextFeaturePipeline(this IQueryable<string> data, int maxVectorSize = 128)
+        {
+            var identityFunc = new Func<string, string>((x => x == null ? "" : x.GetHashCode().ToString()));
+
+            var index = new DocumentIndex();
+            var tokeniser = new Tokeniser();
+            var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), tokeniser.Tokenise(x)));
+
+            index.IndexDocuments(docs);
+
+            return new FeatureProcessingPipline<string>(data, index.CreateVectorExtractor<string>(tokeniser.Tokenise, maxVectorSize));
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// based on term frequency.
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <param name="identityFunc"></param>

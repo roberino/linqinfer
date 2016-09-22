@@ -1,11 +1,11 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
-using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class StaticParametersMultilayerTrainingStrategy<TClass, TInput> : IMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
+    internal class StaticParametersMultilayerTrainingStrategy<TClass, TInput> : IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
         private readonly NetworkParameters _parameters;
 
@@ -18,25 +18,28 @@ namespace LinqInfer.Learning.Classification
 
         public float ErrorTolerance { get; set; }
 
-        public IClassifierTrainingContext<TClass, NetworkParameters> Train(IFeatureProcessingPipeline<TInput> featureSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, Expression<Func<TInput, TClass>> classifyingExpression, ICategoricalOutputMapper<TClass> outputMapper)
+        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
         {
             var context = trainingContextFactory(_parameters);
-            var classf = classifyingExpression.Compile();
 
-            foreach (var batch in featureSet.ExtractBatches())
-            {
-                foreach (var value in batch.RandomOrder())
+            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(
+                () =>
                 {
-                    context.Train(classf(value.Value), value.Vector);
-
-                    if (context.AverageError.HasValue && context.AverageError < ErrorTolerance)
+                    foreach (var batch in trainingSet.ExtractInputClassBatches())
                     {
-                        return context;
-                    }
-                }
-            }
+                        foreach (var value in batch.RandomOrder())
+                        {
+                            context.Train(value.Value, value.Vector);
 
-            return context;
+                            if (context.AverageError.HasValue && context.AverageError < ErrorTolerance)
+                            {
+                                return context;
+                            }
+                        }
+                    }
+
+                    return context;
+                });
         }
     }
 }

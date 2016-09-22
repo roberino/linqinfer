@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
@@ -27,12 +26,16 @@ namespace LinqInfer.Data.Remoting
 
         public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
+            var endpoint = GetEndpoint(host, port);
+
             _baseEndpoint = new Uri("tcp://" + host + ":" + port);
             _serverId = serverId ?? Util.GenerateId();
             _completedHandle = new ManualResetEvent(false);
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            _socket.Bind(GetEndpoint(host, port));
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+
+            _socket.Bind(endpoint);
             _routes = new RoutingTable();
             _status = ServerStatus.Stopped;
 
@@ -43,6 +46,7 @@ namespace LinqInfer.Data.Remoting
         {
             var dns = Dns.GetHostEntry(host);
             var ipAddress = dns.AddressList[0];
+            
             return new IPEndPoint(ipAddress, port);
         }
 
@@ -82,7 +86,7 @@ namespace LinqInfer.Data.Remoting
             {
                 _status = ServerStatus.Error;
                 DebugOutput.Log(ex);
-                throw;
+                throw new ApplicationException(string.Format("Cant start server on address {0} because of: {1}", _baseEndpoint, ex.Message), ex);
             }
 
             if (_status == ServerStatus.Running || (_connectThread != null && _connectThread.IsAlive))
@@ -166,7 +170,8 @@ namespace LinqInfer.Data.Remoting
                 {
                     bool more = false;
 
-                    using (var response = new MemoryStream()) {
+                    using (var response = new MemoryStream())
+                    {
                         using (var cs = _compression.CompressTo(response))
                         {
                             more = Process(state, cs);
@@ -275,7 +280,28 @@ namespace LinqInfer.Data.Remoting
             catch (Exception ex)
             {
                 DebugOutput.Log(ex);
+
+                Write(response, d =>
+                {
+                    d.Properties["ErrorMessage"] = ex.Message;
+                    d.Properties["ErrorType"] = ex.GetType().AssemblyQualifiedName;
+                    d.Properties["ErrorStackTrace"] = ex.StackTrace;
+                });
+
                 return false;
+            }
+        }
+
+        private void Write(Stream response, Action<BinaryVectorDocument> writer)
+        {
+            var doc = new BinaryVectorDocument();
+
+            writer(doc);
+
+            using (var cs = _compression.CompressTo(response))
+            {
+                doc.Save(cs);
+                cs.Flush();
             }
         }
 
@@ -297,6 +323,8 @@ namespace LinqInfer.Data.Remoting
             }
 
             _completedHandle.Dispose();
+
+            _status = ServerStatus.Disposed;
 
             _socket.Dispose();
         }
