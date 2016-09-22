@@ -34,7 +34,7 @@ namespace LinqInfer.Genetics
                 {
                     var newParam2 = breedingSet[2].Parameters.Breed(breedingSet[3].Parameters);
 
-                    breedingSet.Add(new Item<P, O>() { Parameters = newParam1, Instance = factory(newParam1) });
+					breedingSet.Add(new Item<P, O>() { Parameters = newParam2, Instance = factory(newParam1) });
                 }
 
                 i++;

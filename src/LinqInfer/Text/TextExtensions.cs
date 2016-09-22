@@ -231,7 +231,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            var blob = store.Restore(key, search);
+			store.Restore(key, search);
 
             return q => search.SearchInternal(q);
         }
