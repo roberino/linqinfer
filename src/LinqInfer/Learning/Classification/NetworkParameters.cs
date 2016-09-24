@@ -35,7 +35,7 @@ namespace LinqInfer.Learning.Classification
         /// <param name="activator">A optional activator function (default is Sigmoid)</param>
         public NetworkParameters(int[] layerSizes, ActivatorFunc activator = null)
         {
-            Contract.Assert(layerSizes != null && layerSizes.Length > 1);
+            Contract.Requires(layerSizes != null && layerSizes.Length > 1);
 
             Activator = activator ?? Activators.Sigmoid();
             InitialWeightRange = new Range(0.7, -0.7);

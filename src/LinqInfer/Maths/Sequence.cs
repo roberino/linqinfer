@@ -19,7 +19,7 @@ namespace LinqInfer.Maths
         /// <param name="size">The size of the sequence</param>
         public Sequence(int size)
         {
-            Contract.Assert(size > 0);
+            Contract.Requires(size > 0);
 
             _values = new T[size];
         }
@@ -33,7 +33,7 @@ namespace LinqInfer.Maths
 
             var values0 = values.ToArray();
 
-            Contract.Assert(values0.Length > 0);
+            Contract.Requires(values0.Length > 0);
 
             _values = values0;
         }

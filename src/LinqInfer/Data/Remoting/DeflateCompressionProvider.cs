@@ -5,13 +5,16 @@ namespace LinqInfer.Data.Remoting
 {
     internal class DeflateCompressionProvider : ICompressionProvider
     {
+        public string Name { get { return "deflate"; } }
+
         public Stream DecompressFrom(Stream input)
         {
             return new DeflateStream(input, CompressionMode.Decompress, true);
         }
-        public Stream CompressTo(Stream input)
+
+        public Stream CompressTo(Stream input, bool closeStream = false)
         {
-            return new DeflateStream(input, CompressionMode.Compress, true);
+            return new DeflateStream(input, CompressionMode.Compress, !closeStream);
         }
     }
 }

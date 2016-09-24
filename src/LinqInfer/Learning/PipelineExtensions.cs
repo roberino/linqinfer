@@ -228,6 +228,29 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A set of training data</param>
+        /// <param name="errorTolerance">The network error tolerance</param>
+        /// <param name="fitnessFunction">An optional fitness function which is used to determine the best solution found during the training phase</param>
+        /// <param name="haltingFunction">An optional halting function which halts training once a solution is found (or not) 
+        /// - the function takes the current fittest network, an interation index, and the elapsed time as parameters and
+        /// return a true to indicate the training should stop</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this ITrainingSet<TInput, TClass> trainingSet,
+            float errorTolerance = 0.1f,
+            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
+            Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var defaultStrategy = new MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput>(errorTolerance, fitnessFunction, haltingFunction);
+
+            return ToMultilayerNetworkClassifier(trainingSet, defaultStrategy);
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <param name="errorTolerance">The network error tolerance</param>
@@ -254,6 +277,29 @@ namespace LinqInfer.Learning
                 var result = trainingPipline.TrainUsing(strategy).Result;
 
                 if (n != null) pipeline.OutputResults(result, n);
+
+                return result;
+            });
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data and training strategy.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A set of training data</param>
+        /// <param name="trainingStrategy">A implementation of a multilayer network training strategy</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this ITrainingSet<TInput, TClass> trainingSet,
+            IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
+        {
+            return trainingSet.FeaturePipeline.ProcessAsyncWith(async (p, n) =>
+            {
+                var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
+                var result = await trainingPipline.TrainUsing(trainingStrategy);
+
+                if (n != null) p.OutputResults(result, n);
 
                 return result;
             });
