@@ -55,6 +55,18 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Returns a percentage representing the number of items successfully classified by a classifier
         /// </summary>
+        public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, ITrainingSet<TInput, TClass> trainingSet)
+            where TInput : class
+            where TClass : IEquatable<TClass>
+        {
+            var testSet = trainingSet.FeaturePipeline.Data.ClassifyUsing(trainingSet.ClassifyingExpression.Compile());
+
+            return ClassificationAccuracyPercentageInternal(classifier, testSet);
+        }
+
+        /// <summary>
+        /// Returns a percentage representing the number of items successfully classified by a classifier
+        /// </summary>
         public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TInput> testData, Func<TInput, TClass> classf)
         {
             var testSet = testData.ClassifyUsing(classf);

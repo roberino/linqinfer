@@ -22,11 +22,13 @@ namespace LinqInfer.Data.Remoting
             _socket.ReceiveBufferSize = bufferSize;
         }
 
-        public int Write(Stream input)
+        public int Write(Stream input, TcpResponseHeader header = null)
         {
             var len = input.Length - input.Position;
 
-            var head = BitConverter.GetBytes(len);
+            if (header == null) header = new TcpResponseHeader(() => len);
+
+            var head = header.GetBytes();
 
             Array.Copy(head, _writeBuffer, head.Length);
 

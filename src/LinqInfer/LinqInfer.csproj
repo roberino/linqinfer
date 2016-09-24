@@ -82,7 +82,10 @@
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />
     <Compile Include="Data\Remoting\ServerStatus.cs" />
-    <Compile Include="Data\Remoting\SocketState.cs" />
+    <Compile Include="Data\Remoting\TcpRequestContext.cs" />
+    <Compile Include="Data\Remoting\TcpRequestHeader.cs" />
+    <Compile Include="Data\Remoting\TcpResponse.cs" />
+    <Compile Include="Data\Remoting\TcpResponseHeader.cs" />
     <Compile Include="Data\Remoting\TransferHandle.cs" />
     <Compile Include="Data\Remoting\UriRoute.cs" />
     <Compile Include="Data\Remoting\UriRoutingTemplate.cs" />

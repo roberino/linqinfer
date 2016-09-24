@@ -253,7 +253,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator -(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Assert(v1.Size == v2.Size);
+            Contract.Requires(v1.Size == v2.Size);
 
             int i = 0;
 
@@ -262,7 +262,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator +(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Assert(v1.Size == v2.Size);
+            Contract.Requires(v1.Size == v2.Size);
 
             int i = 0;
 
@@ -271,7 +271,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator *(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Assert(v1.Size == v2.Size);
+            Contract.Requires(v1.Size == v2.Size);
 
             int i = 0;
 
@@ -280,7 +280,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator /(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Assert(v1.Size == v2.Size);
+            Contract.Requires(v1.Size == v2.Size);
 
             int i = 0;
 

@@ -16,7 +16,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public static T AorB<T>(T a, T b, double biasTowardA = 0.5)
         {
-            Contract.Assert(biasTowardA >= 0 && biasTowardA <= 1);
+            Contract.Requires(biasTowardA >= 0 && biasTowardA <= 1);
             return RandomDouble() < biasTowardA ? a : b;
         }
 
@@ -32,7 +32,7 @@ namespace LinqInfer.Maths
         {
             if (logarithmic)
             {
-                randomVariability = Math.Log(Math.Pow(2, randomVariability), 2);
+                randomVariability = Math.Log(Math.Pow(2, randomVariability), 2); // ???
             }
             return ((x0 + x1) / 2) + RandomDouble(-randomVariability, randomVariability);
         }
@@ -336,30 +336,16 @@ namespace LinqInfer.Maths
         {
             var pdf = NormalPdf(theta, mu);
 
-            // var cache = new ConcurrentDictionary<double, double>();
-
             return () =>
             {
                 while (true)
                 {
                     var p0 = _random.NextDouble();
 
-                    //var cacheVal = cache.FirstOrDefault(x => x.Value > p0);
-
-                    //if (cacheVal.Value != 0)
-                    //{
-                    //    double x;
-                    //    if (cache.TryRemove(cacheVal.Key, out x))
-                    //        return x;
-                    //}
-
                     var r = _random.NextDouble() * mu * 2;
                     var p1 = pdf(r);
 
                     if (p1 > p0) return r;
-
-                    //if (cache.Count < 1000)
-                    //    cache[r] = p1;
                 }
             };
         }
@@ -382,8 +368,8 @@ namespace LinqInfer.Maths
 
         public static Func<double, double> BinomialPdf(int buckets = 10, Fraction? trueProbability = null)
         {
-            Contract.Assert(buckets > 0);
-            Contract.Assert(buckets <= 20);
+            Contract.Requires(buckets > 0);
+            Contract.Requires(buckets <= 20);
             
             var n = buckets;
             var nf = (double)Factorial(buckets);
@@ -394,8 +380,8 @@ namespace LinqInfer.Maths
 
         public static Func<int[], double> MultinomialPdf(int buckets = 10, params Fraction[] eventProbabilities)
         {
-            Contract.Assert(buckets > 0);
-            Contract.Assert(buckets <= 20);
+            Contract.Requires(buckets > 0);
+            Contract.Requires(buckets <= 20);
             
             var nf = (double)Factorial(buckets);
             var probs = eventProbabilities.Select(e => e.Value).ToArray();
@@ -452,7 +438,7 @@ namespace LinqInfer.Maths
 
         public static double[] PercentileRange(int bucketCount, double percentile = 0.9d)
         {
-            Contract.Assert(percentile >= 0 && percentile < 1);
+            Contract.Requires(percentile >= 0 && percentile < 1);
 
             double min = 1 - percentile;
             double max = percentile - min;

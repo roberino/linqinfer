@@ -79,9 +79,11 @@ namespace LinqInfer.Maths
             }
         }
 
-        public static Fraction Random(int maxPrecision = 100)
+        public static Fraction Random(int maxPrecision = 100, int min = 0)
         {
-            return new Fraction(Functions.Random(maxPrecision), maxPrecision, true);
+            Contract.Requires(min < maxPrecision);
+
+            return new Fraction(min + Functions.Random(maxPrecision - min), maxPrecision, true);
         }
 
         internal static Fraction ApproxPii
@@ -196,8 +198,8 @@ namespace LinqInfer.Maths
         /// </summary>
         public Fraction Compliment(int total = 1)
         {
-            Contract.Assert(total >= 1);
-            Contract.Assert(total > 1 || IsProper);
+            Contract.Requires(total >= 1);
+            Contract.Requires(total > 1 || IsProper);
             return new Fraction(total, 1) - this;
         }
 
@@ -491,7 +493,7 @@ namespace LinqInfer.Maths
 
         internal static Fraction Divide(Fraction x, Fraction y, bool approx = false)
         {
-            if (y.IsZero) throw new DivideByZeroException();
+            if (y.IsZero) throw new DivideByZeroException(string.Format("Attempt to divide {0} by zero", x));
 
             return Multiply(x, new Fraction(y.Denominator, y.Numerator, true), approx);
         }

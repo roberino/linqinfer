@@ -4,9 +4,11 @@ namespace LinqInfer.Data.Remoting
 {
     internal class PassThruCompressionProvider : ICompressionProvider
     {
-        public Stream CompressTo(Stream input)
+        public string Name { get { return null; } }
+
+        public Stream CompressTo(Stream input, bool closeStream = false)
         {
-            return input;
+            return closeStream ? input : new PassThruStream(input);
         }
 
         public Stream DecompressFrom(Stream input)

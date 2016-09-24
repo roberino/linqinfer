@@ -22,14 +22,15 @@ namespace LinqInfer.Tests.Maths
 
             mcs.ParallelProcess = parallel;
 
-            var estimate = mcs.Simulate();
+            var estimate = mcs.Simulate(100000);
 
             Console.WriteLine(mcs.ToString());
 
             Assert.That(mcs.CurrentEstimate.Value, Is.EqualTo(estimate));
             Assert.That(mcs.BestEstimate.Value, Is.EqualTo(estimate));
             Assert.That(mcs.Elapsed.TotalMilliseconds, Is.GreaterThan(1));
-            AssertEquiv(estimate, Math.PI, 0);
+
+            Assert.That(estimate.Value > 2.5 && estimate.Value < 4.5);
         }
     }
 }
