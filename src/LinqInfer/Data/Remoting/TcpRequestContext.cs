@@ -4,14 +4,13 @@ using System.Net.Sockets;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class SocketState
+    internal class TcpRequestContext
     {
-        public SocketState(Socket client, int bufferSize = 1024)
+        public TcpRequestContext(Socket client, int bufferSize = 1024)
         {
             ClientSocket = client;
             Buffer = new byte[bufferSize];
             ReceivedData = new MemoryStream();
-            Header = new Dictionary<string, string>();
         }
 
         public void Reset()
@@ -22,7 +21,7 @@ namespace LinqInfer.Data.Remoting
 
         public long? ContentLength { get; set; }
 
-        public IDictionary<string, string> Header { get; private set; }
+        public TcpRequestHeader Header { get; internal set; }
 
         public Socket ClientSocket { get; private set; }
 

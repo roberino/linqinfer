@@ -4,7 +4,6 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Data.Remoting
@@ -27,7 +26,7 @@ namespace LinqInfer.Tests.Data.Remoting
                     if (!d.KeepAlive)
                     {
                         var response = Encoding.ASCII.GetBytes("hi");
-                        r.Write(response, 0, response.Length);
+                        r.Content.Write(response, 0, response.Length);
                     }
 
                     return true;

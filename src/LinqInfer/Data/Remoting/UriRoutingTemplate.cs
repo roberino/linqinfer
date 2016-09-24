@@ -18,6 +18,14 @@ namespace LinqInfer.Data.Remoting
             _parts = Parse(route.Template).ToList();
         }
 
+        public UriRoute Route
+        {
+            get
+            {
+                return _route;
+            }
+        }
+
         public bool IsMatch(Uri uri, Verb verb = Verb.Default)
         {
             IDictionary<string, string> p;

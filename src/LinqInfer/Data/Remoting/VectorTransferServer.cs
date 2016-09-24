@@ -39,7 +39,7 @@ namespace LinqInfer.Data.Remoting
             _routes = new RoutingTable();
             _status = ServerStatus.Stopped;
 
-            _compression = new DeflateCompressionProvider();
+            _compression = new DeflateCompressionProvider();            
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
@@ -71,7 +71,7 @@ namespace LinqInfer.Data.Remoting
             _compression = compressionProvider;
         }
 
-        public void AddHandler(UriRoute route, Func<DataBatch, Stream, bool> handler)
+        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
         {
             _routes.AddHandler(route, handler);
         }
@@ -135,7 +135,7 @@ namespace LinqInfer.Data.Remoting
 
                 DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
 
-                var state = new SocketState(handler);
+                var state = new TcpRequestContext(handler);
 
                 handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
@@ -151,7 +151,7 @@ namespace LinqInfer.Data.Remoting
 
         private void ReadCallback(IAsyncResult ar)
         {
-            var state = (SocketState)ar.AsyncState;
+            var state = (TcpRequestContext)ar.AsyncState;
 
             int bytesRead = state.ClientSocket.EndReceive(ar);
 
@@ -159,7 +159,9 @@ namespace LinqInfer.Data.Remoting
             {
                 if (!state.ContentLength.HasValue)
                 {
-                    state.ContentLength = BitConverter.ToInt64(state.Buffer, 0);
+                    var header = new TcpRequestHeader(state.Buffer);
+                    state.Header = header;
+                    state.ContentLength = header.ContentLength;
                 }
                 else
                 {
@@ -170,16 +172,11 @@ namespace LinqInfer.Data.Remoting
                 {
                     bool more = false;
 
-                    using (var response = new MemoryStream())
+                    using (var tcpResponse = new TcpResponse(_compression))
                     {
-                        using (var cs = _compression.CompressTo(response))
-                        {
-                            more = Process(state, cs);
+                        more = Process(state, tcpResponse);
 
-                            cs.Flush();
-                        }
-
-                        SendResponse(state, response);
+                        SendResponse(state, tcpResponse);
 
                         state.Reset();
                     }
@@ -204,20 +201,20 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void SendResponse(SocketState state, Stream response)
+        private void SendResponse(TcpRequestContext state, TcpResponse response)
         {
-            response.Flush();
+            var content = response.GetSendStream();
 
-            response.Position = 0;
+            DebugOutput.Log("Sending response ({0} bytes)", content.Length);
 
-            DebugOutput.Log("Sending response ({0} bytes)", response.Length);
+            response.Header.IsHttp = state.Header.IsHttp;
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 
-            sockStream.Write(response);
+            sockStream.Write(content, response.Header);
         }
 
-        private async Task EndRequest(SocketState state, DataBatch endBatch)
+        private async Task EndRequest(TcpRequestContext state, DataBatch endBatch)
         {
             var fe = endBatch.ForwardingEndpoint;
 
@@ -237,20 +234,28 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private bool Process(SocketState state, Stream response)
+        private bool Process(TcpRequestContext state, TcpResponse response)
         {
             try
             {
-                DataBatch doc;
-
-                state.ReceivedData.Position = 0;
-
-                var cs = _compression.DecompressFrom(state.ReceivedData);
+                var doc = new DataBatch();
 
                 {
-                    doc = new DataBatch();
+                    if (state.Header.ContentLength > 0)
+                    {
+                        state.ReceivedData.Position = 0;
 
-                    doc.Load(cs);
+                        var cs = _compression.DecompressFrom(state.ReceivedData);
+
+                        doc.Load(cs);
+                    }
+                    else
+                    {
+                        doc.Id = Util.GenerateId();
+                        doc.BatchNum = 1;
+                        doc.Path = state.Header.Path;
+                        doc.Verb = state.Header.Verb;
+                    }
                 }
 
                 DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
@@ -281,7 +286,7 @@ namespace LinqInfer.Data.Remoting
             {
                 DebugOutput.Log(ex);
 
-                Write(response, d =>
+                Write(response.Content, d =>
                 {
                     d.Properties["ErrorMessage"] = ex.Message;
                     d.Properties["ErrorType"] = ex.GetType().AssemblyQualifiedName;
@@ -298,11 +303,7 @@ namespace LinqInfer.Data.Remoting
 
             writer(doc);
 
-            using (var cs = _compression.CompressTo(response))
-            {
-                doc.Save(cs);
-                cs.Flush();
-            }
+            doc.Save(response);
         }
 
         public void Dispose()

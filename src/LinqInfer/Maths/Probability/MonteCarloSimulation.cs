@@ -17,7 +17,7 @@ namespace LinqInfer.Maths.Probability
         public MonteCarloSimulation(Func<ColumnVector1D, bool> qualifyingFunc, int vectorSize = 2, Func<Fraction, Fraction> outputFunc = null)
         {
             Contract.Assert(qualifyingFunc != null);
-            Contract.Assert(vectorSize > 0);
+            Contract.Requires(vectorSize > 0);
 
             _qualifyingFunc = qualifyingFunc;
             _outputFunc = outputFunc ?? (x => x);
@@ -31,7 +31,7 @@ namespace LinqInfer.Maths.Probability
 
         public Fraction Simulate(int iterations = 10000)
         {
-            Contract.Assert(iterations > 0);
+            Contract.Requires(iterations > 0);
 
             int hits = 0;
             var pp = ParallelProcess;

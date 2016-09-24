@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace LinqInfer.Learning.Classification.Remoting
 {
@@ -41,6 +42,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server = uri.CreateRemoteService(null, false);
 
             _server.AddHandler(new UriRoute(uri, null, Verb.Create), Process);
+            _server.AddHandler(new UriRoute(uri, "status", Verb.Get), ServerStatus);
             _server.AddHandler(new UriRoute(uri, "{key}", Verb.Delete), Delete);
             _server.AddHandler(new UriRoute(uri, "{key}", Verb.Get), Restore);
 
@@ -61,8 +63,16 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server.Stop();
         }
 
-        private bool Restore(DataBatch batch, Stream response)
+        private bool ServerStatus(DataBatch batch, TcpResponse tcpResponse)
         {
+            tcpResponse.CreateTextResponse().Write(_server.Status.ToString());
+            return false;
+        }
+
+        private bool Restore(DataBatch batch, TcpResponse tcpResponse)
+        {
+            var response = tcpResponse.Content;
+
             var key = batch.Properties["key"];
 
             var task = _blobStore.Transfer<MultilayerNetwork>(key, response);
@@ -72,8 +82,10 @@ namespace LinqInfer.Learning.Classification.Remoting
             return true;
         }
 
-        private bool Delete(DataBatch batch, Stream response)
+        private bool Delete(DataBatch batch, TcpResponse tcpResponse)
         {
+            var response = tcpResponse.Content;
+
             var key = batch.Properties["key"];
 
             var deleted = _blobStore.Delete<MultilayerNetwork>(key);
@@ -85,8 +97,10 @@ namespace LinqInfer.Learning.Classification.Remoting
             return deleted;
         }
 
-        private bool Process(DataBatch batch, Stream response)
+        private bool Process(DataBatch batch, TcpResponse tcpResponse)
         {
+            var response = tcpResponse.Content;
+
             IRawClassifierTrainingContext<NetworkParameters> ctx;
 
             lock (_trainingContexts)

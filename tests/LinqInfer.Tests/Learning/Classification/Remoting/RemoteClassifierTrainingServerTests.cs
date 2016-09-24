@@ -32,6 +32,8 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var server = new RemoteClassifierTrainingServer(endpoint, blobs))
             using (var client = new RemoteClassifierTrainingClient(endpoint))
             {
+                client.Timeout = 10000;
+
                 server.Start();
 
                 var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
@@ -67,8 +69,9 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var server = new RemoteClassifierTrainingServer(endpoint, blobs))
             using (var client = new RemoteClassifierTrainingClient(endpoint))
             {
-                client.Timeout = 15000;
-
+#if DEBUGGING
+                client.Timeout = 20000;
+#endif
                 server.Start();
 
                 var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');

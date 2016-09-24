@@ -66,7 +66,7 @@ namespace LinqInfer.Data.Remoting
                 _defaultServers[key] = server = new VectorTransferServer(null, endpoint.Port, endpoint.Host);
             }
 
-            if (messageHandler != null) server.AddHandler(route, messageHandler);
+            if (messageHandler != null) server.AddHandler(route, (d, r) => messageHandler(d, r.Content));
 
             if (startService && server.Status == ServerStatus.Stopped)
             {
