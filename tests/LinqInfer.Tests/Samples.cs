@@ -11,14 +11,6 @@ namespace LinqInfer.Tests
     public class Samples
     {
         [Test]
-        public void CombineNetworkOutputAsHypothesis()
-        {
-            var x = new[] { 1, 2, 5 }.AsQueryable();
-
-            //x.AsSampleSpace().IsExhaustive()
-        }
-
-        [Test]
         public void CombineWordSearchAsHypothesis()
         {
             var dict = new EnglishDictionary();

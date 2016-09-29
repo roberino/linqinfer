@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     {
         public Range(double max = 1, double min = 0)
         {
-            Contract.Assert(max > min);
+            Contract.Requires(max > min);
 
             Min = min;
             Max = max;

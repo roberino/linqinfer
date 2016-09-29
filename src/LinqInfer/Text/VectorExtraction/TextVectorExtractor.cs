@@ -83,10 +83,12 @@ namespace LinqInfer.Text.VectorExtraction
                 }
             }
 
+            var nf = (double)_normalisingFrequency;
+
             return vectorRaw
                 .Select(v => v == 0 ? 0d :
-                    Math.Log(Math.Min(v + 1, _normalisingFrequency)
-                    , _normalisingFrequency))
+                    Math.Log((Math.Min(v + 1, nf)) / nf * 10d
+                    , 10))
                 .ToArray();
         }
 
@@ -101,7 +103,7 @@ namespace LinqInfer.Text.VectorExtraction
 
             ds.Write(_words, output);
 
-            using(var writer = new BinaryWriter(output))
+            using (var writer = new BinaryWriter(output))
             {
                 writer.Write(_normalisingFrequency);
             }
@@ -113,9 +115,9 @@ namespace LinqInfer.Text.VectorExtraction
 
             var words = ds.Read(input);
 
-            foreach(var w in words)
+            foreach (var w in words)
             {
-                _words[w.Key] = w.Value; 
+                _words[w.Key] = w.Value;
             }
 
             using (var reader = new BinaryReader(input))

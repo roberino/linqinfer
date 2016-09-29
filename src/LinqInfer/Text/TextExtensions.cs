@@ -39,6 +39,26 @@ namespace LinqInfer.Text
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.
         /// </summary>
+        /// <param name="data">A queryable set of strings</param>
+        /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
+        /// <returns></returns>
+        public static FeatureProcessingPipline<string> CreateTextFeaturePipeline(this IQueryable<string> data, int maxVectorSize = 128)
+        {
+            var identityFunc = new Func<string, string>((x => x == null ? "" : x.GetHashCode().ToString()));
+
+            var index = new DocumentIndex();
+            var tokeniser = new Tokeniser();
+            var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), tokeniser.Tokenise(x)));
+
+            index.IndexDocuments(docs);
+
+            return new FeatureProcessingPipline<string>(data, index.CreateVectorExtractor<string>(tokeniser.Tokenise, maxVectorSize));
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// based on term frequency.
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <param name="identityFunc"></param>
@@ -67,7 +87,7 @@ namespace LinqInfer.Text
         /// <param name="classifyingFunction">A function which will return a class label for an object</param>
         /// <param name="maxVectorSize">The maximum number of terms (words) used to classify object</param>
         /// <returns>An object classifier</returns>
-        public static IObjectClassifier<string, T> CreateSemanticClassifiier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
+        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
         {
             var index = new DocumentIndex();
             var cf = classifyingFunction.Compile();
@@ -211,7 +231,7 @@ namespace LinqInfer.Text
         {
             var search = new DocumentIndex(tokeniser);
 
-            var blob = store.Restore(key, search);
+			store.Restore(key, search);
 
             return q => search.SearchInternal(q);
         }

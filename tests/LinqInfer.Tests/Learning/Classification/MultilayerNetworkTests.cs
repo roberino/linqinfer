@@ -75,7 +75,7 @@ namespace LinqInfer.Tests.Learning.Classification
 
             using (var blobStoreRead = new MemoryStream(serialisedData))
             {
-                var network2 = MultilayerNetwork.Load(blobStoreRead);
+                var network2 = MultilayerNetwork.LoadData(blobStoreRead);
 
                 Assert.That(network2.Parameters.LearningRate, Is.EqualTo(0.123));
                 Assert.That(network2.Parameters.InputVectorSize, Is.EqualTo(2));

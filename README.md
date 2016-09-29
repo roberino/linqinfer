@@ -10,9 +10,18 @@ library which uses a fluent and LINQ-like approach to this type of problem solvi
 
 ### Basic library layout
 
+#### Features and Feature Pipelines
+
+Feature extraction is key to many of the classification algorithms and feature pipelines
+represent a pipeline of feature data which can be pumped into various forms.
+
+When data is extracted, it is represented as an enumeration of column vectors which 
+can be transformed and filtered before being consumed for classifier training.
+
 #### Learning
 
-This is a collection of machine learning algorithms which are available through extention functions and operate on IQueryable sets of data.
+This is a collection of machine learning algorithms which are available through extention 
+functions and operate on IQueryable sets of data.
 
 * Self organising feature maps
 * Simple statistical classifier
@@ -38,9 +47,12 @@ var classifier2 = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGr
 
 ```
 
+See more documentation on [Neural Networks](docs/neural-networks.md)
+
 #### Maths
 
-The Maths namespace consists of some basic numerical utilities including vector manipulation classes and fractions which can sometimes offer a nicer way of working with probabilities.
+The Maths namespace consists of some basic numerical utilities including vector manipulation classes 
+and fractions which can sometimes offer a nicer way of working with probabilities.
 
 #### Maths.Probability 
 
