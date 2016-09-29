@@ -139,8 +139,8 @@ namespace LinqInfer.Tests.Probability
         public void Mutate_ReturnsValuesInExpectedRange(double a, double b, double variance, bool logarithmic)
         {
             var ave = (a + b) / 2;
-            var min = ave - variance - double.Epsilon;
-            var max = ave + variance + double.Epsilon;
+            var min = ave - variance - 0.00001d;
+            var max = ave + variance + 0.00001d;
 
             var range = Enumerable.Range(1, 500).Select(n => Functions.Mutate(a, b, variance, logarithmic));
 

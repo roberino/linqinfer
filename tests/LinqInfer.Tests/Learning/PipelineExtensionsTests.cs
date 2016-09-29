@@ -221,7 +221,7 @@ namespace LinqInfer.Tests.Learning
             }
 
             Console.WriteLine("successes:{0},failures:{1}", successCounter, failureCounter);
-            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(3f));
+            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(2.5f));
         }
     }
 }

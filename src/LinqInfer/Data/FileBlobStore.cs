@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data
 {
@@ -14,6 +16,17 @@ namespace LinqInfer.Data
             _baseDir = new DirectoryInfo(baseDirectory ?? "blobs");
         }
 
+        public override Task<IEnumerable<string>> ListKeys<T>()
+        {
+            var baseKey = GetKey<T>("x");
+            var basePath = GetFilePath(baseKey);
+            var baseTypePartLen = (GetTypeKeyPart<T>() + KeyDelimitter).Length;
+
+            var paths = basePath.Directory.GetFiles();
+
+            return Task.FromResult(paths.Select(p => p.Name.Substring(baseTypePartLen)).ToList().AsEnumerable());
+        }
+
         protected override Stream GetReadStream(string key)
         {
             if (!_baseDir.Exists)
@@ -23,7 +36,7 @@ namespace LinqInfer.Data
 
             lock (key)
             {
-                return new FileStream(Path.Combine(_baseDir.FullName, key), FileMode.Open, FileAccess.Read, FileShare.Read);
+                return new FileStream(GetFilePath(key).FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
         }
 
@@ -36,14 +49,13 @@ namespace LinqInfer.Data
 
             lock (key)
             {
-                return new FileStream(Path.Combine(_baseDir.FullName, key), FileMode.Create, FileAccess.Write, FileShare.None);
+                return new FileStream(GetFilePath(key).FullName, FileMode.Create, FileAccess.Write, FileShare.None);
             }
         }
 
         protected override bool RemoveBlob(string key)
         {
-            var fullPath = Path.Combine(_baseDir.FullName, key);
-            var file = new FileInfo(fullPath);
+            var file = GetFilePath(key);
 
             if (file.Exists)
             {
@@ -62,6 +74,11 @@ namespace LinqInfer.Data
             }
 
             return false;
+        }
+
+        protected virtual FileInfo GetFilePath(string key)
+        {
+            return new FileInfo(Path.Combine(_baseDir.FullName, key));
         }
 
         protected override string GetKey<T>(string key, T obj = default(T))

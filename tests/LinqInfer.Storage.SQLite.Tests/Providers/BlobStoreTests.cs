@@ -2,6 +2,7 @@
 using LinqInfer.Storage.SQLite.Providers;
 using NUnit.Framework;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,26 @@ namespace LinqInfer.Storage.SQLite.Tests.Providers
             using (var store = new BlobStore())
             {
                 await store.Setup(true);
+
+                store.Destroy();
+            }
+        }
+
+        [Test]
+        public async Task ListKeys()
+        {
+            using (var store = new BlobStore())
+            {
+                await store.Setup(true);
+
+                var binobj = new BinObj() { Data = "X O 9" };
+
+                store.Store("K1", binobj);
+
+                var keys = await store.ListKeys<BinObj>();
+
+                Assert.That(keys != null);
+                Assert.That(keys.Single(), Is.EqualTo("K1"));
 
                 store.Destroy();
             }

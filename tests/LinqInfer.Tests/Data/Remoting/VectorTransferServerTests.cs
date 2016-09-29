@@ -36,8 +36,6 @@ namespace LinqInfer.Tests.Data.Remoting
 
                 using (var client = new VectorTransferClient())
                 {
-                    client.Timeout = 25000;
-
                     using (var handle = await client.BeginTransfer("x"))
                     {
                         var data = new[] { ColumnVector1D.Create(1, 2, 3), ColumnVector1D.Create(4, 5, 6) };

@@ -27,11 +27,19 @@ namespace LinqInfer.Tests.Probability
         [Test]
         public void Evaluate_RandomSample()
         {
-            var hist = new Histogram();
-            var sample = Enumerable.Range(1, 100).Select(n => Fraction.Random()).ToList().AsQueryable();
-            var histF = hist.Evaluate(sample);
+            foreach (var i in Enumerable.Range(0, 10))
+            {
+                var hist = new Histogram();
+                var sample = Enumerable.Range(1, 100).Select(n => Fraction.Random()).ToList().AsQueryable();
+                var histF = hist.Evaluate(sample);
 
-            var p = histF((1).OutOf(32));
+                foreach (var h in hist.Analyse(sample).Bins)
+                {
+                    Console.WriteLine("{0}={1}", h.Key, h.Value);
+                }
+
+                var p = histF((1).OutOf(32));
+            }
         }
 
         [Test]

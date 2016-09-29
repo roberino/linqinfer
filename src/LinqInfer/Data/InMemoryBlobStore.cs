@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data
 {
@@ -14,6 +17,13 @@ namespace LinqInfer.Data
         public InMemoryBlobStore()
         {
             _data = new ConcurrentDictionary<string, Blob>();
+        }
+
+        public override Task<IEnumerable<string>> ListKeys<T>()
+        {
+            var baseKey = GetTypeKeyPart<T>();
+
+            return Task.FromResult(_data.Keys.Where(d => d.StartsWith(baseKey + KeyDelimitter)).ToList().AsEnumerable());
         }
 
         protected override void OnWrite(string key, Stream stream)
