@@ -9,12 +9,12 @@ namespace LinqInfer.Learning.Classification.Remoting
 {
     public static class Extensions
     {
-        public static IRemoteClassifierTrainingClient CreateMultilayerNetworkClient(this Uri serverEndpoint)
+        public static IRemoteClassifierTrainingClient CreateMultilayerNeuralNetworkClient(this Uri serverEndpoint)
         {
             return new RemoteClassifierTrainingClient(serverEndpoint);
         }
 
-        public static IServer CreateMultilayerNetworkServer(this Uri serverEndpoint, IBlobStore storage)
+        public static IServer CreateMultilayerNeuralNetworkServer(this Uri serverEndpoint, IBlobStore storage)
         {
             return new RemoteClassifierTrainingServer(serverEndpoint, storage);
         }

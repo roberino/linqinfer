@@ -19,7 +19,7 @@ namespace LinqInfer.NeuralServer
             {
                 using (var fbs = new FileBlobStore())
                 {
-                    using (var server = endpoint.CreateMultilayerNetworkServer(fbs))
+                    using (var server = endpoint.CreateMultilayerNeuralNetworkServer(fbs))
                     {
                         server.Start();
 

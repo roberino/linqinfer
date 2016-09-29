@@ -247,14 +247,47 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied training data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A training set</param>
+        /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
+        /// <returns>An executable object which produces a classifier</returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this ITrainingSet<TInput, TClass> trainingSet,
+            params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
+            var pipeline = trainingSet.FeaturePipeline;
+            var inputSize = pipeline.VectorSize;
+            var outputSize = trainingPipline.OutputMapper.VectorSize;
+
+            var parameters = NetworkParameters.Sigmoidal(new[] { inputSize }.Concat(hiddenLayers).Concat(new[] { outputSize }).ToArray());
+
+            parameters.Validate();
+
+            var strategy = new StaticParametersMultilayerTrainingStrategy<TClass, TInput>(parameters);
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var result = trainingPipline.TrainUsing(strategy).Result;
+
+                if (n != null) pipeline.OutputResults(result, n);
+
+                return result;
+            });
+        }
+
+        /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
-        /// <param name="errorTolerance">The network error tolerance</param>
-        /// <returns></returns>
+        /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
+        /// <returns>An executable object which produces a classifier</returns>
         public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this FeatureProcessingPipline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
@@ -283,7 +316,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data and training strategy.
+        /// Creates a multi-layer neural network classifier, training the network using the supplied training data and training strategy.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
