@@ -62,6 +62,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocument.cs" />
+    <Compile Include="Data\DataExtensions.cs" />
+    <Compile Include="Data\DeflateCompression.cs" />
     <Compile Include="Data\FileBlobStore.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
@@ -69,20 +71,47 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
+    <Compile Include="Data\Remoting\DataBatch.cs" />
+    <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\ICompressionProvider.cs" />
+    <Compile Include="Data\Remoting\IServer.cs" />
+    <Compile Include="Data\Remoting\ITransferHandle.cs" />
+    <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\RemotingExtensions.cs" />
+    <Compile Include="Data\Remoting\RoutingTable.cs" />
+    <Compile Include="Data\Remoting\ServerStatus.cs" />
+    <Compile Include="Data\Remoting\TcpRequestContext.cs" />
+    <Compile Include="Data\Remoting\TcpRequestHeader.cs" />
+    <Compile Include="Data\Remoting\TcpResponse.cs" />
+    <Compile Include="Data\Remoting\TcpResponseHeader.cs" />
+    <Compile Include="Data\Remoting\TransferHandle.cs" />
+    <Compile Include="Data\Remoting\UriRoute.cs" />
+    <Compile Include="Data\Remoting\UriRoutingTemplate.cs" />
+    <Compile Include="Data\Remoting\Util.cs" />
+    <Compile Include="Data\Remoting\VectorTransferClient.cs" />
+    <Compile Include="Data\Remoting\VectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
-    <Compile Include="Learning\Classification\ClassifierAlgorithm.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
+    <Compile Include="Learning\Classification\IRawClassifierTrainingContext.cs" />
+    <Compile Include="Learning\Classification\NetworkParameterFactory.cs" />
+    <Compile Include="Learning\Classification\Remoting\Extensions.cs" />
+    <Compile Include="Learning\Classification\Remoting\IRemoteClassifierTrainingClient.cs" />
+    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingClient.cs" />
+    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServer.cs" />
     <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkTrainingPipeline.cs" />
+    <Compile Include="Learning\Classification\MultilayerNetworkTrainingRunner.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkObjectClassifier.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTrainingContextFactory.cs" />
     <Compile Include="Learning\Classification\ObjectClassifier.cs" />
@@ -97,8 +126,10 @@
     <Compile Include="Learning\Features\IHasFeatureMetadata.cs" />
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
+    <Compile Include="Learning\Features\ITrainingSet.cs" />
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
+    <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />
@@ -215,6 +246,7 @@
     <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />
     <Compile Include="Text\VectorExtraction\ObjectTextVectorExtractor.cs" />
     <Compile Include="Text\VectorExtraction\TextVectorExtractor.cs" />
+    <Compile Include="Utility\ConstrainableDictionary.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
@@ -224,9 +256,7 @@
     <EmbeddedResource Include="Resources\en_dict.txt" />
     <EmbeddedResource Include="Resources\en_phonics.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Data\Remoting\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

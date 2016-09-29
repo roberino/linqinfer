@@ -2,18 +2,14 @@
 <package>
 	<metadata> 
 		<id>$id$</id>
-		<version>2.2.0-beta</version>
+		<version>3.0.1-beta</version>
 		<title>LinqInfer</title>
 		<authors>R Eyres</authors>
 		<owners>R Eyres</owners>
 		<description>A lightweight and slightly experimental inference library for C#</description> 
 		<projectUrl>https://github.com/roberino/linqinfer</projectUrl>
 		<licenseUrl>http://www.gnu.org/licenses/gpl-3.0.en.html</licenseUrl>
-		<tags>inference linq bayesian probability reasoning machine learning</tags>
+		<tags>inference linq bayesian probability reasoning machine learning search</tags>
 		<language>en-UK</language>
 	</metadata>
-  <files>
-    <file src=".\bin\Release\" target="lib\dotnet" />
-    <file src=".\bin\Release\net45" target="lib\net40" />
-  </files>
 </package>

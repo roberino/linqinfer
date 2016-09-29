@@ -61,7 +61,7 @@ namespace LinqInfer.Text
         public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75f)
         {
             Contract.Assert(word != null);
-            Contract.Assert(tolerance > 0f && tolerance <= 1f);
+            Contract.Requires(tolerance > 0f && tolerance <= 1f);
 
             word = word.ToLower();
 

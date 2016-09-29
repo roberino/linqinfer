@@ -60,7 +60,7 @@ namespace LinqInfer.Utility
         /// </summary>
         public static IEnumerable<IEnumerable<T>> Chunk<T>(this IQueryable<T> source, int size = 1000)
         {
-            Contract.Assert(size > 0);
+            Contract.Requires(size > 0);
 
             IList <T> batch;
             int next = 0;

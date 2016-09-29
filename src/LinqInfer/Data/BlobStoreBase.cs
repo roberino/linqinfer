@@ -53,6 +53,29 @@ namespace LinqInfer.Data
             return Task.FromResult(Restore(key, obj));
         }
 
+        public async Task<bool> Transfer<T>(string key, Stream output)
+        {
+            if (_isDisposed) throw new ObjectDisposedException(GetType().Name);
+
+            var qkey = GetKey<T>(key);
+
+            using (var ms = GetReadStream(qkey))
+            {
+                await ms.CopyToAsync(output);
+            }
+
+            return true;
+        }
+
+        public bool Delete<T>(string key)
+        {
+            if (_isDisposed) throw new ObjectDisposedException(GetType().Name);
+
+            var fullKey = GetKey<T>(key);
+
+            return RemoveBlob(fullKey);
+        }
+
         public virtual void Dispose()
         {
             if (!_isDisposed)
@@ -60,6 +83,8 @@ namespace LinqInfer.Data
                 _isDisposed = true;
             }
         }
+
+        protected abstract bool RemoveBlob(string key);
 
         protected virtual void OnWrite(string key, Stream stream)
         {

@@ -113,7 +113,7 @@ namespace LinqInfer.Text
                     {
                         if (mimeType == TextMimeType.Html)
                         {
-                            var parser = new HtmlParser(_encoding);
+                            var parser = new HtmlParser();
 
                             var elements = parser.Parse(reader);
                             var selected = targetElement != null ? elements.Where(e => e.NodeType == System.Xml.XmlNodeType.Element).Select(e => targetElement((XElement)e)) : elements;

@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E5FE3E3C-B
 	ProjectSection(SolutionItems) = preProject
 		backlog.md = backlog.md
 		LICENSE = LICENSE
+		docs\neural-networks.md = docs\neural-networks.md
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -31,6 +32,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.TestHarness", "tests\LinqInfer.TestHarness\LinqInfer.TestHarness.csproj", "{C594477A-87A6-43C4-A45B-64CD6CE99C34}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Tests", "tests\LinqInfer.Tests\LinqInfer.Tests.csproj", "{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.NeuralServer", "src\LinqInfer.NeuralServer\LinqInfer.NeuralServer.csproj", "{2C3AE4E4-107E-4AA6-BF08-472649445F16}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +107,12 @@ Global
 		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 		{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C3AE4E4-107E-4AA6-BF08-472649445F16}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

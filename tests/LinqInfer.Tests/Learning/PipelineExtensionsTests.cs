@@ -5,6 +5,7 @@ using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using static LinqInfer.Tests.TestData;
 
 namespace LinqInfer.Tests.Learning
@@ -88,7 +89,7 @@ namespace LinqInfer.Tests.Learning
             {
                 i++;
 
-                if (i > 100) return true;
+                if (i > 200) return true;
 
                 return
                     f.Classify(xor1).First().ClassType == xor1.Output
@@ -156,20 +157,40 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
+        public async Task ToMultilayerNetworkClassifier_AsyncExample()
+        {
+            var pirateSample = CreatePirates().ToList();
+            var pipeline = pirateSample.AsQueryable().CreatePipeline();
+            var trainingSet = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? "x" : "y");
+            var classifier = await trainingSet.ToMultilayerNetworkClassifier().ExecuteAsync();
+
+            var classOfPirate = classifier.Classify(new Pirate()
+            {
+                Gold = 120,
+                Age = 5,
+                IsCaptain = false,
+                Ships = 1
+            }).FirstOrDefault();
+
+            var score = classifier.ClassificationAccuracyPercentage(trainingSet);
+
+            Console.WriteLine(score);
+
+            Assert.That(classOfPirate, Is.Not.Null);
+        }
+
+        [Test]
         public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
         {
             int successCounter = 0; int failureCounter = 0;
 
             foreach (var i in Enumerable.Range(1, 25))
             {
-                var pirateSample = TestData.CreatePirates().ToList();
+                var pirateSample = CreatePirates().ToList();
                 var pipeline = pirateSample.AsQueryable().CreatePipeline();
-                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f).Execute();
-
-                // In the original predicate, if age > 25 then old.
-                // But this pirate shares many features of other young pirates
-                // So therfore should be classed as "young"
-                var classOfPirate = classifier.Classify(new TestData.Pirate()
+                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", errorTolerance: 0.1f).Execute();
+                
+                var classOfPirate = classifier.Classify(new Pirate()
                 {
                     Gold = 120,
                     Age = 5,
@@ -177,7 +198,7 @@ namespace LinqInfer.Tests.Learning
                     Ships = 1
                 }).FirstOrDefault();
 
-                var classOfPirate2 = classifier.Classify(new TestData.Pirate()
+                var classOfPirate2 = classifier.Classify(new Pirate()
                 {
                     Gold = 1600,
                     Age = 61,

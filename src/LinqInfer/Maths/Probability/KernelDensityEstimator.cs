@@ -16,7 +16,7 @@ namespace LinqInfer.Maths.Probability
         public KernelDensityEstimator(
             float bandwidth = 0.2F)
         {
-            Contract.Assert(bandwidth > 0);
+            Contract.Requires(bandwidth > 0);
 
             _bandwidth = bandwidth;
 
@@ -32,7 +32,7 @@ namespace LinqInfer.Maths.Probability
             Func<IQueryable<Fraction>, Func<Fraction, Fraction>> kernelFact,
             float bandwidth = 0.2F)
         {
-            Contract.Assert(bandwidth > 0);
+            Contract.Requires(bandwidth > 0);
 
             _bandwidth = bandwidth;
             _kernelFact = kernelFact;

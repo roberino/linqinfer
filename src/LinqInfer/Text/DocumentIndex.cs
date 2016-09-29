@@ -27,7 +27,7 @@ namespace LinqInfer.Text
 
         public IFloatingPointFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
         {
-            Contract.Assert(maxVectorSize > 0);
+            Contract.Requires(maxVectorSize > 0);
 
             var wf = WordFrequencies.ToList();
 
@@ -39,7 +39,7 @@ namespace LinqInfer.Text
 
         public IFloatingPointFeatureExtractor<T> CreateVectorExtractorByDocumentKey<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
         {
-            Contract.Assert(maxVectorSize > 0);
+            Contract.Requires(maxVectorSize > 0);
 
             var docKeys = DocumentKeys.ToList();
             var bucketSize = maxVectorSize / docKeys.Count;
@@ -76,7 +76,7 @@ namespace LinqInfer.Text
 
         public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128)
         {
-            Contract.Assert(maxVectorSize > 0);
+            Contract.Requires(maxVectorSize > 0);
 
             var wf = WordFrequencies.ToList();
 
@@ -184,8 +184,6 @@ namespace LinqInfer.Text
 
         internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
         {
-            var results = new ConcurrentBag<KeyValuePair<XDocument, float>>();
-
             var idfs = GetWordFrequencies(query);
 
             var docs = idfs.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);

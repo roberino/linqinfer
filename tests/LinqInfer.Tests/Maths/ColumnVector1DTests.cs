@@ -9,6 +9,29 @@ namespace LinqInfer.Tests.Probability
     public class ColumnVector1DTests
     {
         [Test]
+        public void Split_And_Concat()
+        {
+            var vect1 = ColumnVector1D.Create(1, 2, 3);
+            var vect2 = ColumnVector1D.Create(4, 5);
+
+            var vect1and2 = vect1.Concat(vect2);
+
+            Assert.That(vect1and2.Size, Is.EqualTo(5));
+            Assert.That(vect1and2[0], Is.EqualTo(1));
+            Assert.That(vect1and2[1], Is.EqualTo(2));
+            Assert.That(vect1and2[2], Is.EqualTo(3));
+            Assert.That(vect1and2[3], Is.EqualTo(4));
+            Assert.That(vect1and2[4], Is.EqualTo(5));
+
+            var vects = vect1and2.Split(3);
+            var vect1a = vects[0];
+            var vect2a = vects[1];
+
+            Assert.That(vect1a.Equals(vect1));
+            Assert.That(vect2a.Equals(vect2));
+        }
+
+        [Test]
         public void Range_ReturnsCorrectValues()
         {
             var vect1 = ColumnVector1D.Create(2, 6, 8, 16);

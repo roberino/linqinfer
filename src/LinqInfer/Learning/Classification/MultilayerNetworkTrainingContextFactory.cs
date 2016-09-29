@@ -2,6 +2,7 @@
 using System;
 using LinqInfer.Maths;
 using System.Diagnostics;
+using LinqInfer.Data;
 
 namespace LinqInfer.Learning.Classification
 {
@@ -25,6 +26,7 @@ namespace LinqInfer.Learning.Classification
         private class MlnTrainngContext : IClassifierTrainingContext<TClass, NetworkParameters>
         {
             private readonly MultilayerNetwork _network;
+            private readonly IAssistedLearningProcessor _rawLearningProcessor;
             private readonly AssistedLearningAdapter<TClass> _learningAdapter;
             private readonly MultilayerNetworkClassifier<TClass> _classifier;
             private readonly Func<int> _idFunc;
@@ -39,6 +41,7 @@ namespace LinqInfer.Learning.Classification
 
                 var bpa = new BackPropagationLearning(_network);
 
+                _rawLearningProcessor = bpa;
                 _learningAdapter = new AssistedLearningAdapter<TClass>(bpa, outputMapper);
                 _classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, _network);
 
@@ -65,6 +68,8 @@ namespace LinqInfer.Learning.Classification
             public int Id { get; private set; }
 
             public int IterationCounter { get; set; }
+
+            public IBinaryPersistable Output { get { return _network; } }
 
             public IFloatingPointClassifier<TClass> Classifier { get { return _classifier; } }
 
@@ -101,6 +106,19 @@ namespace LinqInfer.Learning.Classification
             public double Train(TClass sampleClass, double[] sample)
             {
                 return Train(sampleClass, new ColumnVector1D(sample));
+            }
+
+            public double Train(ColumnVector1D outputVector, ColumnVector1D sampleVector)
+            {
+                if (!_error.HasValue) _error = 0;
+
+                var err = _rawLearningProcessor.Train(sampleVector, outputVector);
+
+                _error += err;
+
+                _trainingCounter++;
+
+                return err;
             }
 
             public double Train(TClass sampleClass, ColumnVector1D sample)
