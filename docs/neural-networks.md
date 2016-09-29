@@ -70,7 +70,7 @@ delegate the work over a number of processes.
 
 ```cs
 
-// import LinqInfer.Tests.Learning.Classification.Remoting
+// import LinqInfer.Learning.Classification.Remoting
 
 // Set up a server (create a separate application)
 
