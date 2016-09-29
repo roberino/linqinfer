@@ -42,6 +42,7 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server = uri.CreateRemoteService(null, false);
 
             _server.AddHandler(new UriRoute(uri, null, Verb.Create), Process);
+            _server.AddHandler(new UriRoute(uri, null, Verb.Get), ListKeys);
             _server.AddHandler(new UriRoute(uri, "status", Verb.Get), ServerStatus);
             _server.AddHandler(new UriRoute(uri, "{key}", Verb.Delete), Delete);
             _server.AddHandler(new UriRoute(uri, "{key}", Verb.Get), Restore);
@@ -61,6 +62,20 @@ namespace LinqInfer.Learning.Classification.Remoting
         public void Stop()
         {
             _server.Stop();
+        }
+
+        private bool ListKeys(DataBatch batch, TcpResponse tcpResponse)
+        {
+            var writer = tcpResponse.CreateTextResponse();
+
+            var keys = _blobStore.ListKeys<MultilayerNetwork>().Result;
+
+            foreach (var key in keys)
+            {
+                writer.WriteLine(Util.ConvertProtocol(new Uri(_server.BaseEndpoint, key), tcpResponse.Header.TransportProtocol).ToString());
+            }
+
+            return false;
         }
 
         private bool ServerStatus(DataBatch batch, TcpResponse tcpResponse)

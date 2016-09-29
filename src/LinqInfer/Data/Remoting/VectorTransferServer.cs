@@ -32,8 +32,9 @@ namespace LinqInfer.Data.Remoting
             _serverId = serverId ?? Util.GenerateId();
             _completedHandle = new ManualResetEvent(false);
             _socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
+            
             _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             _socket.Bind(endpoint);
             _routes = new RoutingTable();
@@ -207,7 +208,7 @@ namespace LinqInfer.Data.Remoting
 
             DebugOutput.Log("Sending response ({0} bytes)", content.Length);
 
-            response.Header.IsHttp = state.Header.IsHttp;
+            response.Header.TransportProtocol = state.Header.TransportProtocol;
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 

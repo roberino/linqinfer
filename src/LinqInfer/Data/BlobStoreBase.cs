@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -9,7 +10,12 @@ namespace LinqInfer.Data
     /// </summary>
     public abstract class BlobStoreBase : IBlobStore
     {
+
+        protected const string KeyDelimitter = "$";
+
         private bool _isDisposed;
+
+        public abstract Task<IEnumerable<string>> ListKeys<T>();
 
         public virtual bool Store<T>(string key, T obj) where T : IBinaryPersistable
         {
@@ -93,10 +99,15 @@ namespace LinqInfer.Data
         protected abstract Stream GetReadStream(string key);
 
         protected abstract Stream GetWriteStream(string key);
-        
+
         protected virtual string GetKey<T>(string key, T obj = default(T))
         {
-            return (obj == null ? typeof(T).FullName : obj.GetType().FullName) + "$" + key;
+            return GetTypeKeyPart(obj) + KeyDelimitter + key;
+        }
+
+        protected string GetTypeKeyPart<T>(T obj = default(T))
+        {
+            return (obj == null ? typeof(T).FullName : obj.GetType().FullName);
         }
 
         protected class Blob

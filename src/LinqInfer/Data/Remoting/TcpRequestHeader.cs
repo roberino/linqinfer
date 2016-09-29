@@ -20,6 +20,7 @@ namespace LinqInfer.Data.Remoting
         public TcpRequestHeader(byte[] data)
         {
             Headers = new Dictionary<string, string>();
+            TransportProtocol = TransportProtocol.Tcp;
             Path = "/";
 
             try
@@ -70,7 +71,7 @@ namespace LinqInfer.Data.Remoting
 
         public string Path { get; private set; }
 
-        public bool IsHttp { get; private set; }
+        public TransportProtocol TransportProtocol { get; private set; }
 
         public IDictionary<string, string> Headers { get; private set; }
 
@@ -109,7 +110,7 @@ namespace LinqInfer.Data.Remoting
             }
 
             Path = path;
-            IsHttp = true;
+            TransportProtocol = TransportProtocol.Http;
         }
     }
 }

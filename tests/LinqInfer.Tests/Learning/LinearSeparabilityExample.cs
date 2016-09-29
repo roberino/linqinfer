@@ -1,10 +1,9 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification;
+using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
 
 namespace LinqInfer.Tests.Learning
 {
@@ -12,7 +11,6 @@ namespace LinqInfer.Tests.Learning
     public class LinearSeparabilityExample
     {
         [Test]
-        [Ignore("Causes test runner to hang?")]
         public void Normal_LinearSeparableTwoClass_ExampleDataSet_ToMulti()
         {
             var dataX0 = Functions.NormalRandomDataset(3, 10);

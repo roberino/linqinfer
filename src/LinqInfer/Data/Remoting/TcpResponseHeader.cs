@@ -20,7 +20,7 @@ namespace LinqInfer.Data.Remoting
             _contentLength = contentLength;
             _headers = headers ?? new Dictionary<string, string>();
 
-            IsHttp = headers != null;
+            TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
             MimeType = "application/octet-stream";
         }
@@ -33,11 +33,11 @@ namespace LinqInfer.Data.Remoting
 
         public bool IsError { get; set; }
 
-        internal bool IsHttp { get; set; }
+        public TransportProtocol TransportProtocol { get; internal set; }
 
         internal byte[] GetBytes()
         {
-            if (IsHttp)
+            if (TransportProtocol == TransportProtocol.Http)
             {
                 return Encoding.ASCII.GetBytes(GetHttpHeader());
             }

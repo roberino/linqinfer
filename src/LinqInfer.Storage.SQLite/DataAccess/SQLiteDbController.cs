@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data.Orm;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -278,6 +279,17 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             }
         }
 
+        public IQueryable<S> Select<T, S>(Expression<Func<T, S>> selector, Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
+        {
+            var select = GetSelectFields(selector);
+            var sql = GetQuerySql(where, maxResults).Replace("SELECT *", "SELECT " + select);
+
+            using (var mapper = new RelationalDataMapper(() => CreateConnection(false), new SQLiteObjectMapperFactory()))
+            {
+                return mapper.Query<T>(sql).Select(selector.Compile()).AsQueryable();
+            }
+        }
+
         public IQueryable<T> Query<T>(Expression<Func<T, bool>> where = null, int? maxResults = null) where T : class, new()
         {
             var tableName = TypeMappingCache.GetMapping<T>().TableName;
@@ -478,6 +490,19 @@ namespace LinqInfer.Storage.SQLite.DataAccess
             }
 
             return sql;
+        }
+
+        private string GetSelectFields<T, S>(Expression<Func<T, S>> selector)
+        {
+            var mapping = TypeMappingCache.GetMapping<T>();
+
+            var name = LinqExtensions.GetPropertyName(selector);
+
+            //var props = typeof(S)
+            //    .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).Where(p => p.CanRead && p.CanWrite && Type.GetTypeCode(p.PropertyType) != TypeCode.Object)
+            //    .ToList();
+
+            return name;
         }
     }
 }

@@ -79,6 +79,7 @@
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\TransportProtocol.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />
     <Compile Include="Data\Remoting\ServerStatus.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Maths\FractionEventArgs.cs" />
     <Compile Include="Maths\Probability\HuffmanTree.cs" />
     <Compile Include="Maths\Probability\MonteCarloSimulation.cs" />
+    <Compile Include="Maths\Random.cs" />
     <Compile Include="Maths\Sequence.cs" />
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />

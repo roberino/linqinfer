@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using LinqInfer.Maths.Probability;
-using System.Collections.Concurrent;
 
 namespace LinqInfer.Maths
 {
     public static class Functions
     {
-        private static readonly Random _random = new System.Random((int)DateTime.UtcNow.Ticks);
+        private static readonly Random _random = new Random();
 
         /// <summary>
         /// Randomly returns either A or B.
@@ -44,7 +43,11 @@ namespace LinqInfer.Maths
         /// <returns>An integer</returns>
         public static int Random(int max = 100)
         {
-            return _random.Next(max + 1);
+            var v = _random.Next(max + 1);
+
+            //Console.WriteLine(v);
+
+            return v;
         }
 
         /// <summary>
