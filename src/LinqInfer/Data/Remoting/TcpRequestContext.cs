@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 ﻿using System.IO;
+=======
+﻿using System.Collections.Generic;
+using System.IO;
+>>>>>>> 6074a23c24e2de99dced68dc09ca93eaef1fe5e2
 using System.Net.Sockets;
 
 namespace LinqInfer.Data.Remoting
