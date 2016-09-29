@@ -3,6 +3,7 @@ using LinqInfer.Learning.Classification.Remoting;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 
 namespace LinqInfer.NeuralServer
 {
@@ -82,6 +83,15 @@ namespace LinqInfer.NeuralServer
 
         private static IDictionary<string, string> ParseArgs(string[] args)
         {
+            if (args.Length == 2 && args[1].All(c => char.IsLetterOrDigit(c)) && args[1].All(c => char.IsNumber(c)))
+            {
+                return new Dictionary<string, string>()
+                {
+                    { "host", args[0] },
+                    { "port", args[1] }
+                };
+            }
+
             int i = 0;
             var dict = new Dictionary<string, string>();
             string nextKey = null;

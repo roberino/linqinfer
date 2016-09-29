@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -14,6 +15,11 @@ namespace LinqInfer.Data
         /// Transfers the blob to a stream
         /// </summary>
         Task<bool> Transfer<T>(string key, Stream output);
+
+        /// <summary>
+        /// Gets a list of keys for a particullar type
+        /// </summary>
+        Task<IEnumerable<string>> ListKeys<T>();
 
         /// <summary>
         /// Deletes an item stored against the supplied key

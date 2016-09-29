@@ -59,7 +59,7 @@ namespace LinqInfer.Data.Orm
 
                 IDataReader reader;
 
-                if(cmd is DbCommand)
+                if (cmd is DbCommand)
                 {
                     reader = await ((DbCommand)cmd).ExecuteReaderAsync();
                 }
@@ -69,7 +69,7 @@ namespace LinqInfer.Data.Orm
                 }
 
                 var results = new List<T>();
-                
+
                 using (reader)
                 {
                     var schema = reader.GetSchemaTable();
@@ -78,7 +78,7 @@ namespace LinqInfer.Data.Orm
                     schemaInit(schema);
 
                     var advance = (reader is DbDataReader) ? () => ((DbDataReader)reader).ReadAsync() : (Func<Task<bool>>)(() => Task.FromResult(reader.Read()));
-                    
+
                     while (await advance())
                     {
                         var row = rowFact();
@@ -131,11 +131,11 @@ namespace LinqInfer.Data.Orm
 
         protected DbConnection Open()
         {
-            if(_connection.Value.State == ConnectionState.Closed)
+            if (_connection.Value.State == ConnectionState.Closed)
             {
                 _connection.Value.Open();
             }
-            if(_connection.Value.State == ConnectionState.Broken)
+            if (_connection.Value.State == ConnectionState.Broken)
             {
                 try
                 {

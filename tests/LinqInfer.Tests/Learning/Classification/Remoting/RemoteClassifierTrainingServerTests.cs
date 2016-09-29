@@ -57,7 +57,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
             Assert.That(bytes.Length, Is.EqualTo(4));
 
-            var endpoint = new Uri("tcp://localhost:9210");
+            var endpoint = new Uri("tcp://localhost:9212");
 
             var data = Functions.NormalRandomDataset(3, 10).Select(x => new
             {
@@ -108,7 +108,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
             Assert.That(bytes.Length, Is.EqualTo(4));
 
-            var endpoint = new Uri("tcp://localhost:9210");
+            var endpoint = new Uri("tcp://localhost:9214");
 
             var data = Functions.NormalRandomDataset(3, 10).Select(x => new
             {

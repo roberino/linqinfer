@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LinqInfer.Storage.SQLite.Providers
 {
@@ -19,6 +20,14 @@ namespace LinqInfer.Storage.SQLite.Providers
         {
             await base.Setup(reset);
             await _db.CreateTableFor<BlobItem>(!reset);
+        }
+
+        public Task<IEnumerable<string>> ListKeys<T>()
+        {
+            var tn = typeof(T).FullName;
+            var keys = _db.Select<BlobItem, string>(x => x.Key, x => x.TypeName == tn).ToList();
+
+            return Task.FromResult(keys.AsEnumerable());
         }
 
         public async Task<bool> Transfer<T>(string key, Stream output)
