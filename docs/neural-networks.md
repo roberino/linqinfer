@@ -19,7 +19,17 @@ and choosing the one with the lowest error.
 
 // must import LinqInfer.Learning.PipelineExtensions
 
-var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGroup, errorTolerance: 0.3f).Execute();
+// 1: Create a pipeline from a set of data
+
+var pipeline = sample.AsQueryable().CreatePipeline();
+
+// 2: Define a training set with an expression which will be used to classify the data
+
+var trainingSet = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? "x" : "y");
+
+// 3: Create a classifier using the training set
+
+var classifier = pipeline.ToMultilayerNetworkClassifier(errorTolerance: 0.3f).Execute();
 
 ```
 
@@ -44,8 +54,8 @@ or by providing an implementation of IMultilayerNetworkTrainingStrategy.
 //	o				o				o
 //					o
 
-var classifier = pipeline
-                .ToMultilayerNetworkClassifier(p => p.Age > 25 ? "x" : "y", 6, 4)
+var classifier = trainingSet
+                .ToMultilayerNetworkClassifier(6, 4)
                 .Execute();
 
 ```
@@ -55,3 +65,32 @@ var classifier = pipeline
 Because training can be CPU intensive, it might be useful to delegate the work. 
 The remoting extensions can create multilayer network training servers and clients to
 delegate the work over a number of processes.
+
+#### Examples
+
+```cs
+
+// import LinqInfer.Tests.Learning.Classification.Remoting
+
+// Set up a server (create a separate application)
+
+using (var fbs = new FileBlobStore())
+{
+    using (var server = serverEndpoint.CreateMultilayerNeuralNetworkServer(fbs))
+    {
+        server.Start();
+
+        Console.Read();
+    }
+}
+
+// Create a client
+
+using (var client = serverEndpoint.CreateMultilayerNeuralNetworkClient())
+{
+	var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
+
+	var uriAndClassifier = await client.CreateClassifier(trainingSet, true);
+}
+
+```

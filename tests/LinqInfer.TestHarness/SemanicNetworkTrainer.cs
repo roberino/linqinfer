@@ -36,7 +36,7 @@ namespace LinqInfer.TestHarness
             .CreateTextFeaturePipeline(x => x.cls)
             .AsTrainingSet(x => x.cls);
 
-            var client = serverEndpoint.CreateMultilayerNetworkClient();
+            var client = serverEndpoint.CreateMultilayerNeuralNetworkClient();
 
             var task = client
                 .CreateClassifier(trainingSet, true, name, 0.1f, trainingSet.FeaturePipeline.VectorSize * 2, trainingSet.FeaturePipeline.VectorSize * 2);
