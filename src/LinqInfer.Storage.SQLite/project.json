@@ -1,12 +1,12 @@
 {
   "version": "3.0.1-beta",
-  "title": "LinqInfer",
-  "description": "A lightweight and slightly experimental inference library for C#",
+  "title": "LinqInfer.Storage.SQLite",
+  "description": "SQLite storage for LinqInfer",
   "language": "en-GB",
   "authors": [ "R Eyres" ],
   "packOptions": {
     "projectUrl": "https://github.com/roberino/linqinfer",
-    "tags": [ "inference", "linq", "bayesian probability", "reasoning", "machine learning", "text search", "neural networks" ],
+    "tags": [ "linqinfer", "sql", "blob storage" ],
     "licenseUrl": "https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE",
     "repository": {
       "type": "git",
@@ -14,25 +14,24 @@
     }
   },
   "runtimes": {
-    "win": { }
+    "win": {}
+  },
+  "dependencies": {
+    "LinqInfer": "3.0.*",
+    "LinqInfer.Data.Orm": "3.0.*",
+    "System.Data.SQLite.Core": "1.0.101"
   },
   "frameworks": {
     "net45": {
       "frameworkAssemblies": {
         "System.Xml": "",
         "System.Xml.Linq": ""
-      },
-      "dependencies": {
-        "System.Net.Http": "4.0.0"
       }
     },
     "net461": {
       "frameworkAssemblies": {
         "System.Xml": "",
         "System.Xml.Linq": ""
-      },
-      "dependencies": {
-        "System.Net.Http": "4.0.0"
       }
     }
   },

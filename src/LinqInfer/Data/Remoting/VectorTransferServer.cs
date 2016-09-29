@@ -34,7 +34,7 @@ namespace LinqInfer.Data.Remoting
             _socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             
             _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
 
             _socket.Bind(endpoint);
             _routes = new RoutingTable();

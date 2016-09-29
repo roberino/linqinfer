@@ -33,16 +33,15 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnMapping.cs" />
     <Compile Include="DataExtensions.cs" />
     <Compile Include="DefaultMapperFactory.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="IObjectMapper.cs" />
     <Compile Include="IObjectMapperFactory.cs" />
     <Compile Include="ObjectMapper.cs" />
