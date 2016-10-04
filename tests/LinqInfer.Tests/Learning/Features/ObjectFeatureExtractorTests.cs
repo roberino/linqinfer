@@ -11,7 +11,7 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void CreateFeatureExtractor_SimpleObject()
         {
-            var fo = new ObjectFeatureExtractor();
+            var fo = new ObjectFeatureExtractorFactory();
             var fe = fo.CreateFeatureExtractorFunc<FeatureObject>();
 
             var data = fe(new FeatureObject()

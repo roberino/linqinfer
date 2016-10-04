@@ -51,6 +51,43 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
         }
 
         [Test]
+        public async Task CreateClassifier_ThenAddTrainingData()
+        {
+            var bytes = BitConverter.GetBytes(0);
+
+            Assert.That(bytes.Length, Is.EqualTo(4));
+
+            var endpoint = new Uri("tcp://localhost:9212");
+
+            var data = Functions.NormalRandomDataset(3, 10).Select(x => new
+            {
+                x = x,
+                y = Math.Log(x)
+            }).AsQueryable();
+
+            using (var blobs = new InMemoryBlobStore())
+            using (var server = new RemoteClassifierTrainingServer(endpoint, blobs))
+            using (var client = new RemoteClassifierTrainingClient(endpoint))
+            {
+#if DEBUG
+                client.Timeout = 200000;
+#endif
+                server.Start();
+
+                var trainingSet1 = data.Take(100).CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
+                var trainingSet2 = data.Skip(100).CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
+
+                var keyAndclassifier = await client.CreateClassifier(trainingSet1, true);
+
+                Assert.That(keyAndclassifier.Value, Is.Not.Null);
+
+                var keyAndclassifier2 = await client.ExtendClassifier(trainingSet2, keyAndclassifier.Key);
+
+                Assert.That(keyAndclassifier2.Value, Is.Not.Null);
+            }
+        }
+
+        [Test]
         public async Task CreateClassifier_SavesOutput()
         {
             var bytes = BitConverter.GetBytes(0);
@@ -121,6 +158,9 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var client1 = new RemoteClassifierTrainingClient(endpoint))
             using (var client2 = new RemoteClassifierTrainingClient(endpoint))
             {
+                client1.Timeout = 15000;
+                client2.Timeout = 15000;
+
                 server.Start();
 
                 var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');

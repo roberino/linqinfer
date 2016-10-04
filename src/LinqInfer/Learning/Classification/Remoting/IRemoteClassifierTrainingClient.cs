@@ -8,10 +8,10 @@ namespace LinqInfer.Learning.Classification.Remoting
     /// <summary>
     /// Represents a client which can remotely request classifier tasks
     /// </summary>
-    public interface IRemoteClassifierTrainingClient
+    public interface IRemoteClassifierTrainingClient : IDisposable
     {
         /// <summary>
-        /// Sets the timeout for a data packet
+        /// Sets the send and recieve timeout for a data packet (in milliseconds)
         /// </summary>
         int Timeout { get; set; }
 
@@ -27,6 +27,21 @@ namespace LinqInfer.Learning.Classification.Remoting
         /// <param name="hiddenLayers">The hidden layer specification</param>
         /// <returns>A task which returns a classifier instance</returns>
         Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(ITrainingSet<TInput, TClass> trainingSet, bool remoteSave = false, string name = null, float errorTolerance = 0.1F, params int[] hiddenLayers)
+            where TInput : class
+            where TClass : IEquatable<TClass>;
+
+        /// <summary>
+        /// Asyncronously extends an existing classifier with new training data
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A training set</param>
+        /// <param name="errorTolerance">The error tolerance</param>
+        /// <returns>A task which returns a classifier instance</returns>
+        Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> ExtendClassifier<TInput, TClass>(
+            ITrainingSet<TInput, TClass> trainingSet,
+            Uri uri,
+            float errorTolerance = 0.1f)
             where TInput : class
             where TClass : IEquatable<TClass>;
 

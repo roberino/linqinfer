@@ -4,12 +4,13 @@ using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.Remoting
 {
-    internal class RemoteClassifierTrainingClient : IDisposable, IRemoteClassifierTrainingClient
+    internal class RemoteClassifierTrainingClient : IRemoteClassifierTrainingClient
     {
         private readonly Uri _serverEndpoint;
         private readonly VectorTransferClient _client;
@@ -32,6 +33,8 @@ namespace LinqInfer.Learning.Classification.Remoting
 
         public async Task<bool> Delete(Uri uri)
         {
+            Contract.Requires(uri != null);
+
             using (var txHandle = await _client.BeginTransfer(uri.PathAndQuery, Verb.Delete))
             {
                 var res = await txHandle.End(new { });
@@ -49,13 +52,15 @@ namespace LinqInfer.Learning.Classification.Remoting
            where TInput : class
            where TClass : IEquatable<TClass>
         {
+            Contract.Requires(uri != null);
+
             using (var txHandle = await _client.BeginTransfer(uri.PathAndQuery, Verb.Get))
             {
                 var data = await txHandle.End(new { });
 
                 if (uninitialisedFeatureExtractor == null)
                 {
-                    uninitialisedFeatureExtractor = new ObjectFeatureExtractor().CreateFeatureExtractor<TInput>();
+                    uninitialisedFeatureExtractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<TInput>();
                 }
 
                 try
@@ -76,6 +81,20 @@ namespace LinqInfer.Learning.Classification.Remoting
             }
         }
 
+        public Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> ExtendClassifier<TInput, TClass>(
+            ITrainingSet<TInput, TClass> trainingSet,
+            Uri uri,
+            float errorTolerance = 0.1f)
+            where TInput : class
+            where TClass : IEquatable<TClass>
+        {
+            Contract.Requires(uri != null);
+
+            var name = uri.PathAndQuery.Split('/').Where(s => !string.IsNullOrEmpty(s)).Last();
+
+            return CreateClassifier(trainingSet, true, name, errorTolerance);
+        }
+
         public async Task<KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>> CreateClassifier<TInput, TClass>(
             ITrainingSet<TInput, TClass> trainingSet,
             bool remoteSave = false,
@@ -85,6 +104,8 @@ namespace LinqInfer.Learning.Classification.Remoting
             where TInput : class
             where TClass : IEquatable<TClass>
         {
+            Contract.Requires(trainingSet != null);
+
             using (var txHandle = await _client.BeginTransfer(_serverEndpoint.PathAndQuery, Verb.Create))
             {
                 var layers = hiddenLayers == null ? new[] { trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize } : new[] { trainingSet.FeaturePipeline.VectorSize }.Concat(hiddenLayers).Concat(new[] { trainingSet.OutputMapper.VectorSize }).ToArray();

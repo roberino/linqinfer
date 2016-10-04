@@ -74,6 +74,11 @@ namespace LinqInfer.Data.Remoting
 
         public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
         {
+            _routes.AddHandler(route, (b, r) => Task.FromResult(handler(b, r)));
+        }
+
+        public void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
+        {
             _routes.AddHandler(route, handler);
         }
 
@@ -129,7 +134,7 @@ namespace LinqInfer.Data.Remoting
             _completedHandle.Set();
 
             var listener = (Socket)ar.AsyncState;
-
+            
             try
             {
                 var handler = listener.EndAccept(ar);
@@ -175,9 +180,11 @@ namespace LinqInfer.Data.Remoting
 
                     using (var tcpResponse = new TcpResponse(_compression))
                     {
-                        more = Process(state, tcpResponse);
+                        var executeTask = ExecuteRequest(state, tcpResponse);
 
-                        SendResponse(state, tcpResponse);
+                        executeTask.Wait();
+
+                        more = executeTask.Result;
 
                         state.Reset();
                     }
@@ -202,17 +209,26 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void SendResponse(TcpRequestContext state, TcpResponse response)
+        private async Task<bool> ExecuteRequest(TcpRequestContext state, TcpResponse tcpResponse)
         {
-            var content = response.GetSendStream();
+            var more = await Process(state, tcpResponse);
+
+            SendResponse(state, tcpResponse);
+
+            return more;
+        }
+
+        private void SendResponse(TcpRequestContext state, TcpResponse tcpResponse)
+        {
+            var content = tcpResponse.GetSendStream();
 
             DebugOutput.Log("Sending response ({0} bytes)", content.Length);
 
-            response.Header.TransportProtocol = state.Header.TransportProtocol;
+            tcpResponse.Header.TransportProtocol = state.Header.TransportProtocol;
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 
-            sockStream.Write(content, response.Header);
+            sockStream.Write(content, tcpResponse.Header);
         }
 
         private async Task EndRequest(TcpRequestContext state, DataBatch endBatch)
@@ -235,7 +251,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private bool Process(TcpRequestContext state, TcpResponse response)
+        private async Task<bool> Process(TcpRequestContext state, TcpResponse response)
         {
             try
             {
@@ -270,13 +286,29 @@ namespace LinqInfer.Data.Remoting
                     return false;
                 }
 
-                handler.Invoke(doc, response);
+                DebugOutput.Log("Invoking handler");
 
+                using (var mutex = new Mutex(true, doc.Id))
+                {
+                    try
+                    {
+                        if (!mutex.WaitOne())
+                        {
+                            throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
+                        }
+                        var res = await handler.Invoke(doc, response);
+                    }
+                    finally
+                    {
+                        mutex.ReleaseMutex();
+                    }
+                }
+                
                 if (!doc.KeepAlive)
                 {
-                    var end = EndRequest(state, doc);
+                    DebugOutput.Log("Ending request");
 
-                    end.Wait();
+                    await EndRequest(state, doc);
 
                     return false;
                 }
