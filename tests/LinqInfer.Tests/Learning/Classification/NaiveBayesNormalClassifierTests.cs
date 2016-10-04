@@ -88,34 +88,5 @@ namespace LinqInfer.Tests.Learning.Classification
             Assert.That(cls1.ClassType, Is.EqualTo("a"));
             Assert.That(cls2.ClassType, Is.EqualTo("b"));
         }
-
-        [Test]
-        [Ignore("Categorical vector no longer works")]
-        public void TrainAndClassify_TextExample()
-        {
-            var word1a = "john";
-            var word1b = "johns";
-            var word2a = "james";
-            var word2b = "jamie";
-
-            var net = new NaiveBayesNormalClassifier<byte>(32);
-
-            net.Train(1, StringToBytes(word1a));
-            net.Train(1, StringToBytes(word1b));
-            net.Train(2, StringToBytes(word2a));
-            net.Train(2, StringToBytes(word2b));
-
-            var cls1 = net.ClassifyAsBestMatch(StringToBytes("juhn"));
-            var cls2 = net.ClassifyAsBestMatch(StringToBytes("jame"));
-
-            Assert.That(cls1.ClassType, Is.EqualTo(1));
-            Assert.That(cls2.ClassType, Is.EqualTo(2));
-        }
-
-        private byte[] StringToBytes(string data, int size = 5)
-        {
-            return new SingleWordVectoriser2().ExtractVector(data);
-            //return new WordVectoriser(size).ExtractVector(data);
-        }
     }
 }

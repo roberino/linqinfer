@@ -35,7 +35,7 @@ namespace LinqInfer.Learning
         /// <returns>A function which can classify new objects, returning a dictionary of potential results</returns>
         public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
-            var extractor = new ObjectFeatureExtractor().CreateFeatureExtractor<TInput>();
+            var extractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
 

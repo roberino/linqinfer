@@ -10,7 +10,7 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void FeatureMetadata_AggregateInputsInto1D_ExpectSingleItem()
         {
-            var ext = new ObjectFeatureExtractor();
+            var ext = new ObjectFeatureExtractorFactory();
             var fe = ext.CreateFeatureExtractor<FeatureObject>();
             var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, v => new double[] { v[0] * v[1] * v[2] });
 
@@ -35,7 +35,7 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void FeatureMetadata_FilterOnlyX_ExpectSingleItem()
         {
-            var ext = new ObjectFeatureExtractor();
+            var ext = new ObjectFeatureExtractorFactory();
             var fe = ext.CreateFeatureExtractor<FeatureObject>();
             var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, null, f => f.Label == "x");
 
