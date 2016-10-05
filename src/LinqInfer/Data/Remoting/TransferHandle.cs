@@ -154,6 +154,8 @@ namespace LinqInfer.Data.Remoting
                 DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
 
                 Send(this, transferDoc, _compression);
+
+                Thread.Sleep(500);
             }
 
             return await ReceiveData(this, _compression);
@@ -179,6 +181,7 @@ namespace LinqInfer.Data.Remoting
 
                 int read;
                 int sent = 0;
+                int sentTotal = 0;
 
                 using (var waitHandle = new ManualResetEvent(false))
                 {
@@ -216,6 +219,10 @@ namespace LinqInfer.Data.Remoting
                         {
                             throw new ApplicationException("Send failed");
                         }
+
+                        sentTotal += sent;
+
+                        DebugOutput.LogVerbose("Sent {0} bytes", sentTotal);
 
                         if (sent == 0) break;
                     }

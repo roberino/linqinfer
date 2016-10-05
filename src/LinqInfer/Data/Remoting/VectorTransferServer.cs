@@ -191,6 +191,8 @@ namespace LinqInfer.Data.Remoting
 
                     if (more)
                     {
+                        DebugOutput.LogVerbose("Waiting for more data");
+
                         state.ClientSocket
                             .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
                                 ReadCallback, state);
@@ -203,6 +205,8 @@ namespace LinqInfer.Data.Remoting
                 }
                 else
                 {
+                    DebugOutput.LogVerbose("Received {0} so far, expecting {1}...", state.ReceivedData.Position, state.ContentLength);
+
                     state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
                        ReadCallback, state);
                 }

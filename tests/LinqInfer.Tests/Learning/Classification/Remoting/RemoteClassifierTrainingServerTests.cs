@@ -51,7 +51,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
         }
 
         [Test]
-        public async Task CreateClassifier_ThenAddTrainingData()
+        public async Task CreateClassifier_ThenExtendClassifier_ReturnsTheSameUri()
         {
             var bytes = BitConverter.GetBytes(0);
 
@@ -70,7 +70,7 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var client = new RemoteClassifierTrainingClient(endpoint))
             {
 #if DEBUG
-                client.Timeout = 200000;
+                client.Timeout = 15000;
 #endif
                 server.Start();
 
@@ -81,7 +81,13 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
 
                 Assert.That(keyAndclassifier.Value, Is.Not.Null);
 
+                Console.WriteLine(keyAndclassifier.Key);
+
                 var keyAndclassifier2 = await client.ExtendClassifier(trainingSet2, keyAndclassifier.Key);
+
+                Console.WriteLine(keyAndclassifier2.Key);
+
+                Assert.That(keyAndclassifier.Key, Is.EqualTo(keyAndclassifier2.Key));
 
                 Assert.That(keyAndclassifier2.Value, Is.Not.Null);
             }
@@ -158,8 +164,8 @@ namespace LinqInfer.Tests.Learning.Classification.Remoting
             using (var client1 = new RemoteClassifierTrainingClient(endpoint))
             using (var client2 = new RemoteClassifierTrainingClient(endpoint))
             {
-                client1.Timeout = 15000;
-                client2.Timeout = 15000;
+                client1.Timeout = 5000;
+                client2.Timeout = 5000;
 
                 server.Start();
 
