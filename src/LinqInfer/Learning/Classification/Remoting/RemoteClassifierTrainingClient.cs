@@ -150,10 +150,12 @@ namespace LinqInfer.Learning.Classification.Remoting
                     i++;
                 }
 
+                var outputName = name ?? txHandle.Id;
+
                 var finalResponse = await txHandle.End(new
                 {
                     SaveOutput = remoteSave,
-                    Name = name ?? txHandle.Id,
+                    Name = outputName,
                     OutputMapper = trainingSet.OutputMapper.ToClob(),
                     InputExtractor = trainingSet.FeaturePipeline.FeatureExtractor.ToClob()
                 });
@@ -164,7 +166,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                     var clsf = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, network);
 
-                    return new KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>(new Uri(_serverEndpoint, txHandle.Id), clsf);
+                    return new KeyValuePair<Uri, IObjectClassifier<TClass, TInput>>(new Uri(_serverEndpoint, outputName), clsf);
                 }
                 finally
                 {
