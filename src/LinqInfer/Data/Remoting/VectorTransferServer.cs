@@ -40,7 +40,9 @@ namespace LinqInfer.Data.Remoting
             _routes = new RoutingTable();
             _status = ServerStatus.Stopped;
 
-            _compression = new DeflateCompressionProvider();            
+            _compression = new DeflateCompressionProvider();
+
+            RequestTimeout = TimeSpan.FromMinutes(2);
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
@@ -56,6 +58,8 @@ namespace LinqInfer.Data.Remoting
             var ipAddress = IPAddress.Loopback;
             return new IPEndPoint(ipAddress, port);
         }
+
+        public TimeSpan RequestTimeout { get; set; }
 
         public Uri BaseEndpoint
         {
@@ -73,6 +77,11 @@ namespace LinqInfer.Data.Remoting
         }
 
         public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
+        {
+            _routes.AddHandler(route, (b, r) => Task.FromResult(handler(b, r)));
+        }
+
+        public void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
         {
             _routes.AddHandler(route, handler);
         }
@@ -129,16 +138,18 @@ namespace LinqInfer.Data.Remoting
             _completedHandle.Set();
 
             var listener = (Socket)ar.AsyncState;
-
+            
             try
             {
                 var handler = listener.EndAccept(ar);
 
                 DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
+                
+                var processTask = ProcessTcpRequest(handler);
 
-                var state = new TcpRequestContext(handler);
-
-                handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
+                processTask.Wait(RequestTimeout);
+                
+                // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
             catch
             {
@@ -150,72 +161,56 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void ReadCallback(IAsyncResult ar)
+        private async Task ProcessTcpRequest(Socket clientSocket)
         {
-            var state = (TcpRequestContext)ar.AsyncState;
+            bool more = true;
 
-            int bytesRead = state.ClientSocket.EndReceive(ar);
-
-            if (bytesRead > 0)
+            while (more)
             {
-                if (!state.ContentLength.HasValue)
+                var reader = new AsyncSocketWriterReader(clientSocket);
+
+                var state = await reader.ReadAsync();
+
+                using (var tcpResponse = new TcpResponse(_compression))
                 {
-                    var header = new TcpRequestHeader(state.Buffer);
-                    state.Header = header;
-                    state.ContentLength = header.ContentLength;
+                    more = await ExecuteRequest(state, tcpResponse);
+                }
+
+                if (more)
+                {
+                    DebugOutput.LogVerbose("Waiting for more data");
                 }
                 else
                 {
-                    state.ReceivedData.Write(state.Buffer, 0, bytesRead);
-                }
-
-                if (state.ReceivedData.Position >= state.ContentLength)
-                {
-                    bool more = false;
-
-                    using (var tcpResponse = new TcpResponse(_compression))
-                    {
-                        more = Process(state, tcpResponse);
-
-                        SendResponse(state, tcpResponse);
-
-                        state.Reset();
-                    }
-
-                    if (more)
-                    {
-                        state.ClientSocket
-                            .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                                ReadCallback, state);
-                    }
-                    else
-                    {
-                        DebugOutput.Log("Ending conversation");
-                        state.ClientSocket.Disconnect(true);
-                    }
-                }
-                else
-                {
-                    state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                       ReadCallback, state);
+                    DebugOutput.Log("Ending conversation");
+                    state.ClientSocket.Disconnect(true);
                 }
             }
         }
 
-        private void SendResponse(TcpRequestContext state, TcpResponse response)
+        private async Task<bool> ExecuteRequest(TcpReceiveContext state, TcpResponse tcpResponse)
         {
-            var content = response.GetSendStream();
+            var more = await Process(state, tcpResponse);
+
+            await SendResponse(state, tcpResponse);
+
+            return more;
+        }
+
+        private async Task SendResponse(TcpReceiveContext state, TcpResponse tcpResponse)
+        {
+            var content = tcpResponse.GetSendStream();
 
             DebugOutput.Log("Sending response ({0} bytes)", content.Length);
 
-            response.Header.TransportProtocol = state.Header.TransportProtocol;
+            tcpResponse.Header.TransportProtocol = state.Header.TransportProtocol;
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 
-            sockStream.Write(content, response.Header);
+            await sockStream.WriteAsync(content, tcpResponse.Header);
         }
 
-        private async Task EndRequest(TcpRequestContext state, DataBatch endBatch)
+        private async Task EndRequest(TcpReceiveContext state, DataBatch endBatch)
         {
             var fe = endBatch.ForwardingEndpoint;
 
@@ -235,7 +230,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private bool Process(TcpRequestContext state, TcpResponse response)
+        private async Task<bool> Process(TcpReceiveContext state, TcpResponse response)
         {
             try
             {
@@ -270,13 +265,29 @@ namespace LinqInfer.Data.Remoting
                     return false;
                 }
 
-                handler.Invoke(doc, response);
+                DebugOutput.Log("Invoking handler");
 
+                using (var mutex = new Mutex(true, doc.Id))
+                {
+                    try
+                    {
+                        if (!mutex.WaitOne())
+                        {
+                            throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
+                        }
+                        var res = await handler.Invoke(doc, response);
+                    }
+                    finally
+                    {
+                        mutex.ReleaseMutex();
+                    }
+                }
+                
                 if (!doc.KeepAlive)
                 {
-                    var end = EndRequest(state, doc);
+                    DebugOutput.Log("Ending request");
 
-                    end.Wait();
+                    await EndRequest(state, doc);
 
                     return false;
                 }

@@ -35,17 +35,22 @@ namespace LinqInfer.Data.Remoting
 
                     ReadHttpHeaders(http.First().Groups[2].Value, ascii);
                     HttpVerb = http.First().Groups[1].Value;
+                    HeaderLength = ascii.IndexOf("\n\n") + 2;
                 }
                 else
                 {
                     ContentLength = BitConverter.ToInt64(data, 0);
+                    HeaderLength = sizeof(long);
                 }
             }
             catch
             {
                 ContentLength = BitConverter.ToInt64(data, 0);
+                HeaderLength = sizeof(long);
             }
         }
+
+        public int HeaderLength { get; private set; }
 
         public Verb Verb
         {
@@ -97,7 +102,7 @@ namespace LinqInfer.Data.Remoting
                     else
                     {
                         var split = line.IndexOf(':');
-                        Headers[line.Substring(0, split)] = line.Substring(split + 1);
+                        Headers[line.Substring(0, split)] = line.Substring(split + 1).Trim();
                     }
                 }
             }

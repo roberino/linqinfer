@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.Remoting
 {
@@ -41,11 +41,11 @@ namespace LinqInfer.Learning.Classification.Remoting
 
             _server = uri.CreateRemoteService(null, false);
 
-            _server.AddHandler(new UriRoute(uri, null, Verb.Create), Process);
-            _server.AddHandler(new UriRoute(uri, null, Verb.Get), ListKeys);
             _server.AddHandler(new UriRoute(uri, "status", Verb.Get), ServerStatus);
+            _server.AddAsyncHandler(new UriRoute(uri, null, Verb.Create), Process);
+            _server.AddAsyncHandler(new UriRoute(uri, null, Verb.Get), ListKeys);
+            _server.AddAsyncHandler(new UriRoute(uri, "{key}", Verb.Get), Restore);
             _server.AddHandler(new UriRoute(uri, "{key}", Verb.Delete), Delete);
-            _server.AddHandler(new UriRoute(uri, "{key}", Verb.Get), Restore);
 
             _outputMapper = new OutputMapperFactory<double, string>().Create(new string[] { "" });
 
@@ -64,11 +64,11 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server.Stop();
         }
 
-        private bool ListKeys(DataBatch batch, TcpResponse tcpResponse)
+        private async Task<bool> ListKeys(DataBatch batch, TcpResponse tcpResponse)
         {
             var writer = tcpResponse.CreateTextResponse();
 
-            var keys = _blobStore.ListKeys<MultilayerNetwork>().Result;
+            var keys = await _blobStore.ListKeys<MultilayerNetwork>();
 
             foreach (var key in keys)
             {
@@ -84,15 +84,13 @@ namespace LinqInfer.Learning.Classification.Remoting
             return false;
         }
 
-        private bool Restore(DataBatch batch, TcpResponse tcpResponse)
+        private async Task<bool> Restore(DataBatch batch, TcpResponse tcpResponse)
         {
             var response = tcpResponse.Content;
 
             var key = batch.Properties["key"];
 
-            var task = _blobStore.Transfer<MultilayerNetwork>(key, response);
-
-            task.Wait();
+            await _blobStore.Transfer<MultilayerNetwork>(key, response);
 
             return true;
         }
@@ -112,67 +110,83 @@ namespace LinqInfer.Learning.Classification.Remoting
             return deleted;
         }
 
-        private bool Process(DataBatch batch, TcpResponse tcpResponse)
+        private async Task<IRawClassifierTrainingContext<NetworkParameters>> GetOrCreateContext(DataBatch batch)
         {
-            var response = tcpResponse.Content;
-
             IRawClassifierTrainingContext<NetworkParameters> ctx;
 
-            lock (_trainingContexts)
+            //lock (_trainingContexts)
             {
                 if (!_trainingContexts.TryGetValue(batch.Id, out ctx))
                 {
+                    var name = batch.PropertyOrDefault("Name", batch.Id);
+
                     var layerSizes = batch.Properties["LayerSizes"].Split(',').Select(s => int.Parse(s)).ToArray();
                     var networkParams = new NetworkParameters(layerSizes);
-                    _trainingContexts[batch.Id] = ctx = _trainingContextFactory.Create(networkParams);
+
+                    try
+                    {
+                        var network = new MultilayerNetwork(networkParams);
+
+                        await _blobStore.RestoreAsync(name, network);
+
+                        _trainingContexts[batch.Id] = ctx = _trainingContextFactory.Create(network);
+                    }
+                    catch
+                    {
+                        _trainingContexts[batch.Id] = ctx = _trainingContextFactory.Create(networkParams);
+                    }
                 }
             }
 
-            lock (batch.Id)
+            return ctx;
+        }
+
+        private async Task<bool> Process(DataBatch batch, TcpResponse tcpResponse)
+        {
+            IRawClassifierTrainingContext<NetworkParameters> ctx = await GetOrCreateContext(batch);
+
+            if (batch.Vectors.Any())
             {
-                if (batch.Vectors.Any())
-                {
-                    var iterations = batch.PropertyOrDefault("Iterations", 1);
+                var iterations = batch.PropertyOrDefault("Iterations", 1);
 
-                    foreach (var i in Enumerable.Range(0, iterations))
+                foreach (var i in Enumerable.Range(0, iterations))
+                {
+                    foreach (var inputOutputPair in batch
+                        .Vectors
+                        .Select(v => v.Split(ctx.Parameters.InputVectorSize))
+                        .RandomOrder()
+                        )
                     {
-                        foreach (var inputOutputPair in batch
-                            .Vectors
-                            .Select(v => v.Split(ctx.Parameters.InputVectorSize))
-                            .RandomOrder()
-                            )
-                        {
-                            ctx.Train(inputOutputPair[1], inputOutputPair[0]);
-                        }
+                        ctx.Train(inputOutputPair[1], inputOutputPair[0]);
                     }
                 }
+            }
 
-                if (!batch.KeepAlive)
+            if (!batch.KeepAlive)
+            {
+                if (batch.PropertyOrDefault("SaveOutput", false))
                 {
-                    if (batch.PropertyOrDefault("SaveOutput", false))
+                    var network = (MultilayerNetwork)ctx.Output;
+
+                    foreach (var prop in batch.Properties)
                     {
-                        var network = (MultilayerNetwork)ctx.Output;
-
-                        foreach (var prop in batch.Properties)
-                        {
-                            network.Properties[prop.Key] = prop.Value;
-                        }
-
-                        var name = batch.PropertyOrDefault("Name", batch.Id);
-
-                        _blobStore.Store(name, network);
+                        network.Properties[prop.Key] = prop.Value;
                     }
 
-                    ctx.Output.Save(response);
+                    var name = batch.PropertyOrDefault("Name", batch.Id);
 
-                    _trainingContexts.Remove(batch.Id);
+                    await _blobStore.StoreAsync(name, network);
                 }
-                else
+
+                ctx.Output.Save(tcpResponse.Content);
+
+                _trainingContexts.Remove(batch.Id);
+            }
+            else
+            {
+                if (batch.SendResponse)
                 {
-                    if (batch.SendResponse)
-                    {
-                        WriteSummaryResponse(ctx, response);
-                    }
+                    WriteSummaryResponse(ctx, tcpResponse.Content);
                 }
             }
 

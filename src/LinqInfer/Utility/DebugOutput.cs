@@ -14,8 +14,18 @@ namespace LinqInfer.Utility
         {
             _timer = new Stopwatch();
             _timer.Start();
+            VerboseOn = true;
         }
 #endif
+
+        public static bool VerboseOn { get; set; }
+
+        public static void LogVerbose(string msgFormat, params object[] args)
+        {
+            if (!VerboseOn) return;
+            Log(string.Format(msgFormat, args), true);
+        }
+
         public static void Log<T>(IEnumerable<T> objs)
         {
             if (objs == null) return;

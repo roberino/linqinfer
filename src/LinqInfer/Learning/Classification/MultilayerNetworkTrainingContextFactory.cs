@@ -17,6 +17,11 @@ namespace LinqInfer.Learning.Classification
             _currentId = 0;
         }
 
+        public IClassifierTrainingContext<TClass, NetworkParameters> Create(MultilayerNetwork network)
+        {
+            return new MlnTrainngContext(() => ++_currentId, network, _outputMapper);
+        }
+
         public IClassifierTrainingContext<TClass, NetworkParameters> Create(NetworkParameters parameters)
         {
             return new MlnTrainngContext(() => ++_currentId, parameters, _outputMapper);
@@ -51,7 +56,7 @@ namespace LinqInfer.Learning.Classification
                 Parameters = parameters;
             }
 
-            private MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network, ICategoricalOutputMapper<TClass> outputMapper)
+            public MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network, ICategoricalOutputMapper<TClass> outputMapper)
             {
                 _network = network;
 

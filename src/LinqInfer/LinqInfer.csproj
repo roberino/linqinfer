@@ -83,7 +83,7 @@
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />
     <Compile Include="Data\Remoting\ServerStatus.cs" />
-    <Compile Include="Data\Remoting\TcpRequestContext.cs" />
+    <Compile Include="Data\Remoting\TcpReceiveContext.cs" />
     <Compile Include="Data\Remoting\TcpRequestHeader.cs" />
     <Compile Include="Data\Remoting\TcpResponse.cs" />
     <Compile Include="Data\Remoting\TcpResponseHeader.cs" />
@@ -128,6 +128,7 @@
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
     <Compile Include="Learning\Features\ITrainingSet.cs" />
+    <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
     <Compile Include="Learning\Features\TrainingSet.cs" />
@@ -176,7 +177,6 @@
     <Compile Include="Learning\Classification\IAssistedLearningProcessor.cs" />
     <Compile Include="Learning\Classification\IByteClassifier.cs" />
     <Compile Include="Learning\Classification\IClassifier.cs" />
-    <Compile Include="Learning\Features\IByteFeatureExtractor.cs" />
     <Compile Include="Learning\Classification\IFloatingPointClassifier.cs" />
     <Compile Include="Learning\Classification\ILayer.cs" />
     <Compile Include="Learning\Classification\INetworkSignalFilter.cs" />
@@ -192,9 +192,7 @@
     <Compile Include="Learning\Classification\NeuronBase.cs" />
     <Compile Include="Learning\Features\OutputMapper.cs" />
     <Compile Include="Learning\Classification\NaiveBayesNormalClassifier.cs" />
-    <Compile Include="Learning\Features\SingleWordVectoriser2.cs" />
-    <Compile Include="Learning\Features\SingleWordVectoriser.cs" />
-    <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
+    <Compile Include="Learning\Features\ObjectFeatureExtractorFactory.cs" />
     <Compile Include="Learning\Classification\XorNode.cs" />
     <Compile Include="Learning\ObjectVector.cs" />
     <Compile Include="Maths\ColumnVector1D.cs" />

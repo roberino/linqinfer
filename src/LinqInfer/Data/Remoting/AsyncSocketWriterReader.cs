@@ -36,8 +36,11 @@ namespace LinqInfer.Data.Remoting
 
             int read = 0;
             int sent = 0;
+            int sending = 0;
 
             DebugOutput.Log("Sending {0} bytes", len);
+
+            _socket.SendBufferSize = _writeBuffer.Length;
 
             while (input.Position < len || offset > 0)
             {
@@ -48,7 +51,14 @@ namespace LinqInfer.Data.Remoting
                     if (read == 0 && offset == 0) break;
                 }
 
-                _socket.Send(_writeBuffer, read + offset, SocketFlags.None);
+                sending = read + offset;
+
+                if (sending < _socket.SendBufferSize)
+                {
+                    _socket.SendBufferSize = sending;
+                }
+
+                _socket.Send(_writeBuffer, sending, SocketFlags.None);
 
                 offset = 0;
                 sent += read;
@@ -57,55 +67,52 @@ namespace LinqInfer.Data.Remoting
             return sent;
         }
 
-        public Task<int> WriteAsync(Stream input)
+        public async Task<long> WriteAsync(Stream input, TcpResponseHeader header = null)
         {
-            return Task<int>.Factory.StartNew(() =>
-            {
-                return Write(input);
-            });
+            var stream = new NetworkStream(_socket);
+
+            var len = input.Length - input.Position;
+
+            if (header == null) header = new TcpResponseHeader(() => len);
+
+            var head = header.GetBytes();
+
+            await stream.WriteAsync(head, 0, head.Length);
+
+            await input.CopyToAsync(stream, _writeBuffer.Length);
+
+            return len + head.Length;
         }
 
-        public Task<Stream> ReadAsync()
+        public async Task<TcpReceiveContext> ReadAsync()
         {
-            return Task<Stream>.Factory.StartNew(() =>
+            var socketStream = new NetworkStream(_socket);
+            var receivedStream = new MemoryStream();
+            var read = 0;
+
+            read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length);
+
+            var header = new TcpRequestHeader(_readBuffer);
+
+            if ((read - header.HeaderLength) > 0)
+                receivedStream.Write(_readBuffer, header.HeaderLength, read - header.HeaderLength);
+
+            while (receivedStream.Position < header.ContentLength)
             {
-                long receiveHeader = -1;
-                int read = -1;
-                int offset = 0;
-                var receivedStream = new MemoryStream();
+                read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length);
 
-                while (true)
-                {
-                    read = _socket.Receive(_readBuffer);
+                receivedStream.Write(_readBuffer, 0, read);
+            }
 
-                    if (receiveHeader == -1)
-                    {
-                        receiveHeader = BitConverter.ToInt64(_readBuffer, 0);
-                        offset = 8;
-                    }
-                    else
-                    {
-                        offset = 0;
-                    }
+            DebugOutput.Log("Received {0} bytes", receivedStream.Position);
 
-                    if (receiveHeader == 0) break;
-                    
-                    receivedStream.Write(_readBuffer, offset, read - offset);
+            receivedStream.Position = 0;
 
-                    if (read == 0 || receivedStream.Length >= receiveHeader) break;
-                }
-
-                if (receivedStream.Length > receiveHeader)
-                {
-                    throw new InvalidOperationException("Invalid data received");
-                }
-
-                //DebugOutput.Log("Received {0} bytes", receivedStream.Length);
-
-                receivedStream.Position = 0;
-
-                return receivedStream;
-            });
+            return new TcpReceiveContext(_socket, _readBuffer.Length)
+            {
+                Header = header,
+                ReceivedData = receivedStream
+            };
         }
     }
 }

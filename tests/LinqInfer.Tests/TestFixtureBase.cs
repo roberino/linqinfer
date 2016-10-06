@@ -22,5 +22,15 @@ namespace LinqInfer.Tests
 
             return asm.GetManifestResourceStream(rname);
         }
+
+        public static byte[] GetResourceAsBytes(string name)
+        {
+            using (var httpHeaderStream = GetResource(name))
+            using (var ms = new MemoryStream())
+            {
+                httpHeaderStream.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
     }
 }

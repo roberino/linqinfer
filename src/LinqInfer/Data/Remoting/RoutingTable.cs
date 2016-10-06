@@ -1,21 +1,22 @@
 ﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
     internal class RoutingTable
     {
         private readonly IList<Route> _routes;
-        private readonly Func<DataBatch, TcpResponse, bool> _defaultRoute;
+        private readonly Func<DataBatch, TcpResponse, Task<bool>> _defaultRoute;
 
-        public RoutingTable(Func<DataBatch, TcpResponse, bool> defaultRoute = null)
+        public RoutingTable(Func<DataBatch, TcpResponse, Task<bool>> defaultRoute = null)
         {
             _routes = new List<Route>();
             _defaultRoute = defaultRoute;
         }
 
-        public Func<DataBatch, TcpResponse, bool> Map(Uri uri, Verb verb = Verb.Default)
+        public Func<DataBatch, TcpResponse, Task<bool>> Map(Uri uri, Verb verb = Verb.Default)
         {
             foreach (var route in _routes)
             {
@@ -42,7 +43,7 @@ namespace LinqInfer.Data.Remoting
             throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
         }
 
-        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
+        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
         {
             _routes.Add(new Route()
             {
@@ -55,7 +56,7 @@ namespace LinqInfer.Data.Remoting
         {
             public UriRoutingTemplate Template { get; set; }
 
-            public Func<DataBatch, TcpResponse, bool> Handler { get; set; }
+            public Func<DataBatch, TcpResponse, Task<bool>> Handler { get; set; }
         }
     }
 }

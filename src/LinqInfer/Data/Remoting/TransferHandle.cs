@@ -153,13 +153,13 @@ namespace LinqInfer.Data.Remoting
 
                 DebugOutput.Log("Sending batch {0}/{1}", Id, transferDoc.BatchNum);
 
-                Send(this, transferDoc, _compression);
+                await Send(this, transferDoc, _compression);
             }
 
             return await ReceiveData(this, _compression);
         }
 
-        private static void Send(TransferHandle state, DataBatch transferDoc, ICompressionProvider compression)
+        private static async Task Send(TransferHandle state, DataBatch transferDoc, ICompressionProvider compression)
         {
             var buffer = new byte[state.BufferSize];
 
@@ -175,62 +175,20 @@ namespace LinqInfer.Data.Remoting
 
                 ms.Position = 0;
 
-                bool headSent = false;
+                var sockWriter = new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize);
 
-                int read;
-                int sent = 0;
+                var sent = await sockWriter.WriteAsync(ms);
 
-                using (var waitHandle = new ManualResetEvent(false))
-                {
-                    while (true)
-                    {
-                        waitHandle.Reset();
-
-                        if (!headSent)
-                        {
-                            var requestSize = BitConverter.GetBytes(ms.Length);
-                            read = requestSize.Length;
-                            Array.Copy(requestSize, buffer, read);
-                            headSent = true;
-                        }
-                        else
-                        {
-                            read = ms.Read(buffer, 0, buffer.Length);
-                        }
-
-                        if (read == 0) break;
-
-                        state.ClientSocket.BeginSend(buffer, 0, read, 0,
-                        a =>
-                        {
-                            var handle = (TransferHandle)a.AsyncState;
-
-                            sent = handle.ClientSocket.EndSend(a);
-
-                            waitHandle.Set();
-                        }, state);
-
-                        waitHandle.WaitOne();
-
-                        if (sent != read)
-                        {
-                            throw new ApplicationException("Send failed");
-                        }
-
-                        if (sent == 0) break;
-                    }
-                }
+                DebugOutput.LogVerbose("Sent {0} bytes", sent);
             }
         }
 
         private static async Task<Stream> ReceiveData(TransferHandle state, ICompressionProvider compression)
         {
-            //TODO: Sometimes this blocks
-
-            var stream = await new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize)
+            var context = await new AsyncSocketWriterReader(state.ClientSocket, state.BufferSize)
                 .ReadAsync();
 
-            return compression.DecompressFrom(stream);
+            return compression.DecompressFrom(context.ReceivedData);
         }
 
         private IDictionary<string, string> ParamsToDict(object parameters)

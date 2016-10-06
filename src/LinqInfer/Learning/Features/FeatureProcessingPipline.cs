@@ -138,7 +138,7 @@ namespace LinqInfer.Learning.Features
 
     public sealed class FeatureProcessingPipline<T> : IFeatureProcessingPipeline<T> where T : class
     {
-        private static readonly ObjectFeatureExtractor _objExtractor = new ObjectFeatureExtractor();
+        private static readonly ObjectFeatureExtractorFactory _objExtractor = new ObjectFeatureExtractorFactory();
 
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
         private readonly IQueryable<T> _data;
