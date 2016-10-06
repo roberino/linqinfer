@@ -40,7 +40,9 @@ namespace LinqInfer.Data.Remoting
             _routes = new RoutingTable();
             _status = ServerStatus.Stopped;
 
-            _compression = new DeflateCompressionProvider();            
+            _compression = new DeflateCompressionProvider();
+
+            RequestTimeout = TimeSpan.FromMinutes(2);
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
@@ -56,6 +58,8 @@ namespace LinqInfer.Data.Remoting
             var ipAddress = IPAddress.Loopback;
             return new IPEndPoint(ipAddress, port);
         }
+
+        public TimeSpan RequestTimeout { get; set; }
 
         public Uri BaseEndpoint
         {
@@ -140,10 +144,12 @@ namespace LinqInfer.Data.Remoting
                 var handler = listener.EndAccept(ar);
 
                 DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
+                
+                var processTask = ProcessTcpRequest(handler);
 
-                var state = new TcpRequestContext(handler);
-
-                handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
+                processTask.Wait(RequestTimeout);
+                
+                // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
             catch
             {
@@ -155,74 +161,101 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void ReadCallback(IAsyncResult ar)
+        private async Task ProcessTcpRequest(Socket clientSocket)
         {
-            var state = (TcpRequestContext)ar.AsyncState;
+            bool more = true;
 
-            int bytesRead = state.ClientSocket.EndReceive(ar);
-
-            if (bytesRead > 0)
+            while (more)
             {
-                if (!state.ContentLength.HasValue)
+                var reader = new AsyncSocketWriterReader(clientSocket);
+
+                var state = await reader.ReadAsync();
+
+                using (var tcpResponse = new TcpResponse(_compression))
                 {
-                    var header = new TcpRequestHeader(state.Buffer);
-                    state.Header = header;
-                    state.ContentLength = header.ContentLength;
+                    more = await ExecuteRequest(state, tcpResponse);
+                }
+
+                if (more)
+                {
+                    DebugOutput.LogVerbose("Waiting for more data");
                 }
                 else
                 {
-                    state.ReceivedData.Write(state.Buffer, 0, bytesRead);
-                }
-
-                if (state.ReceivedData.Position >= state.ContentLength)
-                {
-                    bool more = false;
-
-                    using (var tcpResponse = new TcpResponse(_compression))
-                    {
-                        var executeTask = ExecuteRequest(state, tcpResponse);
-
-                        executeTask.Wait();
-
-                        more = executeTask.Result;
-
-                        state.Reset();
-                    }
-
-                    if (more)
-                    {
-                        DebugOutput.LogVerbose("Waiting for more data");
-
-                        state.ClientSocket
-                            .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                                ReadCallback, state);
-                    }
-                    else
-                    {
-                        DebugOutput.Log("Ending conversation");
-                        state.ClientSocket.Disconnect(true);
-                    }
-                }
-                else
-                {
-                    DebugOutput.LogVerbose("Received {0} so far, expecting {1}...", state.ReceivedData.Position, state.ContentLength);
-
-                    state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-                       ReadCallback, state);
+                    DebugOutput.Log("Ending conversation");
+                    state.ClientSocket.Disconnect(true);
                 }
             }
         }
 
-        private async Task<bool> ExecuteRequest(TcpRequestContext state, TcpResponse tcpResponse)
+        //private void ReadCallback(IAsyncResult ar)
+        //{
+        //    var state = (TcpRequestContext)ar.AsyncState;
+
+        //    int bytesRead = state.ClientSocket.EndReceive(ar);
+
+        //    if (bytesRead > 0)
+        //    {
+        //        if (!state.ContentLength.HasValue)
+        //        {
+        //            var header = new TcpRequestHeader(state.Buffer);
+        //            state.Header = header;
+        //            state.ContentLength = header.ContentLength;
+        //        }
+        //        else
+        //        {
+        //            state.ReceivedData.Write(state.Buffer, 0, bytesRead);
+        //        }
+
+        //        if (state.ReceivedData.Position >= state.ContentLength)
+        //        {
+        //            bool more = false;
+
+        //            using (var tcpResponse = new TcpResponse(_compression))
+        //            {
+        //                var executeTask = ExecuteRequest(state, tcpResponse);
+
+        //                executeTask.Wait();
+
+        //                more = executeTask.Result;
+
+        //                state.Reset();
+        //            }
+
+        //            if (more)
+        //            {
+        //                DebugOutput.LogVerbose("Waiting for more data");
+
+        //                state.ClientSocket
+        //                    .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
+        //                        ReadCallback, state);
+        //            }
+        //            else
+        //            {
+        //                DebugOutput.Log("Ending conversation");
+        //                state.ClientSocket.Disconnect(true);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            DebugOutput.LogVerbose("Received {0} so far, expecting {1}...", state.ReceivedData.Position, state.ContentLength);
+
+        //            state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
+        //               ReadCallback, state);
+        //        }
+        //    }
+        //}
+
+        private async Task<bool> ExecuteRequest(TcpReceiveContext state, TcpResponse tcpResponse)
         {
             var more = await Process(state, tcpResponse);
 
-            SendResponse(state, tcpResponse);
+            await SendResponse(state, tcpResponse);
 
             return more;
         }
 
-        private void SendResponse(TcpRequestContext state, TcpResponse tcpResponse)
+        private async Task SendResponse(TcpReceiveContext state, TcpResponse tcpResponse)
         {
             var content = tcpResponse.GetSendStream();
 
@@ -232,10 +265,10 @@ namespace LinqInfer.Data.Remoting
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 
-            sockStream.Write(content, tcpResponse.Header);
+            await sockStream.WriteAsync(content, tcpResponse.Header);
         }
 
-        private async Task EndRequest(TcpRequestContext state, DataBatch endBatch)
+        private async Task EndRequest(TcpReceiveContext state, DataBatch endBatch)
         {
             var fe = endBatch.ForwardingEndpoint;
 
@@ -255,7 +288,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private async Task<bool> Process(TcpRequestContext state, TcpResponse response)
+        private async Task<bool> Process(TcpReceiveContext state, TcpResponse response)
         {
             try
             {

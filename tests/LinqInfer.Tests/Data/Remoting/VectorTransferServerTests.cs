@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,8 +12,26 @@ namespace LinqInfer.Tests.Data.Remoting
     [TestFixture]
     public class VectorTransferServerTests
     {
-        [Test]
-        public async Task Server_ReceiveData()
+        [TestCase(1)]
+        [TestCase(5)]
+        public void Server_ReceiveAndResponse(int iterations)
+        {
+            foreach (var n in Enumerable.Range(1, iterations))
+            {
+                Console.WriteLine("Iteration {0}", n);
+
+                var task = Run();
+
+                task.Wait(1000);
+
+                if (!task.IsCompleted)
+                {
+                    Assert.Fail("Task timeout");
+                }
+            }
+        }
+
+        private async Task Run()
         {
             using (var server = new VectorTransferServer())
             {
