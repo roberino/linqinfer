@@ -188,64 +188,6 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        //private void ReadCallback(IAsyncResult ar)
-        //{
-        //    var state = (TcpRequestContext)ar.AsyncState;
-
-        //    int bytesRead = state.ClientSocket.EndReceive(ar);
-
-        //    if (bytesRead > 0)
-        //    {
-        //        if (!state.ContentLength.HasValue)
-        //        {
-        //            var header = new TcpRequestHeader(state.Buffer);
-        //            state.Header = header;
-        //            state.ContentLength = header.ContentLength;
-        //        }
-        //        else
-        //        {
-        //            state.ReceivedData.Write(state.Buffer, 0, bytesRead);
-        //        }
-
-        //        if (state.ReceivedData.Position >= state.ContentLength)
-        //        {
-        //            bool more = false;
-
-        //            using (var tcpResponse = new TcpResponse(_compression))
-        //            {
-        //                var executeTask = ExecuteRequest(state, tcpResponse);
-
-        //                executeTask.Wait();
-
-        //                more = executeTask.Result;
-
-        //                state.Reset();
-        //            }
-
-        //            if (more)
-        //            {
-        //                DebugOutput.LogVerbose("Waiting for more data");
-
-        //                state.ClientSocket
-        //                    .BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-        //                        ReadCallback, state);
-        //            }
-        //            else
-        //            {
-        //                DebugOutput.Log("Ending conversation");
-        //                state.ClientSocket.Disconnect(true);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            DebugOutput.LogVerbose("Received {0} so far, expecting {1}...", state.ReceivedData.Position, state.ContentLength);
-
-        //            state.ClientSocket.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0,
-        //               ReadCallback, state);
-        //        }
-        //    }
-        //}
-
         private async Task<bool> ExecuteRequest(TcpReceiveContext state, TcpResponse tcpResponse)
         {
             var more = await Process(state, tcpResponse);

@@ -36,7 +36,14 @@ namespace LinqInfer.Data
 
             lock (key)
             {
-                return new FileStream(GetFilePath(key).FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var file = GetFilePath(key);
+
+                if (!file.Exists)
+                {
+                    throw new KeyNotFoundException(key);
+                }
+
+                return new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
         }
 
