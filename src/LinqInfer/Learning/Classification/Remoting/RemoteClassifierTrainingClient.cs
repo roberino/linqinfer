@@ -31,6 +31,11 @@ namespace LinqInfer.Learning.Classification.Remoting
             if (_client != null) _client.Dispose();
         }
 
+        public Uri CreateUri(string name)
+        {
+            return new Uri(_serverEndpoint, Uri.EscapeUriString(name));
+        }
+
         public async Task<bool> Delete(Uri uri)
         {
             Contract.Requires(uri != null);

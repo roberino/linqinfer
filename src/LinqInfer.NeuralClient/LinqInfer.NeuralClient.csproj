@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LinqInfer.NeuralClient</RootNamespace>
-    <AssemblyName>LinqInfer.NeuralClient</AssemblyName>
+    <AssemblyName>Neuro</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -43,7 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClassifyCommand.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="CommandMapper.cs" />
+    <Compile Include="DeleteCommand.cs" />
+    <Compile Include="PushCommand.cs" />
+    <Compile Include="EchoCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
