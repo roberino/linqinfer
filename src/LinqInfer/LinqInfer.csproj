@@ -75,9 +75,12 @@
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
+    <Compile Include="Data\Remoting\IOwinApplication.cs" />
+    <Compile Include="Data\Remoting\IOwinContext.cs" />
     <Compile Include="Data\Remoting\IServer.cs" />
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\OwinContext.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
     <Compile Include="Data\Remoting\TransportProtocol.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
@@ -92,6 +95,7 @@
     <Compile Include="Data\Remoting\UriRoutingTemplate.cs" />
     <Compile Include="Data\Remoting\Util.cs" />
     <Compile Include="Data\Remoting\VectorTransferClient.cs" />
+    <Compile Include="Data\Remoting\HttpServer.cs" />
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />

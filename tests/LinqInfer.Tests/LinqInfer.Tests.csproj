@@ -113,6 +113,7 @@
     <Compile Include="Text\TextExtensionsTests.cs" />
     <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />
     <Compile Include="Text\WordGraphTests.cs" />
+    <Compile Include="Utility\ConstrainableDictionaryTests.cs" />
     <Compile Include="Utility\DictionarySerialiserTests.cs" />
     <Compile Include="Utility\LinqExtensionsTests.cs" />
   </ItemGroup>

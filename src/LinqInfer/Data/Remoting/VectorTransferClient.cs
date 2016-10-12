@@ -16,7 +16,7 @@ namespace LinqInfer.Data.Remoting
 
         private ICompressionProvider _compression;
 
-        public VectorTransferClient(string clientId = null, int port = VectorTransferServer.DefaultPort, string host = "127.0.0.1")
+        public VectorTransferClient(string clientId = null, int port = VectorTransferServer.DefaultTcpPort, string host = "127.0.0.1")
         {
             _clientId = clientId ?? Util.GenerateId();
             _endpoint = VectorTransferServer.GetEndpoint(host, port);

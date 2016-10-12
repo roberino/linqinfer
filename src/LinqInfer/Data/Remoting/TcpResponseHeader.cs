@@ -11,14 +11,14 @@ namespace LinqInfer.Data.Remoting
         private const string HttpHead = "HTTP/1.1";
         private const string ContentLengthHeader = "Content-Length";
 
-        public readonly IDictionary<string, string> _headers;
+        public readonly IDictionary<string, string[]> _headers;
 
         private Func<long> _contentLength;
 
-        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string> headers = null)
+        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null)
         {
             _contentLength = contentLength;
-            _headers = headers ?? new Dictionary<string, string>();
+            _headers = headers ?? new Dictionary<string, string[]>();
 
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
@@ -29,9 +29,11 @@ namespace LinqInfer.Data.Remoting
 
         public Encoding TextEncoding { get; set; }
 
-        public IDictionary<string, string> Headers { get { return _headers; } }
+        public IDictionary<string, string[]> Headers { get { return _headers; } }
 
         public bool IsError { get; set; }
+
+        public int? StatusCode { get; set; }
 
         public TransportProtocol TransportProtocol { get; internal set; }
 
@@ -54,8 +56,8 @@ namespace LinqInfer.Data.Remoting
 
             header.AppendLine(HttpHead + " " + (IsError ? Error : Ok));
 
-            _headers[ContentLengthHeader] = _contentLength().ToString();
-            _headers["Date"] = date;
+            _headers[ContentLengthHeader] = new [] { _contentLength().ToString() };
+            _headers["Date"] = new[] { date };
 
             if (MimeType != null)
             {
@@ -66,17 +68,25 @@ namespace LinqInfer.Data.Remoting
                     contentType += "; charset=" + TextEncoding.BodyName.ToLower();
                 }
 
-                _headers["Content-Type"] = contentType;
+                _headers["Content-Type"] = new[] { contentType };
             }
 
             foreach (var headerKv in _headers)
             {
-                header.AppendLine(headerKv.Key + ':' + headerKv.Value);
+                header.AppendLine(headerKv.Key + ':' + ArrayToString(headerKv.Value));
             }
 
             header.AppendLine();
 
             return header.ToString();
+        }
+
+        private string ArrayToString(string[] data)
+        {
+            if (data == null) return null;
+
+            return string.Join(", ", data);
+            //return data.Aggregate(string.Empty, (s, v) => (s.Length > 0 ? s + ", " : s) + v).ToString();
         }
     }
 }

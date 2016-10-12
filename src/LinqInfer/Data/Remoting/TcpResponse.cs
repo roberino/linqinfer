@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LinqInfer.Data.Remoting
 {
-    public class TcpResponse : IDisposable
+    public sealed class TcpResponse : IDisposable
     {
         private readonly Stream _innerStream;
         private readonly Stream _responseStream;
@@ -19,7 +19,7 @@ namespace LinqInfer.Data.Remoting
 
             _header = new TcpResponseHeader(() => _innerStream.Length);
 
-            if (compression.Name != null) _header.Headers["Content-Encoding"] = compression.Name;
+            if (compression.Name != null) _header.Headers["Content-Encoding"] = new[] { compression.Name };
         }
 
         internal TcpResponse(Stream responseStream = null)

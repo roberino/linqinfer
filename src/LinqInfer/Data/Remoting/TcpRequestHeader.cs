@@ -8,18 +8,18 @@ using System.Text.RegularExpressions;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class TcpRequestHeader
+    public sealed class TcpRequestHeader
     {
         private static readonly Regex _httpHeaderTest;
 
         static TcpRequestHeader()
         {
-            _httpHeaderTest = new Regex(@"(GET|POST|PUT|OPTIONS|DELETE)\s+([^\s]+)\s+HTTP\/1.\d", RegexOptions.Singleline | RegexOptions.Compiled);
+            _httpHeaderTest = new Regex(@"(GET|POST|PUT|OPTIONS|DELETE)\s+([^\s]+)\s+HTTP\/(1.\d)", RegexOptions.Singleline | RegexOptions.Compiled);
         }
 
         public TcpRequestHeader(byte[] data)
         {
-            Headers = new Dictionary<string, string>();
+            Headers = new Dictionary<string, string[]>();
             TransportProtocol = TransportProtocol.Tcp;
             Path = "/";
 
@@ -35,6 +35,7 @@ namespace LinqInfer.Data.Remoting
 
                     ReadHttpHeaders(http.First().Groups[2].Value, ascii);
                     HttpVerb = http.First().Groups[1].Value;
+                    HttpProtocol = http.First().Groups[3].Value;
                     HeaderLength = ascii.IndexOf("\n\n") + 2;
                 }
                 else
@@ -74,11 +75,13 @@ namespace LinqInfer.Data.Remoting
 
         public string HttpVerb { get; private set; }
 
+        public string HttpProtocol { get; private set; }
+
         public string Path { get; private set; }
 
         public TransportProtocol TransportProtocol { get; private set; }
 
-        public IDictionary<string, string> Headers { get; private set; }
+        public IDictionary<string, string[]> Headers { get; private set; }
 
         public long ContentLength { get; private set; }
 
@@ -102,16 +105,16 @@ namespace LinqInfer.Data.Remoting
                     else
                     {
                         var split = line.IndexOf(':');
-                        Headers[line.Substring(0, split)] = line.Substring(split + 1).Trim();
+                        Headers[line.Substring(0, split)] = new string[] { line.Substring(split + 1).Trim() };
                     }
                 }
             }
 
-            string contentLen;
+            string[] contentLen;
 
-            if (Headers.TryGetValue("Content-Length", out contentLen))
+            if (Headers.TryGetValue("Content-Length", out contentLen) && contentLen.Length > 0)
             {
-                ContentLength = long.Parse(contentLen);
+                ContentLength = long.Parse(contentLen[0]);
             }
 
             Path = path;
