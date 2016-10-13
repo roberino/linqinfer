@@ -5,18 +5,18 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class RoutingTable
+    internal class RoutingTable<T>
     {
         private readonly IList<Route> _routes;
-        private readonly Func<DataBatch, TcpResponse, Task<bool>> _defaultRoute;
+        private readonly Func<IDictionary<string, string>, T, Task<bool>> _defaultRoute;
 
-        public RoutingTable(Func<DataBatch, TcpResponse, Task<bool>> defaultRoute = null)
+        public RoutingTable(Func<IDictionary<string, string>, T, Task<bool>> defaultRoute = null)
         {
             _routes = new List<Route>();
             _defaultRoute = defaultRoute;
         }
 
-        public Func<DataBatch, TcpResponse, Task<bool>> Map(Uri uri, Verb verb = Verb.Default)
+        public Func<T, Task<bool>> Map(Uri uri, Verb verb = Verb.Default)
         {
             foreach (var route in _routes)
             {
@@ -24,26 +24,21 @@ namespace LinqInfer.Data.Remoting
 
                 if (route.Template.TryMap(uri, verb, out parameters))
                 {
-                    return (d, s) =>
+                    return (c) =>
                     {
-                        foreach (var parameter in parameters)
-                        {
-                            d.Properties[parameter.Key.ToLower()] = parameter.Value;
-                        }
-
                         DebugOutput.Log("Using handler {0} {1} => {2}", route.Template.Route.Verbs, route.Template.Route.Template, route.Handler.Method.Name);
 
-                        return route.Handler(d, s);
+                        return route.Handler(parameters, c);
                     };
                 }
             }
 
-            if (_defaultRoute != null) return _defaultRoute;
+            if (_defaultRoute != null) return c => _defaultRoute(new Dictionary<string, string>(), c);
 
             throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
         }
 
-        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
+        public void AddHandler(UriRoute route, Func<IDictionary<string, string>, T, Task<bool>> handler)
         {
             _routes.Add(new Route()
             {
@@ -56,7 +51,7 @@ namespace LinqInfer.Data.Remoting
         {
             public UriRoutingTemplate Template { get; set; }
 
-            public Func<DataBatch, TcpResponse, Task<bool>> Handler { get; set; }
+            public Func<IDictionary<string, string>, T, Task<bool>> Handler { get; set; }
         }
     }
 }

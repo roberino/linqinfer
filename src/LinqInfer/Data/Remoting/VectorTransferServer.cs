@@ -10,22 +10,32 @@ namespace LinqInfer.Data.Remoting
     {
         public const int DefaultTcpPort = 9012;
 
-        private readonly RoutingTable _routes;
+        private readonly RoutingTable<IOwinContext> _routes;
 
         public VectorTransferServer(string serverId = null, int port = DefaultTcpPort, string host = "127.0.0.1")
             : base(serverId, port, host)
         {
-            _routes = new RoutingTable();
+            _routes = new RoutingTable<IOwinContext>();
         }
 
         public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
         {
-            _routes.AddHandler(route, (b, r) => Task.FromResult(handler(b, r)));
+            AddAsyncHandler(route, (b, r) => Task.FromResult(handler(b, r)));
         }
 
         public void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
         {
-            _routes.AddHandler(route, handler);
+            _routes.AddHandler(route, (p, c) =>
+            {
+                var doc = c["ext.DataBatch"] as DataBatch;
+
+                foreach (var parameter in p)
+                {
+                    doc.Properties[parameter.Key.ToLower()] = parameter.Value;
+                }
+
+                return handler(doc, c.Response);
+            });
         }
 
         private async Task EndRequest(DataBatch endBatch)
@@ -48,7 +58,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        protected override async Task<bool> Process(IOwinContext context)
+        private DataBatch ParseRequest(IOwinContext context)
         {
             var doc = new DataBatch();
 
@@ -56,6 +66,8 @@ namespace LinqInfer.Data.Remoting
                 if (context.RequestHeader.ContentLength > 0)
                 {
                     doc.Load(context.RequestBody);
+
+                    ((OwinContext)context).Path = doc.Path;
                 }
                 else
                 {
@@ -66,9 +78,18 @@ namespace LinqInfer.Data.Remoting
                 }
             }
 
+            return doc;
+        }
+
+        protected override async Task<bool> Process(IOwinContext context)
+        {
+            var doc = ParseRequest(context);
+
             DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
 
-            var handler = _routes.Map(new Uri(_baseEndpoint, doc.Path), doc.Verb);
+            context["ext.DataBatch"] = doc;
+
+            var handler = _routes.Map(new Uri(_baseEndpoint, context.RequestHeader.Path), doc.Verb);
 
             if (handler == null)
             {
@@ -76,8 +97,6 @@ namespace LinqInfer.Data.Remoting
 
                 return false;
             }
-
-            DebugOutput.Log("Invoking handler");
 
             using (var mutex = new Mutex(true, doc.Id))
             {
@@ -87,7 +106,7 @@ namespace LinqInfer.Data.Remoting
                     {
                         throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
                     }
-                    var res = await handler.Invoke(doc, context.Response);
+                    var res = await handler.Invoke(context);
                 }
                 finally
                 {

@@ -10,5 +10,6 @@ namespace LinqInfer.Data.Remoting
         TcpRequestHeader RequestHeader { get; }
         Uri RequestUri { get; }
         TcpResponse Response { get; }
+        void Cancel();
     }
 }

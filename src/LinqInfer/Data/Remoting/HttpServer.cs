@@ -45,7 +45,7 @@ namespace LinqInfer.Data.Remoting
 
         protected virtual Uri GetBaseUri(int port, string host)
         {
-            return new Uri("tcp://" + host + ":" + port);
+            return new Uri(Uri.UriSchemeHttp + Uri.SchemeDelimiter + host + ":" + port);
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)

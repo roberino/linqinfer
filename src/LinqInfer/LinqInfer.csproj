@@ -74,6 +74,7 @@
     <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\HttpApplicationHost.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />
     <Compile Include="Data\Remoting\IOwinContext.cs" />

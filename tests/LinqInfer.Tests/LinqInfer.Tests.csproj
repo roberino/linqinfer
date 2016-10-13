@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocumentTests.cs" />
+    <Compile Include="Data\Remoting\HttpApplicationHostTests.cs" />
     <Compile Include="Data\Remoting\RemotingExtensionsTests.cs" />
     <Compile Include="Data\Remoting\TcpRequestHeaderTests.cs" />
     <Compile Include="Data\Remoting\UriRouteParserTests.cs" />

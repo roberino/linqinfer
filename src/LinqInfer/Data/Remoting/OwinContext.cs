@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 
 namespace LinqInfer.Data.Remoting
@@ -13,16 +14,23 @@ namespace LinqInfer.Data.Remoting
             RequestBody = requestBody;
             Response = response;
 
-            var pathBits = header.Path.Split('?');
-
             this["owin.RequestHeaders"] = header.Headers;
+
+            if (!header.Headers.ContainsKey("Host"))
+            {
+                if (clientBaseUri != null)
+                {
+                    SetRequestUri(clientBaseUri, header.Path);
+                }
+            }
+            else
+            {
+                SetRequestUri(new Uri(header.TransportProtocol.ToString().ToLower() + Uri.SchemeDelimiter + header.Headers["Host"][0]), header.Path);
+            }
+
             this["owin.RequestMethod"] = header.HttpVerb;
             this["owin.RequestBody"] = requestBody;
-            this["owin.RequestPath"] = pathBits.Length > 0 ? pathBits[0] : "/";
-            this["owin.RequestQueryString"] = pathBits.Length > 1 ? pathBits[1] : string.Empty;
-            this["owin.RequestPathBase"] = string.Empty;
             this["owin.RequestProtocol"] = "HTTP/" + header.HttpProtocol;
-            this["owin.RequestScheme"] = header.TransportProtocol == TransportProtocol.Http ? Uri.UriSchemeHttp : "tcp";
 
             this["owin.ResponseBody"] = response.Content;
             this["owin.ResponseHeaders"] = response.Header.Headers;
@@ -32,27 +40,36 @@ namespace LinqInfer.Data.Remoting
             this["owin.CallCancelled"] = false;
             this["owin.Version"] = "OWIN 1.0";
 
-            if (!header.Headers.ContainsKey("Host"))
-            {
-                if (clientBaseUri != null)
-                {
-                    header.Headers["Host"] = new[] { clientBaseUri.Host };
-                    RequestUri = GetRequestUri();
-                }
-            }
-            else
-            {
-                RequestUri = GetRequestUri();
-            }
-
             LockKey("owin.Version");
             LockKey("owin.ResponseHeaders");
-            LockKey("owin.ResponseBody");
+            LockKey("owin.RequestMethod");
+            LockKey("owin.RequestProtocol");
+            LockKey("owin.RequestScheme");
 
             EnforceType<string>("owin.ResponseReasonPhrase");
             EnforceType<int>("owin.ResponseStatusCode");
+            EnforceType<bool>("owin.CallCancelled");
+        }
 
-            AddContraint((k, v) => !k.StartsWith("owin.Request"));
+        internal string Path
+        {
+            get
+            {
+                return this["owin.RequestPath"] as string;
+            }
+            set
+            {
+                Contract.Requires(value != null);
+
+                var p = value.StartsWith("/") ? value : "/" + value;
+                RequestHeader.Path = p;
+                SetRequestUri(RequestUri, p, false);
+            }
+        }
+
+        public void Cancel()
+        {
+            this["owin.CallCancelled"] = true;
         }
 
         public Uri RequestUri { get; private set; }
@@ -60,23 +77,24 @@ namespace LinqInfer.Data.Remoting
         public Stream RequestBody { get; private set; }
         public TcpResponse Response { get; private set; }
 
-        private Uri GetRequestUri(string host = null)
+        private Uri SetRequestUri(Uri baseUri, string pathAndQuery, bool setBaseUriParts = true)
         {
-            var headers = this["owin.RequestHeaders"] as IDictionary<string, string[]>;
-
-            var uri =
-               (string)this["owin.RequestScheme"] +
-               Uri.SchemeDelimiter +
-               (host ?? headers["Host"][0]) +
-               (string)this["owin.RequestPathBase"] +
-               (string)this["owin.RequestPath"];
-
-            if (!string.IsNullOrEmpty(this["owin.RequestQueryString"] as string))
+            if (setBaseUriParts)
             {
-                uri += "?" + (string)this["owin.RequestQueryString"];
+                var headers = this["owin.RequestHeaders"] as IDictionary<string, string[]>;
+
+                this["owin.RequestScheme"] = baseUri.Scheme;
+                this["owin.RequestPathBase"] = string.Empty;
+                headers["Host"] = new[] { baseUri.Host };
             }
 
-            return new Uri(uri);
+            RequestUri = new Uri(baseUri, pathAndQuery);
+            
+            this["owin.RequestPath"] = RequestUri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
+
+            this["owin.RequestQueryString"] = RequestUri.Query;
+
+            return RequestUri;
         }
 
         internal void Syncronise(TcpResponse response)

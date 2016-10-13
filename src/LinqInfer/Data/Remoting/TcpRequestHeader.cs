@@ -19,7 +19,7 @@ namespace LinqInfer.Data.Remoting
 
         public TcpRequestHeader(byte[] data)
         {
-            Headers = new Dictionary<string, string[]>();
+            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             TransportProtocol = TransportProtocol.Tcp;
             Path = "/";
 
@@ -77,7 +77,7 @@ namespace LinqInfer.Data.Remoting
 
         public string HttpProtocol { get; private set; }
 
-        public string Path { get; private set; }
+        public string Path { get; internal set; }
 
         public TransportProtocol TransportProtocol { get; private set; }
 
@@ -105,7 +105,8 @@ namespace LinqInfer.Data.Remoting
                     else
                     {
                         var split = line.IndexOf(':');
-                        Headers[line.Substring(0, split)] = new string[] { line.Substring(split + 1).Trim() };
+                        var name = line.Substring(0, split);
+                        Headers[name] = SplitHeader(name, line.Substring(split + 1).Trim());
                     }
                 }
             }
@@ -119,6 +120,22 @@ namespace LinqInfer.Data.Remoting
 
             Path = path;
             TransportProtocol = TransportProtocol.Http;
+        }
+
+        private string[] SplitHeader(string name, string values)
+        {
+            if (values == null) return new string[0];
+
+            if (name.StartsWith("Accept", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return values.Split(',');
+            }
+            if (name.Equals("Cookie", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return values.Split(';');
+            }
+
+            return new[] { values };
         }
     }
 }

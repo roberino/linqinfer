@@ -18,7 +18,7 @@ namespace LinqInfer.Data.Remoting
         internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null)
         {
             _contentLength = contentLength;
-            _headers = headers ?? new Dictionary<string, string[]>();
+            _headers = headers ?? new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
 
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
