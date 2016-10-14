@@ -156,14 +156,23 @@ namespace LinqInfer.Data.Remoting
 
                 // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
-            catch
+            catch(Exception ex)
             {
-                if (_status == ServerStatus.Running)
+                if (!HandleTransportError(ex))
                 {
-                    _status = ServerStatus.Error;
                     throw;
                 }
             }
+        }
+
+        protected virtual bool HandleTransportError(Exception ex)
+        {
+            if (_status == ServerStatus.Running)
+            {
+                _status = ServerStatus.Error;
+            }
+
+            return false;
         }
 
         private async Task ProcessTcpRequest(Socket clientSocket)

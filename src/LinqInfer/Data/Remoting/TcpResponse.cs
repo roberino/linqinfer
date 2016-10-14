@@ -19,7 +19,11 @@ namespace LinqInfer.Data.Remoting
 
             _header = new TcpResponseHeader(() => _innerStream.Length);
 
-            if (compression.Name != null) _header.Headers["Content-Encoding"] = new[] { compression.Name };
+            if (compression.Name != null)
+            {
+                _header.Headers["Content-Encoding"] = new[] { compression.Name };
+                _header.Headers["Vary"] = new[] { "Accept-Encoding" };
+            }
         }
 
         internal TcpResponse(Stream responseStream = null)
@@ -34,12 +38,25 @@ namespace LinqInfer.Data.Remoting
 
         public Stream Content { get { return _responseStream; } }
 
+        public void CreateStatusResponse(int status)
+        {
+            Header.StatusCode = status;
+        }
+
         public TextWriter CreateTextResponse(Encoding encoding = null)
         {
-            Header.TextEncoding = encoding ?? Encoding.UTF8;
-            Header.MimeType = "text/plain";
+            if (_text == null || (encoding != null && _text.Encoding != encoding))
+            {
+                if (_text != null)
+                {
+                    _text.Flush();
+                }
 
-            _text = new StreamWriter(Content, Header.TextEncoding, 1024, true);
+                Header.TextEncoding = encoding ?? Encoding.UTF8;
+                Header.MimeType = "text/plain";
+
+                _text = new StreamWriter(Content, Header.TextEncoding, 1024, true);
+            }
 
             return _text;
         }

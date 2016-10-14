@@ -24,6 +24,7 @@ namespace LinqInfer.Tests.Data.Remoting
                 });
             }
         }
+
         [Test]
         public async Task SendBasicRequest_RespondsAsExpected()
         {
@@ -36,30 +37,88 @@ namespace LinqInfer.Tests.Data.Remoting
                     writer.Write("hi");
 
                     return Task.FromResult(0);
+                }, OwinPipelineStage.PreHandlerExecute);
+
+                host.Start();
+
+                var text = await InvokeUrl(new Uri("http://localhost:9032/"));
+
+                Assert.That(text, Is.EqualTo("hi"));
+            }
+        }
+
+        [Test]
+        public async Task Send_UsingRoutingHandler()
+        {
+            using (var host = new HttpApplicationHost("123", 9032))
+            {
+                var routingHandler = new RoutingHandler();
+
+                host.AddComponent(routingHandler.CreateApplicationDelegate());
+
+                routingHandler.AddRoute(new UriRoute(new Uri(Uri.UriSchemeHttp + Uri.SchemeDelimiter + "localhost:9032"), "/route/{param1}"), c =>
+                {
+                    c.Response.CreateTextResponse().Write("Hi " + c["route.param1"]);
+
+                    return Task.FromResult(0);
                 });
 
                 host.Start();
 
-                using (var client = new HttpClient())
+                var text = await InvokeUrl(new Uri("http://localhost:9032/route/123"));
+
+                Assert.That(text, Is.EqualTo("Hi 123"));
+            }
+        }
+
+        [Test]
+        public async Task Send_MultipleComponents_RespondsAsExpected()
+        {
+            using (var host = new HttpApplicationHost("123", 9032))
+            {
+                host.AddComponent(c =>
                 {
-                    client.BaseAddress = new Uri("http://localhost:9032/");
+                    var writer = c.Response.CreateTextResponse();
 
-                    var response = await client.SendAsync(new HttpRequestMessage()
-                    {
-                        RequestUri = client.BaseAddress
-                    });
+                    writer.Write("hi");
 
-                    var encoding = response.Headers.GetValues("Content-Type");
+                    return Task.FromResult(0);
+                }, OwinPipelineStage.PreHandlerExecute);
 
-                    foreach(var s in encoding)
-                    {
-                        Console.WriteLine(s);
-                    }
+                host.AddComponent(c =>
+                {
+                    var writer = c.Response.CreateTextResponse();
 
-                    var text = await response.Content.ReadAsStringAsync();
+                    writer.Write(" there");
 
-                    Assert.That(text, Is.EqualTo("hi"));
+                    return Task.FromResult(0);
+                }, OwinPipelineStage.PostHandlerExecute);
+
+                host.Start();
+
+                var text = await InvokeUrl(new Uri("http://localhost:9032/"));
+
+                Assert.That(text, Is.EqualTo("hi there"));
+            }
+        }
+
+        private async Task<string> InvokeUrl(Uri url)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = url;
+
+                var response = await client.SendAsync(new HttpRequestMessage()
+                {
+                    RequestUri = client.BaseAddress
+                });
+
+                foreach (var s in response.Headers)
+                {
+                    Console.WriteLine(s);
                 }
+
+                return await response.Content.ReadAsStringAsync();
             }
         }
     }

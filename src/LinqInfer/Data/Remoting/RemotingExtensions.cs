@@ -27,7 +27,7 @@ namespace LinqInfer.Data.Remoting
         /// </summary>
         public static async Task SendTo<T>(this FeatureProcessingPipline<T> pipeline, Uri endpoint) where T : class
         {
-            Util.ValidateUri(endpoint);
+            Util.ValidateTcpUri(endpoint);
 
             using (var client = new VectorTransferClient(null, endpoint.Port, endpoint.Host))
             {
@@ -47,6 +47,13 @@ namespace LinqInfer.Data.Remoting
             return new UriRoute(endpoint, routeTemplate);
         }
 
+        public static IOwinApplication CreateHttpApplication(this Uri endpoint)
+        {
+            Util.ValidateHttpUri(endpoint);
+
+            return new HttpApplicationHost(null, endpoint.Port, endpoint.Host);
+        }
+
         public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, Stream, bool> messageHandler, bool startService = true)
         {
             return CreateRemoteService(new UriRoute(endpoint), messageHandler, startService);
@@ -56,7 +63,7 @@ namespace LinqInfer.Data.Remoting
         {
             var endpoint = route.BaseUri;
 
-            Util.ValidateUri(endpoint);
+            Util.ValidateTcpUri(endpoint);
 
             var key = endpoint.Host + ':' + endpoint.Port;
             var server = _defaultServers.GetOrAdd(endpoint.Host + ':' + endpoint.Port, e => new VectorTransferServer(null, endpoint.Port, endpoint.Host));

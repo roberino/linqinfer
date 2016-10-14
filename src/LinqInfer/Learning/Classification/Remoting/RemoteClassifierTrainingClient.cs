@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
         public RemoteClassifierTrainingClient(Uri serverEndpoint)
         {
-            Util.ValidateUri(serverEndpoint);
+            Util.ValidateTcpUri(serverEndpoint);
 
             _serverEndpoint = serverEndpoint;
 

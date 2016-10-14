@@ -7,28 +7,21 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpApplicationHost : HttpServer
+    internal class HttpApplicationHost : HttpServer, IOwinApplication
     {
         private readonly IList<Middleware> _handlers;
+        private readonly IList<Func<IOwinContext, Exception, Task<bool>>> _errorHandlers;
 
         public HttpApplicationHost(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
             : base(serverId, port, host)
         {
             _handlers = new List<Middleware>();
+            _errorHandlers = new List<Func<IOwinContext, Exception, Task<bool>>>();
+
+            CompressUsing(new PassThruCompressionProvider());
         }
 
-        public void AddComponent(Func<IOwinContext, Task> handler)
-        {
-            Contract.Ensures(handler != null);
-
-            _handlers.Add(new Middleware()
-            {
-                Handler = c => handler(((IOwinContext)c)),
-                Stage = PipelineStage.PreHandlerExecute
-            });
-        }
-
-        public void AddComponent(Func<IDictionary<string, object>, Task> handler, PipelineStage stage)
+        public void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute)
         {
             Contract.Ensures(handler != null);
 
@@ -37,6 +30,28 @@ namespace LinqInfer.Data.Remoting
                 Handler = handler,
                 Stage = stage
             });
+        }
+
+        public void AddComponent(Func<IDictionary<string, object>, Task> handler, OwinPipelineStage stage)
+        {
+            Contract.Ensures(handler != null);
+
+            _handlers.Add(new Middleware()
+            {
+                Handler = handler,
+                Stage = stage
+            });
+        }
+
+        public void AddErrorHandler(Func<IOwinContext, Exception, Task<bool>> errorHandler)
+        {
+            _errorHandlers.Add(errorHandler);
+        }
+
+        protected override bool HandleTransportError(Exception ex)
+        {
+            DebugOutput.Log(ex);
+            return true;
         }
 
         protected override async Task<bool> Process(IOwinContext context)
@@ -56,25 +71,26 @@ namespace LinqInfer.Data.Remoting
                 catch (Exception ex)
                 {
                     DebugOutput.Log(ex);
-                    return false;
+
+                    foreach (var err in _errorHandlers)
+                    {
+                        var handled = await err(context, ex);
+
+                        if (!handled)
+                        {
+                            context.Cancel();
+                        }
+                    }
                 }
             }
 
-            return true;
-        }
-
-        public enum PipelineStage
-        {
-            Authenticate = 0,
-            Authorize = 1,
-            PreHandlerExecute = 2,
-            PostHandlerExecute = 3
+            return false;
         }
 
         private class Middleware
         {
-            public PipelineStage Stage { get; set; }
-            public Func<IDictionary<string, object>, Task> Handler { get; set; }
+            public OwinPipelineStage Stage { get; set; }
+            public Func<IOwinContext, Task> Handler { get; set; }
         }
     }
 }

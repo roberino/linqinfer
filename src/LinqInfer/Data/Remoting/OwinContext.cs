@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Security.Claims;
+using System.Security.Principal;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -13,6 +15,7 @@ namespace LinqInfer.Data.Remoting
             RequestHeader = header;
             RequestBody = requestBody;
             Response = response;
+            User = new ClaimsPrincipal();
 
             this["owin.RequestHeaders"] = header.Headers;
 
@@ -50,6 +53,8 @@ namespace LinqInfer.Data.Remoting
             EnforceType<int>("owin.ResponseStatusCode");
             EnforceType<bool>("owin.CallCancelled");
         }
+
+        public ClaimsPrincipal User { get; set; }
 
         internal string Path
         {

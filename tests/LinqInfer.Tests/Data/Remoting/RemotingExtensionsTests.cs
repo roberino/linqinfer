@@ -12,6 +12,19 @@ namespace LinqInfer.Tests.Data.Remoting
     [TestFixture]
     public class RemotingExtensionsTests
     {
+        public void CreateHttpApplication_ReturnsValidInstance()
+        {
+            var endpoint = new Uri("http://localhost:9101/my-service");
+
+            var app = endpoint.CreateHttpApplication();
+
+            Assert.That(app, Is.Not.Null);
+
+            app.AddComponent(c => Task.FromResult(0), OwinPipelineStage.Authenticate);
+
+            app.Dispose();
+        }
+
         [Test]
         public async Task CreateRemoteService_SendTo()
         {

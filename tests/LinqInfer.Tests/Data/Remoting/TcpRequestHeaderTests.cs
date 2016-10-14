@@ -16,7 +16,7 @@ namespace LinqInfer.Tests.Data.Remoting
             Assert.That(header.HeaderLength, Is.EqualTo(442));
             Assert.That(header.Path, Is.EqualTo("/status"));
             Assert.That(header.TransportProtocol, Is.EqualTo(TransportProtocol.Http));
-            Assert.That(header.Headers["Connection"], Is.EqualTo("keep-alive"));
+            Assert.That(header.Headers["Connection"][0], Is.EqualTo("keep-alive"));
         }
     }
 }

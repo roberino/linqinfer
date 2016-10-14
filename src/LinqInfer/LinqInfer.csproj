@@ -82,7 +82,9 @@
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
     <Compile Include="Data\Remoting\OwinContext.cs" />
+    <Compile Include="Data\Remoting\OwinPipelineStage.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\RoutingHandler.cs" />
     <Compile Include="Data\Remoting\TransportProtocol.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />

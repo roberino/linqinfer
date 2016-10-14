@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    public interface IOwinApplication
+    public interface IOwinApplication : IServer
     {
-        void Map(UriRoute route, Func<IOwinContext, Task> handler);
+        void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute);
     }
 }
