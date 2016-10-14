@@ -25,7 +25,7 @@ namespace LinqInfer.Tests.Data.Remoting
             }
         }
         [Test]
-        public async void SendBasicRequest_RespondsAsExpected()
+        public async Task SendBasicRequest_RespondsAsExpected()
         {
             using (var host = new HttpApplicationHost("123", 9032))
             {
@@ -33,10 +33,12 @@ namespace LinqInfer.Tests.Data.Remoting
                 {
                     var writer = c.Response.CreateTextResponse();
 
-                    writer.WriteLine("hi");
+                    writer.Write("hi");
 
                     return Task.FromResult(0);
                 });
+
+                host.Start();
 
                 using (var client = new HttpClient())
                 {
@@ -46,6 +48,17 @@ namespace LinqInfer.Tests.Data.Remoting
                     {
                         RequestUri = client.BaseAddress
                     });
+
+                    var encoding = response.Headers.GetValues("Content-Type");
+
+                    foreach(var s in encoding)
+                    {
+                        Console.WriteLine(s);
+                    }
+
+                    var text = await response.Content.ReadAsStringAsync();
+
+                    Assert.That(text, Is.EqualTo("hi"));
                 }
             }
         }

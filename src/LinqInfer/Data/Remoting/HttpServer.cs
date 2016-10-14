@@ -255,7 +255,20 @@ namespace LinqInfer.Data.Remoting
             {
                 var ip = ((IPEndPoint)endpoint);
 
-                return new Uri("tcp" + Uri.SchemeDelimiter + ip.Address.ToString() + ":" + ip.Port);
+                string host;
+
+                try
+                {
+                    var address = ip.Address.MapToIPv4();
+
+                    host = address.ToString();
+                }
+                catch
+                {
+                    host = "localhost";
+                }
+
+                return new Uri("tcp" + Uri.SchemeDelimiter + host + ":" + ip.Port);
             }
             return null;
         }
