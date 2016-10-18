@@ -87,6 +87,8 @@ namespace LinqInfer.Utility
                 Validate(key, value);
 
                 _innerDictionary[key] = value;
+
+                OnKeyUpdated(key);
             }
         }
 
@@ -127,6 +129,8 @@ namespace LinqInfer.Utility
             Validate(item.Key, item.Value);
 
             _innerDictionary.Add(item);
+
+            OnKeyUpdated(item.Key);
         }
 
         public void Add(K key, T value)
@@ -134,10 +138,16 @@ namespace LinqInfer.Utility
             Validate(key, value);
 
             _innerDictionary.Add(key, value);
+
+            OnKeyUpdated(key);
         }
 
         public void Clear()
         {
+            foreach (var kv in _innerDictionary)
+            {
+                Validate(kv.Key, kv.Value);
+            }
             _innerDictionary.Clear();
         }
 
@@ -163,12 +173,22 @@ namespace LinqInfer.Utility
 
         public bool Remove(KeyValuePair<K, T> item)
         {
-            return _innerDictionary.Remove(item);
+            if (_innerDictionary.Remove(item))
+            {
+                OnKeyUpdated(item.Key);
+                return true;
+            }
+            return false;
         }
 
         public bool Remove(K key)
         {
-            return _innerDictionary.Remove(key);
+            if (_innerDictionary.Remove(key))
+            {
+                OnKeyUpdated(key);
+                return true;
+            }
+            return false;
         }
 
         public bool TryGetValue(K key, out T value)
@@ -179,6 +199,13 @@ namespace LinqInfer.Utility
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _innerDictionary.GetEnumerator();
+        }
+
+        /// <summary>
+        /// Invoked whenever a value is updated for a key
+        /// </summary>
+        protected virtual void OnKeyUpdated(K key)
+        {
         }
 
         private void Validate(K key, T value)

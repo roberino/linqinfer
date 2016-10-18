@@ -9,10 +9,6 @@ namespace LinqInfer.Data.Remoting
 {
     public class TcpResponseHeader
     {
-        private const string Ok = "200 OK";
-        private const string NotFound = "404 Not Found";
-        private const string Error = "500 Internal Server Error";
-        private const string HttpHead = "HTTP/1.1";
         private const string ContentLengthHeader = "Content-Length";
         private const string ContentTypeHeader = "Content-Type";
 
@@ -28,6 +24,7 @@ namespace LinqInfer.Data.Remoting
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
             MimeType = "application/octet-stream";
+            HttpProtocol = "1.1";
         }
 
         public string MimeType { get; set; }
@@ -40,7 +37,11 @@ namespace LinqInfer.Data.Remoting
 
         public int? StatusCode { get; set; }
 
+        public string StatusText { get; set; }
+
         public TransportProtocol TransportProtocol { get; internal set; }
+
+        public string HttpProtocol { get; internal set; }
 
         public void CopyFrom(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
         {
@@ -62,39 +63,17 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private string GetStatus()
-        {
-            if (StatusCode.HasValue)
-            {
-                var status = (HttpStatusCode)StatusCode.Value;
-
-                switch (status)
-                {
-                    case HttpStatusCode.NotFound:
-                        return NotFound;
-                    case HttpStatusCode.InternalServerError:
-                        return Error;
-                    case HttpStatusCode.OK:
-                        return Ok;
-                    default:
-                        return string.Format("{0} {1}", StatusCode.Value, status.ToString());
-                }
-            }
-
-            return (IsError ? Error : Ok);
-        }
-
         private string GetHttpHeader()
         {
             var header = new StringBuilder();
 
             using (var formatter = new HttpHeaderFormatter(new StringWriter(header), true))
             {
-                header.AppendLine(HttpHead + " " + GetStatus());
-
-                _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
+                formatter.WriteResponseProtocolAndStatus(HttpProtocol, StatusCode.GetValueOrDefault(IsError ? 500 : 200), StatusText);
 
                 formatter.WriteDate();
+
+                _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
 
                 if (MimeType != null && !_headers.ContainsKey(ContentTypeHeader))
                 {

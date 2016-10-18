@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Text;
 
 namespace LinqInfer.Data.Remoting
 {
     internal class HttpHeaderFormatter : IDisposable
     {
+        private const string Ok = "200 OK";
+        private const string NotFound = "404 Not Found";
+        private const string Error = "500 Internal Server Error";
+        private const string HttpHead = "HTTP/{0} {1}";
+
         private readonly TextWriter _writer;
         private readonly bool _closeWriter;
 
@@ -38,6 +45,11 @@ namespace LinqInfer.Data.Remoting
             _writer.WriteLine(string.Format("{0} {1} HTTP {2}", httpVerb, path, httpProtocol));
         }
 
+        public void WriteResponseProtocolAndStatus(string httpProtocol, int statusCode, string statusText = null)
+        {
+            _writer.WriteLine(string.Format(HttpHead, httpProtocol, GetStatus(statusCode, statusText)));
+        }
+
         public void Dispose()
         {
             _writer.Flush();
@@ -47,6 +59,33 @@ namespace LinqInfer.Data.Remoting
                 _writer.Close();
                 _writer.Dispose();
             }
+        }
+
+        private string GetStatus(int statusCode, string statusText)
+        {
+            var status = (HttpStatusCode)statusCode;
+            var text = string.IsNullOrEmpty(statusText) ? CamelCaseSplit(status.ToString()) : statusText;
+
+            return string.Format("{0} {1}", statusCode, text);
+        }
+
+        private static string CamelCaseSplit(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+
+            var result = new StringBuilder();
+
+            foreach (var c in text)
+            {
+                if (char.IsUpper(c) && result.Length > 0)
+                {
+                    result.Append(' ');
+                }
+
+                result.Append(c);
+            }
+
+            return result.ToString();
         }
 
         private string FormatDate(DateTime date)

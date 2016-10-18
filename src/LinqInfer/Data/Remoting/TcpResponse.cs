@@ -8,17 +8,21 @@ namespace LinqInfer.Data.Remoting
     public sealed class TcpResponse : IDisposable
     {
         private readonly Stream _innerStream;
-        private readonly Stream _responseStream;
+        private readonly Stream _compressionStream;
         private readonly TcpResponseHeader _header;
 
         private TextWriter _text;
 
-        internal TcpResponse(ICompressionProvider compression)
+        internal TcpResponse(TcpRequestHeader requestHeader, ICompressionProvider compression)
         {
             _innerStream = new MemoryStream();
-            _responseStream = compression.CompressTo(_innerStream);
+            _compressionStream = compression.CompressTo(_innerStream);
 
-            _header = new TcpResponseHeader(() => _innerStream.Length);
+            _header = new TcpResponseHeader(() => _innerStream.Length)
+            {
+                TransportProtocol = requestHeader.TransportProtocol,
+                HttpProtocol = requestHeader.HttpProtocol
+            };
 
             if (compression.Name != null)
             {
@@ -27,17 +31,20 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        internal TcpResponse(Stream responseStream = null)
+        internal TcpResponse(TransportProtocol transportProtocol, Stream responseStream = null)
         {
-            _responseStream = responseStream ?? new MemoryStream();
-            _innerStream = _responseStream;
+            _compressionStream = responseStream ?? new MemoryStream();
+            _innerStream = _compressionStream;
 
-            _header = new TcpResponseHeader(() => _innerStream.Length);
+            _header = new TcpResponseHeader(() => _innerStream.Length)
+            {
+                 TransportProtocol = transportProtocol
+            };
         }
 
         public TcpResponseHeader Header { get { return _header; } }
 
-        public Stream Content { get { return _responseStream; } }
+        public Stream Content { get { return _compressionStream; } }
 
         public void CreateStatusResponse(int status)
         {
@@ -74,7 +81,9 @@ namespace LinqInfer.Data.Remoting
         internal Stream GetSendStream()
         {
             Flush();
-            _responseStream.Dispose();
+
+            if (!ReferenceEquals(_innerStream, _compressionStream)) _compressionStream.Dispose();
+
             _innerStream.Position = 0;
             return _innerStream;
         }
@@ -82,13 +91,13 @@ namespace LinqInfer.Data.Remoting
         internal void Flush()
         {
             if (_text != null) _text.Flush();
-            _responseStream.Flush();
+            _compressionStream.Flush();
             _innerStream.Flush();
         }
 
         public void Dispose()
         {
-            _responseStream.Dispose();
+            if (!ReferenceEquals(_innerStream, _compressionStream)) _compressionStream.Dispose();
             _innerStream.Dispose();
         }
     }

@@ -10,6 +10,8 @@ namespace LinqInfer.Data.Remoting
 {
     internal class OwinContext : ConstrainableDictionary<string, object>, IOwinContext
     {
+        private readonly bool ready;
+
         public OwinContext(TcpRequest request, TcpResponse response, Uri clientBaseUri = null)
         {
             var header = request.Header;
@@ -52,6 +54,8 @@ namespace LinqInfer.Data.Remoting
             EnforceType<string>("owin.ResponseReasonPhrase");
             EnforceType<int>("owin.ResponseStatusCode");
             EnforceType<bool>("owin.CallCancelled");
+
+            ready = true;
         }
 
         public ClaimsPrincipal User { get; set; }
@@ -107,9 +111,22 @@ namespace LinqInfer.Data.Remoting
             return RequestUri;
         }
 
-        internal void Syncronise(TcpResponse response)
+        protected override void OnKeyUpdated(string key)
         {
-            response.Header.StatusCode = (int)this["owin.ResponseStatusCode"];
+            if (!ready) return;
+
+            base.OnKeyUpdated(key);
+
+            if (key.StartsWith("owin.Response"))
+            {
+                Syncronise();
+            }
+        }
+
+        internal void Syncronise()
+        {
+            Response.Header.StatusCode = (int)this["owin.ResponseStatusCode"];
+            Response.Header.StatusText = this["owin.ResponseReasonPhrase"] as string;
         }
     }
 }

@@ -185,7 +185,7 @@ namespace LinqInfer.Data.Remoting
 
                 var state = await reader.ReadAsync();
 
-                using (var tcpResponse = new TcpResponse(_compression))
+                using (var tcpResponse = new TcpResponse(state.Header, _compression))
                 {
                     more = await ExecuteRequest(state, tcpResponse);
                 }
@@ -228,8 +228,6 @@ namespace LinqInfer.Data.Remoting
             var content = tcpResponse.GetSendStream();
 
             DebugOutput.Log("Sending response ({0} bytes)", content.Length);
-
-            tcpResponse.Header.TransportProtocol = state.Header.TransportProtocol;
 
             var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
 

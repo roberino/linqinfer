@@ -91,7 +91,7 @@ namespace LinqInfer.Data.Remoting
         {
             if (TransportProtocol == TransportProtocol.Http)
             {
-                using (var writer = new StreamWriter(output, Encoding.ASCII))
+                using (var writer = new StreamWriter(output, Encoding.ASCII, 1024, true))
                 {
                     using (var formatter = new HttpHeaderFormatter(writer))
                     {
@@ -103,7 +103,7 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
-                new BinaryWriter(output).Write(ContentLength);
+                new BinaryWriter(output, Encoding.UTF8, true).Write(ContentLength);
             }
         }
 
