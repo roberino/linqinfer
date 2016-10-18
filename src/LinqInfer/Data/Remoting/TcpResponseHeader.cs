@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -86,31 +87,30 @@ namespace LinqInfer.Data.Remoting
         private string GetHttpHeader()
         {
             var header = new StringBuilder();
-            var date = DateTime.UtcNow.ToUniversalTime().ToString("r");
 
-            header.AppendLine(HttpHead + " " + GetStatus());
-
-            _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
-            _headers["Date"] = new[] { date };
-
-            if (MimeType != null && !_headers.ContainsKey(ContentTypeHeader))
+            using (var formatter = new HttpHeaderFormatter(new StringWriter(header), true))
             {
-                var contentType = MimeType;
+                header.AppendLine(HttpHead + " " + GetStatus());
 
-                if (TextEncoding != null)
+                _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
+
+                formatter.WriteDate();
+
+                if (MimeType != null && !_headers.ContainsKey(ContentTypeHeader))
                 {
-                    contentType += "; charset=" + TextEncoding.BodyName.ToLower();
+                    var contentType = MimeType;
+
+                    if (TextEncoding != null)
+                    {
+                        contentType += "; charset=" + TextEncoding.BodyName.ToLower();
+                    }
+
+                    _headers[ContentTypeHeader] = new[] { contentType };
                 }
 
-                _headers[ContentTypeHeader] = new[] { contentType };
+                formatter.WriteHeaders(_headers);
+                formatter.WriteEnd();
             }
-
-            foreach (var headerKv in _headers)
-            {
-                header.AppendLine(headerKv.Key + ": " + ArrayToString(headerKv.Key, headerKv.Value));
-            }
-
-            header.AppendLine();
 
             return header.ToString();
         }

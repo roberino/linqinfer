@@ -204,11 +204,11 @@ namespace LinqInfer.Data.Remoting
 
         private async Task<bool> ExecuteRequest(TcpReceiveContext state, TcpResponse tcpResponse)
         {
-            bool keepAlive = false;
+            bool continueReceive = false;
 
             try
             {
-                keepAlive = await Process(state, tcpResponse);
+                continueReceive = await Process(state, tcpResponse);
             }
             catch (Exception ex)
             {
@@ -220,7 +220,7 @@ namespace LinqInfer.Data.Remoting
 
             await SendResponse(state, tcpResponse);
 
-            return keepAlive;
+            return continueReceive;
         }
 
         private async Task SendResponse(TcpReceiveContext state, TcpResponse tcpResponse)
@@ -251,11 +251,9 @@ namespace LinqInfer.Data.Remoting
                 requestBody = Stream.Null;
             }
 
-            var context = new OwinContext(state.Header, requestBody, response, GetUriEndpoint(state.ClientSocket.RemoteEndPoint));
+            var context = new OwinContext(new TcpRequest(state.Header, requestBody), response, GetUriEndpoint(state.ClientSocket.RemoteEndPoint));
 
-            var keepAlive = await Process(context);
-
-            return keepAlive;
+            return await Process(context);
         }
 
         private Uri GetUriEndpoint(EndPoint endpoint)

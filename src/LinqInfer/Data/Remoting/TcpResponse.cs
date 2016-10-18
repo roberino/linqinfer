@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -59,6 +60,15 @@ namespace LinqInfer.Data.Remoting
             }
 
             return _text;
+        }
+
+        internal async Task WriteTo(Stream output)
+        {
+            var header = _header.GetBytes();
+
+            output.Write(header, 0, header.Length);
+
+            await GetSendStream().CopyToAsync(output);
         }
 
         internal Stream GetSendStream()

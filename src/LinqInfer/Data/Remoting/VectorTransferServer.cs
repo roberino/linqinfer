@@ -63,9 +63,9 @@ namespace LinqInfer.Data.Remoting
             var doc = new DataBatch();
 
             {
-                if (context.RequestHeader.ContentLength > 0)
+                if (context.Request.Header.ContentLength > 0)
                 {
-                    doc.Load(context.RequestBody);
+                    doc.Load(context.Request.Content);
 
                     ((OwinContext)context).Path = doc.Path;
                 }
@@ -73,8 +73,8 @@ namespace LinqInfer.Data.Remoting
                 {
                     doc.Id = Util.GenerateId();
                     doc.BatchNum = 1;
-                    doc.Path = context.RequestHeader.Path;
-                    doc.Verb = context.RequestHeader.Verb;
+                    doc.Path = context.Request.Header.Path;
+                    doc.Verb = context.Request.Header.Verb;
                 }
             }
 
@@ -89,7 +89,7 @@ namespace LinqInfer.Data.Remoting
 
             context["ext.DataBatch"] = doc;
 
-            var handler = _routes.Map(new Uri(_baseEndpoint, context.RequestHeader.Path), doc.Verb);
+            var handler = _routes.Map(new Uri(_baseEndpoint, context.Request.Header.Path), doc.Verb);
 
             if (handler == null)
             {

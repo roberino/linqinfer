@@ -75,6 +75,7 @@
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
     <Compile Include="Data\Remoting\HttpApplicationHost.cs" />
+    <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />
     <Compile Include="Data\Remoting\IOwinContext.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Data\Remoting\OwinPipelineStage.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
     <Compile Include="Data\Remoting\RoutingHandler.cs" />
+    <Compile Include="Data\Remoting\TcpRequest.cs" />
     <Compile Include="Data\Remoting\TransportProtocol.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />

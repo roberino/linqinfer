@@ -31,10 +31,12 @@ namespace LinqInfer.Data.Remoting
 
                 if (http.Any())
                 {
-                    DebugOutput.Log(ascii);
+                    //DebugOutput.Log(ascii);
 
-                    ReadHttpHeaders(http.First().Groups[2].Value, ascii);
+                    ReadHttpHeaders(ascii);
+
                     HttpVerb = http.First().Groups[1].Value;
+                    Path = http.First().Groups[2].Value;
                     HttpProtocol = http.First().Groups[3].Value;
                     HeaderLength = ascii.IndexOf("\n\n") + 2;
                 }
@@ -85,7 +87,27 @@ namespace LinqInfer.Data.Remoting
 
         public long ContentLength { get; private set; }
 
-        private void ReadHttpHeaders(string path, string header)
+        internal void WriteTo(Stream output)
+        {
+            if (TransportProtocol == TransportProtocol.Http)
+            {
+                using (var writer = new StreamWriter(output, Encoding.ASCII))
+                {
+                    using (var formatter = new HttpHeaderFormatter(writer))
+                    {
+                        formatter.WriteRequestAndProtocol(HttpVerb, Path, HttpProtocol);
+                        formatter.WriteHeaders(Headers);
+                        formatter.WriteEnd();
+                    }
+                }
+            }
+            else
+            {
+                new BinaryWriter(output).Write(ContentLength);
+            }
+        }
+
+        private void ReadHttpHeaders(string header)
         {
             string line = null;
             var firstLineRead = false;
@@ -118,7 +140,6 @@ namespace LinqInfer.Data.Remoting
                 ContentLength = long.Parse(contentLen[0]);
             }
 
-            Path = path;
             TransportProtocol = TransportProtocol.Http;
         }
 

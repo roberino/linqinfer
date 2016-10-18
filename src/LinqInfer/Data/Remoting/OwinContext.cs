@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Claims;
-using System.Security.Principal;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
     internal class OwinContext : ConstrainableDictionary<string, object>, IOwinContext
     {
-        public OwinContext(TcpRequestHeader header, Stream requestBody, TcpResponse response, Uri clientBaseUri = null)
+        public OwinContext(TcpRequest request, TcpResponse response, Uri clientBaseUri = null)
         {
-            RequestHeader = header;
-            RequestBody = requestBody;
+            var header = request.Header;
+            Request = request;
             Response = response;
             User = new ClaimsPrincipal();
 
@@ -32,7 +32,7 @@ namespace LinqInfer.Data.Remoting
             }
 
             this["owin.RequestMethod"] = header.HttpVerb;
-            this["owin.RequestBody"] = requestBody;
+            this["owin.RequestBody"] = request.Content;
             this["owin.RequestProtocol"] = "HTTP/" + header.HttpProtocol;
 
             this["owin.ResponseBody"] = response.Content;
@@ -67,7 +67,7 @@ namespace LinqInfer.Data.Remoting
                 Contract.Requires(value != null);
 
                 var p = value.StartsWith("/") ? value : "/" + value;
-                RequestHeader.Path = p;
+                Request.Header.Path = p;
                 SetRequestUri(RequestUri, p, false);
             }
         }
@@ -78,9 +78,14 @@ namespace LinqInfer.Data.Remoting
         }
 
         public Uri RequestUri { get; private set; }
-        public TcpRequestHeader RequestHeader { get; private set; }
-        public Stream RequestBody { get; private set; }
+        public TcpRequest Request { get; private set; }
         public TcpResponse Response { get; private set; }
+
+        public async Task WriteTo(Stream output)
+        {
+            Request.Save(output);
+            await Response.WriteTo(output);
+        }
 
         private Uri SetRequestUri(Uri baseUri, string pathAndQuery, bool setBaseUriParts = true)
         {
