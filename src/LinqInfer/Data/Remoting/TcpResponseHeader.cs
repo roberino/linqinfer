@@ -25,6 +25,7 @@ namespace LinqInfer.Data.Remoting
 
             MimeType = "application/octet-stream";
             HttpProtocol = "1.1";
+            TextEncoding = Encoding.UTF8;
         }
 
         public string MimeType { get; set; }

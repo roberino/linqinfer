@@ -7,12 +7,12 @@ namespace LinqInfer.Data.Remoting
 {
     internal class RoutingTable<T>
     {
-        private readonly IList<Route> _routes;
+        private readonly IList<RouteHandlerPair> _routes;
         private readonly Func<IDictionary<string, string>, T, Task<bool>> _defaultRoute;
 
         public RoutingTable(Func<IDictionary<string, string>, T, Task<bool>> defaultRoute = null)
         {
-            _routes = new List<Route>();
+            _routes = new List<RouteHandlerPair>();
             _defaultRoute = defaultRoute;
         }
 
@@ -22,11 +22,11 @@ namespace LinqInfer.Data.Remoting
             {
                 IDictionary<string, string> parameters;
 
-                if (route.Template.TryMap(uri, verb, out parameters))
+                if (route.UriRoute.Mapper.TryMap(uri, verb, out parameters))
                 {
                     return (c) =>
                     {
-                        DebugOutput.Log("Using handler {0} {1} => {2}", route.Template.Route.Verbs, route.Template.Route.Template, route.Handler.Method.Name);
+                        DebugOutput.Log("Using handler {0} {1} => {2}", route.UriRoute.Verbs, route.UriRoute.Template, route.Handler.Method.Name);
 
                         return route.Handler(parameters, c);
                     };
@@ -38,18 +38,18 @@ namespace LinqInfer.Data.Remoting
             throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
         }
 
-        public void AddHandler(UriRoute route, Func<IDictionary<string, string>, T, Task<bool>> handler)
+        public void AddHandler(IUriRoute route, Func<IDictionary<string, string>, T, Task<bool>> handler)
         {
-            _routes.Add(new Route()
+            _routes.Add(new RouteHandlerPair()
             {
                 Handler = handler,
-                Template = new UriRoutingTemplate(route)
+                UriRoute = route
             });
         }
 
-        private class Route
+        private class RouteHandlerPair
         {
-            public UriRoutingTemplate Template { get; set; }
+            public IUriRoute UriRoute { get; set; }
 
             public Func<IDictionary<string, string>, T, Task<bool>> Handler { get; set; }
         }

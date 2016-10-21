@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -33,7 +32,7 @@ namespace LinqInfer.Data.Remoting
             };
         }
 
-        public void AddRoute(UriRoute route, Func<IOwinContext, Task> handler)
+        public void AddRoute(IUriRoute route, Func<IOwinContext, Task> handler)
         {
             _routes.AddHandler(route, async (r, c) =>
             {

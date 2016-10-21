@@ -40,9 +40,9 @@ namespace LinqInfer.Data.Remoting
             _writer.WriteLine();
         }
 
-        public void WriteRequestAndProtocol(string httpVerb, string path, string httpProtocol)
+        public void WriteRequestAndProtocol(string httpVerb, string path, string httpProtocol = "1.1")
         {
-            _writer.WriteLine(string.Format("{0} {1} HTTP {2}", httpVerb, path, httpProtocol));
+            _writer.WriteLine(string.Format("{0} {1} HTTP/{2}", httpVerb, path, httpProtocol));
         }
 
         public void WriteResponseProtocolAndStatus(string httpProtocol, int statusCode, string statusText = null)

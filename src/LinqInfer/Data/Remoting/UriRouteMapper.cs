@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class UriRoutingTemplate
+    internal class UriRouteMapper : IUriRouteMapper
     {
         private readonly UriRoute _route;
         private readonly IList<RoutePart> _parts;
 
-        public UriRoutingTemplate(UriRoute route)
+        public UriRouteMapper(UriRoute route)
         {
             Contract.Assert(route != null);
 
@@ -51,26 +51,32 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public IDictionary<string, string> Parse(Uri uri)
+        internal IDictionary<string, string> Parse(Uri uri)
         {
             int i = 0;
 
-            var parameters = _parts.ToDictionary(p => p.Name, p => string.Empty);
+            var parameters = _parts.Where(p => p.Type != RoutePartType.Static).GroupBy(p => p.Name).ToDictionary(p => p.Key, p => string.Empty);
 
             if (uri.PathAndQuery == "/" && parameters.Count == 0) return parameters; // Root
 
-            foreach (var part in uri.PathAndQuery.Split('/').Skip(1))
+            var uriBuilder = new UriBuilder(uri);
+
+            var path = uriBuilder.Path.Split('/');
+
+            foreach (var part in path.Skip(1))
             {
                 if (i < _parts.Count)
                 {
                     var partType = _parts[i];
 
-                    if (partType.Type == RoutePartType.Static && partType.Name != part)
+                    if (partType.Type == RoutePartType.Static)
                     {
-                        throw new ArgumentException(part);
+                        if (partType.Name != part) throw new ArgumentException(part);
                     }
-
-                    parameters[partType.Name] = part;
+                    else
+                    {
+                        parameters[partType.Name] = part;
+                    }
                 }
                 else
                 {
@@ -80,7 +86,25 @@ namespace LinqInfer.Data.Remoting
                 i++;
             }
 
-            if (parameters.Any(p => string.IsNullOrEmpty(p.Value)))
+            if (uriBuilder.Query.Length > 1)
+            {
+                var query = uriBuilder.Query.Substring(1).Split('&');
+
+                foreach (var item in query)
+                {
+                    var kv = item.Split('=');
+                    var key = kv.First();
+
+                    if (_parts.Any(p => p.Type == RoutePartType.QueryParameter && string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        parameters[key] = kv.Length > 1 ? kv[1] : string.Empty;
+                    }
+
+                    parameters["query." + key] = kv.Length > 1 ? kv[1] : string.Empty;
+                }
+            }
+
+            if (parameters.Any(p => !p.Key.StartsWith("query.") && string.IsNullOrEmpty(p.Value)))
             {
                 throw new ArgumentException(uri.PathAndQuery);
             }
@@ -90,14 +114,17 @@ namespace LinqInfer.Data.Remoting
 
         private IEnumerable<RoutePart> Parse(string template)
         {
+            if (string.IsNullOrEmpty(template)) throw new ArgumentException("Invalid route template - empty");
+
             int i = 0;
 
-            if (template.Contains("?"))
-            {
-                throw new NotSupportedException("Query strings not supported");
-            }
+            var pathQuery = template.Split('?');
 
-            foreach(var part in template.Split('/'))
+            if (pathQuery.Length > 2) throw new ArgumentException("Malformed query template");
+
+            var paths = pathQuery.First().Split('/');
+
+            foreach (var part in paths)
             {
                 if (!string.IsNullOrEmpty(part))
                 {
@@ -107,7 +134,7 @@ namespace LinqInfer.Data.Remoting
                         {
                             Index = i,
                             Name = part.Substring(1, part.Length - 2),
-                            Type = RoutePartType.Parameter
+                            Type = RoutePartType.PathParameter
                         };
                     }
                     else
@@ -119,6 +146,21 @@ namespace LinqInfer.Data.Remoting
                             Type = RoutePartType.Static
                         };
                     }
+
+                    i++;
+                }
+            }
+
+            if (pathQuery.Length == 2)
+            {
+                foreach (var queryParam in pathQuery.Last().Split('&'))
+                {
+                    yield return new RoutePart()
+                    {
+                        Index = i,
+                        Name = queryParam.Split('=').First(),
+                        Type = RoutePartType.QueryParameter
+                    };
 
                     i++;
                 }
@@ -135,7 +177,8 @@ namespace LinqInfer.Data.Remoting
         public enum RoutePartType
         {
             Unknown,
-            Parameter,
+            PathParameter,
+            QueryParameter,
             Static
         }
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    public interface IOwinContext : IDictionary<string, object>
+    public interface IOwinContext : IDictionary<string, object>, IDisposable
     {
         ClaimsPrincipal User { get; }
         Uri RequestUri { get; }

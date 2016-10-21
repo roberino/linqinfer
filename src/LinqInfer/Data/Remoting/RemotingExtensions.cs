@@ -42,9 +42,9 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public static UriRoute CreateRoute(this Uri endpoint, string routeTemplate)
+        public static IUriRoute CreateRoute(this Uri endpoint, string routeTemplate, Verb verbs = Verb.All)
         {
-            return new UriRoute(endpoint, routeTemplate);
+            return new UriRoute(endpoint, routeTemplate, verbs);
         }
 
         public static IOwinApplication CreateHttpApplication(this Uri endpoint)
@@ -59,7 +59,7 @@ namespace LinqInfer.Data.Remoting
             return CreateRemoteService(new UriRoute(endpoint), messageHandler, startService);
         }
 
-        public static IVectorTransferServer CreateRemoteService(this UriRoute route, Func<DataBatch, Stream, bool> messageHandler = null, bool startService = true)
+        public static IVectorTransferServer CreateRemoteService(this IUriRoute route, Func<DataBatch, Stream, bool> messageHandler = null, bool startService = true)
         {
             var endpoint = route.BaseUri;
 

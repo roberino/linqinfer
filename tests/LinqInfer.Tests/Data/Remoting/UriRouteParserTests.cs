@@ -9,11 +9,14 @@ namespace LinqInfer.Tests.Data.Remoting
     {
         [TestCase("tcp://localhost:9432/test/123", "/test/{param1}", "param1", "123")]
         [TestCase("tcp://localhost/test/abc/hhh", "/test/{x}/hhh", "x", "abc")]
+        [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2", "/test/abc/{x}", "x", "hello")]
+        [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2", "/test/abc/{x}", "query.def", "2")]
+        [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2&test=1", "/test/abc/{x}?test=1", "test", "1")]
         public void Parse_Example1(string uriString, string template, string param1, string value1)
         {
             var uri = new Uri(uriString);
             var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
-            var parser = new UriRoutingTemplate(route);
+            var parser = new UriRouteMapper(route);
 
             Assert.That(parser.IsMatch(uri));
 
@@ -28,7 +31,7 @@ namespace LinqInfer.Tests.Data.Remoting
         {
             var uri = new Uri(uriString);
             var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
-            var parser = new UriRoutingTemplate(route);
+            var parser = new UriRouteMapper(route);
 
             Assert.That(parser.IsMatch(uri));
 

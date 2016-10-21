@@ -2,7 +2,6 @@
 using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -121,6 +120,39 @@ namespace LinqInfer.Text
 
         public void IndexDocument(TokenisedTextDocument document)
         {
+            bool indexedAlready = true;
+
+            foreach (var wordGroup in document.Tokens.Where(t => t.Type == TokenType.Word).GroupBy(t => t.Text.ToLowerInvariant()))
+            {
+                WordMap wordData;
+
+                lock (_frequencies)
+                {
+                    if (!_frequencies.TryGetValue(wordGroup.Key, out wordData))
+                    {
+                        _frequencies[wordGroup.Key] = wordData = new WordMap();
+                    }
+                }
+
+                int tf;
+
+                if (!wordData.DocFrequencies.TryGetValue(document.Id, out tf))
+                {
+                    wordData.Count++;
+                    indexedAlready = false;
+                }
+
+                wordData.DocFrequencies[document.Id] = wordGroup.Count();
+            }
+
+            if (!indexedAlready)
+            {
+                _documentCount++;
+            }
+        }
+
+        public void IndexDocumentOld(TokenisedTextDocument document)
+        {
             _documentCount++;
 
             foreach (var word in document.Tokens.Where(t => t.Type == TokenType.Word))
@@ -131,10 +163,8 @@ namespace LinqInfer.Text
                 {
                     wordData = new WordMap();
                 }
-                else
-                {
-                    wordData.Count++;
-                }
+
+                wordData.Count++;
 
                 int tf;
 
@@ -307,7 +337,7 @@ namespace LinqInfer.Text
             public WordMap()
             {
                 _docFrequencies = new Dictionary<string, int>();
-                Count = 1;
+                Count = 0;
             }
 
             public IDictionary<string, int> DocFrequencies { get { return _docFrequencies; } }

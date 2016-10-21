@@ -18,12 +18,12 @@ namespace LinqInfer.Data.Remoting
             _routes = new RoutingTable<IOwinContext>();
         }
 
-        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
+        public void AddHandler(IUriRoute route, Func<DataBatch, TcpResponse, bool> handler)
         {
             AddAsyncHandler(route, (b, r) => Task.FromResult(handler(b, r)));
         }
 
-        public void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
+        public void AddAsyncHandler(IUriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
         {
             _routes.AddHandler(route, (p, c) =>
             {

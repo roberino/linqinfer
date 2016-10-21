@@ -91,6 +91,12 @@ namespace LinqInfer.Data.Remoting
             await Response.WriteTo(output);
         }
 
+        public void Dispose()
+        {
+            Request.Content.Dispose();
+            Response.Dispose();
+        }
+
         private Uri SetRequestUri(Uri baseUri, string pathAndQuery, bool setBaseUriParts = true)
         {
             if (setBaseUriParts)

@@ -108,7 +108,7 @@ namespace LinqInfer.Data.Remoting
 
             receivedStream.Position = 0;
 
-            return new TcpReceiveContext(_socket, _readBuffer.Length)
+            return new TcpReceiveContext(_socket)
             {
                 Header = header,
                 ReceivedData = receivedStream

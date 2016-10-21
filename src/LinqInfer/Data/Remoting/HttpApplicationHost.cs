@@ -87,7 +87,7 @@ namespace LinqInfer.Data.Remoting
             return false;
         }
 
-        private class Middleware
+        protected class Middleware
         {
             public OwinPipelineStage Stage { get; set; }
             public Func<IOwinContext, Task> Handler { get; set; }

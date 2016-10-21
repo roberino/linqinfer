@@ -109,6 +109,17 @@ namespace LinqInfer.Data.Remoting
 
                     _socket.BeginAccept(AcceptCallback, _socket);
 
+                    // TODO: try _socket.AcceptAsync()
+
+                    var acceptArgs = new SocketAsyncEventArgs();
+
+                    acceptArgs.Completed += AcceptCompleted;
+
+                    if (!_socket.AcceptAsync(acceptArgs))
+                    {
+                        AcceptCompleted(this, acceptArgs);
+                    }
+
                     _completedHandle.WaitOne();
                 }
 
@@ -117,6 +128,11 @@ namespace LinqInfer.Data.Remoting
             });
 
             _connectThread.Start();
+        }
+
+        private void AcceptCompleted(object sender, SocketAsyncEventArgs e)
+        {
+            OnAccept(e.AcceptSocket);
         }
 
         public void Stop()
@@ -148,6 +164,21 @@ namespace LinqInfer.Data.Remoting
             {
                 var handler = listener.EndAccept(ar);
 
+                OnAccept(handler);
+            }
+            catch (Exception ex)
+            {
+                if (!HandleTransportError(ex))
+                {
+                    throw;
+                }
+            }
+        }
+
+        private void OnAccept(Socket handler)
+        {
+            try
+            {
                 DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
 
                 var processTask = ProcessTcpRequest(handler);
@@ -156,7 +187,7 @@ namespace LinqInfer.Data.Remoting
 
                 // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (!HandleTransportError(ex))
                 {
@@ -183,21 +214,22 @@ namespace LinqInfer.Data.Remoting
             {
                 var reader = new AsyncSocketWriterReader(clientSocket);
 
-                var state = await reader.ReadAsync();
+                using (var state = await reader.ReadAsync())
+                {
+                    using (var tcpResponse = new TcpResponse(state.Header, _compression))
+                    {
+                        more = await ExecuteRequest(state, tcpResponse);
+                    }
 
-                using (var tcpResponse = new TcpResponse(state.Header, _compression))
-                {
-                    more = await ExecuteRequest(state, tcpResponse);
-                }
-
-                if (more)
-                {
-                    DebugOutput.LogVerbose("Waiting for more data");
-                }
-                else
-                {
-                    DebugOutput.Log("Ending conversation");
-                    state.ClientSocket.Disconnect(true);
+                    if (more)
+                    {
+                        DebugOutput.LogVerbose("Waiting for more data");
+                    }
+                    else
+                    {
+                        DebugOutput.Log("Ending conversation");
+                        state.ClientSocket.Disconnect(true);
+                    }
                 }
             }
         }
@@ -219,7 +251,7 @@ namespace LinqInfer.Data.Remoting
             }
 
             await SendResponse(state, tcpResponse);
-
+            
             return continueReceive;
         }
 
@@ -250,6 +282,9 @@ namespace LinqInfer.Data.Remoting
             }
 
             var context = new OwinContext(new TcpRequest(state.Header, requestBody), response, GetUriEndpoint(state.ClientSocket.RemoteEndPoint));
+
+            state.Cleanup.Add(response);
+            state.Cleanup.Add(requestBody);
 
             return await Process(context);
         }
