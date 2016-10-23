@@ -21,6 +21,7 @@ namespace LinqInfer.Data.Remoting
             _binder = new FunctionBinder(serialiser);
 
             AddComponent(_routes.CreateApplicationDelegate());
+            AddErrorHandler(StandardErrorHandler);
         }
 
         public Task<T> TestRoute<T>(Uri uri, T sampleResult, IDictionary<string, string[]> headers = null)
@@ -53,8 +54,15 @@ namespace LinqInfer.Data.Remoting
             }
 
             var localContext = new OwinContext(request, new TcpResponse(TransportProtocol.Http), BaseEndpoint);
+
+            localContext["ext.ExpectedResponseType"] = typeof(T);
             
             await Process(localContext);
+
+            if (localContext.Response.Header.StatusCode.GetValueOrDefault(0) != 200)
+            {
+                throw new HttpException(localContext.Response.Header.StatusCode.GetValueOrDefault(0), localContext.Response.Header.StatusText ?? "HTTP Error");
+            }
 
             var response = localContext.Response.GetSendStream();
 
@@ -71,6 +79,16 @@ namespace LinqInfer.Data.Remoting
             var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
             var route = BaseEndpoint.CreateRoute("/" + func.Method.Name + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToAsyncMethod(func, defaultValue));
+        }
+
+        private Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
+        {
+            if (ex is ArgumentException && context.Response.Header.StatusCode.HasValue)
+            {
+                context.Response.CreateStatusResponse(400);
+                return Task.FromResult(true);
+            }
+            return Task.FromResult(false);
         }
 
         private IEnumerable<string> GetParameters<TArg>(ParameterInfo parameter)

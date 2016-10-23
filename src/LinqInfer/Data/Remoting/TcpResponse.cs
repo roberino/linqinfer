@@ -60,7 +60,7 @@ namespace LinqInfer.Data.Remoting
                     _text.Flush();
                 }
 
-                Header.TextEncoding = encoding ?? (Header.TextEncoding ?? Encoding.UTF8);
+                Header.TextEncoding = encoding ?? (Header.TextEncoding ?? new UTF8Encoding(true));
                 Header.MimeType = "text/plain";
 
                 _text = new StreamWriter(Content, Header.TextEncoding, 1024, true);

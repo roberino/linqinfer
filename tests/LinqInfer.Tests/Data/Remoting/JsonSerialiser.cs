@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,9 +19,30 @@ namespace LinqInfer.Tests.Data.Remoting
 
         public Task<T> Deserialise<T>(Stream input, Encoding encoding)
         {
-            var reader = new StreamReader(input, encoding);
-            var obj = new JsonSerializer().Deserialize<T>(new JsonTextReader(reader));
-            return Task.FromResult(obj);
+            try
+            {
+                var reader = new StreamReader(input, encoding);
+
+                T obj;
+
+                if (typeof(T).IsClass)
+                {
+                    obj = new JsonSerializer().Deserialize<T>(new JsonTextReader(reader));
+                }
+                else
+                {
+                    obj = (T)Convert.ChangeType(reader.ReadToEnd(), typeof(T));
+                }
+                return Task.FromResult(obj);
+            }
+            catch (Exception)
+            {
+                input.Position = 0;
+                var reader = new StreamReader(input, encoding);
+                var str = reader.ReadToEnd();
+                Console.WriteLine(str);
+                throw;
+            }
         }
 
         public Task Serialise<T>(T obj, Stream output, Encoding encoding)

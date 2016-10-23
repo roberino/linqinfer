@@ -21,6 +21,10 @@ namespace LinqInfer.Data.Remoting
         {
             _routes.AddRoute(Route, _binder.BindToAsyncMethod(func));
         }
+        public void ToSyncronousMethod<TArg, TResult>(Func<TArg, TResult> func)
+        {
+            _routes.AddRoute(Route, _binder.BindToSyncMethod(func));
+        }
 
         public void To<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func)
         {

@@ -2,7 +2,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -15,7 +15,10 @@ namespace LinqInfer.Data.Remoting
         {
             Contract.Assert(serialiser != null);
             _serialiser = serialiser;
+            DebugOn = true;
         }
+
+        public bool DebugOn { get; set; }
 
         public Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func)
         {
@@ -27,12 +30,35 @@ namespace LinqInfer.Data.Remoting
             return BindToAsyncMethod(func, defaultValue, true);
         }
 
+        public Func<IOwinContext, Task> BindToSyncMethod<TArg, TResult>(Func<TArg, TResult> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
+        {
+            var argType = typeof(TArg);
+
+            var exec = new Func<TArg, IOwinContext, Task>(async (a, c) =>
+            {
+                ValidateContextAndAppendDebugInfo(c, func.Method, argType, typeof(TResult));
+
+                var result = func(a);
+
+                var writer = c.Response.CreateTextResponse();
+
+                await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
+
+                c.Response.Header.MimeType = _serialiser.MimeType;
+                c.Response.Header.StatusCode = 200;
+            });
+
+            return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
+        }
+
         private Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
         {
             var argType = typeof(TArg);
 
             var exec = new Func<TArg, IOwinContext, Task>(async (a, c) =>
             {
+                ValidateContextAndAppendDebugInfo(c, func.Method, argType, typeof(TResult));
+
                 var result = await func(a);
 
                 var writer = c.Response.CreateTextResponse();
@@ -40,7 +66,15 @@ namespace LinqInfer.Data.Remoting
                 await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
 
                 c.Response.Header.MimeType = _serialiser.MimeType;
+                c.Response.Header.StatusCode = 200;
             });
+
+            return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
+        }
+
+        private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
+        {
+            var argType = typeof(TArg);
 
             if (Type.GetTypeCode(argType) == TypeCode.Object)
             {
@@ -53,7 +87,7 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
-                var p = func.Method.GetParameters().First().Name;
+                var p = innerMethod.GetParameters().First().Name;
 
                 return async c =>
                 {
@@ -73,13 +107,31 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        private void ValidateContextAndAppendDebugInfo(IOwinContext c, MethodInfo innerMethod, Type argType, Type resultType)
+        {
+            object expectedResponseType;
+
+            if (c.TryGetValue("ext.ExpectedResponseType", out expectedResponseType))
+            {
+                if (expectedResponseType is Type && !((Type)expectedResponseType).IsAssignableFrom(resultType))
+                {
+                    throw new ArgumentException("Invalid type - " + expectedResponseType);
+                }
+            }
+
+            if (DebugOn)
+            {
+                c.Response.Header.Headers["X-FUNC-BINDING"] = new[] { string.Format("{2} {0} ({1})", innerMethod.Name, argType.Name, resultType.Name) };
+            }
+        }
+
         private T ParamsToObject<T>(IOwinContext context, T defaultValue, bool allowDefaults)
         {
             var type = typeof(T);
 
             var defaultIsNull = !type.IsValueType && (defaultValue as object) == null;
             var instance = defaultValue;
-            var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             if (defaultIsNull)
             {
