@@ -46,6 +46,14 @@ namespace LinqInfer.Data.Remoting
 
         public Stream Content { get { return _compressionStream; } }
 
+        public bool HasContent
+        {
+            get
+            {
+                return Content.Position > 0;
+            }
+        }
+
         public void CreateStatusResponse(int status)
         {
             Header.StatusCode = status;

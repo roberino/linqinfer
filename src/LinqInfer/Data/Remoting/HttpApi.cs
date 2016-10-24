@@ -74,11 +74,30 @@ namespace LinqInfer.Data.Remoting
             return new RouteBinder(_baseEndpoint.CreateRoute(routeTemplate, verb), _routes, _binder);
         }
 
-        public void ExportMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue)
+        public void ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)
         {
             var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
-            var route = BaseEndpoint.CreateRoute("/" + func.Method.Name + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
+            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToAsyncMethod(func, defaultValue));
+        }
+
+        public void ExportSyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, TResult> func, string name = null)
+        {
+            var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
+            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.Select(p => '{' + p + '}').ToArray()), Verb.Get);
+            _routes.AddRoute(route, _binder.BindToSyncMethod(func, defaultValue));
+        }
+
+        protected async override Task<bool> Process(IOwinContext context)
+        {
+            var res = await base.Process(context);
+
+            if (!context.Response.Header.StatusCode.HasValue && !context.Response.HasContent)
+            {
+                context.Response.CreateStatusResponse(404);
+            }
+
+            return res;
         }
 
         private Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
@@ -89,6 +108,11 @@ namespace LinqInfer.Data.Remoting
                 return Task.FromResult(true);
             }
             return Task.FromResult(false);
+        }
+
+        private string GetPathForName(string name)
+        {
+            return new string(name.Where(n => char.IsLetterOrDigit(n)).ToArray()).ToLower();
         }
 
         private IEnumerable<string> GetParameters<TArg>(ParameterInfo parameter)

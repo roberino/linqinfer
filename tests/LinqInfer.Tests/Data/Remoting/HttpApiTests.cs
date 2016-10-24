@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Data.Remoting
@@ -9,6 +10,64 @@ namespace LinqInfer.Tests.Data.Remoting
     [TestFixture]
     public class HttpApiTests
     {
+        [Test]
+        public async Task TestRoute_UndefinedRoute_Returns404()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                var url = new Uri(api.BaseEndpoint, "/nothing/10");
+
+                try
+                {
+                    var result =
+                        await api.TestRoute<int>(url);
+                }
+                catch (HttpException ex)
+                {
+                    Assert.That(ex.Status, Is.EqualTo(HttpStatusCode.NotFound));
+                }
+            }
+        }
+
+        [Test]
+        public async Task ExportSyncMethod_CreatesRoute()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.ExportSyncMethod(1, x => x * 12, "func1");
+
+                var url = new Uri(api.BaseEndpoint, "/func1/10");
+
+                var result =
+                    await api.TestRoute<int>(url);
+
+                Assert.That(result, Is.EqualTo(120));
+            }
+        }
+
+        [Test]
+        public async Task ExportDefinedSyncMethod_CreatesRoute()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.ExportSyncMethod(50, Functions.Random);
+
+                var url = new Uri(api.BaseEndpoint, "/random/10");
+
+                var result =
+                    await api.TestRoute<int>(url);
+
+                Assert.That(result, Is.AtLeast(0));
+                Assert.That(result, Is.AtMost(10));
+            }
+        }
+
         [Test]
         public async Task Bind_To_PrimativeArgFunc_TestRoute()
         {
