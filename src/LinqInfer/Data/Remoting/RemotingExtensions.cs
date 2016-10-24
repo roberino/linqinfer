@@ -54,6 +54,13 @@ namespace LinqInfer.Data.Remoting
             return new HttpApplicationHost(null, endpoint.Port, endpoint.Host);
         }
 
+        public static IHttpApi CreateHttpApi(this Uri endpoint, IObjectSerialiser serialiser)
+        {
+            Util.ValidateHttpUri(endpoint);
+
+            return new HttpApi(serialiser, endpoint.Port, endpoint.Host);
+        }
+
         public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, Stream, bool> messageHandler, bool startService = true)
         {
             return CreateRemoteService(new UriRoute(endpoint), messageHandler, startService);

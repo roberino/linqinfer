@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpApi : HttpApplicationHost
+    internal class HttpApi : HttpApplicationHost, IHttpApi
     {
         private readonly RoutingHandler _routes;
         private readonly FunctionBinder _binder;
@@ -74,18 +74,20 @@ namespace LinqInfer.Data.Remoting
             return new RouteBinder(_baseEndpoint.CreateRoute(routeTemplate, verb), _routes, _binder);
         }
 
-        public void ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)
+        public IUriRoute ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)
         {
             var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
             var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToAsyncMethod(func, defaultValue));
+            return route;
         }
 
-        public void ExportSyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, TResult> func, string name = null)
+        public IUriRoute ExportSyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, TResult> func, string name = null)
         {
             var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
             var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.Select(p => '{' + p + '}').ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToSyncMethod(func, defaultValue));
+            return route;
         }
 
         protected async override Task<bool> Process(IOwinContext context)

@@ -80,6 +80,7 @@
     <Compile Include="Data\Remoting\HttpException.cs" />
     <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
+    <Compile Include="Data\Remoting\IHttpApi.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />
     <Compile Include="Data\Remoting\IOwinContext.cs" />
     <Compile Include="Data\Remoting\IServer.cs" />
