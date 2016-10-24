@@ -40,8 +40,6 @@ namespace LinqInfer.Data.Remoting
 
                 var result = func(a);
 
-                var writer = c.Response.CreateTextResponse();
-
                 await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
 
                 c.Response.Header.MimeType = _serialiser.MimeType;
@@ -60,8 +58,6 @@ namespace LinqInfer.Data.Remoting
                 ValidateContextAndAppendDebugInfo(c, func.Method, argType, typeof(TResult));
 
                 var result = await func(a);
-
-                var writer = c.Response.CreateTextResponse();
 
                 await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
 

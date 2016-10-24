@@ -10,6 +10,24 @@ namespace LinqInfer.Tests.Data.Remoting
     public class HttpApiTests
     {
         [Test]
+        public async Task Bind_To_PrimativeArgFunc_TestRoute()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.Bind("/funcy/{i}").ToSyncronousMethod<int, int>(i => i * 5);
+
+                var url = new Uri(api.BaseEndpoint, "/funcy/10");
+                
+                var result =
+                    await api.TestRoute<int>(url);
+
+                Assert.That(result, Is.EqualTo(50));
+            }
+        }
+
+        [Test]
         public async Task Bind_To_DefinedFunc_TestRoute()
         {
             var sz = new JsonSerialiser();

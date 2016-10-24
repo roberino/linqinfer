@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using Newtonsoft.Json;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Text;
@@ -31,7 +32,8 @@ namespace LinqInfer.Tests.Data.Remoting
                 }
                 else
                 {
-                    obj = (T)Convert.ChangeType(reader.ReadToEnd(), typeof(T));
+                    var str = reader.ReadToEnd();
+                    obj = (T)Convert.ChangeType(str, typeof(T));
                 }
                 return Task.FromResult(obj);
             }
@@ -40,6 +42,12 @@ namespace LinqInfer.Tests.Data.Remoting
                 input.Position = 0;
                 var reader = new StreamReader(input, encoding);
                 var str = reader.ReadToEnd();
+
+                foreach(var c in str)
+                {
+                    Console.WriteLine("c = {0} ({1})", c, (int)c);
+                }
+
                 Console.WriteLine(str);
                 throw;
             }
@@ -49,7 +57,7 @@ namespace LinqInfer.Tests.Data.Remoting
         {
             using (var writer = new StreamWriter(output, encoding, 1024, true))
             {
-                new JsonSerializer().Serialize(writer, obj);
+                new JsonSerializer().Serialize(writer, obj, typeof(T));
             }
             return Task.FromResult(0);
         }
