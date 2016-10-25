@@ -42,9 +42,17 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public static IUriRoute CreateRoute(this Uri endpoint, string routeTemplate, Verb verbs = Verb.All)
+        /// <summary>
+        /// Creates a URI route which can be used to map URIs to handlers
+        /// </summary>
+        /// <param name="endpoint">The base endpoint (URL)</param>
+        /// <param name="routeTemplate">A template specifying the format of the URI (e.g. /my-path/{param1})</param>
+        /// <param name="verbs">The acceptable verbs</param>
+        /// <param name="predicate">An optional predicate which will filter out certain contexts</param>
+        /// <returns>A <see cref="IUriRoute"/></returns>
+        public static IUriRoute CreateRoute(this Uri endpoint, string routeTemplate, Verb verbs = Verb.All, Func<IOwinContext, bool> predicate = null)
         {
-            return new UriRoute(endpoint, routeTemplate, verbs);
+            return new UriRoute(endpoint, routeTemplate, verbs, predicate);
         }
 
         public static IOwinApplication CreateHttpApplication(this Uri endpoint)
@@ -59,6 +67,11 @@ namespace LinqInfer.Data.Remoting
             Util.ValidateHttpUri(endpoint);
 
             return new HttpApi(serialiser, endpoint.Port, endpoint.Host);
+        }
+
+        public static IHttpApi CreateHttpApi(this IOwinApplication app, IObjectSerialiser serialiser)
+        {
+            return new HttpApi(serialiser, app);
         }
 
         public static IVectorTransferServer CreateRemoteService(this Uri endpoint, Func<DataBatch, Stream, bool> messageHandler, bool startService = true)

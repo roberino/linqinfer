@@ -40,10 +40,7 @@ namespace LinqInfer.Data.Remoting
 
                 var result = func(a);
 
-                await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
-
-                c.Response.Header.MimeType = _serialiser.MimeType;
-                c.Response.Header.StatusCode = 200;
+                await SerialiseAndSetMimeAndStatus(c, result);
             });
 
             return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
@@ -59,13 +56,20 @@ namespace LinqInfer.Data.Remoting
 
                 var result = await func(a);
 
-                await _serialiser.Serialise(result, c.Response.Content, c.Response.Header.TextEncoding);
-
-                c.Response.Header.MimeType = _serialiser.MimeType;
-                c.Response.Header.StatusCode = 200;
+                await SerialiseAndSetMimeAndStatus(c, result);
             });
 
             return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
+        }
+
+        private async Task SerialiseAndSetMimeAndStatus<T>(IOwinContext context, T result)
+        {
+            var mimeType = context.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
+
+            await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
+
+            context.Response.Header.MimeType = mimeType;
+            context.Response.Header.StatusCode = 200;
         }
 
         private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
@@ -76,7 +80,7 @@ namespace LinqInfer.Data.Remoting
             {
                 return async c =>
                 {
-                    var arg = ParamsToObject(c, defaultValue, fallbackToDefault);
+                    var arg = await ParamsToObject(c, defaultValue, fallbackToDefault);
 
                     await exec(arg, c);
                 };
@@ -121,7 +125,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private T ParamsToObject<T>(IOwinContext context, T defaultValue, bool allowDefaults)
+        private async Task<T> ParamsToObject<T>(IOwinContext context, T defaultValue, bool allowDefaults)
         {
             var type = typeof(T);
 
@@ -136,6 +140,17 @@ namespace LinqInfer.Data.Remoting
                 if (ctor == null) throw new ArgumentException("No default constructor");
 
                 instance = (T)ctor.Invoke(new object[0]);
+            }
+
+            if (context.Request.Content.Length > 0)
+            {
+                try
+                {
+                    instance = await _serialiser.Deserialise<T>(context.Request.Content, context.Request.Header.ContentEncoding, context.Request.Header.ContentMimeType);
+                }
+                catch
+                {
+                }
             }
 
             int i = 0;

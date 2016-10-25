@@ -8,20 +8,50 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpApi : HttpApplicationHost, IHttpApi
+    internal class HttpApi : IHttpApi
     {
+        private readonly IOwinApplication _host;
         private readonly RoutingHandler _routes;
         private readonly FunctionBinder _binder;
         private readonly IObjectSerialiser _serialiser;
 
-        public HttpApi(IObjectSerialiser serialiser, int port, string host = "localhost") : base(null, port, host)
+        public HttpApi(IObjectSerialiser serialiser, int port, string host = "localhost")
+            : this(serialiser, new HttpApplicationHost(null, port, host))
+        {
+        }
+
+        public HttpApi(IObjectSerialiser serialiser, IOwinApplication host)
         {
             _serialiser = serialiser;
             _routes = new RoutingHandler();
             _binder = new FunctionBinder(serialiser);
+            _host = host;
+
+            _host.AddErrorHandler(StandardErrorHandler);
+            _host.AddComponent(PostProcess, OwinPipelineStage.PostHandlerExecute);
 
             AddComponent(_routes.CreateApplicationDelegate());
-            AddErrorHandler(StandardErrorHandler);
+        }
+
+        public Uri BaseEndpoint
+        {
+            get
+            {
+                return _host.BaseEndpoint;
+            }
+        }
+
+        public ServerStatus Status
+        {
+            get
+            {
+                return _host.Status;
+            }
+        }
+
+        public Task ProcessContext(IOwinContext context)
+        {
+            return _host.ProcessContext(context);
         }
 
         public Task<T> TestRoute<T>(Uri uri, T sampleResult, IDictionary<string, string[]> headers = null)
@@ -56,8 +86,8 @@ namespace LinqInfer.Data.Remoting
             var localContext = new OwinContext(request, new TcpResponse(TransportProtocol.Http), BaseEndpoint);
 
             localContext["ext.ExpectedResponseType"] = typeof(T);
-            
-            await Process(localContext);
+
+            await _host.ProcessContext(localContext);
 
             if (localContext.Response.Header.StatusCode.GetValueOrDefault(0) != 200)
             {
@@ -65,13 +95,14 @@ namespace LinqInfer.Data.Remoting
             }
 
             var response = localContext.Response.GetSendStream();
+            var mimeType = localContext.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
 
-            return await _serialiser.Deserialise<T>(response, localContext.Response.Header.TextEncoding);
+            return await _serialiser.Deserialise<T>(response, localContext.Response.Header.TextEncoding, mimeType);
         }
 
-        public RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get)
+        public RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get, Func<IOwinContext, bool> predicate = null)
         {
-            return new RouteBinder(_baseEndpoint.CreateRoute(routeTemplate, verb), _routes, _binder);
+            return new RouteBinder(BaseEndpoint.CreateRoute(routeTemplate, verb, predicate), _routes, _binder);
         }
 
         public IUriRoute ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)
@@ -90,23 +121,21 @@ namespace LinqInfer.Data.Remoting
             return route;
         }
 
-        protected async override Task<bool> Process(IOwinContext context)
+        private Task<bool> PostProcess(IOwinContext context)
         {
-            var res = await base.Process(context);
-
             if (!context.Response.Header.StatusCode.HasValue && !context.Response.HasContent)
             {
                 context.Response.CreateStatusResponse(404);
             }
 
-            return res;
+            return Task.FromResult(true);
         }
 
         private Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
         {
             if (ex is ArgumentException && context.Response.Header.StatusCode.HasValue)
             {
-                context.Response.CreateStatusResponse(400);
+                context.Response.CreateStatusResponse(context.Response.Header.StatusCode.Value);
                 return Task.FromResult(true);
             }
             return Task.FromResult(false);
@@ -133,6 +162,31 @@ namespace LinqInfer.Data.Remoting
                     yield return prop.Name;
                 }
             }
+        }
+
+        public void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute)
+        {
+            _host.AddComponent(handler, stage);
+        }
+
+        public void AddErrorHandler(Func<IOwinContext, Exception, Task<bool>> errorHandler)
+        {
+            _host.AddErrorHandler(errorHandler);
+        }
+
+        public void Start()
+        {
+            _host.Start();
+        }
+
+        public void Stop()
+        {
+            _host.Stop();
+        }
+
+        public void Dispose()
+        {
+            _host.Dispose();
         }
     }
 }

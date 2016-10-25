@@ -9,11 +9,13 @@ namespace LinqInfer.Data.Remoting
     {
         private readonly UriRoute _route;
         private readonly IList<RoutePart> _parts;
+        private readonly Func<IOwinContext, bool> _filter;
 
-        public UriRouteMapper(UriRoute route)
+        public UriRouteMapper(UriRoute route, Func<IOwinContext, bool> filter = null)
         {
             Contract.Assert(route != null);
 
+            _filter = filter ?? (_ => true);
             _route = route;
             _parts = Parse(route.Template).ToList();
         }
@@ -26,7 +28,12 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public bool IsMatch(Uri uri, Verb verb = Verb.Default)
+        public bool IsTarget(IOwinContext context)
+        {
+            return _filter(context);
+        }
+
+        public bool CanMap(Uri uri, Verb verb = Verb.Default)
         {
             IDictionary<string, string> p;
             return TryMap(uri, verb, out p);

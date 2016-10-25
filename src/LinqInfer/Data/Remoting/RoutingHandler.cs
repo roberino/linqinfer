@@ -16,7 +16,7 @@ namespace LinqInfer.Data.Remoting
         {
             return async c =>
             {
-                var handler = _routes.Map(c.RequestUri, c.Request.Header.Verb);
+                var handler = _routes.Map(c);
 
                 if (handler != null)
                 {

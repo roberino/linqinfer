@@ -21,6 +21,7 @@ namespace LinqInfer.Data.Remoting
             Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             TransportProtocol = TransportProtocol.Tcp;
             Path = "/";
+            ContentEncoding = new UTF8Encoding(true);
 
             try
             {
@@ -38,17 +39,21 @@ namespace LinqInfer.Data.Remoting
                     Path = http.First().Groups[2].Value;
                     HttpProtocol = http.First().Groups[3].Value;
                     HeaderLength = ascii.IndexOf("\n\n") + 2;
+
+                    Query = ParseQuery(Path);
                 }
                 else
                 {
                     ContentLength = BitConverter.ToInt64(data, 0);
                     HeaderLength = sizeof(long);
+                    Query = new Dictionary<string, string[]>();
                 }
             }
             catch
             {
                 ContentLength = BitConverter.ToInt64(data, 0);
                 HeaderLength = sizeof(long);
+                Query = new Dictionary<string, string[]>();
             }
         }
 
@@ -58,27 +63,35 @@ namespace LinqInfer.Data.Remoting
         {
             get
             {
-                switch (HttpVerb)
-                {
-                    case "GET":
-                        return Verb.Get;
-                    case "PUT":
-                        return Verb.Create;
-                    case "POST":
-                        return Verb.Update;
-                    case "DELETE":
-                        return Verb.Delete;
-                    default:
-                        return Verb.Default;
-                }
+                return HttpHeaderFormatter.ParseVerb(HttpVerb);
             }
         }
+
+        public IDictionary<string, string[]> Query { get; private set; }
 
         public string HttpVerb { get; private set; }
 
         public string HttpProtocol { get; private set; }
 
         public string Path { get; internal set; }
+
+        public Encoding ContentEncoding { get; private set; }
+
+        public string ContentMimeType { get; private set; }
+
+        public string PreferredMimeType(string[] supportedMimeTypes)
+        {
+            string[] accept;
+
+            if (Headers.TryGetValue("Accept", out accept))
+            {
+                var best = accept.FirstOrDefault(a => supportedMimeTypes.Contains(a, StringComparer.OrdinalIgnoreCase));
+
+                if (best != null) return best;
+            }
+
+            return supportedMimeTypes.First();
+        }
 
         public TransportProtocol TransportProtocol { get; private set; }
 
@@ -103,6 +116,31 @@ namespace LinqInfer.Data.Remoting
             else
             {
                 new BinaryWriter(output, Encoding.UTF8, true).Write(ContentLength);
+            }
+        }
+
+        private IDictionary<string, string[]> ParseQuery(string pathAndQuery)
+        {
+            var qi = pathAndQuery.IndexOf('?');
+
+            if (qi > -1)
+            {
+                var query = Path.Substring(qi + 1).Split('&').Select(q =>
+                {
+                    var kv = q.Split('=');
+
+                    return new
+                    {
+                        key = Uri.UnescapeDataString(kv.FirstOrDefault() ?? string.Empty),
+                        value = kv.Length > 1 ? Uri.UnescapeDataString(kv[1]) : string.Empty
+                    };
+                });
+
+                return query.GroupBy(q => q.key).ToDictionary(g => g.Key, g => g.Select(v => v.value).ToArray());
+            }
+            else
+            {
+                return new Dictionary<string, string[]>();
             }
         }
 
@@ -132,11 +170,30 @@ namespace LinqInfer.Data.Remoting
                 }
             }
 
-            string[] contentLen;
+            string[] content;
 
-            if (Headers.TryGetValue("Content-Length", out contentLen) && contentLen.Length > 0)
+            if (Headers.TryGetValue(HttpHeaderFormatter.ContentLengthHeaderName, out content) && content.Length > 0)
             {
-                ContentLength = long.Parse(contentLen[0]);
+                ContentLength = long.Parse(content[0]);
+            }
+
+            if (Headers.TryGetValue(HttpHeaderFormatter.ContentTypeHeaderName, out content) && content.Length > 0)
+            {
+                var parts = content.First().Split(';');
+
+                if (parts.Length > 0)
+                {
+                    ContentMimeType = parts[0];
+
+                    if (parts.Length > 1)
+                    {
+                        try
+                        {
+                            ContentEncoding = Encoding.GetEncoding(parts[0]);
+                        }
+                        catch { }
+                    }
+                }
             }
 
             TransportProtocol = TransportProtocol.Http;
@@ -146,11 +203,11 @@ namespace LinqInfer.Data.Remoting
         {
             if (values == null) return new string[0];
 
-            if (name.StartsWith("Accept", StringComparison.CurrentCultureIgnoreCase))
+            if (name.StartsWith(HttpHeaderFormatter.AcceptHeaderName, StringComparison.CurrentCultureIgnoreCase))
             {
                 return values.Split(',');
             }
-            if (name.Equals("Cookie", StringComparison.CurrentCultureIgnoreCase))
+            if (name.Equals(HttpHeaderFormatter.CookieHeaderName, StringComparison.CurrentCultureIgnoreCase))
             {
                 return values.Split(';');
             }

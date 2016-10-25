@@ -8,15 +8,15 @@ namespace LinqInfer.Tests.Data.Remoting
 {
     public class MockSerialiser : IObjectSerialiser
     {
-        public string MimeType
+        public string[] SupportedMimeTypes
         {
             get
             {
-                return "text/plain";
+                return new string[] { "text/plain" };
             }
         }
 
-        public Task Serialise<T>(T obj, Stream output, Encoding encoding)
+        public Task Serialise<T>(T obj, Encoding encoding, string mimeType, Stream output)
         {
             LastSerialisedObject = obj;
             var writer = new StreamWriter(output, encoding);
@@ -24,7 +24,7 @@ namespace LinqInfer.Tests.Data.Remoting
             return Task.FromResult(0);
         }
 
-        public Task<T> Deserialise<T>(Stream input, Encoding encoding)
+        public Task<T> Deserialise<T>(Stream input, Encoding encoding, string mimeType)
         {
             throw new NotImplementedException();
         }

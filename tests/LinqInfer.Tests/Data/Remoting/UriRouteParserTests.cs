@@ -18,7 +18,7 @@ namespace LinqInfer.Tests.Data.Remoting
             var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
             var parser = new UriRouteMapper(route);
 
-            Assert.That(parser.IsMatch(uri));
+            Assert.That(parser.CanMap(uri));
 
             var parameters = parser.Parse(uri);
 
@@ -33,7 +33,7 @@ namespace LinqInfer.Tests.Data.Remoting
             var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
             var parser = new UriRouteMapper(route);
 
-            Assert.That(parser.IsMatch(uri));
+            Assert.That(parser.CanMap(uri));
 
             var parameters = parser.Parse(uri);
         }

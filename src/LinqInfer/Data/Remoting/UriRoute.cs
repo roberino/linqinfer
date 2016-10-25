@@ -5,7 +5,7 @@ namespace LinqInfer.Data.Remoting
 {
     internal class UriRoute : IUriRoute
     {
-        public UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All)
+        public UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All, Func<IOwinContext, bool> filter = null)
         {
             Contract.Assert(baseUri != null);
             BaseUri = baseUri;
@@ -28,7 +28,7 @@ namespace LinqInfer.Data.Remoting
                 }
             }
 
-            Mapper = new UriRouteMapper(this);
+            Mapper = new UriRouteMapper(this, filter);
         }
 
         public IUriRouteMapper Mapper { get; private set; }

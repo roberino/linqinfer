@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -16,9 +17,28 @@ namespace LinqInfer.Data.Remoting
             _defaultRoute = defaultRoute;
         }
 
+        public Func<T, Task<bool>> Map(IOwinContext context)
+        {
+            return Map(_routes.Where(r => r.UriRoute.Mapper.IsTarget(context)), context.RequestUri, context.Request.Header.Verb, false);
+        }
+
         public Func<T, Task<bool>> Map(Uri uri, Verb verb = Verb.Default)
         {
-            foreach (var route in _routes)
+            return Map(_routes, uri, verb);
+        }
+
+        public void AddHandler(IUriRoute route, Func<IDictionary<string, string>, T, Task<bool>> handler)
+        {
+            _routes.Add(new RouteHandlerPair()
+            {
+                Handler = handler,
+                UriRoute = route
+            });
+        }
+
+        private Func<T, Task<bool>> Map(IEnumerable<RouteHandlerPair> applicableRoutes, Uri uri, Verb verb = Verb.Default, bool throwIfMissing = true)
+        {
+            foreach (var route in applicableRoutes)
             {
                 IDictionary<string, string> parameters;
 
@@ -35,16 +55,9 @@ namespace LinqInfer.Data.Remoting
 
             if (_defaultRoute != null) return c => _defaultRoute(new Dictionary<string, string>(), c);
 
-            throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
-        }
+            if (!throwIfMissing) return null;
 
-        public void AddHandler(IUriRoute route, Func<IDictionary<string, string>, T, Task<bool>> handler)
-        {
-            _routes.Add(new RouteHandlerPair()
-            {
-                Handler = handler,
-                UriRoute = route
-            });
+            throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
         }
 
         private class RouteHandlerPair

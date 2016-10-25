@@ -13,6 +13,11 @@ namespace LinqInfer.Data.Remoting
         private const string Error = "500 Internal Server Error";
         private const string HttpHead = "HTTP/{0} {1}";
 
+        public const string ContentTypeHeaderName = "Content-Type";
+        public const string ContentLengthHeaderName = "Content-Length";
+        public const string AcceptHeaderName = "Accept";
+        public const string CookieHeaderName = "Cookie";
+
         private readonly TextWriter _writer;
         private readonly bool _closeWriter;
 
@@ -48,6 +53,25 @@ namespace LinqInfer.Data.Remoting
         public void WriteResponseProtocolAndStatus(string httpProtocol, int statusCode, string statusText = null)
         {
             _writer.WriteLine(string.Format(HttpHead, httpProtocol, GetStatus(statusCode, statusText)));
+        }
+
+        public static Verb ParseVerb(string httpVerb)
+        {
+            switch (httpVerb)
+            {
+                case "GET":
+                    return Verb.Get;
+                case "PUT":
+                    return Verb.Create;
+                case "POST":
+                    return Verb.Update;
+                case "DELETE":
+                    return Verb.Delete;
+                case "OPTIONS":
+                    return Verb.Options;
+                default:
+                    return Verb.Default;
+            }
         }
 
         public void Dispose()

@@ -8,12 +8,12 @@ namespace LinqInfer.Data.Remoting
     /// Represents a lightweight API
     /// for exposing functions over HTTP
     /// </summary>
-    public interface IHttpApi
+    public interface IHttpApi : IOwinApplication
     {
         /// <summary>
         /// Returns a binder for binding a function to the route template
         /// </summary>
-        RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get);
+        RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get, Func<IOwinContext, bool> predicate = null);
 
         /// <summary>
         /// Exports an async method

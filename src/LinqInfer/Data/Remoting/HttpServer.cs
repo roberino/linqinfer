@@ -16,11 +16,12 @@ namespace LinqInfer.Data.Remoting
         private readonly Socket _socket;
         private readonly ManualResetEvent _completedHandle;
 
-        private Thread _connectThread;
-        private volatile ServerStatus _status;
-
         protected readonly Uri _baseEndpoint;
         protected readonly string _serverId;
+
+        private volatile ServerStatus _status;
+        private Thread _connectThread;
+
         protected ICompressionProvider _compression;
 
         public HttpServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")

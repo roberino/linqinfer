@@ -48,6 +48,11 @@ namespace LinqInfer.Data.Remoting
             _errorHandlers.Add(errorHandler);
         }
 
+        public Task ProcessContext(IOwinContext context)
+        {
+            return Process(context);
+        }
+
         protected override bool HandleTransportError(Exception ex)
         {
             DebugOutput.Log(ex.Message);

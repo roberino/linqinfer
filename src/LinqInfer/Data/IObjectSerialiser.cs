@@ -6,8 +6,8 @@ namespace LinqInfer.Data
 {
     public interface IObjectSerialiser
     {
-        string MimeType { get; }
-        Task Serialise<T>(T obj, Stream output, Encoding encoding);
-        Task<T> Deserialise<T>(Stream input, Encoding encoding);
+        string[] SupportedMimeTypes { get; }
+        Task Serialise<T>(T obj, Encoding encoding, string mimeType, Stream output);
+        Task<T> Deserialise<T>(Stream input, Encoding encoding, string mimeType);
     }
 }
