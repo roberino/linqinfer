@@ -76,13 +76,17 @@ namespace LinqInfer.Data.Remoting
                 {
                     var partType = _parts[i];
 
-                    if (partType.Type == RoutePartType.Static)
+                    switch (partType.Type)
                     {
-                        if (partType.Name != part) throw new ArgumentException(part);
-                    }
-                    else
-                    {
-                        parameters[partType.Name] = part;
+                        case RoutePartType.Static:
+                            if (partType.Name != part) throw new ArgumentException(part);
+                            break;
+                        case RoutePartType.PathParameter:
+                            parameters[partType.Name] = part;
+                            break;
+                        case RoutePartType.WildCard:
+                            parameters[part] = part;
+                            break;
                     }
                 }
                 else
@@ -150,7 +154,7 @@ namespace LinqInfer.Data.Remoting
                         {
                             Index = i,
                             Name = part,
-                            Type = RoutePartType.Static
+                            Type = part == "*" ? RoutePartType.WildCard : RoutePartType.Static
                         };
                     }
 
@@ -186,7 +190,8 @@ namespace LinqInfer.Data.Remoting
             Unknown,
             PathParameter,
             QueryParameter,
-            Static
+            Static,
+            WildCard
         }
     }
 }

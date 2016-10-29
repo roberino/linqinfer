@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    public sealed class TcpResponse : IDisposable
+    public sealed class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
     {
         private readonly Stream _innerStream;
         private readonly Stream _compressionStream;
         private readonly TcpResponseHeader _header;
+        private readonly ICompressionProvider _compression;
 
         private TextWriter _text;
 
         internal TcpResponse(TcpRequestHeader requestHeader, ICompressionProvider compression)
         {
+            _compression = compression;
             _innerStream = new MemoryStream();
             _compressionStream = compression.CompressTo(_innerStream);
 
@@ -101,6 +103,38 @@ namespace LinqInfer.Data.Remoting
             if (_text != null) _text.Flush();
             _compressionStream.Flush();
             _innerStream.Flush();
+        }
+
+        public TcpResponse Clone(bool deep)
+        {
+            if (deep)
+            {
+                if (_compression != null && !(_compression is PassThruCompressionProvider) && !ReferenceEquals(_compressionStream, _innerStream))
+                {
+                    throw new NotSupportedException("Not supported for compressed responses");
+                }
+
+                var res = new TcpResponse(Header.TransportProtocol);
+
+                if (Content.Position > 0) Content.CopyTo(res.Content);
+
+                foreach(var h in Header.Headers)
+                {
+                    res.Header.Headers[h.Key] = h.Value;
+                }
+
+                res.Header.HttpProtocol = Header.HttpProtocol;
+                res.Header.IsError = Header.IsError;
+                res.Header.StatusCode = Header.StatusCode;
+                res.Header.StatusText = Header.StatusText;
+                res.Header.TextEncoding = Header.TextEncoding;
+
+                return res;
+            }
+            else
+            {
+                return this;
+            }
         }
 
         public void Dispose()

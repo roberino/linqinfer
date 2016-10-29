@@ -3,7 +3,7 @@ using System.IO;
 
 namespace LinqInfer.Data.Remoting
 {
-    public sealed class TcpRequest : IBinaryPersistable
+    public sealed class TcpRequest : IBinaryPersistable, ICloneableObject<TcpRequest>
     {
         internal TcpRequest(TcpRequestHeader header, Stream body)
         {
@@ -58,6 +58,21 @@ namespace LinqInfer.Data.Remoting
 
             Header = header;
             Content = content;
+        }
+
+        public TcpRequest Clone(bool deep)
+        {
+            if (deep)
+            {
+                if (Content == Stream.Null)
+                {
+                    var ms = new MemoryStream();
+                    Content.CopyTo(ms);
+                    return new TcpRequest(Header, ms);
+                }
+            }
+
+            return new TcpRequest(Header, Content);
         }
     }
 }

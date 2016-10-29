@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Remoting;
+﻿using LinqInfer.Data.Remoting;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -134,15 +133,10 @@ namespace LinqInfer.Tests.Data.Remoting
             public MockContext()
             {
                 Response = new TcpResponse(TransportProtocol.Http);
+                Request = new TcpRequest(new TcpRequestHeader(BitConverter.GetBytes((long)0)), Stream.Null);
             }
 
-            public TcpRequest Request
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            public TcpRequest Request { get; private set; }
 
             public Uri RequestUri
             {
@@ -163,6 +157,11 @@ namespace LinqInfer.Tests.Data.Remoting
             }
 
             public void Cancel()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IOwinContext Clone(bool deep)
             {
                 throw new NotImplementedException();
             }

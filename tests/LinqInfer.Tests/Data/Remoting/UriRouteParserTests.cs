@@ -12,7 +12,7 @@ namespace LinqInfer.Tests.Data.Remoting
         [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2", "/test/abc/{x}", "x", "hello")]
         [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2", "/test/abc/{x}", "query.def", "2")]
         [TestCase("tcp://localhost/test/abc/hello?abc=1&def=2&test=1", "/test/abc/{x}?test=1", "test", "1")]
-        public void Parse_Example1(string uriString, string template, string param1, string value1)
+        public void Parse_Examples(string uriString, string template, string param1, string value1)
         {
             var uri = new Uri(uriString);
             var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
@@ -23,6 +23,21 @@ namespace LinqInfer.Tests.Data.Remoting
             var parameters = parser.Parse(uri);
 
             Assert.That(parameters[param1] == value1);
+        }
+
+        [Test]
+        public void ParseWildCards()
+        {
+            var uri = new Uri("http://hosty/wild/man");
+            var template = "/*/man";
+            var route = new UriRoute(new Uri(uri.Scheme + Uri.SchemeDelimiter + uri.Host + (uri.Port > 0 ? (":" + uri.Port) : null)), template);
+            var parser = new UriRouteMapper(route);
+
+            Assert.That(parser.CanMap(uri));
+
+            var parameters = parser.Parse(uri);
+
+            Assert.That(parameters["wild"] == "wild");
         }
 
         [TestCase("tcp://localhost:9432/test/123", "/test/123")]

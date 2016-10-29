@@ -10,13 +10,18 @@ namespace LinqInfer.Data.Remoting
 {
     internal class OwinContext : ConstrainableDictionary<string, object>, IOwinContext
     {
-        private readonly bool ready;
+        private readonly bool _ready;
+        private readonly Uri _clientBaseUri;
 
         public OwinContext(TcpRequest request, TcpResponse response, Uri clientBaseUri = null)
         {
             var header = request.Header;
+
+            _clientBaseUri = clientBaseUri;
+
             Request = request;
             Response = response;
+
             User = new ClaimsPrincipal();
 
             this["owin.RequestHeaders"] = header.Headers;
@@ -39,8 +44,8 @@ namespace LinqInfer.Data.Remoting
 
             this["owin.ResponseBody"] = response.Content;
             this["owin.ResponseHeaders"] = response.Header.Headers;
-            this["owin.ResponseStatusCode"] = 200;
-            this["owin.ResponseReasonPhrase"] = "OK";
+            this["owin.ResponseStatusCode"] = response.Header.StatusCode.GetValueOrDefault(200);
+            this["owin.ResponseReasonPhrase"] = response.Header.StatusText ?? "OK";
 
             this["owin.CallCancelled"] = false;
             this["owin.Version"] = "OWIN 1.0";
@@ -55,7 +60,7 @@ namespace LinqInfer.Data.Remoting
             EnforceType<int>("owin.ResponseStatusCode");
             EnforceType<bool>("owin.CallCancelled");
 
-            ready = true;
+            _ready = true;
         }
 
         public ClaimsPrincipal User { get; set; }
@@ -91,6 +96,14 @@ namespace LinqInfer.Data.Remoting
             await Response.WriteTo(output);
         }
 
+        public IOwinContext Clone(bool deep)
+        {
+            return new OwinContext(Request.Clone(deep), Response.Clone(deep), _clientBaseUri)
+            {
+                User = User
+            };
+        }
+
         public void Dispose()
         {
             Request.Content.Dispose();
@@ -119,7 +132,7 @@ namespace LinqInfer.Data.Remoting
 
         protected override void OnKeyUpdated(string key)
         {
-            if (!ready) return;
+            if (!_ready) return;
 
             base.OnKeyUpdated(key);
 
