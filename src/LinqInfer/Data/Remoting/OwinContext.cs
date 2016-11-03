@@ -38,6 +38,11 @@ namespace LinqInfer.Data.Remoting
                 SetRequestUri(new Uri(header.TransportProtocol.ToString().ToLower() + Uri.SchemeDelimiter + header.Headers["Host"][0]), header.Path);
             }
 
+            if (!header.Headers.ContainsKey("REMOTE_ADDR"))
+            {
+                header.Headers["REMOTE_ADDR"] = new[] { clientBaseUri.Host + ':' + clientBaseUri.Port };
+            }
+
             this["owin.RequestMethod"] = header.HttpVerb;
             this["owin.RequestBody"] = request.Content;
             this["owin.RequestProtocol"] = "HTTP/" + header.HttpProtocol;

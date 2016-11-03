@@ -26,10 +26,13 @@ namespace LinqInfer.Data.Remoting
 
             MimeType = "application/octet-stream";
             HttpProtocol = "1.1";
+            Date = DateTime.UtcNow;
             _encoding = new UTF8Encoding(true);
         }
 
         public string MimeType { get; set; }
+
+        public DateTime Date { get; set; }
 
         public Encoding TextEncoding
         {
@@ -81,7 +84,7 @@ namespace LinqInfer.Data.Remoting
             {
                 formatter.WriteResponseProtocolAndStatus(HttpProtocol, StatusCode.GetValueOrDefault(IsError ? 500 : 200), StatusText);
 
-                formatter.WriteDate();
+                formatter.WriteDate(Date);
 
                 _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
 

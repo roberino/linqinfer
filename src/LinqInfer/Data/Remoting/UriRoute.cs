@@ -38,5 +38,10 @@ namespace LinqInfer.Data.Remoting
         public string Template { get; private set; }
 
         public Verb Verbs { get; private set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}", Verbs, Template);
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace LinqInfer.Data.Remoting
     {
         private static readonly Regex _httpHeaderTest;
 
+        private StringBuilder _buffer;
+
         static TcpRequestHeader()
         {
             _httpHeaderTest = new Regex(@"(GET|POST|PUT|OPTIONS|DELETE)\s+([^\s]+)\s+HTTP\/(1.\d)", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -31,22 +33,20 @@ namespace LinqInfer.Data.Remoting
 
                 if (http.Any())
                 {
-                    //DebugOutput.Log(ascii);
-
-                    ReadHttpHeaders(ascii);
-
                     HttpVerb = http.First().Groups[1].Value;
                     Path = http.First().Groups[2].Value;
                     HttpProtocol = http.First().Groups[3].Value;
-                    HeaderLength = ascii.IndexOf("\n\n") + 2;
-
+                    TransportProtocol = TransportProtocol.Http;
                     Query = ParseQuery(Path);
+
+                    ParseHttpHeader(ascii);
                 }
                 else
                 {
                     ContentLength = BitConverter.ToInt64(data, 0);
                     HeaderLength = sizeof(long);
                     Query = new Dictionary<string, string[]>();
+                    IsComplete = true;
                 }
             }
             catch
@@ -54,8 +54,21 @@ namespace LinqInfer.Data.Remoting
                 ContentLength = BitConverter.ToInt64(data, 0);
                 HeaderLength = sizeof(long);
                 Query = new Dictionary<string, string[]>();
+                IsComplete = true;
             }
         }
+
+        internal void Append(byte[] data)
+        {
+            if (IsComplete || TransportProtocol != TransportProtocol.Http)
+            {
+                throw new InvalidOperationException();
+            }
+
+            ParseHttpHeader(Encoding.ASCII.GetString(data));
+        }
+
+        internal bool IsComplete { get; private set; }
 
         public int HeaderLength { get; private set; }
 
@@ -116,6 +129,46 @@ namespace LinqInfer.Data.Remoting
             else
             {
                 new BinaryWriter(output, Encoding.UTF8, true).Write(ContentLength);
+            }
+        }
+
+        private void ParseHttpHeader(string text)
+        {
+            string ascii;
+
+            if (_buffer != null)
+            {
+                _buffer.Append(text);
+
+                ascii = _buffer.ToString();
+            }
+            else
+            {
+                ascii = text;
+            }
+
+            var end = ascii.IndexOf("\r\n\r\n");
+
+            if (end == -1)
+            {
+                end = ascii.IndexOf("\n\n");
+            }
+
+            if (end > -1)
+            {
+                HeaderLength = end + 2;
+                IsComplete = true;
+                ReadHttpHeaders(ascii);
+                _buffer = null;
+            }
+            else
+            {
+                HeaderLength = ascii.Length;
+
+                if (_buffer == null)
+                {
+                    _buffer = new StringBuilder(ascii);
+                }
             }
         }
 
@@ -195,8 +248,6 @@ namespace LinqInfer.Data.Remoting
                     }
                 }
             }
-
-            TransportProtocol = TransportProtocol.Http;
         }
 
         private string[] SplitHeader(string name, string values)

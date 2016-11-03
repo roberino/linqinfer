@@ -26,6 +26,7 @@ namespace LinqInfer.Tests.Data.Remoting
         }
 
         [Test]
+        [Ignore("Not yet supported")]
         public void ParseWildCards()
         {
             var uri = new Uri("http://hosty/wild/man");

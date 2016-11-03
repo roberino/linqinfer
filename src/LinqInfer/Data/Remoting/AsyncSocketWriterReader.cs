@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -20,7 +21,11 @@ namespace LinqInfer.Data.Remoting
 
             _socket.SendBufferSize = bufferSize;
             _socket.ReceiveBufferSize = bufferSize;
+
+            Timeout = 30000;
         }
+
+        public int Timeout { get; set; }
 
         public int Write(Stream input, TcpResponseHeader header = null)
         {
@@ -86,33 +91,50 @@ namespace LinqInfer.Data.Remoting
 
         public async Task<TcpReceiveContext> ReadAsync()
         {
-            var socketStream = new NetworkStream(_socket);
-            var receivedStream = new MemoryStream();
-            var read = 0;
-
-            read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length);
-
-            var header = new TcpRequestHeader(_readBuffer);
-
-            if ((read - header.HeaderLength) > 0)
-                receivedStream.Write(_readBuffer, header.HeaderLength, read - header.HeaderLength);
-
-            while (receivedStream.Position < header.ContentLength)
+            using (var cancellationTokenSource = new CancellationTokenSource(Timeout))
             {
-                read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length);
+                var socketStream = new NetworkStream(_socket);
+                var receivedStream = new MemoryStream();
+                var read = 0;
 
-                receivedStream.Write(_readBuffer, 0, read);
+                TcpRequestHeader header = null;
+
+                while (true)
+                {
+                    read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length, cancellationTokenSource.Token);
+
+                    if (header == null)
+                    {
+                        header = new TcpRequestHeader(_readBuffer);
+                    }
+                    else
+                    {
+                        header.Append(_readBuffer);
+                    }
+
+                    if (header.IsComplete || read < _readBuffer.Length) break;
+                }
+
+                if ((read - header.HeaderLength) > 0)
+                    receivedStream.Write(_readBuffer, header.HeaderLength, read - header.HeaderLength);
+
+                while (receivedStream.Position < header.ContentLength)
+                {
+                    read = await socketStream.ReadAsync(_readBuffer, 0, _readBuffer.Length, cancellationTokenSource.Token);
+
+                    receivedStream.Write(_readBuffer, 0, read);
+                }
+
+                DebugOutput.Log("Received {0} bytes", receivedStream.Position);
+
+                receivedStream.Position = 0;
+
+                return new TcpReceiveContext(_socket)
+                {
+                    Header = header,
+                    ReceivedData = receivedStream
+                };
             }
-
-            DebugOutput.Log("Received {0} bytes", receivedStream.Position);
-
-            receivedStream.Position = 0;
-
-            return new TcpReceiveContext(_socket)
-            {
-                Header = header,
-                ReceivedData = receivedStream
-            };
         }
     }
 }

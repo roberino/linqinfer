@@ -27,9 +27,9 @@ namespace LinqInfer.Data.Remoting
             _closeWriter = closeWriter;
         }
 
-        public void WriteDate()
+        public void WriteDate(DateTime? date = null)
         {
-            _writer.WriteLine("Date: " + FormatDate(DateTime.UtcNow));
+            _writer.WriteLine("Date: " + FormatDate(date.GetValueOrDefault(DateTime.UtcNow)));
         }
 
         public void WriteHeaders(IDictionary<string, string[]> headers)
