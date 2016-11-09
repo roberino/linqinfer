@@ -151,29 +151,10 @@ namespace LinqInfer.Text
             }
         }
 
-        public void IndexDocumentOld(TokenisedTextDocument document)
+        public void IndexText(string text, string id)
         {
-            _documentCount++;
-
-            foreach (var word in document.Tokens.Where(t => t.Type == TokenType.Word))
-            {
-                WordMap wordData;
-
-                if (!_frequencies.TryGetValue(word.Text.ToLowerInvariant(), out wordData))
-                {
-                    wordData = new WordMap();
-                }
-
-                wordData.Count++;
-
-                int tf;
-
-                wordData.DocFrequencies.TryGetValue(document.Id, out tf);
-
-                wordData.DocFrequencies[document.Id] = tf + 1;
-
-                _frequencies[word.Text.ToLowerInvariant()] = wordData;
-            }
+            var doc = new TokenisedTextDocument(id, _tokeniser.Tokenise(text));
+            IndexDocument(doc);
         }
 
         public void IndexDocuments(IEnumerable<TokenisedTextDocument> documents)
@@ -212,31 +193,6 @@ namespace LinqInfer.Text
             });
         }
 
-        internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
-        {
-            var idfs = GetWordFrequencies(query);
-
-            var docs = idfs.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);
-
-            foreach (var df in idfs)
-            {
-                foreach (var doc in docs.Keys.ToList())
-                {
-                    int tf = 0;
-
-                    df.Value.DocFrequencies.TryGetValue(doc, out tf);
-
-                    var idf = tf > 0 ? Math.Log((double)df.Value.Count / ((double)tf) + 1) : 0d;
-
-                    docs[doc] *= idf;
-                }
-            }
-
-            return docs.Where(x => x.Value > 0)
-                .OrderByDescending(x => x.Value)
-                .Select(d => new KeyValuePair<string, float>(d.Key, (float)d.Value));
-        }
-
         public void Save(Stream output)
         {
             var sz = DictionarySerialiserFactory.ForInstance(_frequencies);
@@ -270,6 +226,31 @@ namespace LinqInfer.Text
                     foreach (var k in item.Value.DocFrequencies) m.DocFrequencies.Add(k);
                 }
             }
+        }
+
+        internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
+        {
+            var frequencyData = GetWordFrequencies(query);
+
+            var docs = frequencyData.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);
+
+            foreach (var tf in frequencyData)
+            {
+                foreach (var doc in docs.Keys.ToList())
+                {
+                    int df = 0;
+
+                    tf.Value.DocFrequencies.TryGetValue(doc, out df);
+
+                    var idf = df > 0 ? Math.Log(df / (double)tf.Value.Count + 1) : 0d;
+
+                    docs[doc] *= idf;
+                }
+            }
+
+            return docs.Where(x => x.Value > 0)
+                .OrderByDescending(x => x.Value)
+                .Select(d => new KeyValuePair<string, float>(d.Key, (float)d.Value));
         }
 
         private IDictionary<string, WordMap> GetWordFrequencies(string text)
