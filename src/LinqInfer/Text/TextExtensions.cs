@@ -145,6 +145,43 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Parses a stream as a HTML document, converting it into an enumeration of <see cref="XNode"/>
+        /// </summary>
+        /// <param name="stream">The HTML stream</param>
+        /// <param name="encoding">The text encoding</param>
+        /// <returns></returns>
+        public static IEnumerable<XNode> OpenAsHtml(this Stream stream, Encoding encoding = null)
+        {
+            using (var reader = encoding == null ? new StreamReader(stream, true) : new StreamReader(stream, encoding))
+            {
+                return new HtmlParser().Parse(reader);
+            }
+        }
+
+        /// <summary>
+        /// Parses a stream as a HTML document, converting it into an <see cref="XDocument"/>
+        /// </summary>
+        /// <param name="stream">The HTML stream</param>
+        /// <param name="encoding">The text encoding</param>
+        /// <returns>An <see cref="XDocument"/></returns>
+        public static XDocument OpenAsHtmlDocument(this Stream stream, Encoding encoding = null)
+        {
+            using (var reader = encoding == null ? new StreamReader(stream, true) : new StreamReader(stream, encoding))
+            {
+                var nodes = new HtmlParser().Parse(reader).ToList();
+
+                if (nodes.Count == 1 && nodes.Single().NodeType == System.Xml.XmlNodeType.Element)
+                {
+                    return new XDocument(nodes.Single());
+                }
+                else
+                {
+                    return new XDocument(new XElement("html", new XElement("body", nodes)));
+                }
+            }
+        }
+
+        /// <summary>
         /// Searches documents using term frequency / inverse document frequency.
         /// </summary>
         /// <param name="documents">The documents to be searched</param>

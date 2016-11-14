@@ -1,5 +1,5 @@
 {
-  "version": "3.3.2-beta",
+  "version": "3.3.5-beta",
   "title": "LinqInfer",
   "description": "A lightweight and slightly experimental inference library for C#",
   "language": "en-GB",
@@ -13,8 +13,11 @@
       "url": "git://github.com/roberino/linqinfer"
     }
   },
+  "resource": [
+    "Resources/*.txt"
+  ],
   "runtimes": {
-    "win": { }
+    "win": {}
   },
   "frameworks": {
     "net45": {

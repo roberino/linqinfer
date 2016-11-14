@@ -8,8 +8,32 @@ using System.Xml.Linq;
 namespace LinqInfer.Tests.Text
 {
     [TestFixture]
-    public class TextExtensionsTests
+    public class TextExtensionsTests : TestFixtureBase
     {
+        [Test]
+        public void OpenAsHtmlDocument_ReturnsValidDoc()
+        {
+            using (var htmlStream = GetResource("html_sample1.html"))
+            {
+                var doc = htmlStream.OpenAsHtmlDocument();
+
+                Assert.That(doc.Root.Name.LocalName, Is.EqualTo("html"));
+                Assert.That(doc.Root.Elements().Single().Name.LocalName, Is.EqualTo("body"));
+                Assert.That(doc.Root.Elements().Single().Value.Trim(), Is.EqualTo("Test"));
+            }
+        }
+        [Test]
+        public void OpenAsHtmlDocument2_ReturnsValidDoc()
+        {
+            using (var htmlStream = GetResource("html_sample2.html"))
+            {
+                var doc = htmlStream.OpenAsHtmlDocument();
+
+                Assert.That(doc.Root.Name.LocalName, Is.EqualTo("html"));
+                Assert.That(doc.Root.Elements().Skip(1).First().Name.LocalName, Is.EqualTo("body"));
+            }
+        }
+
         [Test]
         public void Tokenise_And_CreateIndex()
         {
