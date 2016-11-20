@@ -1,11 +1,68 @@
 ﻿using LinqInfer.Learning.Classification;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
     public static class P
     {
+        /// <summary>
+        /// Creates a time based histogram of items organised into bins of a specified width
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="data">A queryable set of data</param>
+        /// <param name="timeFunction">A function to select the time period of an item</param>
+        /// <param name="resolution">The size of each bin</param>
+        /// <returns>A <see cref="DiscretizedSet{V, W, T}"/></returns>
+        public static DiscretizedSet<DateTime, TimeSpan, T> AsHistogram<T>(this IQueryable<T> data, Expression<Func<T, DateTime>> timeFunction, TimeResolution resolution = TimeResolution.Hours)
+        {
+            if (resolution == TimeResolution.None) throw new ArgumentException("Invalid time resolution");
+
+            var histogram = new Histogram((double)resolution);
+
+            var results = histogram.Analyse(data, timeFunction);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Creates a time based histogram of items organised into bins of a specified width
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="data">A queryable set of data</param>
+        /// <param name="timeFunction">A function to select the time period of an item</param>
+        /// <param name="resolution">The size of each bin</param>
+        /// <returns>A <see cref="DiscretizedSet{V, W, T}"/></returns>
+        public static DiscretizedSet<DateTime, TimeSpan, T> AsHistogram<T>(this IQueryable<T> data, Expression<Func<T, DateTime>> timeFunction, TimeSpan resolution)
+        {
+            if (resolution.Ticks == 0) throw new ArgumentException("Invalid time resolution");
+
+            var histogram = new Histogram((double)resolution.TotalMilliseconds);
+
+            var results = histogram.Analyse(data, timeFunction);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Creates a histogram of items organised into bins of a specified width
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="data">A queryable set of data</param>
+        /// <param name="valueFunction">A function to select the value of an item</param>
+        /// <param name="width">The width of a bin</param>
+        /// <returns>A <see cref="DiscretizedSet{V, W, T}"/></returns>
+        public static DiscretizedSet<double, double, T> AsHistogram<T>(this IQueryable<T> data, Expression<Func<T, double>> valueFunction, double? width = null)
+        {
+            var histogram = new Histogram(width);
+
+            var results = histogram.Analyse(data, valueFunction);
+
+            return results;
+        }
+
         /// <summary>
         /// Returns the product of a sequence of fraction values.
         /// </summary>

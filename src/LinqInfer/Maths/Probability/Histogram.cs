@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
@@ -18,10 +19,66 @@ namespace LinqInfer.Maths.Probability
             _width = width;
         }
 
-        public ResultSet Analyse(IQueryable<Fraction> sample)
+        public DiscretizedSet<double, double, Fraction> Analyse(IQueryable<Fraction> sample)
         {
-            var min = sample.Select(x => x.Value).Min();
-            var max = sample.Select(x => x.Value).Max();
+            return Analyse(sample, x => x.Value);
+        }
+
+        public DiscretizedSet<DateTime, TimeSpan, T> Analyse<T>(IQueryable<T> sample, Expression<Func<T, DateTime>> valueFunction)
+        {
+            if (!sample.Any())
+            {
+                return new DiscretizedSet<DateTime, TimeSpan, T>(DateTime.MinValue, DateTime.MinValue, TimeSpan.MinValue, x => DateTime.MinValue);
+            }
+
+            var min = sample.Select(valueFunction).Min();
+            var max = sample.Select(valueFunction).Max();
+            var span = max - min;
+
+            TimeSpan h; // width of bin
+            int k; // N of bins
+
+            if (_width.HasValue)
+            {
+                h = TimeSpan.FromMilliseconds(_width.Value);
+                k = (int)Math.Ceiling(span.TotalMilliseconds / _width.Value);
+            }
+            else
+            {
+                var n = sample.Count();
+                k = (int)Math.Ceiling(Math.Log(n, 2) + 1);
+                h = TimeSpan.FromMilliseconds(span.TotalMilliseconds / k);
+            }
+
+            var results = new DiscretizedSet<DateTime, TimeSpan, T>(min, max, h, w => min + TimeSpan.FromMilliseconds(w * h.TotalMilliseconds));
+
+            results.CreateBins(Enumerable.Range(0, k + 1));
+
+            var vf = valueFunction.Compile();
+
+            foreach (var s in sample.AsEnumerable().Select(x => new
+            {
+                item = x,
+                value = vf(x)
+            }))
+            {
+                var bin = (int)((s.value - min).TotalMilliseconds / h.TotalMilliseconds);
+
+                results.AddValue(bin, s.item);
+            }
+
+            return results;
+        }
+
+        public DiscretizedSet<double, double, T> Analyse<T>(IQueryable<T> sample, Expression<Func<T, double>> valueFunction)
+        {
+            if (!sample.Any())
+            {
+                return new DiscretizedSet<double, double, T>(0, 0, 0, x => 0);
+            }
+
+            var min = sample.Select(valueFunction).Min();
+            var max = sample.Select(valueFunction).Max();
             var span = max - min;
 
             double h; // width of bin
@@ -39,18 +96,26 @@ namespace LinqInfer.Maths.Probability
                 h = span / k;
             }
 
-            var hist = Enumerable.Range(0, k + 1).ToDictionary(n => n, n => 0);
+            var results = new DiscretizedSet<double, double, T>(min, max, h, w => min + w * h);
 
-            foreach (var item in sample)
+            results.CreateBins(Enumerable.Range(0, k + 1));
+
+            var vf = valueFunction.Compile();
+
+            foreach (var s in sample.AsEnumerable().Select(x => new
             {
-                var bin = (int)((item.Value - min) / h);
+                item = x,
+                value = vf(x)
+            }))
+            {
+                var bin = (int)((s.value - min) / h);
 
                 //var bin = Math.Max(Math.Min((int)Math.Floor((item.Value - min) / h), k - 1), 0);
 
-                hist[bin]++;
+                results.AddValue(bin, s.item);
             }
 
-            return new ResultSet() { Min = min, Width = h, Bins = hist, Total = hist.Values.Sum() };
+            return results;
         }
 
         public Func<Fraction, Fraction> Evaluate(IQueryable<Fraction> sample)
@@ -67,17 +132,6 @@ namespace LinqInfer.Maths.Probability
                 }
                 return Fraction.Zero;
             };
-        }
-
-        public class ResultSet
-        {
-            public double Min { get; internal set; }
-
-            public double Width { get; internal set; }
-
-            public int Total { get; internal set; }
-
-            public IDictionary<int, int> Bins { get; internal set; }
         }
     }
 }

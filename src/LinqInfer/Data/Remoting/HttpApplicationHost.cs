@@ -55,7 +55,7 @@ namespace LinqInfer.Data.Remoting
 
         protected override bool HandleTransportError(Exception ex)
         {
-            DebugOutput.Log(ex.Message);
+            DebugOutput.Log(ex);
             return true;
         }
 

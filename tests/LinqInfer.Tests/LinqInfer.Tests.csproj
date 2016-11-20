@@ -78,6 +78,7 @@
     <Compile Include="Data\Remoting\FunctionBinderTests.cs" />
     <Compile Include="Data\Remoting\HttpApiTests.cs" />
     <Compile Include="Data\Remoting\HttpApplicationHostTests.cs" />
+    <Compile Include="Data\Remoting\HttpServerTests.cs" />
     <Compile Include="Data\Remoting\JsonSerialiser.cs" />
     <Compile Include="Data\Remoting\MockSerialiser.cs" />
     <Compile Include="Data\Remoting\RemotingExtensionsTests.cs" />

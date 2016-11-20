@@ -20,7 +20,9 @@ namespace LinqInfer.Data.Remoting
         protected readonly string _serverId;
 
         private volatile ServerStatus _status;
+        private volatile bool _transportError;
         private Thread _connectThread;
+        private Thread _healthCheckThread;
 
         protected ICompressionProvider _compression;
 
@@ -82,6 +84,8 @@ namespace LinqInfer.Data.Remoting
 
         public void Start()
         {
+            _transportError = false;
+
             try
             {
                 _socket.Listen(500);
@@ -98,50 +102,41 @@ namespace LinqInfer.Data.Remoting
                 throw new InvalidOperationException("Alread active (status = " + _status + ")");
             }
 
-            _status = ServerStatus.Running;
-
-            _connectThread = new Thread(() =>
-            {
-                while (_status == ServerStatus.Running)
-                {
-                    _completedHandle.Reset();
-
-                    DebugOutput.Log("Waiting for a connection...");
-
-                    _socket.BeginAccept(AcceptCallback, _socket);
-
-                    // TODO: try _socket.AcceptAsync()
-
-                    var acceptArgs = new SocketAsyncEventArgs();
-
-                    acceptArgs.Completed += AcceptCompleted;
-
-                    if (!_socket.AcceptAsync(acceptArgs))
-                    {
-                        AcceptCompleted(this, acceptArgs);
-                    }
-
-                    _completedHandle.WaitOne();
-                }
-
-                if (_status == ServerStatus.ShuttingDown)
-                    _status = ServerStatus.Stopped;
-            });
+            SetupConnectThread();
 
             _connectThread.Start();
+
+            _status = ServerStatus.Running;
         }
 
-        private void AcceptCompleted(object sender, SocketAsyncEventArgs e)
-        {
-            OnAccept(e.AcceptSocket);
-        }
-
-        public void Stop()
+        public void Stop(bool wait = false)
         {
             _status = ServerStatus.ShuttingDown;
+
+            if (wait)
+            {
+                if (_connectThread.IsAlive)
+                {
+                    _connectThread.Join(1500);
+                }
+            }
         }
 
-        public ServerStatus Status { get { return _status; } }
+        public ServerStatus Status
+        {
+            get
+            {
+                if (_status == ServerStatus.Running)
+                {
+                    if (!_connectThread.IsAlive)
+                    {
+                        return ServerStatus.Broken;
+                    }
+                }
+
+                return _status;
+            }
+        }
 
         protected virtual Task<bool> Process(IOwinContext context)
         {
@@ -153,6 +148,76 @@ namespace LinqInfer.Data.Remoting
             DebugOutput.Log(error);
 
             return Task.FromResult(true);
+        }
+
+        protected virtual bool HandleTransportError(Exception ex)
+        {
+            DebugOutput.Log("Transport error: ", ex.Message);
+
+            return false;
+        }
+
+        private void SetupConnectThread()
+        {
+            var consecErr = 0;
+
+            _connectThread = new Thread(() =>
+            {
+                while (_status == ServerStatus.Running)
+                {
+                    _completedHandle.Reset();
+
+                    try
+                    {
+                        var res = _socket.BeginAccept(AcceptCallback, _socket);
+
+                        DebugOutput.Log("Waiting for a connection on port {0}...", _baseEndpoint.Port);
+
+                        consecErr = 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        consecErr++;
+                        DebugOutput.Log("Error accepting - ", ex);
+                        _completedHandle.Set();
+
+                        if (consecErr > 5)
+                        {
+                            Thread.Sleep(50);
+                        }
+                    }
+
+                    // TODO: try _socket.AcceptAsync()
+
+                    //var acceptArgs = new SocketAsyncEventArgs();
+
+                    //acceptArgs.Completed += AcceptCompleted;
+
+                    //if (!_socket.AcceptAsync(acceptArgs))
+                    //{
+                    //    AcceptCompleted(this, acceptArgs);
+                    //}
+
+                    while (_status == ServerStatus.Running)
+                    {
+                        if (_completedHandle.WaitOne(500)) break;
+                    }
+                }
+
+                DebugOutput.Log("Stopping, status = {0}", _status);
+
+                if (_status == ServerStatus.ShuttingDown)
+                    _status = ServerStatus.Stopped;
+            })
+            {
+                IsBackground = true,
+                Priority = ThreadPriority.Highest
+            };
+        }
+
+        private void AcceptCompleted(object sender, SocketAsyncEventArgs e)
+        {
+            OnAccept(e.AcceptSocket);
         }
 
         private void AcceptCallback(IAsyncResult ar)
@@ -169,6 +234,8 @@ namespace LinqInfer.Data.Remoting
             }
             catch (Exception ex)
             {
+                if (ex is ObjectDisposedException) return;
+
                 if (!HandleTransportError(ex))
                 {
                     throw;
@@ -188,6 +255,15 @@ namespace LinqInfer.Data.Remoting
 
                 // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
+            catch (SocketException ex)
+            {
+                _transportError = true;
+
+                if (!HandleTransportError(ex))
+                {
+                    throw;
+                }
+            }
             catch (Exception ex)
             {
                 if (!HandleTransportError(ex))
@@ -195,16 +271,6 @@ namespace LinqInfer.Data.Remoting
                     throw;
                 }
             }
-        }
-
-        protected virtual bool HandleTransportError(Exception ex)
-        {
-            if (_status == ServerStatus.Running)
-            {
-                _status = ServerStatus.Error;
-            }
-
-            return false;
         }
 
         private async Task ProcessTcpRequest(Socket clientSocket)

@@ -16,6 +16,7 @@ namespace LinqInfer.Data.Remoting
 
         private Func<long> _contentLength;
         private Encoding _encoding;
+        private string _mimeType;
 
         internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null)
         {
@@ -24,13 +25,28 @@ namespace LinqInfer.Data.Remoting
 
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
-            MimeType = "application/octet-stream";
+            ContentMimeType = "application/octet-stream";
             HttpProtocol = "1.1";
             Date = DateTime.UtcNow;
             _encoding = new UTF8Encoding(true);
         }
 
-        public string MimeType { get; set; }
+        public string ContentMimeType
+        {
+            get
+            {
+                string[] mt;
+                if (_headers.TryGetValue(ContentTypeHeader, out mt) && mt.Length > 0)
+                {
+                    return mt.First().Split(';').First().Trim();
+                }
+                return _mimeType;
+            }
+            set
+            {
+                _mimeType = value;
+            }
+        }
 
         public DateTime Date { get; set; }
 
@@ -88,9 +104,9 @@ namespace LinqInfer.Data.Remoting
 
                 _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
 
-                if (MimeType != null && !_headers.ContainsKey(ContentTypeHeader))
+                if (_mimeType != null && !_headers.ContainsKey(ContentTypeHeader))
                 {
-                    var contentType = MimeType;
+                    var contentType = ContentMimeType;
 
                     if (TextEncoding != null)
                     {

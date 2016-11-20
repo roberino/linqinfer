@@ -168,7 +168,7 @@ namespace LinqInfer.Text
         {
             using (var reader = encoding == null ? new StreamReader(stream, true) : new StreamReader(stream, encoding))
             {
-                var nodes = new HtmlParser().Parse(reader).ToList();
+                var nodes = new HtmlParser(true).Parse(reader).ToList();
 
                 if (nodes.Count == 1 && nodes.Single().NodeType == System.Xml.XmlNodeType.Element)
                 {

@@ -115,6 +115,11 @@ namespace LinqInfer.Data.Remoting
                 ClientSocket.Shutdown(SocketShutdown.Both);
                 ClientSocket.Disconnect(!_disposeSocket);
             }
+            catch (AggregateException ex)
+            {
+                foreach (var e in ex.InnerExceptions)
+                    DebugOutput.Log(ex.Message);
+            }
             catch (Exception ex)
             {
                 DebugOutput.Log(ex.Message);

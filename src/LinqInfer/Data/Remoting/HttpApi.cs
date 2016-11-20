@@ -179,9 +179,9 @@ namespace LinqInfer.Data.Remoting
             _host.Start();
         }
 
-        public void Stop()
+        public void Stop(bool wait = false)
         {
-            _host.Stop();
+            _host.Stop(wait);
         }
 
         public void Dispose()

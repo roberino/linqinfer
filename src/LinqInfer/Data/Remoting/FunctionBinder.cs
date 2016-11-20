@@ -68,7 +68,7 @@ namespace LinqInfer.Data.Remoting
 
             await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
 
-            context.Response.Header.MimeType = mimeType;
+            context.Response.Header.ContentMimeType = mimeType;
             context.Response.Header.StatusCode = 200;
         }
 

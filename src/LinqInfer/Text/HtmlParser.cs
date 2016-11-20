@@ -14,9 +14,11 @@ namespace LinqInfer.Text
     internal class HtmlParser
     {
         private readonly HtmlEntityMap _entityMap;
+        private readonly bool _ignoreEmptyRootTextNodes;
 
-        public HtmlParser()
+        public HtmlParser(bool ignoreEmptyRootTextNodes = false)
         {
+            _ignoreEmptyRootTextNodes = ignoreEmptyRootTextNodes;
             _entityMap = new HtmlEntityMap();
         }
 
@@ -30,7 +32,20 @@ namespace LinqInfer.Text
 
         public IEnumerable<XNode> Parse(TextReader reader)
         {
-            return new ParserImpl(_entityMap).Parse(reader);
+            return Filter(new ParserImpl(_entityMap).Parse(reader));
+        }
+
+        private IEnumerable<XNode> Filter(IEnumerable<XNode> rootNodes)
+        {
+            if (_ignoreEmptyRootTextNodes)
+            {
+                return rootNodes
+                    .Where(r =>
+                    r.NodeType != XmlNodeType.Text ||
+                        (!string.IsNullOrWhiteSpace(((XText)r).Value)));
+            }
+
+            return rootNodes;
         }
 
         private class ParserImpl

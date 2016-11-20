@@ -30,7 +30,10 @@ namespace LinqInfer.Tests.Text
                 var doc = htmlStream.OpenAsHtmlDocument();
 
                 Assert.That(doc.Root.Name.LocalName, Is.EqualTo("html"));
-                Assert.That(doc.Root.Elements().Skip(1).First().Name.LocalName, Is.EqualTo("body"));
+
+                var rootElements = doc.Root.Elements().ToList();
+
+                Assert.That(rootElements.Skip(1).First().Name.LocalName, Is.EqualTo("body"));
             }
         }
 

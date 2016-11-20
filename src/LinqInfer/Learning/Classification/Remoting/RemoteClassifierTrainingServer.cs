@@ -59,9 +59,9 @@ namespace LinqInfer.Learning.Classification.Remoting
             _server.Start();
         }
 
-        public void Stop()
+        public void Stop(bool wait = false)
         {
-            _server.Stop();
+            _server.Stop(wait);
         }
 
         private async Task<bool> ListKeys(DataBatch batch, TcpResponse tcpResponse)

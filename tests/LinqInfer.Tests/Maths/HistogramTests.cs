@@ -25,6 +25,37 @@ namespace LinqInfer.Tests.Probability
         }
 
         [Test]
+        public void Analyse_TimeSeries()
+        {
+            var now = DateTime.UtcNow;
+            var now_plusx = new Func<int, DateTime>(x => now.AddHours(x));
+            var width = TimeSpan.FromHours(1);
+            var hist = new Histogram(width.TotalMilliseconds);
+
+            var sample = new[] {
+                new { date = now, name = "a" },
+                new { date = now_plusx(1), name = "b" },
+                new { date = now_plusx(1), name = "c" },
+                new { date = now_plusx(3), name = "d" },
+                new { date = now_plusx(4), name = "e" },
+                new { date = now_plusx(6), name = "f" },
+                new { date = now_plusx(6), name = "g" },
+                new { date = now_plusx(8), name = "h" }
+            }.AsQueryable();
+
+            var histSample = hist.Analyse(sample, v => v.date);
+            
+            Assert.That(histSample.Min, Is.EqualTo(now));
+            Assert.That(histSample.Max, Is.EqualTo(now_plusx(8)));
+            Assert.That(histSample.Total, Is.EqualTo(sample.Count()));
+            Assert.That(histSample.Width, Is.EqualTo(width));
+            Assert.That(histSample.Bins.Count, Is.EqualTo(9));
+            Assert.That(histSample.Bins[0], Is.EqualTo(1));
+            Assert.That(histSample.Bins[1], Is.EqualTo(2));
+            Assert.That(histSample.Bins[6], Is.EqualTo(2));
+        }
+
+        [Test]
         public void Evaluate_RandomSample()
         {
             foreach (var i in Enumerable.Range(0, 10))
