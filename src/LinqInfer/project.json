@@ -1,12 +1,12 @@
 {
-  "version": "3.3.10-beta",
+  "version": "3.4.0",
   "title": "LinqInfer",
   "description": "A lightweight and slightly experimental inference library for C#",
   "language": "en-GB",
   "authors": [ "R Eyres" ],
   "packOptions": {
     "projectUrl": "https://github.com/roberino/linqinfer",
-    "tags": [ "inference", "linq", "bayesian probability", "reasoning", "machine learning", "text search", "neural networks" ],
+    "tags": [ "inference", "linq", "bayesian probability", "reasoning", "machine learning", "text search", "neural networks", "markov chains" ],
     "licenseUrl": "https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE",
     "repository": {
       "type": "git",

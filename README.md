@@ -60,6 +60,8 @@ This is a collection of functions and probability "objects" to help solve simple
 
 * Sample spaces
 * Hypotheses
+* Markov chains
+* Monte Carlo simulations
 
 ##### Examples
 
