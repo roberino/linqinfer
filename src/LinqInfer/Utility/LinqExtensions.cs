@@ -9,6 +9,33 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Splits an enumeration into subsets
+        /// using a delimiting function.
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="items">An enumerable sequence of items</param>
+        /// <param name="delimitingFunction">A function which will return true value to indicate a delimiting item</param>
+        /// <returns>A enumerable of enumerable items</returns>
+        public static IEnumerable<IEnumerable<T>> Delimit<T>(this IEnumerable<T> items, Func<T, bool> delimitingFunction)
+        {
+            Contract.Assert(delimitingFunction != null);
+
+            var batch = new List<T>();
+
+            foreach (var item in items)
+            {
+                if (delimitingFunction(item))
+                {
+                    yield return batch;
+                    batch.Clear();
+                }
+                batch.Add(item);
+            }
+
+            if (batch.Any()) yield return batch;
+        }
+
+        /// <summary>
         /// Orders an enumeration of values randomly.
         /// </summary>
         /// <param name="source">The source items</param>

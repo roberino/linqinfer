@@ -8,6 +8,11 @@ namespace LinqInfer.Data.Remoting
     public interface IServer : IDisposable
     {
         /// <summary>
+        /// Fires when the server status changes
+        /// </summary>
+        event EventHandler<EventArgsOf<ServerStatus>> StatusChanged;
+
+        /// <summary>
         /// The server end-point (represented as a URI)
         /// </summary>
         Uri BaseEndpoint { get; }

@@ -19,6 +19,12 @@ namespace LinqInfer.Learning.Classification.Remoting
         private readonly MultilayerNetworkTrainingContextFactory<string> _trainingContextFactory;
         private readonly ICategoricalOutputMapper<string> _outputMapper;
 
+        public event EventHandler<EventArgsOf<ServerStatus>> StatusChanged
+        {
+            add { _server.StatusChanged += value; }
+            remove { _server.StatusChanged -= value; }
+        }
+
         public ServerStatus Status
         {
             get

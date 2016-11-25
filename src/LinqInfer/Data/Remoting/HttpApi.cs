@@ -33,6 +33,12 @@ namespace LinqInfer.Data.Remoting
             AddComponent(_routes.CreateApplicationDelegate());
         }
 
+        public event EventHandler<EventArgsOf<ServerStatus>> StatusChanged
+        {
+            add { _host.StatusChanged += value; }
+            remove { _host.StatusChanged -= value; }
+        }
+
         public Uri BaseEndpoint
         {
             get

@@ -9,6 +9,28 @@ namespace LinqInfer.Maths.Probability
     public static class P
     {
         /// <summary>
+        /// Creates a Markov Chain of a specified order
+        /// by analysing the sequence of values
+        /// </summary>
+        /// <typeparam name="T">The data type</typeparam>
+        /// <param name="data">The sequence of data</param>
+        /// <param name="delimiter">A delimiting function</param>
+        /// <param name="order">The order to which the sequence will be analysed</param>
+        /// <returns>a <see cref="IDiscreteMarkovChain{T}"/></returns>
+        public static IDiscreteMarkovChain<T> AsMarkovChain<T>(this IEnumerable<T> data, Func<T, bool> delimiter = null, byte order = 1)
+            where T : IEquatable<T>
+        {
+            var mkc = new DiscreteMarkovChain<T>(order);
+
+            if (delimiter != null)
+                mkc.AnalyseSequences(data, delimiter);
+            else
+                mkc.AnalyseSequence(data);
+
+            return mkc;
+        }
+
+        /// <summary>
         /// Creates a time based histogram of items organised into bins of a specified width
         /// </summary>
         /// <typeparam name="T">The type of item</typeparam>

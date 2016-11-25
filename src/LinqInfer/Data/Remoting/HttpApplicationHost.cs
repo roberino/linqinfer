@@ -19,6 +19,8 @@ namespace LinqInfer.Data.Remoting
             _errorHandlers = new List<Func<IOwinContext, Exception, Task<bool>>>();
 
             CompressUsing(new PassThruCompressionProvider());
+
+            RestoreOnSocketError = true;
         }
 
         public void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute)

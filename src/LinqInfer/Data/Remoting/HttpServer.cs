@@ -13,38 +13,40 @@ namespace LinqInfer.Data.Remoting
     {
         public const int DefaultPort = 80;
 
-        private readonly Socket _socket;
         private readonly ManualResetEvent _completedHandle;
+        private readonly EndPoint _socketEndpoint;
 
         protected readonly Uri _baseEndpoint;
         protected readonly string _serverId;
 
+        private Socket _socket;
+        private bool _restoreOnSocketError;
+
         private volatile ServerStatus _status;
         private volatile bool _transportError;
         private Thread _connectThread;
-        private Thread _healthCheckThread;
+        private Timer _healthCheck;
 
         protected ICompressionProvider _compression;
 
         public HttpServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
         {
-            var endpoint = GetEndpoint(host, port);
+            _socketEndpoint = GetEndpoint(host, port);
 
             _baseEndpoint = GetBaseUri(port, host);
             _serverId = serverId ?? Util.GenerateId();
             _completedHandle = new ManualResetEvent(false);
-            _socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+            SetupSocket();
 
-            _socket.Bind(endpoint);
             _status = ServerStatus.Stopped;
 
             _compression = new DeflateCompressionProvider();
 
             RequestTimeout = TimeSpan.FromMinutes(2);
         }
+
+        public event EventHandler<EventArgsOf<ServerStatus>> StatusChanged;
 
         protected virtual Uri GetBaseUri(int port, string host)
         {
@@ -75,6 +77,18 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        public bool RestoreOnSocketError
+        {
+            get
+            {
+                return _restoreOnSocketError;
+            }
+            set
+            {
+                _restoreOnSocketError = value;
+            }
+        }
+
         public void CompressUsing(ICompressionProvider compressionProvider)
         {
             Contract.Assert(compressionProvider != null);
@@ -92,7 +106,7 @@ namespace LinqInfer.Data.Remoting
             }
             catch (Exception ex)
             {
-                _status = ServerStatus.Error;
+                OnStatusChange(ServerStatus.Error);
                 DebugOutput.Log(ex);
                 throw new ApplicationException(string.Format("Cant start server on address {0} because of: {1}", _baseEndpoint, ex.Message), ex);
             }
@@ -104,14 +118,18 @@ namespace LinqInfer.Data.Remoting
 
             SetupConnectThread();
 
+            OnStatusChange(ServerStatus.Running);
+
             _connectThread.Start();
 
-            _status = ServerStatus.Running;
+            SetupHealthCheckThread();
+
+            OnStatusChange(ServerStatus.Running);
         }
 
         public void Stop(bool wait = false)
         {
-            _status = ServerStatus.ShuttingDown;
+            OnStatusChange(ServerStatus.ShuttingDown);
 
             if (wait)
             {
@@ -155,6 +173,74 @@ namespace LinqInfer.Data.Remoting
             DebugOutput.Log("Transport error: ", ex.Message);
 
             return false;
+        }
+
+        private void SetupSocket()
+        {
+            _socket = new Socket(_socketEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+
+            _socket.Bind(_socketEndpoint);
+        }
+
+        private void SetupHealthCheckThread()
+        {
+            int failureCount = 0;
+
+            if (_healthCheck != null) _healthCheck.Dispose();
+
+            _transportError = false;
+
+            _healthCheck = new Timer(x =>
+            {
+                if (
+                    _status == ServerStatus.Running ||
+                    _status == ServerStatus.Broken)
+                {
+                    if (_transportError || !_connectThread.IsAlive)
+                    {
+                        _transportError = false;
+
+                        OnStatusChange(ServerStatus.Error);
+
+                        bool isErr = false;
+
+                        try
+                        {
+                            ShutdownSocket();
+                            SetupSocket();
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugOutput.Log(ex);
+
+                            failureCount++;
+                            isErr = true;
+
+                            if (failureCount > 10) throw;
+                        }
+
+                        if (!isErr && _restoreOnSocketError)
+                        {
+                            DebugOutput.Log("Attempting to restart server");
+
+                            OnStatusChange(ServerStatus.Restoring);
+
+                            Start();
+
+                            failureCount = 0;
+                        }
+                    }
+                    else
+                    {
+                        failureCount = 0;
+                    }
+                }
+            },
+            this, TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(100));
+
         }
 
         private void SetupConnectThread()
@@ -207,7 +293,7 @@ namespace LinqInfer.Data.Remoting
                 DebugOutput.Log("Stopping, status = {0}", _status);
 
                 if (_status == ServerStatus.ShuttingDown)
-                    _status = ServerStatus.Stopped;
+                    OnStatusChange(ServerStatus.Stopped);
             })
             {
                 IsBackground = true,
@@ -252,8 +338,6 @@ namespace LinqInfer.Data.Remoting
                 var processTask = ProcessTcpRequest(handler);
 
                 processTask.Wait(RequestTimeout);
-
-                // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
             }
             catch (SocketException ex)
             {
@@ -380,21 +464,42 @@ namespace LinqInfer.Data.Remoting
             return null;
         }
 
+        private void ShutdownSocket(bool dispose = true)
+        {
+            DebugOutput.Log("Shutting down socket on port {0}", BaseEndpoint.Port);
+
+            try
+            {
+                _socket.Shutdown(SocketShutdown.Both);
+                _socket.Close(250);
+            }
+            catch (Exception ex)
+            {
+                DebugOutput.Log("Error shutting down socket: {0}", ex.Message);
+            }
+
+            if (dispose) _socket.Dispose();
+        }
+
+        private void OnStatusChange(ServerStatus newStatus)
+        {
+            if (_status != newStatus)
+            {
+                _status = newStatus;
+
+                StatusChanged?.Invoke(this, new EventArgsOf<ServerStatus>(newStatus));
+            }
+        }
+
         public void Dispose()
         {
             Stop();
 
-            if (_socket.Connected)
-            {
-                try
-                {
-                    _socket.Shutdown(SocketShutdown.Both);
-                    _socket.Close();
-                }
-                catch
-                {
+            ShutdownSocket(false);
 
-                }
+            if (_healthCheck != null)
+            {
+                _healthCheck.Dispose();
             }
 
             _completedHandle.Dispose();
@@ -402,6 +507,8 @@ namespace LinqInfer.Data.Remoting
             _status = ServerStatus.Disposed;
 
             _socket.Dispose();
+
+            OnStatusChange(ServerStatus.Disposed);
         }
     }
 }

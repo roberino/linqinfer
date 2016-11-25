@@ -8,8 +8,31 @@ using System.Linq;
 namespace LinqInfer.Tests
 {
     [TestFixture]
-    public class Samples
+    public class Samples : TestFixtureBase
     {
+        [TestCase(1)]
+        [TestCase(2)]
+        public void ShakespeareAsNOrderMarkovChain(byte order)
+        {
+            using (var corpusStream = GetResource("shakespeare.txt"))
+            {
+                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd);
+
+                var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd, order);
+
+                foreach (var n in Enumerable.Range(0, 10))
+                {
+                    foreach (var w in mk.Simulate())
+                    {
+                        Console.Write(w.Text + " ");
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+                }
+            }
+        }
+
         [Test]
         public void CombineWordSearchAsHypothesis()
         {

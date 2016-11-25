@@ -230,6 +230,7 @@ namespace LinqInfer.Maths
 
             return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
+
         public static Tuple<double, double> MeanStdDev(this IEnumerable<float> items)
         {
             var mu = items.Mean();
@@ -243,6 +244,7 @@ namespace LinqInfer.Maths
 
             return new Tuple<double, double>(mu, Math.Sqrt(items.Sum(x => Math.Pow(x - mu, 2)) / items.Count()));
         }
+
         public static Tuple<double, double> MeanStdDev(this IEnumerable<byte> items)
         {
             var mu = items.Mean();
@@ -330,6 +332,85 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a function which selects a value at random with a distribution
+        /// defined by the frequency table
+        /// </summary>
+        /// <param name="frequencyTable">A dictionary containing possible values and their respective frequencies</param>
+        public static Func<T> FrequencyWeightedRandomSelector<T>(IDictionary<T, int> frequencyTable)
+        {
+            var muStdDev = MeanStdDev(frequencyTable.Select(x => (double)x.Value));
+            var gaussNorm = GaussianRandomGenerator(muStdDev.Item1, muStdDev.Item2);
+
+
+            if (frequencyTable.Count == 0)
+            {
+                return () => default(T);
+            }
+
+            if (frequencyTable.Count == 1)
+            {
+                var fst = frequencyTable.First();
+
+                if (fst.Value > 0)
+                {
+                    return () => fst.Key;
+                }
+                else
+                {
+                    return () => default(T);
+                }
+            }
+
+            return () =>
+            {
+                var p0 = gaussNorm();
+
+                var r = frequencyTable
+                    .Where(f => f.Value > p0)
+                    .OrderByDescending(_ => _random.NextDouble())
+                    .FirstOrDefault();
+
+                return r.Key;
+            };
+        }
+
+        /// <summary>
+        /// Returns a function which returns a random values having a normal distribution
+        /// </summary>
+        /// <param name="theta">The std dev</param>
+        /// <param name="mu">The average value</param>
+        /// <returns>A function which returns random values distributed around the specified mean
+        /// and having the specified std dev</returns>
+        public static Func<double> GaussianRandomGenerator(double theta, double mu)
+        {
+            const double piX2 = 2.0 * Math.PI;
+
+            double z0, z1 = 0;
+            bool generate = false;
+
+            return () =>
+            {
+                generate = !generate;
+
+                if (!generate)
+                    return z1 * theta + mu;
+
+                double u1, u2;
+                do
+                {
+                    u1 = _random.NextDouble();
+                    u2 = _random.NextDouble();
+                }
+                while (u1 <= double.Epsilon);
+
+                z0 = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(piX2 * u2);
+                z1 = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(piX2 * u2);
+
+                return z0 * theta + mu;
+            };
+        }
+
+        /// <summary>
         /// Returns a function which returns a random values having a normal distribution
         /// </summary>
         /// <param name="theta">The std dev</param>
@@ -337,20 +418,24 @@ namespace LinqInfer.Maths
         /// <returns>A function</returns>
         public static Func<double> NormalRandomiser(double theta, double mu)
         {
-            var pdf = NormalPdf(theta, mu);
+            // ziggurat algorithm or Box–Muller transform would be more efficient?
 
-            return () =>
-            {
-                while (true)
-                {
-                    var p0 = _random.NextDouble();
+            //var pdf = NormalPdf(theta, mu);
 
-                    var r = _random.NextDouble() * mu * 2;
-                    var p1 = pdf(r);
+            //return () =>
+            //{
+            //    while (true)
+            //    {
+            //        var p0 = _random.NextDouble();
 
-                    if (p1 > p0) return r;
-                }
-            };
+            //        var r = _random.NextDouble() * mu * 2;
+            //        var p1 = pdf(r);
+
+            //        if (p1 > p0) return r;
+            //    }
+            //};
+
+            return GaussianRandomGenerator(theta, mu);
         }
 
         public static Func<double, double> NormalPdf(double theta, double mu)
