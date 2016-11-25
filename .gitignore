@@ -161,3 +161,4 @@ NCover/
 Automation/Reports/jshint-report.html
 Website/Base/app/dist
 Build/elastic*
+/src/LinqInfer.Api/App_Data/storage/SampleStore.sqlite
