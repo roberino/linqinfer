@@ -6,7 +6,7 @@ namespace LinqInfer.Data.Remoting
 {
     public interface IVectorTransferServer : IServer
     {
-        void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler);
-        void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler);
+        void AddAsyncHandler(IUriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler);
+        void AddHandler(IUriRoute route, Func<DataBatch, TcpResponse, bool> handler);
     }
 }

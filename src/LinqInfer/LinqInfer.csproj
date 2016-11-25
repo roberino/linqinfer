@@ -64,6 +64,7 @@
     <Compile Include="Data\BinaryVectorDocument.cs" />
     <Compile Include="Data\DataExtensions.cs" />
     <Compile Include="Data\DeflateCompression.cs" />
+    <Compile Include="Data\EventArgsOf.cs" />
     <Compile Include="Data\FileBlobStore.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
@@ -71,14 +72,30 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
+    <Compile Include="Data\IObjectSerialiser.cs" />
     <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\FunctionBinder.cs" />
+    <Compile Include="Data\Remoting\HttpApplicationHost.cs" />
+    <Compile Include="Data\Remoting\HttpException.cs" />
+    <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
+    <Compile Include="Data\Remoting\IHttpApi.cs" />
+    <Compile Include="Data\Remoting\IOwinApplication.cs" />
+    <Compile Include="Data\Remoting\IOwinContext.cs" />
     <Compile Include="Data\Remoting\IServer.cs" />
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
+    <Compile Include="Data\Remoting\IUriRoute.cs" />
+    <Compile Include="Data\Remoting\IUriRoutingTemplate.cs" />
     <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
+    <Compile Include="Data\Remoting\OwinContext.cs" />
+    <Compile Include="Data\Remoting\OwinPipelineStage.cs" />
     <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
+    <Compile Include="Data\Remoting\HttpApi.cs" />
+    <Compile Include="Data\Remoting\RouteBinder.cs" />
+    <Compile Include="Data\Remoting\RoutingHandler.cs" />
+    <Compile Include="Data\Remoting\TcpRequest.cs" />
     <Compile Include="Data\Remoting\TransportProtocol.cs" />
     <Compile Include="Data\Remoting\RemotingExtensions.cs" />
     <Compile Include="Data\Remoting\RoutingTable.cs" />
@@ -89,9 +106,10 @@
     <Compile Include="Data\Remoting\TcpResponseHeader.cs" />
     <Compile Include="Data\Remoting\TransferHandle.cs" />
     <Compile Include="Data\Remoting\UriRoute.cs" />
-    <Compile Include="Data\Remoting\UriRoutingTemplate.cs" />
+    <Compile Include="Data\Remoting\UriRouteMapper.cs" />
     <Compile Include="Data\Remoting\Util.cs" />
     <Compile Include="Data\Remoting\VectorTransferClient.cs" />
+    <Compile Include="Data\Remoting\HttpServer.cs" />
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
@@ -134,11 +152,16 @@
     <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
+    <Compile Include="Maths\DiscretizedSet.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />
     <Compile Include="Maths\Probability\HuffmanTree.cs" />
+    <Compile Include="Maths\Probability\ITransitionSimulator.cs" />
+    <Compile Include="Maths\Probability\IDiscreteMarkovChain.cs" />
+    <Compile Include="Maths\Probability\DiscreteMarkovChain.cs" />
     <Compile Include="Maths\Probability\MonteCarloSimulation.cs" />
     <Compile Include="Maths\Random.cs" />
     <Compile Include="Maths\Sequence.cs" />
+    <Compile Include="Maths\TimeResolution.cs" />
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\Relationship.cs" />
@@ -254,7 +277,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\en_dict.txt" />
-    <EmbeddedResource Include="Resources\en_phonics.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

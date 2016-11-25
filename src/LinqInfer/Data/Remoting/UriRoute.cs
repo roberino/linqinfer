@@ -3,9 +3,9 @@ using System.Diagnostics.Contracts;
 
 namespace LinqInfer.Data.Remoting
 {
-    public class UriRoute
+    internal class UriRoute : IUriRoute
     {
-        internal UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All)
+        public UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All, Func<IOwinContext, bool> filter = null)
         {
             Contract.Assert(baseUri != null);
             BaseUri = baseUri;
@@ -27,12 +27,21 @@ namespace LinqInfer.Data.Remoting
                     Template = baseUri.PathAndQuery + template;
                 }
             }
+
+            Mapper = new UriRouteMapper(this, filter);
         }
+
+        public IUriRouteMapper Mapper { get; private set; }
 
         public Uri BaseUri { get; private set; }
 
         public string Template { get; private set; }
 
         public Verb Verbs { get; private set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}", Verbs, Template);
+        }
     }
 }

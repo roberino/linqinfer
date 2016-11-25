@@ -17,7 +17,7 @@ namespace LinqInfer.Text
 
         public IEnumerable<IToken> Tokensise(Stream stream)
         {
-            using (var reader = new StreamReader(stream, _encoding))
+            using (var reader = new StreamReader(stream, _encoding, false, 1024, true))
             {
                 int index = 0;
 

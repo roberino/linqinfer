@@ -2,7 +2,6 @@
 using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -121,29 +120,41 @@ namespace LinqInfer.Text
 
         public void IndexDocument(TokenisedTextDocument document)
         {
-            _documentCount++;
+            bool indexedAlready = true;
 
-            foreach (var word in document.Tokens.Where(t => t.Type == TokenType.Word))
+            foreach (var wordGroup in document.Tokens.Where(t => t.Type == TokenType.Word).GroupBy(t => t.Text.ToLowerInvariant()))
             {
                 WordMap wordData;
 
-                if (!_frequencies.TryGetValue(word.Text.ToLowerInvariant(), out wordData))
+                lock (_frequencies)
                 {
-                    wordData = new WordMap();
-                }
-                else
-                {
-                    wordData.Count++;
+                    if (!_frequencies.TryGetValue(wordGroup.Key, out wordData))
+                    {
+                        _frequencies[wordGroup.Key] = wordData = new WordMap();
+                    }
                 }
 
                 int tf;
 
-                wordData.DocFrequencies.TryGetValue(document.Id, out tf);
+                if (!wordData.DocFrequencies.TryGetValue(document.Id, out tf))
+                {
+                    wordData.Count++;
+                    indexedAlready = false;
+                }
 
-                wordData.DocFrequencies[document.Id] = tf + 1;
-
-                _frequencies[word.Text.ToLowerInvariant()] = wordData;
+                wordData.DocFrequencies[document.Id] = wordGroup.Count();
             }
+
+            if (!indexedAlready)
+            {
+                _documentCount++;
+            }
+        }
+
+        public void IndexText(string text, string id)
+        {
+            var doc = new TokenisedTextDocument(id, _tokeniser.Tokenise(text));
+            IndexDocument(doc);
         }
 
         public void IndexDocuments(IEnumerable<TokenisedTextDocument> documents)
@@ -182,31 +193,6 @@ namespace LinqInfer.Text
             });
         }
 
-        internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
-        {
-            var idfs = GetWordFrequencies(query);
-
-            var docs = idfs.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);
-
-            foreach (var df in idfs)
-            {
-                foreach (var doc in docs.Keys.ToList())
-                {
-                    int tf = 0;
-
-                    df.Value.DocFrequencies.TryGetValue(doc, out tf);
-
-                    var idf = tf > 0 ? Math.Log((double)df.Value.Count / ((double)tf) + 1) : 0d;
-
-                    docs[doc] *= idf;
-                }
-            }
-
-            return docs.Where(x => x.Value > 0)
-                .OrderByDescending(x => x.Value)
-                .Select(d => new KeyValuePair<string, float>(d.Key, (float)d.Value));
-        }
-
         public void Save(Stream output)
         {
             var sz = DictionarySerialiserFactory.ForInstance(_frequencies);
@@ -240,6 +226,31 @@ namespace LinqInfer.Text
                     foreach (var k in item.Value.DocFrequencies) m.DocFrequencies.Add(k);
                 }
             }
+        }
+
+        internal IEnumerable<KeyValuePair<string, float>> SearchInternal(string query)
+        {
+            var frequencyData = GetWordFrequencies(query);
+
+            var docs = frequencyData.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => 1d);
+
+            foreach (var tf in frequencyData)
+            {
+                foreach (var doc in docs.Keys.ToList())
+                {
+                    int df = 0;
+
+                    tf.Value.DocFrequencies.TryGetValue(doc, out df);
+
+                    var idf = df > 0 ? Math.Log(df / (double)tf.Value.Count + 1) : 0d;
+
+                    docs[doc] *= idf;
+                }
+            }
+
+            return docs.Where(x => x.Value > 0)
+                .OrderByDescending(x => x.Value)
+                .Select(d => new KeyValuePair<string, float>(d.Key, (float)d.Value));
         }
 
         private IDictionary<string, WordMap> GetWordFrequencies(string text)
@@ -307,7 +318,7 @@ namespace LinqInfer.Text
             public WordMap()
             {
                 _docFrequencies = new Dictionary<string, int>();
-                Count = 1;
+                Count = 0;
             }
 
             public IDictionary<string, int> DocFrequencies { get { return _docFrequencies; } }

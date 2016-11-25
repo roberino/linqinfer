@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Classification.Remoting
 
         public RemoteClassifierTrainingClient(Uri serverEndpoint)
         {
-            Util.ValidateUri(serverEndpoint);
+            Util.ValidateTcpUri(serverEndpoint);
 
             _serverEndpoint = serverEndpoint;
 
@@ -29,6 +29,11 @@ namespace LinqInfer.Learning.Classification.Remoting
         public void Dispose()
         {
             if (_client != null) _client.Dispose();
+        }
+
+        public Uri CreateUri(string name)
+        {
+            return new Uri(_serverEndpoint, Uri.EscapeUriString(name));
         }
 
         public async Task<bool> Delete(Uri uri)

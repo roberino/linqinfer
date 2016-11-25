@@ -4,23 +4,17 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace LinqInfer.Text
 {
     public class EnglishDictionary
     {
         private static readonly IDictionary<string, int> _words;
-        private static readonly HashSet<string> _phonics;
-        private static readonly List<Regex> _phonicsMapper;
 
         static EnglishDictionary()
         {
             int i = 0;
             _words = ReadFile("en_dict.txt").ToDictionary(w => w, _ => i++);
-            _phonics = ReadFile("en_phonics.txt");
-            _phonicsMapper = _phonics.Select(p => new Regex(p, RegexOptions.Compiled | RegexOptions.IgnoreCase)).ToList();
         }
 
         /// <summary>
@@ -77,11 +71,6 @@ namespace LinqInfer.Text
                 .ToDictionary(k => k.Word, v => v.Diff);
         }
 
-        internal IDictionary<string, int> PhonicMap(string word)
-        {
-            return _phonicsMapper.ToDictionary(p => p.ToString(), p => p.Matches(word).Count);
-        }
-
         private static HashSet<string> ReadFile(string name)
         {
             var data = new HashSet<string>();
@@ -108,10 +97,18 @@ namespace LinqInfer.Text
 
         private static Stream GetResource(string name)
         {
-            var asm = typeof(EnglishDictionary).GetTypeInfo().Assembly; // Assembly.GetExecutingAssembly();
-            var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
+            var asm = typeof(EnglishDictionary).Assembly; // Assembly.GetExecutingAssembly();
+            var names = asm.GetManifestResourceNames();
+            var rname = names.FirstOrDefault(r => r.EndsWith(name));
 
-            return asm.GetManifestResourceStream(rname);
+            try
+            {
+                return asm.GetManifestResourceStream(rname);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(string.Format("Can't load resource: {0} from {1}", name, string.Join(",", names)), ex);
+            }
         }
     }
 }

@@ -16,7 +16,20 @@ namespace LinqInfer.Data.Remoting
             return new Uri(protocol.ToString() + Uri.SchemeDelimiter + uri.Host + ':' + uri.Port + uri.PathAndQuery);
         }
 
-        public static void ValidateUri(Uri uri)
+        internal static void ValidateHttpUri(Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
+            if (uri.Scheme != Uri.UriSchemeHttp)
+            {
+                throw new ArgumentException("Only HTTP scheme supported e.g. http://host:3211");
+            }
+        }
+
+        internal static void ValidateTcpUri(Uri uri)
         {
             if (uri == null)
             {

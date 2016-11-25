@@ -1,216 +1,44 @@
 ﻿using LinqInfer.Utility;
 using System;
-using System.Diagnostics.Contracts;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class VectorTransferServer : IDisposable, IVectorTransferServer
+    internal class VectorTransferServer : HttpServer, IVectorTransferServer
     {
-        public const int DefaultPort = 9012;
+        public const int DefaultTcpPort = 9012;
 
-        private readonly string _serverId;
-        private readonly Socket _socket;
-        private readonly ManualResetEvent _completedHandle;
-        private readonly RoutingTable _routes;
-        private readonly Uri _baseEndpoint;
+        private readonly RoutingTable<IOwinContext> _routes;
 
-        private Thread _connectThread;
-        private volatile ServerStatus _status;
-
-        private ICompressionProvider _compression;
-
-        public VectorTransferServer(string serverId = null, int port = DefaultPort, string host = "127.0.0.1")
+        public VectorTransferServer(string serverId = null, int port = DefaultTcpPort, string host = "127.0.0.1")
+            : base(serverId, port, host)
         {
-            var endpoint = GetEndpoint(host, port);
-
-            _baseEndpoint = new Uri("tcp://" + host + ":" + port);
-            _serverId = serverId ?? Util.GenerateId();
-            _completedHandle = new ManualResetEvent(false);
-            _socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
-
-            _socket.Bind(endpoint);
-            _routes = new RoutingTable();
-            _status = ServerStatus.Stopped;
-
-            _compression = new DeflateCompressionProvider();
-
-            RequestTimeout = TimeSpan.FromMinutes(2);
+            _routes = new RoutingTable<IOwinContext>();
         }
 
-        public static EndPoint GetEndpoint(string host, int port = DefaultPort)
+        public void AddHandler(IUriRoute route, Func<DataBatch, TcpResponse, bool> handler)
         {
-            var dns = Dns.GetHostEntry(host);
-            var ipAddress = dns.AddressList[0];
-            
-            return new IPEndPoint(ipAddress, port);
+            AddAsyncHandler(route, (b, r) => Task.FromResult(handler(b, r)));
         }
 
-        public static EndPoint GetDefaultEndpoint(int port = DefaultPort)
+        public void AddAsyncHandler(IUriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
         {
-            var ipAddress = IPAddress.Loopback;
-            return new IPEndPoint(ipAddress, port);
-        }
-
-        public TimeSpan RequestTimeout { get; set; }
-
-        public Uri BaseEndpoint
-        {
-            get
+            _routes.AddHandler(route, (p, c) =>
             {
-                return _baseEndpoint;
-            }
-        }
+                var doc = c["ext.DataBatch"] as DataBatch;
 
-        public void CompressUsing(ICompressionProvider compressionProvider)
-        {
-            Contract.Assert(compressionProvider != null);
-
-            _compression = compressionProvider;
-        }
-
-        public void AddHandler(UriRoute route, Func<DataBatch, TcpResponse, bool> handler)
-        {
-            _routes.AddHandler(route, (b, r) => Task.FromResult(handler(b, r)));
-        }
-
-        public void AddAsyncHandler(UriRoute route, Func<DataBatch, TcpResponse, Task<bool>> handler)
-        {
-            _routes.AddHandler(route, handler);
-        }
-
-        public void Start()
-        {
-            try
-            {
-                _socket.Listen(500);
-            }
-            catch (Exception ex)
-            {
-                _status = ServerStatus.Error;
-                DebugOutput.Log(ex);
-                throw new ApplicationException(string.Format("Cant start server on address {0} because of: {1}", _baseEndpoint, ex.Message), ex);
-            }
-
-            if (_status == ServerStatus.Running || (_connectThread != null && _connectThread.IsAlive))
-            {
-                throw new InvalidOperationException("Alread active (status = " + _status + ")");
-            }
-
-            _status = ServerStatus.Running;
-
-            _connectThread = new Thread(() =>
-            {
-                while (_status == ServerStatus.Running)
+                foreach (var parameter in p)
                 {
-                    _completedHandle.Reset();
-
-                    DebugOutput.Log("Waiting for a connection...");
-
-                    _socket.BeginAccept(AcceptCallback, _socket);
-
-                    _completedHandle.WaitOne();
+                    doc.Properties[parameter.Key.ToLower()] = parameter.Value;
                 }
 
-                if (_status == ServerStatus.ShuttingDown)
-                    _status = ServerStatus.Stopped;
+                return handler(doc, c.Response);
             });
-
-            _connectThread.Start();
         }
 
-        public void Stop()
-        {
-            _status = ServerStatus.ShuttingDown;
-        }
-
-        public ServerStatus Status { get { return _status; } }
-
-        private void AcceptCallback(IAsyncResult ar)
-        {
-            _completedHandle.Set();
-
-            var listener = (Socket)ar.AsyncState;
-            
-            try
-            {
-                var handler = listener.EndAccept(ar);
-
-                DebugOutput.Log("Connection accepted from {0}", handler.RemoteEndPoint);
-                
-                var processTask = ProcessTcpRequest(handler);
-
-                processTask.Wait(RequestTimeout);
-                
-                // handler.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReadCallback, state);
-            }
-            catch
-            {
-                if (_status == ServerStatus.Running)
-                {
-                    _status = ServerStatus.Error;
-                    throw;
-                }
-            }
-        }
-
-        private async Task ProcessTcpRequest(Socket clientSocket)
-        {
-            bool more = true;
-
-            while (more)
-            {
-                var reader = new AsyncSocketWriterReader(clientSocket);
-
-                var state = await reader.ReadAsync();
-
-                using (var tcpResponse = new TcpResponse(_compression))
-                {
-                    more = await ExecuteRequest(state, tcpResponse);
-                }
-
-                if (more)
-                {
-                    DebugOutput.LogVerbose("Waiting for more data");
-                }
-                else
-                {
-                    DebugOutput.Log("Ending conversation");
-                    state.ClientSocket.Disconnect(true);
-                }
-            }
-        }
-
-        private async Task<bool> ExecuteRequest(TcpReceiveContext state, TcpResponse tcpResponse)
-        {
-            var more = await Process(state, tcpResponse);
-
-            await SendResponse(state, tcpResponse);
-
-            return more;
-        }
-
-        private async Task SendResponse(TcpReceiveContext state, TcpResponse tcpResponse)
-        {
-            var content = tcpResponse.GetSendStream();
-
-            DebugOutput.Log("Sending response ({0} bytes)", content.Length);
-
-            tcpResponse.Header.TransportProtocol = state.Header.TransportProtocol;
-
-            var sockStream = new AsyncSocketWriterReader(state.ClientSocket);
-
-            await sockStream.WriteAsync(content, tcpResponse.Header);
-        }
-
-        private async Task EndRequest(TcpReceiveContext state, DataBatch endBatch)
+        private async Task EndRequest(DataBatch endBatch)
         {
             var fe = endBatch.ForwardingEndpoint;
 
@@ -230,83 +58,86 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private async Task<bool> Process(TcpReceiveContext state, TcpResponse response)
+        private DataBatch ParseRequest(IOwinContext context)
         {
-            try
+            var doc = new DataBatch();
+
             {
-                var doc = new DataBatch();
-
+                if (context.Request.Header.ContentLength > 0)
                 {
-                    if (state.Header.ContentLength > 0)
-                    {
-                        state.ReceivedData.Position = 0;
+                    doc.Load(context.Request.Content);
 
-                        var cs = _compression.DecompressFrom(state.ReceivedData);
-
-                        doc.Load(cs);
-                    }
-                    else
-                    {
-                        doc.Id = Util.GenerateId();
-                        doc.BatchNum = 1;
-                        doc.Path = state.Header.Path;
-                        doc.Verb = state.Header.Verb;
-                    }
+                    ((OwinContext)context).Path = doc.Path;
                 }
-
-                DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
-
-                var handler = _routes.Map(new Uri(_baseEndpoint, doc.Path), doc.Verb);
-
-                if (handler == null)
+                else
                 {
-                    DebugOutput.Log("Missing handler for route: {0}/{1}", doc.Path, doc.Verb);
-
-                    return false;
+                    doc.Id = Util.GenerateId();
+                    doc.BatchNum = 1;
+                    doc.Path = context.Request.Header.Path;
+                    doc.Verb = context.Request.Header.Verb;
                 }
-
-                DebugOutput.Log("Invoking handler");
-
-                using (var mutex = new Mutex(true, doc.Id))
-                {
-                    try
-                    {
-                        if (!mutex.WaitOne())
-                        {
-                            throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
-                        }
-                        var res = await handler.Invoke(doc, response);
-                    }
-                    finally
-                    {
-                        mutex.ReleaseMutex();
-                    }
-                }
-                
-                if (!doc.KeepAlive)
-                {
-                    DebugOutput.Log("Ending request");
-
-                    await EndRequest(state, doc);
-
-                    return false;
-                }
-
-                return true;
             }
-            catch (Exception ex)
-            {
-                DebugOutput.Log(ex);
 
-                Write(response.Content, d =>
-                {
-                    d.Properties["ErrorMessage"] = ex.Message;
-                    d.Properties["ErrorType"] = ex.GetType().AssemblyQualifiedName;
-                    d.Properties["ErrorStackTrace"] = ex.StackTrace;
-                });
+            return doc;
+        }
+
+        protected override async Task<bool> Process(IOwinContext context)
+        {
+            var doc = ParseRequest(context);
+
+            DebugOutput.Log("Processing batch {0}/{1}", doc.Id, doc.BatchNum);
+
+            context["ext.DataBatch"] = doc;
+
+            var handler = _routes.Map(new Uri(_baseEndpoint, context.Request.Header.Path), doc.Verb);
+
+            if (handler == null)
+            {
+                DebugOutput.Log("Missing handler for route: {0}/{1}", doc.Path, doc.Verb);
 
                 return false;
             }
+
+            using (var mutex = new Mutex(true, doc.Id))
+            {
+                try
+                {
+                    if (!mutex.WaitOne())
+                    {
+                        throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
+                    }
+                    var res = await handler.Invoke(context);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+
+            if (!doc.KeepAlive)
+            {
+                DebugOutput.Log("Ending request");
+
+                await EndRequest(doc);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        protected override Task<bool> HandleRequestError(Exception error, TcpResponse response)
+        {
+            DebugOutput.Log(error);
+
+            Write(response.Content, d =>
+            {
+                d.Properties["ErrorMessage"] = error.Message;
+                d.Properties["ErrorType"] = error.GetType().AssemblyQualifiedName;
+                d.Properties["ErrorStackTrace"] = error.StackTrace;
+            });
+
+            return Task.FromResult(true);
         }
 
         private void Write(Stream response, Action<BinaryVectorDocument> writer)
@@ -316,30 +147,6 @@ namespace LinqInfer.Data.Remoting
             writer(doc);
 
             doc.Save(response);
-        }
-
-        public void Dispose()
-        {
-            Stop();
-
-            if (_socket.Connected)
-            {
-                try
-                {
-                    _socket.Shutdown(SocketShutdown.Both);
-                    _socket.Close();
-                }
-                catch
-                {
-
-                }
-            }
-
-            _completedHandle.Dispose();
-
-            _status = ServerStatus.Disposed;
-
-            _socket.Dispose();
         }
     }
 }

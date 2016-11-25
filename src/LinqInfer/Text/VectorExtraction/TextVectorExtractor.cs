@@ -125,12 +125,14 @@ namespace LinqInfer.Text.VectorExtraction
                 _normalisingFrequency = reader.ReadInt32();
             }
 
-            SetupFeatures();
+            SetupFeatures(true);
         }
 
-        private void SetupFeatures()
+        private void SetupFeatures(bool ignoreExisting = false)
         {
-            if (_features.Count > 0) throw new InvalidOperationException();
+            if (!ignoreExisting && _features.Count > 0) throw new InvalidOperationException();
+
+            if (ignoreExisting) _features.Clear();
 
             foreach (var f in _words.Select(w =>
                   (IFeature)new Feature() { DataType = TypeCode.String, Index = w.Value, Key = w.Key, Label = w.Key, Model = Maths.Probability.DistributionModel.Unknown }))

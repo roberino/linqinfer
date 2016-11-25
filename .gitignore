@@ -5,6 +5,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.sqlite
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

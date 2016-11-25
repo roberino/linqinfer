@@ -15,6 +15,33 @@ namespace LinqInfer.Tests.Text
     public class DocumentIndexTests : TestFixtureBase
     {
         [Test]
+        public void IndexText_ThenSearch_MultipleMatches_ScoresHigher()
+        {
+            var index = new DocumentIndex();
+
+            index.IndexText("cat sat on mat", "cat-m");
+            index.IndexText("cat sat on sofa", "cat-s");
+            index.IndexText("dog sat on mat", "dog-m");
+            index.IndexText("dog sat on sofa", "dog-s");
+            index.IndexText("dog sat on dog", "dog-x");
+
+            var results1 = index.Search("cat sat").ToList();
+
+            Assert.That(results1.Count, Is.EqualTo(2));
+            Assert.That(results1.Any(r => r.DocumentKey == "cat-m"));
+
+            var results2 = index.Search("cat mat").ToList();
+
+            Assert.That(results2.Count, Is.EqualTo(1));
+            Assert.That(results2.Single().DocumentKey, Is.EqualTo("cat-m"));
+
+            var results3 = index.Search("sat dog").ToList();
+
+            Assert.That(results3.Count, Is.EqualTo(3));
+            Assert.That(results3.First().DocumentKey, Is.EqualTo("dog-x"));
+        }
+
+        [Test]
         public void Index_Then_Search()
         {
             var search = new DocumentIndex();

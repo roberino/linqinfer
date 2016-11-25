@@ -1,39 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace LinqInfer.Data.Remoting
 {
     public class TcpResponseHeader
     {
-        private const string Ok = "200 OK";
-        private const string Error = "500 Internal Server Error";
-        private const string HttpHead = "HTTP/1.1";
         private const string ContentLengthHeader = "Content-Length";
+        private const string ContentTypeHeader = "Content-Type";
 
-        public readonly IDictionary<string, string> _headers;
+        private readonly IDictionary<string, string[]> _headers;
 
         private Func<long> _contentLength;
+        private Encoding _encoding;
+        private string _mimeType;
 
-        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string> headers = null)
+        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null)
         {
             _contentLength = contentLength;
-            _headers = headers ?? new Dictionary<string, string>();
+            _headers = headers ?? new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
 
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
-            MimeType = "application/octet-stream";
+            ContentMimeType = "application/octet-stream";
+            HttpProtocol = "1.1";
+            Date = DateTime.UtcNow;
+            _encoding = new UTF8Encoding(true);
         }
 
-        public string MimeType { get; set; }
+        public string ContentMimeType
+        {
+            get
+            {
+                string[] mt;
+                if (_headers.TryGetValue(ContentTypeHeader, out mt) && mt.Length > 0)
+                {
+                    return mt.First().Split(';').First().Trim();
+                }
+                return _mimeType;
+            }
+            set
+            {
+                _mimeType = value;
+            }
+        }
 
-        public Encoding TextEncoding { get; set; }
+        public DateTime Date { get; set; }
 
-        public IDictionary<string, string> Headers { get { return _headers; } }
+        public Encoding TextEncoding
+        {
+            get { return _encoding; }
+            set
+            {
+                if (value == null) throw new NullReferenceException();
+                _encoding = value;
+            }
+        }
+
+        public IDictionary<string, string[]> Headers { get { return _headers; } }
 
         public bool IsError { get; set; }
 
+        public int? StatusCode { get; set; }
+
+        public string StatusText { get; set; }
+
         public TransportProtocol TransportProtocol { get; internal set; }
+
+        public string HttpProtocol { get; internal set; }
+
+        public void CopyFrom(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
+        {
+            foreach (var header in headers)
+            {
+                _headers[header.Key] = header.Value.ToArray();
+            }
+        }
 
         internal byte[] GetBytes()
         {
@@ -50,33 +95,44 @@ namespace LinqInfer.Data.Remoting
         private string GetHttpHeader()
         {
             var header = new StringBuilder();
-            var date = DateTime.UtcNow.ToUniversalTime().ToString("r");
 
-            header.AppendLine(HttpHead + " " + (IsError ? Error : Ok));
-
-            _headers[ContentLengthHeader] = _contentLength().ToString();
-            _headers["Date"] = date;
-
-            if (MimeType != null)
+            using (var formatter = new HttpHeaderFormatter(new StringWriter(header), true))
             {
-                var contentType = MimeType;
+                formatter.WriteResponseProtocolAndStatus(HttpProtocol, StatusCode.GetValueOrDefault(IsError ? 500 : 200), StatusText);
 
-                if (TextEncoding != null)
+                formatter.WriteDate(Date);
+
+                _headers[ContentLengthHeader] = new[] { _contentLength().ToString() };
+
+                if (_mimeType != null && !_headers.ContainsKey(ContentTypeHeader))
                 {
-                    contentType += "; charset=" + TextEncoding.BodyName.ToLower();
+                    var contentType = ContentMimeType;
+
+                    if (TextEncoding != null)
+                    {
+                        contentType += "; charset=" + TextEncoding.WebName;
+                    }
+
+                    _headers[ContentTypeHeader] = new[] { contentType };
                 }
 
-                _headers["Content-Type"] = contentType;
+                formatter.WriteHeaders(_headers);
+                formatter.WriteEnd();
             }
-
-            foreach (var headerKv in _headers)
-            {
-                header.AppendLine(headerKv.Key + ':' + headerKv.Value);
-            }
-
-            header.AppendLine();
 
             return header.ToString();
+        }
+
+        private string ArrayToString(string headerName, string[] data)
+        {
+            if (data == null) return null;
+
+            if (string.Equals(headerName, "Cookie", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.Join(";", data);
+            }
+
+            return string.Join(",", data);
         }
     }
 }

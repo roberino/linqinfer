@@ -10,6 +10,7 @@ namespace LinqInfer.Data.Remoting
         Get = 2,
         Update = 4,
         Delete = 8,
-        All = Create | Update | Get | Delete
+        Options = 16,
+        All = Create | Update | Get | Delete | Options
     }
 }

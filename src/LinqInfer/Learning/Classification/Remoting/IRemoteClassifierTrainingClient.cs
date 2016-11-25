@@ -16,6 +16,11 @@ namespace LinqInfer.Learning.Classification.Remoting
         int Timeout { get; set; }
 
         /// <summary>
+        /// Returns a uri for the specified name 
+        /// </summary>
+        Uri CreateUri(string name);
+
+        /// <summary>
         /// Asyncronously creates a new classifier
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>

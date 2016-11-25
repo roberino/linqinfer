@@ -8,24 +8,72 @@ namespace LinqInfer.Utility
     public class ConstrainableDictionary<K, T> : IDictionary<K, T>
     {
         private readonly IDictionary<K, T> _innerDictionary;
-        private readonly IList<Func<T, bool>> _valueConstraints;
+        private readonly IList<Tuple<Func<K, T, bool>, string>> _valueConstraints;
 
         public ConstrainableDictionary(IDictionary<K, T> data = null)
         {
             _innerDictionary = data ?? new Dictionary<K, T>();
-            _valueConstraints = new List<Func<T, bool>>();
+            _valueConstraints = new List<Tuple<Func<K, T, bool>, string>>();
         }
+
         public ConstrainableDictionary(Func<T, bool> constraint)
         {
             _innerDictionary = new Dictionary<K, T>();
-            _valueConstraints = new List<Func<T, bool>>();
+            _valueConstraints = new List<Tuple<Func<K, T, bool>, string>>();
 
             AddContraint(constraint);
         }
 
-        public void AddContraint(Func<T, bool> constraint)
+        /// <summary>
+        /// Ensures a value set for a specific key is of a specified type.
+        /// </summary>
+        /// <typeparam name="T1">The base type allowed</typeparam>
+        /// <param name="key">The key</param>
+        /// <param name="allowNull">True if null values are allowed</param>
+        public void EnforceType<T1>(K key, bool allowNull = false)
         {
-            _valueConstraints.Add(constraint);
+            if (typeof(T) != typeof(object) && typeof(T).IsAssignableFrom(typeof(T1)))
+            {
+                throw new ArgumentException("Invalid type constraint - " + typeof(T1).FullName);
+            }
+
+            AddContraint((k, v) =>
+            {
+                if (k.Equals(key))
+                {
+                    if (v == null) return allowNull;
+
+                    return (typeof(T1).IsAssignableFrom(v.GetType()));
+                }
+                return true;
+            }, "Invalid value type");
+        }
+
+        /// <summary>
+        /// Prevents a key / value pair from being altered
+        /// </summary>
+        /// <param name="key"></param>
+        public void LockKey(K key)
+        {
+            AddContraint((k, v) => !k.Equals(key), "This property is readonly - " + key);
+        }
+
+        /// <summary>
+        /// Adds a constraint which will be evaluated against a key / value when added / set.
+        /// A false value will invalidate the operation, throwing an <see cref="ArgumentException"/>.
+        /// </summary>
+        public void AddContraint(Func<T, bool> constraint, string message = null)
+        {
+            _valueConstraints.Add(new Tuple<Func<K, T, bool>, string>((k, v) => constraint(v), message));
+        }
+
+        /// <summary>
+        /// Adds a constraint which will be evaluated when a value is added / set.
+        /// A false value will invalidate the operation, throwing an <see cref="ArgumentException"/>.
+        /// </summary>
+        public void AddContraint(Func<K, T, bool> constraint, string message = null)
+        {
+            _valueConstraints.Add(new Tuple<Func<K, T, bool>, string>(constraint, message));
         }
 
         public T this[K key]
@@ -36,9 +84,11 @@ namespace LinqInfer.Utility
             }
             set
             {
-                Validate(value);
+                Validate(key, value);
 
                 _innerDictionary[key] = value;
+
+                OnKeyUpdated(key);
             }
         }
 
@@ -76,20 +126,28 @@ namespace LinqInfer.Utility
 
         public void Add(KeyValuePair<K, T> item)
         {
-            Validate(item.Value);
+            Validate(item.Key, item.Value);
 
             _innerDictionary.Add(item);
+
+            OnKeyUpdated(item.Key);
         }
 
         public void Add(K key, T value)
         {
-            Validate(value);
+            Validate(key, value);
 
             _innerDictionary.Add(key, value);
+
+            OnKeyUpdated(key);
         }
 
         public void Clear()
         {
+            foreach (var kv in _innerDictionary)
+            {
+                Validate(kv.Key, kv.Value);
+            }
             _innerDictionary.Clear();
         }
 
@@ -115,12 +173,22 @@ namespace LinqInfer.Utility
 
         public bool Remove(KeyValuePair<K, T> item)
         {
-            return _innerDictionary.Remove(item);
+            if (_innerDictionary.Remove(item))
+            {
+                OnKeyUpdated(item.Key);
+                return true;
+            }
+            return false;
         }
 
         public bool Remove(K key)
         {
-            return _innerDictionary.Remove(key);
+            if (_innerDictionary.Remove(key))
+            {
+                OnKeyUpdated(key);
+                return true;
+            }
+            return false;
         }
 
         public bool TryGetValue(K key, out T value)
@@ -133,11 +201,24 @@ namespace LinqInfer.Utility
             return _innerDictionary.GetEnumerator();
         }
 
-        private void Validate(T value)
+        /// <summary>
+        /// Invoked whenever a value is updated for a key
+        /// </summary>
+        protected virtual void OnKeyUpdated(K key)
         {
-            if (_valueConstraints.Any(c => !c(value)))
+        }
+
+        private void Validate(K key, T value)
+        {
+            var violations = _valueConstraints.Where(c => !c.Item1(key, value)).ToList();
+
+            if (violations.Any())
             {
-                throw new ArgumentException("Constraint violation");
+                var exs = violations.Select(v => new ArgumentException(v.Item2 ?? "Constraint violation")).ToList();
+
+                if (exs.Count == 1) throw exs.First();
+
+                throw new AggregateException(exs);
             }
         }
     }

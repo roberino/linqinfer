@@ -22,7 +22,7 @@ namespace LinqInfer.Tests.Data.Remoting
 
                 var task = Run();
 
-                task.Wait(1000);
+                task.Wait(1000000);
 
                 if (!task.IsCompleted)
                 {

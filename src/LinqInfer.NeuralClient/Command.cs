@@ -1,9 +1,10 @@
 ﻿using LinqInfer.Learning.Classification.Remoting;
 using System;
+using System.Threading.Tasks;
 
 namespace LinqInfer.NeuralClient
 {
-    internal class Command
+    public class Command
     {
         private readonly Uri _serverEndpoint;
 
@@ -12,11 +13,15 @@ namespace LinqInfer.NeuralClient
             _serverEndpoint = serverEndpoint;
         }
 
-        public void Create()
+        protected Task InvokeClient(Func<IRemoteClassifierTrainingClient, Task> action)
         {
+            using (var client = _serverEndpoint.CreateMultilayerNeuralNetworkClient())
+            {
+                return action(client);
+            }
         }
 
-        private void Execute(Action<IRemoteClassifierTrainingClient> action)
+        protected void InvokeClient(Action<IRemoteClassifierTrainingClient> action)
         {
             using (var client = _serverEndpoint.CreateMultilayerNeuralNetworkClient())
             {
