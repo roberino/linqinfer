@@ -20,7 +20,6 @@ namespace LinqInfer.Data.Remoting
         protected readonly string _serverId;
 
         private Socket _socket;
-        private bool _restoreOnSocketError;
 
         private volatile ServerStatus _status;
         private volatile bool _transportError;
@@ -77,17 +76,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public bool RestoreOnSocketError
-        {
-            get
-            {
-                return _restoreOnSocketError;
-            }
-            set
-            {
-                _restoreOnSocketError = value;
-            }
-        }
+        public bool RestoreOnSocketError { get; internal set; }
 
         public void CompressUsing(ICompressionProvider compressionProvider)
         {
@@ -201,6 +190,8 @@ namespace LinqInfer.Data.Remoting
                 {
                     if (_transportError || !_connectThread.IsAlive)
                     {
+                        DebugOutput.Log("Health check failure");
+
                         _transportError = false;
 
                         OnStatusChange(ServerStatus.Error);
@@ -222,7 +213,7 @@ namespace LinqInfer.Data.Remoting
                             if (failureCount > 10) throw;
                         }
 
-                        if (!isErr && _restoreOnSocketError)
+                        if (!isErr && RestoreOnSocketError)
                         {
                             DebugOutput.Log("Attempting to restart server");
 
@@ -239,8 +230,7 @@ namespace LinqInfer.Data.Remoting
                     }
                 }
             },
-            this, TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(100));
-
+            this, TimeSpan.FromMilliseconds(50),TimeSpan.FromMilliseconds(100));            
         }
 
         private void SetupConnectThread()
@@ -348,6 +338,18 @@ namespace LinqInfer.Data.Remoting
                     throw;
                 }
             }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is SocketException)
+                {
+                    _transportError = true;
+                }
+
+                if (!HandleTransportError(ex))
+                {
+                    throw;
+                }
+            }
             catch (Exception ex)
             {
                 if (!HandleTransportError(ex))
@@ -392,6 +394,18 @@ namespace LinqInfer.Data.Remoting
             try
             {
                 continueReceive = await Process(state, tcpResponse);
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is SocketException)
+                {
+                    _transportError = true;
+                }
+
+                if (!HandleTransportError(ex))
+                {
+                    throw;
+                }
             }
             catch (Exception ex)
             {

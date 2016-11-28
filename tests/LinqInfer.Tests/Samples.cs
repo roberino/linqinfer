@@ -12,13 +12,14 @@ namespace LinqInfer.Tests
     {
         [TestCase(1)]
         [TestCase(2)]
+        [TestCase(3)]
         public void ShakespeareAsNOrderMarkovChain(byte order)
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
             {
-                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd);
+                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol || t.Text == "."));
 
-                var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd, order);
+                var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd || (w.Type == TokenType.Symbol || w.Text == "."), order);
 
                 foreach (var n in Enumerable.Range(0, 10))
                 {

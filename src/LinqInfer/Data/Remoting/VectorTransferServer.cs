@@ -100,18 +100,11 @@ namespace LinqInfer.Data.Remoting
 
             using (var mutex = new Mutex(true, doc.Id))
             {
-                try
+                if (!mutex.WaitOne())
                 {
-                    if (!mutex.WaitOne())
-                    {
-                        throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
-                    }
-                    var res = await handler.Invoke(context);
+                    throw new InvalidOperationException("Cant aquire lock on " + doc.Id);
                 }
-                finally
-                {
-                    mutex.ReleaseMutex();
-                }
+                var res = await handler.Invoke(context);
             }
 
             if (!doc.KeepAlive)

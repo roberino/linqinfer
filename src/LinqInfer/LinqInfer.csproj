@@ -269,6 +269,7 @@
     <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />
     <Compile Include="Text\VectorExtraction\ObjectTextVectorExtractor.cs" />
     <Compile Include="Text\VectorExtraction\TextVectorExtractor.cs" />
+    <Compile Include="Utility\ConcurrentQueue.cs" />
     <Compile Include="Utility\ConstrainableDictionary.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />

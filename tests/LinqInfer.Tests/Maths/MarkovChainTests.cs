@@ -40,6 +40,40 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        public void AddSequence_and_Prune()
+        {
+            var mkc = new DiscreteMarkovChain<char>();
+
+            mkc.AnalyseSequence("a1b1c1b2c2b3");
+
+            Assert.That(mkc.GetFrequencies('b').Count, Is.EqualTo(3));
+            Assert.That(mkc.GetFrequencies('a').Count, Is.EqualTo(1));
+
+            mkc.Prune(3);
+
+            Assert.That(mkc.GetFrequencies('b').Count, Is.EqualTo(3));
+            Assert.That(mkc.GetFrequencies('a').Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void AddSequence_and_Merge_WithOther()
+        {
+            var mkc = new DiscreteMarkovChain<char>();
+            var mkc2 = new DiscreteMarkovChain<char>();
+
+            mkc.AnalyseSequence("a1b1c1b2c2b3");
+            mkc2.AnalyseSequence("b5b1");
+
+            Assert.That(mkc.GetFrequencies('b').Count, Is.EqualTo(3));
+            Assert.That(mkc.GetFrequencies('b')['1'], Is.EqualTo(1));
+
+            mkc.Merge(mkc2);
+
+            Assert.That(mkc.GetFrequencies('b').Count, Is.EqualTo(4));
+            Assert.That(mkc.GetFrequencies('b')['1'], Is.EqualTo(2));
+        }
+
+        [Test]
         public void AddSequence_GetFrequencies_ReturnsExpectedValues()
         {
             var mkc = new DiscreteMarkovChain<char>(2);

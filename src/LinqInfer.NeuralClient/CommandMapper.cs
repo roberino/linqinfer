@@ -35,12 +35,19 @@ namespace LinqInfer.NeuralClient
 
             return () =>
             {
-                if (typeof(Task).IsAssignableFrom(executeMethod.ReturnParameter.ParameterType))
+                try
                 {
-                    return (Task)executeMethod.Invoke(commandInstance, parameters);
-                }
+                    if (typeof(Task).IsAssignableFrom(executeMethod.ReturnParameter.ParameterType))
+                    {
+                        return (Task)executeMethod.Invoke(commandInstance, parameters);
+                    }
 
-                executeMethod.Invoke(commandInstance, parameters);
+                    executeMethod.Invoke(commandInstance, parameters);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
                 return Task.FromResult(0);
             };
         }
