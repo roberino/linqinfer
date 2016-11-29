@@ -1,74 +1,85 @@
-﻿using LinqInfer.Maths;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Text
 {
-    public class EnglishDictionary
+    public class EnglishDictionary : ISemanticSet
     {
-        private static readonly IDictionary<string, int> _words;
+        private static readonly ISemanticSet _baseSet;
+        private readonly ISemanticSet _set;
 
         static EnglishDictionary()
         {
-            int i = 0;
-            _words = ReadFile("en_dict.txt").ToDictionary(w => w, _ => i++);
+            _baseSet = new SemanticSet(ReadFile("en_dict.txt"));
         }
 
-        /// <summary>
-        /// Returns a enumeration of words.
-        /// </summary>
-        public IEnumerable<string> Words { get { return _words.Keys; } }
-
-        /// <summary>
-        /// Returns true for a word found within the dictionary.
-        /// </summary>
-        public bool IsWord(string word)
+        public EnglishDictionary()
         {
-            if (word == null) return false;
-
-            return _words.ContainsKey(word.ToLower());
+            _set = _baseSet.Clone(true);
         }
 
-        /// <summary>
-        /// Returns the internal ID assigned to word or zero if the word isn't found.
-        /// </summary>
-        /// <param name="word">The word</param>
-        /// <returns>An integer</returns>
+        private EnglishDictionary(SemanticSet wordSet)
+        {
+            _set = wordSet;
+        }
+
+        public string this[int id]
+        {
+            get
+            {
+                return _set[id];
+            }
+        }
+
+        public int Append(string word)
+        {
+            return _set.Append(word);
+        }
+
+        public IEnumerable<string> Words
+        {
+            get
+            {
+                return _set.Words;
+            }
+        }
+
+        public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75F)
+        {
+            return _set.FindWordsLike(word, tolerance);
+        }
+
+        public IEnumerable<int> Encode(IEnumerable<string> tokens, bool appendUnknown = false, Func<string, int> unknownValue = null)
+        {
+            return _set.Encode(tokens, appendUnknown, unknownValue);
+        }
+
+        public IEnumerable<string> Decode(IEnumerable<int> encodedIds, Func<int, string> unknownValue = null)
+        {
+            return _set.Decode(encodedIds, unknownValue);
+        }
+
         public int IdOf(string word)
         {
-            int id = 0;
-            if (word != null) _words.TryGetValue(word.ToLowerInvariant(), out id);
-            return id;
+            return _set.IdOf(word);
         }
 
-        /// <summary>
-        /// Returns words which are statistically similar
-        /// with regards to the number of edits required
-        /// to transform from one word to another.
-        /// </summary>
-        /// <param name="word">The word</param>
-        /// <param name="tolerance">The tolerance level as a percentage (between 0 and 1)</param>
-        /// <returns>A dictionary of results and relevant scores</returns>
-        public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75f)
+        public bool IsDefined(string word)
         {
-            Contract.Assert(word != null);
-            Contract.Requires(tolerance > 0f && tolerance <= 1f);
+            return _set.IsDefined(word);
+        }
 
-            word = word.ToLower();
+        public bool IsWord(string word)
+        {
+            return _set.IsDefined(word);
+        }
 
-            return _words
-                .Keys
-                .Where(w => Math.Abs(w.Length - word.Length) < 3)
-                .Select(w => new
-                {
-                    Word = w,
-                    Diff = word.ComputeLevenshteinDifference(w)
-                })
-                .Where(x => x.Diff.Value >= tolerance)
-                .ToDictionary(k => k.Word, v => v.Diff);
+        public ISemanticSet Clone(bool deep)
+        {
+            return _set.Clone(deep);
         }
 
         private static HashSet<string> ReadFile(string name)
