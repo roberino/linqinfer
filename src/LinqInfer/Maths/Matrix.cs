@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LinqInfer.Maths
 {
@@ -140,6 +141,16 @@ namespace LinqInfer.Maths
             if (!DimensionallyEquivalent(other)) return false;
 
             return this.Zip(other, (r1, r2) => r1.Equals(r2)).All(x => x);
+        }
+
+        public override int GetHashCode()
+        {
+            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(Rows);
+        }
+
+        public override string ToString()
+        {
+            return Rows.Aggregate(new StringBuilder(), (s, v) => s.AppendLine('|' + v.ToCsv(2) + '|')).ToString();
         }
 
         private Matrix CalculateCovarianceMatrix()

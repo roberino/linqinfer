@@ -9,6 +9,27 @@ namespace LinqInfer.Tests.Maths
     public class MatrixTests : TestFixtureBase
     {
         [Test]
+        public void GetHashCode_ReturnsSameValueForEquivMatrixes()
+        {
+            var m1 = new Matrix(new[]               
+            {
+                new [] { 3d, 5d },
+                new [] { 6d, 8.7d },
+            });
+
+            var m2 = new Matrix(new[]
+            {
+                new [] { 3d, 5d },
+                new [] { 6d, 8.7d },
+            });
+
+            var hash1 = m1.GetHashCode();
+            var hash2 = m1.GetHashCode();
+
+            Assert.That(hash1, Is.EqualTo(hash2));
+        }
+
+        [Test]
         public void Covariance_2X2matrix_CovarAndVarianceValuesSetCorrectly()
         {
             var m = new Matrix(new[]
