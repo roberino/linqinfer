@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Data;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -11,15 +10,16 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class ColumnVector1D : IEnumerable<double>, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
+    public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
     {
-        private readonly double[] _values;
         private Lazy<double> _euclideanLength;
 
-        public ColumnVector1D(double[] values)
+        internal ColumnVector1D(Vector vector) : base(vector, false)
         {
-            _values = values;
-            Refresh();
+        }
+
+        public ColumnVector1D(double[] values) : base(values)
+        {
         }
 
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
@@ -27,42 +27,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Returns a value by index
+        /// Returns a 1 column matrix
         /// </summary>
-        /// <param name="i">The index (base 0)</param>
-        /// <returns>A double value</returns>
-        public double this[int i]
+        public Matrix AsMatrix()
         {
-            get
-            {
-                return _values[i];
-            }
-        }
-
-        /// <summary>
-        /// Applies a function over all values in the vector, modifying each value.
-        /// </summary>
-        /// <param name="func">A function to transform the value (takes the original value as input)</param>
-        public void Apply(Func<double, double> func)
-        {
-            for (int i = 0; i < _values.Length; i++)
-            {
-                _values[i] = func(_values[i]);
-            }
-            Refresh();
-        }
-
-        /// <summary>
-        /// Applies a function over all values in the vector, modifying each value.
-        /// </summary>
-        /// <param name="func">A function to transform the value (takes the original value and index as input)</param>
-        public void Apply(Func<double, int, double> func)
-        {
-            for (int i = 0; i < _values.Length; i++)
-            {
-                _values[i] = func(_values[i], i);
-            }
-            Refresh();
+            return new Matrix(_values.Select(v => new double[] { v }));
         }
 
         /// <summary>
@@ -83,7 +52,7 @@ namespace LinqInfer.Maths
         /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
         /// </summary>
         /// <param name="index">The index where the vector will be split</param>
-        public ColumnVector1D[] Split(int index)
+        public new ColumnVector1D[] Split(int index)
         {
             Contract.Assert(index > 0 && index < _values.Length - 1);
 
@@ -163,15 +132,6 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Returns the sum of all values.
-        /// </summary>
-        /// <returns>A double</returns>
-        public double Sum()
-        {
-            return _values.Sum();
-        }
-
-        /// <summary>
         /// Normalises each element over the sum of all values.
         /// </summary>
         /// <returns>A new normalised vector</returns>
@@ -179,28 +139,6 @@ namespace LinqInfer.Maths
         {
             var t = Sum();
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
-        }
-
-        /// <summary>
-        /// Returns a copy of the values as a double array.
-        /// </summary>
-        /// <returns>A new double array</returns>
-        public double[] ToDoubleArray()
-        {
-            var arr = new double[_values.Length];
-
-            Array.Copy(_values, arr, _values.Length);
-
-            return arr;
-        }
-
-        /// <summary>
-        /// Returns a copy of the values as a single array.
-        /// </summary>
-        /// <returns>A new single array</returns>
-        public float[] ToSingleArray()
-        {
-            return _values.Select(v => (float)v).ToArray();
         }
 
         /// <summary>
@@ -215,32 +153,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Returns the vector size. This remains constant for the lifetime of the vector.
-        /// </summary>
-        public int Size
-        {
-            get
-            {
-                return _values.Length;
-            }
-        }
-
-        /// <summary>
         /// Returns the square of the vector
         /// </summary>
         public ColumnVector1D Sq()
         {
             return this * this;
-        }
-
-        public IEnumerator<double> GetEnumerator()
-        {
-            return _values.Cast<double>().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _values.GetEnumerator();
         }
 
         /// <summary>
@@ -306,49 +223,15 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Converts and exports the values to a byte array (for easy storage).
-        /// </summary>
-        /// <returns>An array of bytes</returns>
-        public byte[] ToByteArray()
-        {
-            var bytes = new byte[_values.Length * sizeof(double)];
-            Buffer.BlockCopy(_values, 0, bytes, 0, bytes.Length);
-            return bytes;
-        }
-
-        /// <summary>
         /// Returns a column vector from a previous exported vector.
         /// </summary>
         /// <param name="bytes">An array of bytes</param>
         /// <returns>A new column vector</returns>
-        public static ColumnVector1D FromByteArray(byte[] bytes)
+        public static new ColumnVector1D FromByteArray(byte[] bytes)
         {
             var values = new double[bytes.Length / sizeof(double)];
             Buffer.BlockCopy(bytes, 0, values, 0, bytes.Length);
             return new ColumnVector1D(values);
-        }
-
-        /// <summary>
-        /// Returns the values as a comma separated string of values
-        /// </summary>
-        /// <param name="precision">The numeric precision of each member</param>
-        /// <returns>A CSV string</returns>
-        public string ToCsv(int precision = 8)
-        {
-            return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
-        }
-
-        public override int GetHashCode()
-        {
-            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_values);
-        }
-
-        /// <summary>
-        /// Returns true if an other object is structually equal to this object
-        /// </summary>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as ColumnVector1D);
         }
 
         /// <summary>
@@ -397,12 +280,7 @@ namespace LinqInfer.Maths
             return Clone(true);
         }
 
-        internal double[] GetUnderlyingArray()
-        {
-            return _values;
-        }
-
-        private void Refresh()
+        protected override void Refresh()
         {
             _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
         }

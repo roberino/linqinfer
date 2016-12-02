@@ -11,5 +11,7 @@ namespace LinqInfer.Maths.Probability
         IDictionary<T, int> GetFrequencies(T eventValue);
         IDictionary<T, int> GetFrequencies(IEnumerable<T> eventSequence);
         Fraction ProbabilityOfEvent(IEnumerable<T> eventSequence, T nextEventValue);
+        void Merge(IDiscreteMarkovChain<T> other);
+        void Prune(int maxElements);
     }
 }

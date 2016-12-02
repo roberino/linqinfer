@@ -3,13 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Maths.Probability
 {
     internal class DiscreteMarkovChain<T> : IDiscreteMarkovChain<T> where T : IEquatable<T>
     {
         private readonly Transition _root;
-        private readonly Random _random;
         private readonly byte _order;
 
         public DiscreteMarkovChain(byte order = 1)
@@ -18,22 +19,46 @@ namespace LinqInfer.Maths.Probability
 
             _order = order;
             _root = new Transition(default(T));
-            _random = new Random();
+        }
+
+        public void Merge(IDiscreteMarkovChain<T> other)
+        {
+            if (!(other is DiscreteMarkovChain<T>))
+            {
+                throw new ArgumentException("Incompatible items");
+            }
+
+            Merge(((DiscreteMarkovChain<T>)other)._root, _root);
+        }
+
+        public void Prune(int maxElements)
+        {
+            if (_root.Following.Count > maxElements)
+            {
+                foreach (var key in _root.Following.OrderBy(x => x.Value.Frequency).Select(v => v.Key).ToList())
+                {
+                    _root.Following.Remove(key);
+
+                    if (_root.Following.Count <= maxElements)
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         public int Order { get { return _order; } }
 
         public void AnalyseSequences<S>(IEnumerable<S> sequences) where S : IEnumerable<T>
         {
+            //AnalyseSequencesParallel(sequences);
+
             foreach (var seq in sequences) AnalyseSequence(seq);
         }
 
         public void AnalyseSequences(IEnumerable<T> sequence, Func<T, bool> delimiter)
         {
-            foreach (var seq in sequence.Delimit(delimiter))
-            {
-                AnalyseSequence(seq);
-            }
+            AnalyseSequences(sequence.Delimit(delimiter));
         }
 
         public void AnalyseSequence(IEnumerable<T> sequence)
@@ -152,6 +177,95 @@ namespace LinqInfer.Maths.Probability
                 return node.Following.ToDictionary(x => x.Key, x => x.Value.Frequency);
 
             return new Dictionary<T, int>();
+        }
+
+        private void AnalyseSequencesParallel<S>(IEnumerable<S> sequences) where S : IEnumerable<T>
+        {
+            int i = 0;
+
+            var chains = Enumerable.Range(1, Environment.ProcessorCount)
+                .Select(n => new
+                {
+                    queue = new ConcurrentQueue<IEnumerable<T>>(),
+                    chain = new DiscreteMarkovChain<T>(_order),
+                    complete = new CancellationTokenSource()
+                })
+                .ToList();
+
+            var workers = chains
+                .Select(c => Task.Factory.StartNew(() =>
+                {
+                    while (!c.complete.IsCancellationRequested)
+                    {
+                        IEnumerable<T> next;
+
+                        while (c.queue.TryDequeueWhenAvailable(out next))
+                        {
+                            if (next != null) c.chain.AnalyseSequence(next);
+                        }
+                    }
+                })).ToArray();
+
+            foreach (var seq in sequences)
+            {
+                var worker = chains[i % chains.Count];
+
+                worker.queue.Enqueue(seq);
+
+                i++;
+            }
+
+            foreach (var worker in chains)
+            {
+                worker.complete.Cancel();
+                worker.queue.Close();
+            }
+
+            Task.WaitAll(workers);
+
+            foreach (var worker in chains)
+            {
+                Merge(worker.chain);
+            }
+
+            //sequences
+            //    .AsParallel()
+            //    .WithDegreeOfParallelism(chains.Count)
+            //    .ForAll(s =>
+            //    {
+            //        var n = Interlocked.Increment(ref i);
+
+            //        var chain = chains[n % chains.Count];
+
+            //        chain.AnalyseSequence(s);
+            //    });
+
+            //foreach (var chain in chains)
+            //{
+            //    Merge(chain);
+            //}
+        }
+
+        private void Merge(Transition source, Transition target)
+        {
+            foreach (var item in source.Following)
+            {
+                Transition tartt;
+
+                if (target.Following.TryGetValue(item.Key, out tartt))
+                {
+                    tartt.Frequency += item.Value.Frequency;
+                }
+                else
+                {
+                    target.Following[item.Key] = tartt = new Transition(item.Value.State)
+                    {
+                        Frequency = item.Value.Frequency
+                    };
+                }
+
+                Merge(item.Value, tartt);
+            }
         }
 
         private NullableState SimulateNextInternal(IEnumerable<T> transitionStates)

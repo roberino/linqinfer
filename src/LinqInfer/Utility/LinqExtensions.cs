@@ -26,7 +26,7 @@ namespace LinqInfer.Utility
             {
                 if (delimitingFunction(item))
                 {
-                    yield return batch;
+                    yield return batch.ToArray();
                     batch.Clear();
                 }
                 batch.Add(item);

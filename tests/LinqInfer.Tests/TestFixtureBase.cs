@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using LinqInfer.Maths;
+using NUnit.Framework.Constraints;
 
 namespace LinqInfer.Tests
 {
@@ -13,6 +14,11 @@ namespace LinqInfer.Tests
         {
             Console.WriteLine("{0}={1}~={2}", x, x.Value, y);
             Assert.That(Math.Round(x.Value, precision), Is.EqualTo(Math.Round(y, precision)));
+        }
+
+        public static RangeConstraint IsAround(double expected)
+        {
+            return Is.InRange(expected - 0.00001d, expected + 0.00001d);
         }
 
         public static Stream GetResource(string name)
