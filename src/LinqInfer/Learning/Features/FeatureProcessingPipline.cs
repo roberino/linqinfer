@@ -3,7 +3,6 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,6 +47,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Returns the feature extractor
+        /// </summary>
         public IFloatingPointFeatureExtractor<T> FeatureExtractor
         {
             get
@@ -56,6 +58,10 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Returns the size of the vector returned
+        /// when vectors are extracted
+        /// </summary>
         public int VectorSize
         {
             get
@@ -64,6 +70,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Returns an enumeration of feature metadata
+        /// </summary>
         public IEnumerable<IFeature> FeatureMetadata
         {
             get
@@ -72,6 +81,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Filters features by property
+        /// </summary>
         public FeatureProcessingPipline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
         {
             var ps = new PropertySelector<T>();
@@ -88,6 +100,9 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
+        /// <summary>
+        /// Filters features
+        /// </summary>
         public FeatureProcessingPipline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             if (_transformation == null)
@@ -104,6 +119,13 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
+        /// <summary>
+        /// Using principal component analysis, reduces the least significant features
+        /// keeping a specified number of features (dimensions)
+        /// </summary>
+        /// <param name="numberOfDimensions">The number of features to retain</param>
+        /// <param name="sampleSize">The size of the sample to use for analysis</param>
+        /// <returns>The feature processing pipeline with the transform applied</returns>
         public FeatureProcessingPipline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
         {
             var pca = new PrincipalComponentsAnalysis(this);
@@ -178,6 +200,9 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
+        /// <summary>
+        /// Extracts vectors from the dataset
+        /// </summary>
         public IEnumerable<ColumnVector1D> ExtractVectors()
         {
             var fe = FeatureExtractor;
@@ -193,6 +218,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Extracts object vector pairs in batches
+        /// </summary>
         public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
         {
             var fe = FeatureExtractor;

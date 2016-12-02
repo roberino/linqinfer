@@ -26,11 +26,8 @@ namespace LinqInfer.Learning.Features
             var orderedVectors = eigenvectors.RealEigenvalues.ToDictionary(_ => i++, v => v).OrderByDescending(v => v.Value).Take(numberOfDimensions).ToList();
             var eigenMatrix = eigenvectors.GetV();
             var featureSet = eigenMatrix.SelectRows(orderedVectors.Select(v => v.Key).OrderBy(v => v).ToArray());
-            var featureSetRows = featureSet.Rotate();
 
             return v => (featureSet * new ColumnVector1D((new ColumnVector1D(v) - mean))).GetUnderlyingArray();
-
-            // return v => (featureSetRows * (new ColumnVector1D(v) - mean)).Split(numberOfDimensions).First().GetUnderlyingArray();
         }
     }
 }

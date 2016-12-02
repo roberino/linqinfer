@@ -36,10 +36,16 @@ namespace LinqInfer.Maths
         {
         }
 
+        /// <summary>
+        /// Returns a mean of each dimension
+        /// </summary>
         public Vector MeanVector { get { return _mean.Value; } }
 
         public Matrix CovarianceMatrix { get { return _covariance.Value; } }
 
+        /// <summary>
+        /// Returns a new matrix with the mean subtracted from the x values
+        /// </summary>
         public Matrix MeanAdjust()
         {
             var mu = MeanVector;
@@ -47,10 +53,19 @@ namespace LinqInfer.Maths
             return new Matrix(Rows.Select(v => v - mu));
         }
 
+        /// <summary>
+        /// Gets the y dimension of the matrix
+        /// </summary>
         public int Height { get { return Rows.Count; } }
-
+        
+        /// <summary>
+        /// Gets the x dimension of the matrix
+        /// </summary>
         public int Width { get { return Rows[0].Size; } }
 
+        /// <summary>
+        /// Returns true if the width and height are equal
+        /// </summary>
         public bool IsSquare { get { return Width == Height; } }
 
         public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
@@ -138,26 +153,6 @@ namespace LinqInfer.Maths
             }
 
             if (m2.Width == 1) return (m1 * m2.Columns.First()).AsMatrix();
-
-            //if (!(m1.IsSquare && m2.IsSquare)) throw new InvalidOperationException();
-
-            // var data = new List<double[]>(m1.Height);
-
-            //for (var y = 0; y < m1.Height; y++)
-            //{
-            //    var newrow = new double[m1.Width];
-            //    var row = m1.Rows[y].GetUnderlyingArray();
-
-            //    for (var x = 0; x < m1.Width; x++)
-            //    {
-            //        for (int y2 = 0; y2 < m2.Height; y2++)
-            //        {
-            //            newrow[x] += row[y2] * m2.Rows[y2][x];
-            //        }
-            //    }
-
-            //    data.Add(newrow);
-            //}
 
             double[][] c = CreateArray(m1.Height, m2.Width);
 
