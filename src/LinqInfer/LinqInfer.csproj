@@ -136,6 +136,7 @@
     <Compile Include="Learning\Classification\ObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IObjectClassifier.cs" />
     <Compile Include="Learning\FeatureMapperV2.cs" />
+    <Compile Include="Learning\Features\ExecutionPipline.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPipline.cs" />
     <Compile Include="Learning\Features\FeatureTransformations.cs" />
@@ -148,10 +149,12 @@
     <Compile Include="Learning\Features\ITrainingSet.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
+    <Compile Include="Learning\Features\PrincipalComponentsAnalysis.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
     <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
+    <Compile Include="Maths\EigenvalueDecomposition.cs" />
     <Compile Include="Maths\Vector.cs" />
     <Compile Include="Maths\DiscretizedSet.cs" />
     <Compile Include="Maths\FractionEventArgs.cs" />

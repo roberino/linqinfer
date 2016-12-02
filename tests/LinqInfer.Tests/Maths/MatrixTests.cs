@@ -9,6 +9,98 @@ namespace LinqInfer.Tests.Maths
     public class MatrixTests : TestFixtureBase
     {
         [Test]
+        public void MeanAjdust_NewMeanIsZero()
+        {
+            var m = new Matrix(new[]
+            {
+                new [] { 3d, 5, 2},
+                new [] { 6d, 8.7, 4.3 },
+                new [] { 7d, 4, 6 }
+            });
+
+            var ma = m.MeanAdjust();
+
+            ma.MeanVector.ToList().ForEach(v =>
+            {
+                Assert.That(v, IsAround(0));
+            });
+        }
+
+        [Test]
+        public void MultiplicationOperator_OfColumnVector()
+        {
+            var m = new Matrix(new[]
+            {
+                new [] { 3d, 5, 2},
+                new [] { 6d, 8.7, 4.3 }
+            });
+
+            var v = ColumnVector1D.Create(3, 6, 7);
+
+            var mm = (m * v).AsMatrix();
+
+            Assert.That(mm.Width, Is.EqualTo(1));
+            Assert.That(mm.Height, Is.EqualTo(2));
+            Assert.That(mm[0, 0], Is.EqualTo(3 * 3 + 5 * 6 + 2 * 7));
+            Assert.That(mm[1, 0], Is.EqualTo(6 * 3 + 8.7d * 6 + 4.3d * 7));
+        }
+
+
+        [Test]
+        public void MultiplicationOperator_OfColumnMatrixAndRowMatrix()
+        {
+            var m1 = new Matrix(new[]
+            {
+                new [] { 6d},
+                new [] { 4d },
+                new [] { 7d }
+            });
+
+            var m2 = new Matrix(new[]
+            {
+                new [] { 3d, 5, 2}
+            });
+
+            var mm = m1 * m2;
+
+            Assert.That(mm.Width, Is.EqualTo(3));
+            Assert.That(mm.Height, Is.EqualTo(3));
+
+            Assert.That(mm[0, 0], Is.EqualTo(6 * 3));
+            Assert.That(mm[0, 1], Is.EqualTo(6 * 5));
+            Assert.That(mm[0, 2], Is.EqualTo(6 * 2));
+
+            Assert.That(mm[1, 0], Is.EqualTo(4 * 3));
+            Assert.That(mm[1, 1], Is.EqualTo(4 * 5));
+            Assert.That(mm[1, 2], Is.EqualTo(4 * 2));
+
+            Assert.That(mm[2, 0], Is.EqualTo(7 * 3));
+            Assert.That(mm[2, 1], Is.EqualTo(7 * 5));
+            Assert.That(mm[2, 2], Is.EqualTo(7 * 2));
+        }
+
+        [Test]
+        public void MultiplicationOperator_OfSquareMatrix()
+        {
+            var m = new Matrix(new[]
+            {
+                new [] { 3d, 5, 2},
+                new [] { 6d, 8.7, 4.3 },
+                new [] { 7d, 4, 6 }
+            });
+
+            var mm = m * m;
+
+            Assert.That(mm.IsSquare);
+            Assert.That(mm.Width, Is.EqualTo(m.Width));
+            Assert.That(mm[0, 0], Is.EqualTo(3 * 3 + 5 * 6 + 2 * 7));
+            Assert.That(mm[1, 0], Is.EqualTo(6 * 3 + 8.7d * 6 + 4.3d * 7));
+            Assert.That(mm[2, 0], Is.EqualTo(7 * 3 + 4 * 6 + 6 * 7));
+            Assert.That(mm[0, 1], Is.EqualTo(3 * 5 + 5 * 8.7d + 2 * 4));
+            Assert.That(mm[1, 1], Is.EqualTo(6 * 5 + 8.7d * 8.7d + 4.3d * 4));
+        }
+
+        [Test]
         public void GetHashCode_ReturnsSameValueForEquivMatrixes()
         {
             var m1 = new Matrix(new[]               
@@ -75,12 +167,12 @@ namespace LinqInfer.Tests.Maths
 
             var coVar = m.CovarianceMatrix;
 
-            Assert.That(coVar[0, 0], Is.EqualTo(0.025));
-            Assert.That(coVar[0, 1], Is.EqualTo(0.0075));
-            Assert.That(coVar[0, 2], Is.EqualTo(0.00175));
-            Assert.That(coVar[1, 0], Is.EqualTo(0.0075));
-            Assert.That(coVar[1, 1], Is.EqualTo(0.0070));
-            Assert.That(coVar[1, 2], Is.EqualTo(0.00135));
+            Assert.That(coVar[0, 0], IsAround(0.025));
+            Assert.That(coVar[0, 1], IsAround(0.0075));
+            Assert.That(coVar[0, 2], IsAround(0.00175));
+            Assert.That(coVar[1, 0], IsAround(0.0075));
+            Assert.That(coVar[1, 1], IsAround(0.0070));
+            Assert.That(coVar[1, 2], IsAround(0.00135));
         }
 
         [Test]
@@ -147,51 +239,6 @@ namespace LinqInfer.Tests.Maths
             Assert.That(r[0, 1], Is.EqualTo(-6d));
             Assert.That(r[1, 0], Is.EqualTo(-6d));
             Assert.That(r[1, 1], Is.EqualTo(-6d));
-        }
-
-        [Test]
-        public void MulitplyOperator_ReturnsExpectedResult()
-        {
-            var m1 = new Matrix(new[]
-            {
-                new [] { 1d, 2d},
-                new [] { 3d, 4d}
-            });
-
-            var m2 = new Matrix(new[]
-            {
-                new [] { 7d, 8d},
-                new [] { 9d, 10d}
-            });
-
-            var r = m1 * m2;
-
-            Assert.That(r[0, 0], Is.EqualTo(7d));
-            Assert.That(r[0, 1], Is.EqualTo(16d));
-            Assert.That(r[1, 0], Is.EqualTo(27d));
-            Assert.That(r[1, 1], Is.EqualTo(40d));
-        }
-
-        [Test]
-        public void MulitplyOperator_Vector_ReturnsExpectedResult()
-        {
-            var m = new Matrix(new[]
-            {
-                new [] { 1d, 2d},
-                new [] { 3d, 4d},
-                new [] { 5d, 6d}
-            });
-
-            var v = new Vector(new[] { 5d, 6d });
-
-            var r = m * v;
-
-            Assert.That(r[0, 0], Is.EqualTo(5d));
-            Assert.That(r[0, 1], Is.EqualTo(12d));
-            Assert.That(r[1, 0], Is.EqualTo(15d));
-            Assert.That(r[1, 1], Is.EqualTo(24d));
-            Assert.That(r[2, 0], Is.EqualTo(25d));
-            Assert.That(r[2, 1], Is.EqualTo(36d));
         }
 
 

@@ -20,11 +20,18 @@ namespace LinqInfer.Maths
 
         public ColumnVector1D(double[] values) : base(values)
         {
-            Refresh();
         }
 
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
         {
+        }
+
+        /// <summary>
+        /// Returns a 1 column matrix
+        /// </summary>
+        public Matrix AsMatrix()
+        {
+            return new Matrix(_values.Select(v => new double[] { v }));
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace LinqInfer.Maths
         /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
         /// </summary>
         /// <param name="index">The index where the vector will be split</param>
-        public ColumnVector1D[] Split(int index)
+        public new ColumnVector1D[] Split(int index)
         {
             Contract.Assert(index > 0 && index < _values.Length - 1);
 

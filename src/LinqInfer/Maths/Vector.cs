@@ -125,6 +125,30 @@ namespace LinqInfer.Maths
             }
         }
 
+
+
+        /// <summary>
+        /// Splits a vector into two parts
+        /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
+        /// </summary>
+        /// <param name="index">The index where the vector will be split</param>
+        public Vector[] Split(int index)
+        {
+            Contract.Assert(index > 0 && index < _values.Length - 1);
+
+            var arr1 = new double[index];
+            var arr2 = new double[_values.Length - index];
+
+            Array.Copy(_values, 0, arr1, 0, index);
+            Array.Copy(_values, index, arr2, 0, arr2.Length);
+
+            return new[]
+            {
+                new Vector(arr1),
+                new Vector(arr2),
+            };
+        }
+
         public IEnumerator<double> GetEnumerator()
         {
             return _values.Cast<double>().GetEnumerator();
