@@ -28,5 +28,57 @@ namespace LinqInfer.Tests.Language
 
             Assert.That(like.Count > 0);
         }
+
+        [Test]
+        public void IsDefined_ReturnsFalseForRandomWord()
+        {
+            var dict = new EnglishDictionary();
+
+            Assert.That(dict.IsDefined("xomsdf"), Is.False);
+        }
+
+        [Test]
+        public void Encode_Decode_ReconstructsSameWords_IgnoringCase()
+        {
+            var dict = new EnglishDictionary();
+            var encoded = dict.Encode("apples Pears oranges".Split(' '));
+            var decoded = dict.Decode(encoded).ToList();
+
+            Assert.That(decoded[0], Is.EqualTo("apples"));
+            Assert.That(decoded[1], Is.EqualTo("pears"));
+            Assert.That(decoded[2], Is.EqualTo("oranges"));
+        }
+
+        [Test]
+        public void Encode_DoNotAppend_ReturnsEnumerationOfIds()
+        {
+            var words = "big bad xyz wolf".Split(' ');
+            var dict = new EnglishDictionary();
+
+            var encoded = dict.Encode(words, false).ToList();
+
+            Assert.That(encoded.Count, Is.EqualTo(4));
+            Assert.That(encoded.Distinct().Count(), Is.EqualTo(4));
+            Assert.That(encoded[2], Is.EqualTo(0));
+            Assert.That(encoded[0], Is.GreaterThan(0));
+            Assert.That(encoded[1], Is.GreaterThan(0));
+            Assert.That(encoded[3], Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Encode_Append_AppendsUnknownWordAndReturnsEnumerationOfIds()
+        {
+            var words = "big bad xyz wolf".Split(' ');
+            var dict = new EnglishDictionary();
+
+            var encoded = dict.Encode(words, true).ToList();
+
+            Assert.That(encoded.Count, Is.EqualTo(4));
+            Assert.That(encoded[0], Is.GreaterThan(0));
+            Assert.That(encoded[1], Is.GreaterThan(0));
+            Assert.That(encoded[2], Is.GreaterThan(0));
+            Assert.That(encoded[3], Is.GreaterThan(0));
+            Assert.That(dict.IdOf("xyz"), Is.GreaterThan(0));
+        }
     }
 }
