@@ -142,6 +142,33 @@ namespace LinqInfer.Maths.Probability
             return Fraction.Zero;
         }
 
+        public IDictionary<T, int> GetPriorFrequencies(T currentState)
+        {
+            var results = new Dictionary<T, int>();
+
+            if (currentState != null)
+            {
+                foreach (var match in _root
+                    .Following
+                    .Select(p =>
+                    {
+                        Transition tx;
+                        var m = p.Value.Following.TryGetValue(currentState, out tx);
+                        return new
+                        {
+                            p = p,
+                            freq = m ? tx.Frequency : 0
+                        };
+                    })
+                    .Where(p => p.freq > 0))
+                {
+                    results[match.p.Key] = match.freq;
+                }
+            }
+
+            return results;
+        }
+
         public IDictionary<T, int> GetFrequencies(T currentState)
         {
             if (currentState != null)

@@ -10,11 +10,11 @@ namespace LinqInfer.Learning.Features
         where TInput : class
         where TClass : IEquatable<TClass>
     {
-        private readonly FeatureProcessingPipline<TInput> _pipeline;
+        private readonly FeatureProcessingPipeline<TInput> _pipeline;
         private readonly Expression<Func<TInput, TClass>> _classf;
         private readonly Lazy<ICategoricalOutputMapper<TClass>> _outputMapper;
 
-        internal TrainingSet(FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
+        internal TrainingSet(FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
         {
             _pipeline = pipeline;
             _classf = classf;
@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Features
             _outputMapper = new Lazy<ICategoricalOutputMapper<TClass>>(() => new OutputMapperFactory<TInput, TClass>().Create(pipeline.Data, classf));
         }
 
-        public FeatureProcessingPipline<TInput> FeaturePipeline
+        public FeatureProcessingPipeline<TInput> FeaturePipeline
         {
             get
             {

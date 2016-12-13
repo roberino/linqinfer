@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Text
@@ -39,6 +40,44 @@ namespace LinqInfer.Tests.Text
 
             Assert.That(results3.Count, Is.EqualTo(3));
             Assert.That(results3.First().DocumentKey, Is.EqualTo("dog-x"));
+        }
+
+        [Test]
+        public void Index_Then_Export_ReturnsExpectedXml()
+        {
+            var search = new DocumentIndex();
+
+            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+
+            search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
+
+            var xml = search.ExportAsXml();
+
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo("index"));
+            Assert.That(xml.Root.Attribute("doc-count").Value, Is.EqualTo(docs.Count().ToString()));
+            Assert.That(xml.Root.Elements().All(e => e.Name.LocalName == "term"));
+
+            xml.WriteTo(XmlWriter.Create(Console.Out, new XmlWriterSettings() { Indent = true }));
+        }
+
+        [Test]
+        public void Export_Then_Import_RestoresState()
+        {
+            var index1 = new DocumentIndex();
+
+            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+
+            index1.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
+
+            var xml = index1.ExportAsXml();
+
+            var index2 = new DocumentIndex(index1.Tokeniser);
+
+            index2.ImportXml(xml);
+
+            var xml2 = index2.ExportAsXml();
+
+            Assert.That(xml.ToString(), Is.EqualTo(xml2.ToString()));
         }
 
         [Test]

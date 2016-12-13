@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    public sealed class FeatureProcessingPipline<T> : IFeatureProcessingPipeline<T> where T : class
+    public sealed class FeatureProcessingPipeline<T> : IFeatureProcessingPipeline<T> where T : class
     {
         private static readonly ObjectFeatureExtractorFactory _objExtractor = new ObjectFeatureExtractorFactory();
 
@@ -20,17 +20,20 @@ namespace LinqInfer.Learning.Features
 
         private bool _normalisationCompleted;
 
-        internal FeatureProcessingPipline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
+        internal FeatureProcessingPipeline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             _data = data;
             _featureExtractor = featureExtractor ?? _objExtractor.CreateFeatureExtractor<T>();
             _outputs = new List<IBlobStore>();
         }
 
-        internal FeatureProcessingPipline() : this(Enumerable.Empty<T>().AsQueryable())
+        internal FeatureProcessingPipeline() : this(Enumerable.Empty<T>().AsQueryable())
         {
         }
 
+        /// <summary>
+        /// Returns the original data source
+        /// </summary>
         public IQueryable<T> Data
         {
             get
@@ -39,6 +42,9 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        /// <summary>
+        /// Returns the outputs
+        /// </summary>
         public IEnumerable<IBlobStore> Outputs
         {
             get
@@ -84,7 +90,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features by property
         /// </summary>
-        public FeatureProcessingPipline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
+        public FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
         {
             var ps = new PropertySelector<T>();
 
@@ -103,7 +109,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features
         /// </summary>
-        public FeatureProcessingPipline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
+        public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             if (_transformation == null)
             {
@@ -123,17 +129,25 @@ namespace LinqInfer.Learning.Features
         /// Using principal component analysis, reduces the least significant features
         /// keeping a specified number of features (dimensions)
         /// </summary>
-        /// <param name="numberOfDimensions">The number of features to retain</param>
+        /// <param name="numberOfDimensions">The (max) number of features to retain</param>
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public FeatureProcessingPipline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
+        public FeatureProcessingPipeline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
         {
-            var pca = new PrincipalComponentsAnalysis(this);
+            var pca = new PrincipalComponentAnalysis(this);
 
             return PreprocessWith(pca.CreatePrincipalComponentTransformation(numberOfDimensions, sampleSize));
         }
 
-        public FeatureProcessingPipline<T> PreprocessWith(Func<double[], double[]> transformFunction)
+        /// <summary>
+        /// Preprocesses the data with transforming function
+        /// (only one supported currently)
+        /// The transforming function may or may not
+        /// change the size of the extracted vector
+        /// </summary>
+        /// <param name="transformFunction">The transforming function</param>
+        /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
+        public FeatureProcessingPipeline<T> PreprocessWith(Func<double[], double[]> transformFunction)
         {
             if (_transformation == null)
             {
@@ -159,7 +173,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeatureProcessingPipline<T>, string, TResult> processor)
+        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeatureProcessingPipeline<T>, string, TResult> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -169,7 +183,7 @@ namespace LinqInfer.Learning.Features
             }, (x, o) => true);
         }
 
-        internal ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<FeatureProcessingPipline<T>, string, Task<TResult>> processor)
+        internal ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<FeatureProcessingPipeline<T>, string, Task<TResult>> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -179,13 +193,22 @@ namespace LinqInfer.Learning.Features
             }, (x, o) => true);
         }
 
-        public FeatureProcessingPipline<T> OutputResultsTo(IBlobStore store)
+        /// <summary>
+        /// Specifies where output should be stored
+        /// </summary>
+        /// <param name="store"></param>
+        /// <returns></returns>
+        public FeatureProcessingPipeline<T> OutputResultsTo(IBlobStore store)
         {
             _outputs.Add(store);
 
             return this;
         }
 
+        /// <summary>
+        /// Performs simple normalisation over the data,
+        /// readjusting data so that values fall between 0 and 1
+        /// </summary>
         public IFeatureProcessingPipeline<T> NormaliseData()
         {
             var fe = FeatureExtractor;

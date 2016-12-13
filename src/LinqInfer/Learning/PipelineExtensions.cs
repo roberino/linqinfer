@@ -20,7 +20,7 @@ namespace LinqInfer.Learning
         /// <returns></returns>
         public static IFeatureTransformBuilder<T> CreateFeatureTransformation<T>(IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
-            return new FeatureProcessingPipline<T>(Enumerable.Empty<T>().AsQueryable(), featureExtractor);
+            return new FeatureProcessingPipeline<T>(Enumerable.Empty<T>().AsQueryable(), featureExtractor);
         }
 
         /// <summary>
@@ -30,11 +30,11 @@ namespace LinqInfer.Learning
         /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
         {
             var size = featureLabels == null ? vectorFunc(DefaultOf<T>()).Length : featureLabels.Length;
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, normaliseData, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
-            return new FeatureProcessingPipline<T>(data, featureExtractor);
+            return new FeatureProcessingPipeline<T>(data, featureExtractor);
         }
 
         /// <summary>
@@ -46,12 +46,12 @@ namespace LinqInfer.Learning
         /// <param name="vectorSize">The size of the vector returned by the vector function. 
         /// IF YOU DO NOT provide this value, the vector function will be called with default arguments which may be null</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
         {
             Contract.Assert(vectorSize > 0);
 
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, true, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
-            return new FeatureProcessingPipline<T>(data, featureExtractor);
+            return new FeatureProcessingPipeline<T>(data, featureExtractor);
         }
 
         /// <summary>
@@ -61,9 +61,9 @@ namespace LinqInfer.Learning
         /// <param name="data">The data</param>
         /// <param name="featureExtractor">An optional feature extractor to extract feature vectors from the data</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
-            return new FeatureProcessingPipline<T>(data, featureExtractor);
+            return new FeatureProcessingPipeline<T>(data, featureExtractor);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <param name="data">The data</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipline<ColumnVector1D> CreatePipeline(this IQueryable<ColumnVector1D> data)
+        public static FeatureProcessingPipeline<ColumnVector1D> CreatePipeline(this IQueryable<ColumnVector1D> data)
         {
             var first = data.FirstOrDefault();
             return CreatePipeline(data, v => v.GetUnderlyingArray(), first == null ? 0 : first.Size);
@@ -83,7 +83,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="featureMap">The feature map</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipline<ClusterNode<T>> CreatePipeine<T>(this FeatureMap<T> featureMap) where T : class
+        public static FeatureProcessingPipeline<ClusterNode<T>> CreatePipeine<T>(this FeatureMap<T> featureMap) where T : class
         {
             var first = featureMap.FirstOrDefault();
             return CreatePipeline(featureMap.AsQueryable(), v => v.Weights.GetUnderlyingArray(), first == null ? 0 : first.Weights.Size);
@@ -97,7 +97,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A feature pipeline</param>
         /// <param name="classf">A classifying expression</param>
         /// <returns>A training set</returns>
-        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
+        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
@@ -114,7 +114,7 @@ namespace LinqInfer.Learning
         /// <param name="normaliseData">True if the data should be normalised prior to mapping</param>
         /// <param name="learningRate">The learning rate</param>
         /// <returns></returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, TInput normalisingSample, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TInput normalisingSample, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -132,7 +132,7 @@ namespace LinqInfer.Learning
         /// <param name="writer">A text writer</param>
         /// <param name="label">An optional function which will label each row (as the first column)</param>
         /// <returns></returns>
-        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this FeatureProcessingPipline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null) where TInput : class
+        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -165,7 +165,7 @@ namespace LinqInfer.Learning
         /// which is used to calculate the influence a node has on neighbouring nodes when updating weights</param>
         /// <param name="initialiser">An initialisation function used to determine the initial value of a output nodes weights, given the output node index</param>
         /// <returns>An execution pipeline for creating a SOFM</returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -183,7 +183,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this FeatureProcessingPipline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -212,7 +212,7 @@ namespace LinqInfer.Learning
         /// return a true to indicate the training should stop</param>
         /// <returns></returns>
         public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipline<TInput> pipeline, 
+            this FeatureProcessingPipeline<TInput> pipeline, 
             Expression<Func<TInput, TClass>> classf, 
             float errorTolerance = 0.1f,
             Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
@@ -289,7 +289,7 @@ namespace LinqInfer.Learning
         /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
         /// <returns>An executable object which produces a classifier</returns>
         public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipline<TInput> pipeline,
+            this FeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -348,7 +348,7 @@ namespace LinqInfer.Learning
         /// <param name="trainingStrategy">A implementation of a multilayer network training strategy</param>
         /// <returns></returns>
         public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipline<TInput> pipeline,
+            this FeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -374,7 +374,7 @@ namespace LinqInfer.Learning
         public static IPrunableObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
             this IBlobStore store, string key, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
-            if (featureExtractor == null) featureExtractor = new FeatureProcessingPipline<TInput>().FeatureExtractor;
+            if (featureExtractor == null) featureExtractor = new FeatureProcessingPipeline<TInput>().FeatureExtractor;
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor);
 

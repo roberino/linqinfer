@@ -25,7 +25,7 @@ namespace LinqInfer.Data.Remoting
         /// <summary>
         /// Sends extracted data to a server endpoint
         /// </summary>
-        public static async Task SendTo<T>(this FeatureProcessingPipline<T> pipeline, Uri endpoint) where T : class
+        public static async Task SendTo<T>(this FeatureProcessingPipeline<T> pipeline, Uri endpoint) where T : class
         {
             Util.ValidateTcpUri(endpoint);
 

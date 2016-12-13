@@ -8,6 +8,7 @@ namespace LinqInfer.Maths.Probability
         int Order { get; }
         void AnalyseSequence(IEnumerable<T> sequence);
         void AnalyseSequences<S>(IEnumerable<S> sequences) where S : IEnumerable<T>;
+        IDictionary<T, int> GetPriorFrequencies(T currentState);
         IDictionary<T, int> GetFrequencies(T eventValue);
         IDictionary<T, int> GetFrequencies(IEnumerable<T> eventSequence);
         Fraction ProbabilityOfEvent(IEnumerable<T> eventSequence, T nextEventValue);

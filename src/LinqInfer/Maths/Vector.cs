@@ -58,6 +58,18 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a dictionary of indexes and values
+        /// </summary>
+        public IDictionary<int, double> IndexedValues
+        {
+            get
+            {
+                int i = 0;
+                return _values.ToDictionary(_ => i++, v => v);
+            }
+        }
+
+        /// <summary>
         /// Applies a function over all values in the vector, modifying each value.
         /// </summary>
         /// <param name="func">A function to transform the value (takes the original value as input)</param>
@@ -243,7 +255,18 @@ namespace LinqInfer.Maths
         /// <returns>A CSV string</returns>
         public string ToCsv(int precision = 8)
         {
-            return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
+            return ToCsv(',', precision);
+        }
+
+        /// <summary>
+        /// Returns the values as a character separated string of values
+        /// </summary>
+        /// <param name="delimitter">The character used to delimit the values</param>
+        /// <param name="precision">The numeric precision of each member</param>
+        /// <returns>A CSV string</returns>
+        public string ToCsv(char delimitter, int precision = 8)
+        {
+            return string.Join(delimitter.ToString(), _values.Select(v => Math.Round(v, precision).ToString()));
         }
 
         public override int GetHashCode()

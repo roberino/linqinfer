@@ -73,6 +73,8 @@
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\IObjectSerialiser.cs" />
+    <Compile Include="Data\IXmlExportable.cs" />
+    <Compile Include="Data\IXmlImportable.cs" />
     <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
@@ -138,7 +140,7 @@
     <Compile Include="Learning\FeatureMapperV2.cs" />
     <Compile Include="Learning\Features\ExecutionPipline.cs" />
     <Compile Include="Learning\Features\FeatureAttribute.cs" />
-    <Compile Include="Learning\Features\FeatureProcessingPipline.cs" />
+    <Compile Include="Learning\Features\FeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\FeatureTransformations.cs" />
     <Compile Include="Learning\Features\FloatingPointTransformingFeatureExtractor.cs" />
     <Compile Include="Learning\Features\IFeatureDataSource.cs" />
@@ -149,7 +151,7 @@
     <Compile Include="Learning\Features\ITrainingSet.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
-    <Compile Include="Learning\Features\PrincipalComponentsAnalysis.cs" />
+    <Compile Include="Learning\Features\PrincipalComponentAnalysis.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
     <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
@@ -169,6 +171,7 @@
     <Compile Include="Maths\TimeResolution.cs" />
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
+    <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
     <Compile Include="Text\HttpTokenReader.cs" />

@@ -42,7 +42,7 @@ namespace LinqInfer.Text
         /// <param name="data">A queryable set of strings</param>
         /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
         /// <returns></returns>
-        public static FeatureProcessingPipline<string> CreateTextFeaturePipeline(this IQueryable<string> data, int maxVectorSize = 128)
+        public static FeatureProcessingPipeline<string> CreateTextFeaturePipeline(this IQueryable<string> data, int maxVectorSize = 128)
         {
             var identityFunc = new Func<string, string>((x => x == null ? "" : x.GetHashCode().ToString()));
 
@@ -52,7 +52,7 @@ namespace LinqInfer.Text
 
             index.IndexDocuments(docs);
 
-            return new FeatureProcessingPipline<string>(data, index.CreateVectorExtractor<string>(tokeniser.Tokenise, maxVectorSize));
+            return new FeatureProcessingPipeline<string>(data, index.CreateVectorExtractor<string>(tokeniser.Tokenise, maxVectorSize));
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace LinqInfer.Text
         /// <param name="identityFunc"></param>
         /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
         /// <returns></returns>
-        public static FeatureProcessingPipline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class
+        public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class
         {
             if (identityFunc == null) identityFunc = (x => x == null ? "" : x.GetHashCode().ToString());
 
@@ -75,7 +75,7 @@ namespace LinqInfer.Text
 
             index.IndexDocuments(docs);
             
-            return new FeatureProcessingPipline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
+            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace LinqInfer.Text
 
             index.IndexDocuments(docs);
 
-            var pipeline = new FeatureProcessingPipline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
+            var pipeline = new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
 
             return pipeline.ToMultilayerNetworkClassifier(classifyingFunction).Execute();
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -263,6 +264,14 @@ namespace LinqInfer.Maths
             }
 
             return x;
+        }
+
+        public void WriteAsCsv(TextWriter output, char delimitter = ',', int precision = 8)
+        {
+            foreach (var vect in Rows)
+            {
+                output.WriteLine(vect.ToCsv(delimitter, precision));
+            }
         }
 
         public override string ToString()
