@@ -45,6 +45,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Fires when underlying data changes
+        /// </summary>
+        public event EventHandler Modified;
+
+        /// <summary>
         /// Returns a value by index
         /// </summary>
         /// <param name="i">The index (base 0)</param>
@@ -137,8 +142,6 @@ namespace LinqInfer.Maths
             }
         }
 
-
-
         /// <summary>
         /// Splits a vector into two parts
         /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
@@ -159,6 +162,18 @@ namespace LinqInfer.Maths
                 new Vector(arr1),
                 new Vector(arr2),
             };
+        }
+
+        public double DotProduct(Vector other)
+        {
+            var v = this * other;
+
+            return v.Sum();
+        }
+
+        public bool IsOrthogonalTo(Vector other)
+        {
+            return DotProduct(other) == 0;
         }
 
         public IEnumerator<double> GetEnumerator()
@@ -305,6 +320,9 @@ namespace LinqInfer.Maths
 
         protected virtual void Refresh()
         {
+            var ev = Modified;
+
+            if (ev != null) ev.Invoke(this, EventArgs.Empty);
         }
     }
 }

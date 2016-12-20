@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    internal class DocumentIndex : IBinaryPersistable, IDocumentIndex, IXmlExportable, IXmlImportable
+    internal class DocumentIndex : IDocumentIndex
     {
         private readonly ITokeniser _tokeniser;
         private readonly IDictionary<string, TermDocumentFrequencyMap> _frequencies;
@@ -328,11 +328,7 @@ namespace LinqInfer.Text
                         new XElement("term",
                             new XAttribute("text", f.Key),
                             new XAttribute("frequency", f.Value.Count),
-                            f.Value
-                                .DocFrequencies
-                                .Select(d => new XElement("doc",
-                                    new XAttribute("key", d.Key),
-                                    new XAttribute("frequency", d.Value)))))));
+                            KeyPairToString(f.Value.DocFrequencies)))));
         }
 
         public void ImportXml(XDocument xml)
@@ -341,10 +337,33 @@ namespace LinqInfer.Text
 
             foreach (var element in xml.Root.Elements().Where(e => e.Name.LocalName == "term"))
             {
-                _frequencies[element.Attribute("text").Value] = new TermDocumentFrequencyMap(element
-                        .Elements()
-                            .ToDictionary(e => e.Attribute("key").Value, e => int.Parse(e.Attribute("frequency").Value)),
+                _frequencies[element.Attribute("text").Value] = new TermDocumentFrequencyMap(
+                    StringToKeyPairs(element.Value).ToDictionary(k => k.Key, v => v.Value),
                         long.Parse(element.Attribute("frequency").Value));
+            }
+        }
+
+        private string KeyPairToString(IEnumerable<KeyValuePair<string, int>> pairs)
+        {
+            var sb = new StringBuilder();
+
+            foreach(var kp in pairs)
+            {
+                sb.Append(kp.Key + ":" + kp.Value + ",");
+            }
+
+            return sb.ToString();
+        }
+
+        private IEnumerable<KeyValuePair<string, int>> StringToKeyPairs(string data)
+        {
+            foreach (var item in data.Split(','))
+            {
+                var i = item.LastIndexOf(':');
+
+                if (i < 0) yield break;
+
+                yield return new KeyValuePair<string, int>(item.Substring(0, i), int.Parse(item.Substring(i + 1)));
             }
         }
 

@@ -91,6 +91,7 @@
     <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServerTests.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPiplineTests.cs" />
     <Compile Include="Learning\Features\PrincipalComponentsAnalysisTests.cs" />
+    <Compile Include="Learning\Features\SingularValueDecompositionTests.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractorTests.cs" />
     <Compile Include="Learning\ImageLearningExamples.cs" />
     <Compile Include="Learning\LinearSeparabilityExample.cs" />

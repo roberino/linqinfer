@@ -1,11 +1,7 @@
-﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Features;
-using LinqInfer.Text;
+﻿using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;

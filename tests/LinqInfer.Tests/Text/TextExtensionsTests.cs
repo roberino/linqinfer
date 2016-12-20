@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Text;
 using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -22,6 +23,7 @@ namespace LinqInfer.Tests.Text
                 Assert.That(doc.Root.Elements().Single().Value.Trim(), Is.EqualTo("Test"));
             }
         }
+
         [Test]
         public void OpenAsHtmlDocument2_ReturnsValidDoc()
         {
@@ -56,6 +58,24 @@ namespace LinqInfer.Tests.Text
             Assert.That(results.Single().DocumentKey == "doc3");
         }
 
+
+        [Test]
+        public void ExportAsXml_ThenOpenAsIndex()
+        {
+            var docs = new[]
+            {
+                XDocument.Parse("<doc1>a b c</doc1>"),
+                XDocument.Parse("<doc2>a b c d e</doc2>"),
+                XDocument.Parse("<doc3>c d e f g</doc3>")
+            };
+
+            var index = docs.AsTokenisedDocuments(k => k.Root.Name.LocalName).CreateIndex();
+            var xml = index.ExportAsXml();
+            var index2 = xml.OpenAsIndex();
+
+            Assert.That(xml.ToString(), Is.EqualTo(index2.ExportAsXml().ToString()));
+        }
+
         [Test]
         public void TermFrequencyIndex_StoreAndRetrieve()
         {
@@ -88,8 +108,25 @@ namespace LinqInfer.Tests.Text
             }
         }
 
-        [Test]
-        public void CreateTextFeaturePipeline_ThenCreateNNClassifier()
+        [TestCase(75, 5)]
+        public void CreateTextFeaturePipeline_ThenCreateNNClassifier(float passPercent, int iterations)
+        {
+            double t = 0;
+
+            foreach (var x in Enumerable.Range(0, iterations))
+            {
+                if (TextFeaturePipelineToNNClassifier())
+                {
+                    t += 1;
+                }
+            }
+
+            Console.WriteLine("{0:P} correct", t / (float)iterations);
+
+            Assert.That(t, Is.GreaterThanOrEqualTo(passPercent / 100f));
+        }
+
+        public bool TextFeaturePipelineToNNClassifier()
         {
             var data = new[]
             {
@@ -128,7 +165,7 @@ namespace LinqInfer.Tests.Text
 
             var results = classifier.Classify(test);
 
-            Assert.That(results.First().ClassType, Is.EqualTo("B"));
+            return results.First().ClassType == "B";
         }
 
         [Test]

@@ -149,15 +149,24 @@ namespace LinqInfer.Data.Remoting
 
             var end = ascii.IndexOf("\r\n\r\n");
 
-            if (end == -1)
-            {
-                end = ascii.IndexOf("\n\n");
-            }
-
             if (end > -1)
             {
-                HeaderLength = end + 2;
+                HeaderLength = end + 4;
                 IsComplete = true;
+            }
+            else
+            {
+                end = ascii.IndexOf("\n\n");
+
+                if (end > -1)
+                {
+                    HeaderLength = end + 2;
+                    IsComplete = true;
+                }
+            }
+
+            if (IsComplete)
+            {
                 ReadHttpHeaders(ascii);
                 _buffer = null;
             }

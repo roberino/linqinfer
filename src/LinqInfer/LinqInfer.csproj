@@ -153,6 +153,7 @@
     <Compile Include="Learning\Features\OutputMapperFactory.cs" />
     <Compile Include="Learning\Features\PrincipalComponentAnalysis.cs" />
     <Compile Include="Learning\Features\PropertySelector.cs" />
+    <Compile Include="Learning\Features\SingularValueDecomposition.cs" />
     <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
