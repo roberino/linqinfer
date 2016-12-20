@@ -45,6 +45,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Fires when underlying data changes
+        /// </summary>
+        public event EventHandler Modified;
+
+        /// <summary>
         /// Returns a value by index
         /// </summary>
         /// <param name="i">The index (base 0)</param>
@@ -54,6 +59,18 @@ namespace LinqInfer.Maths
             get
             {
                 return _values[i];
+            }
+        }
+
+        /// <summary>
+        /// Returns a dictionary of indexes and values
+        /// </summary>
+        public IDictionary<int, double> IndexedValues
+        {
+            get
+            {
+                int i = 0;
+                return _values.ToDictionary(_ => i++, v => v);
             }
         }
 
@@ -125,8 +142,6 @@ namespace LinqInfer.Maths
             }
         }
 
-
-
         /// <summary>
         /// Splits a vector into two parts
         /// e.g. [1,2,3,4,5] split at 2 = [1,2] + [3,4,5]
@@ -147,6 +162,18 @@ namespace LinqInfer.Maths
                 new Vector(arr1),
                 new Vector(arr2),
             };
+        }
+
+        public double DotProduct(Vector other)
+        {
+            var v = this * other;
+
+            return v.Sum();
+        }
+
+        public bool IsOrthogonalTo(Vector other)
+        {
+            return DotProduct(other) == 0;
         }
 
         public IEnumerator<double> GetEnumerator()
@@ -243,7 +270,18 @@ namespace LinqInfer.Maths
         /// <returns>A CSV string</returns>
         public string ToCsv(int precision = 8)
         {
-            return string.Join(",", _values.Select(v => Math.Round(v, precision).ToString()));
+            return ToCsv(',', precision);
+        }
+
+        /// <summary>
+        /// Returns the values as a character separated string of values
+        /// </summary>
+        /// <param name="delimitter">The character used to delimit the values</param>
+        /// <param name="precision">The numeric precision of each member</param>
+        /// <returns>A CSV string</returns>
+        public string ToCsv(char delimitter, int precision = 8)
+        {
+            return string.Join(delimitter.ToString(), _values.Select(v => Math.Round(v, precision).ToString()));
         }
 
         public override int GetHashCode()
@@ -282,6 +320,9 @@ namespace LinqInfer.Maths
 
         protected virtual void Refresh()
         {
+            var ev = Modified;
+
+            if (ev != null) ev.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var data = TestData.CreateQueryablePirates();
 
-            var pipeline = new FeatureProcessingPipline<TestData.Pirate>(data);
+            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data);
 
             Assert.That(pipeline.Data, Is.SameAs(data));
             Assert.That(pipeline.FeatureExtractor, Is.Not.Null);
@@ -24,7 +24,7 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var data = TestData.CreateQueryablePirates();
 
-            var pipeline = new FeatureProcessingPipline<TestData.Pirate>(data);
+            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data);
 
             var featureData = pipeline.ExtractVectors().ToList();
 
@@ -38,7 +38,7 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var data = TestData.CreateQueryablePirates();
 
-            var pipeline = new FeatureProcessingPipline<TestData.Pirate>(data)
+            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data)
                 .FilterFeaturesByProperty(p => p
                     .Select(x => x.Age)
                     .Select(x => x.Gold));
@@ -54,7 +54,7 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var data = TestData.CreateQueryablePirates();
 
-            var pipeline = new FeatureProcessingPipline<TestData.Pirate>(data)
+            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data)
                 .FilterFeatures(x => x.Label == "Age")
                 .PreprocessWith(m =>
                 {

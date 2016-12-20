@@ -1,12 +1,14 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    public class SemanticSet : ISemanticSet
+    public class SemanticSet : ISemanticSet, IXmlExportable, IXmlImportable
     {
         private readonly IDictionary<string, int> _words;
         private readonly Lazy<IDictionary<int, string>> _wordset;
@@ -132,6 +134,22 @@ namespace LinqInfer.Text
         public ISemanticSet Clone(bool deep)
         {
             return new SemanticSet(new HashSet<string>(_words.Keys));
+        }
+
+        public XDocument ExportAsXml()
+        {
+            return new XDocument(
+                new XElement("set",
+                    _words
+                    .Select(w => new XElement("w", new XAttribute("text", w.Key), new XAttribute("id", w.Value)))));
+        }
+
+        public void ImportXml(XDocument xml)
+        {
+            foreach (var element in xml.Root.Elements().Where(e => e.Name.LocalName == "w"))
+            {
+                _words[element.Attribute("text").Value] = int.Parse(element.Attribute("id").Value);
+            }
         }
     }
 }

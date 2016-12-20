@@ -20,7 +20,7 @@ namespace LinqInfer.Tests.Learning.Features
                 new [] { 1d, 5, 243, 9, 123}
                 });
 
-            var pca = new PrincipalComponentsAnalysis(data);
+            var pca = new PrincipalComponentAnalysis(data);
 
             var transform = pca.CreatePrincipalComponentTransformation(2);
 

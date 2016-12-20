@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LinqInfer.Tests.Maths
@@ -8,6 +9,180 @@ namespace LinqInfer.Tests.Maths
     [TestFixture]
     public class MatrixTests : TestFixtureBase
     {
+        [TestCase(10000, 2)]
+        [TestCase(10000, 4)]
+        [TestCase(10000, 8)]
+        [TestCase(10000, 16)]
+        [TestCase(10000, 32)]
+        //[TestCase(50000, 32)]
+        public void Performance_Test(int height, int width)
+        {
+            var rnd1 = Functions.RandomGenerator(0.43, 4);
+            var rnd2 = Functions.RandomGenerator(152, 12333.2);
+            var vectors = Enumerable.Range(0, height).Select(r => ColumnVector1D.Create(Enumerable.Range(0, width).Select(c => c % 2 == 0 ? rnd1() : rnd2()).ToArray())).ToList();
+            var sw = new Stopwatch();
+
+            Console.WriteLine("Testing {0}x{1} matrix", width, height);
+
+            sw.Start();
+
+            var m = new Matrix(vectors);
+
+            Console.WriteLine(sw.Elapsed);
+
+            var covar = m.CovarianceMatrix;
+
+            Console.WriteLine(sw.Elapsed);
+
+            var m2 = covar * covar;
+
+            Console.WriteLine(sw.Elapsed);
+        }
+
+        [Test]
+        public void Performance_Test2()
+        {
+            var rnd1 = Functions.RandomGenerator(0.43, 4);
+            var rnd2 = Functions.RandomGenerator(152, 12);
+            var vectors1 = Enumerable.Range(0, 5000).Select(r => ColumnVector1D.Create(Enumerable.Range(0, 8).Select(c => c % 2 == 0 ? rnd1() : rnd2()).ToArray())).ToList();
+            var vectors2 = Enumerable.Range(0, 8).Select(r => ColumnVector1D.Create(Enumerable.Range(0, 5000).Select(c => c % 2 == 0 ? rnd1() : rnd2()).ToArray())).ToList();
+
+            Matrix a = null, b = null;
+
+            TimeTest(() =>
+            {
+                a = new Matrix(vectors1);
+                b = new Matrix(vectors2);
+            }, "Setup");
+
+            TimeTest(() =>
+            {
+                var m1 = a * b;
+
+            }, "Multiply (operator)");
+
+
+            TimeTest(() =>
+            {
+                var m2 = Matrix.Multiply(a, b);
+
+            }, "Multiply (method)");
+        }
+
+        [TestCase(10)]
+        [TestCase(5)]
+        [TestCase(1)]
+        public void IdentityMatrix_ReturnsValidMatrx(int size)
+        {
+            var id = Matrix.IdentityMatrix(size);
+
+            int y = 0; int x = 0;
+
+            foreach(var row in id)
+            {
+                x = 0;
+
+                foreach(var col in row)
+                {
+                    Assert.That(col, Is.EqualTo(x == y ? 1 : 0));
+                    x++;
+                }
+
+                y++;
+            }
+        }
+
+        [Test]
+        public void DiagonalMatrix_FromVector_ReturnsExpectedValues()
+        {
+            var v = ColumnVector1D.Create(1, 23, 55, 8, 3);
+
+            var d = Matrix.DiagonalMatrix(v);
+
+            int y = 0; int x = 0;
+
+            foreach (var row in d)
+            {
+                x = 0;
+
+                foreach (var col in row)
+                {
+                    Assert.That(col, Is.EqualTo(x == y ? v[x] : 0));
+                    x++;
+                }
+
+                y++;
+            }
+        }
+
+        [Test]
+        public void Transpose_TranslatedValueAsExpected()
+        {
+            var m = new Matrix(new[] {
+                new [] { 1d, 2, 3},
+                new [] { 4d, 5, 6}
+            });
+
+            var mc = new Matrix(new[] {
+                new [] { 1d, 4},
+                new [] { 2d, 5},
+                new [] { 3d, 6}
+            });
+
+            var m2 = m.Transpose();
+
+            Assert.That(mc.Equals(m2));
+        }
+
+        [Test]
+        public void Rotate_Anticlockwise()
+        {
+            var m = new Matrix(new[] {
+                new [] { 1d, 2d},
+                new [] { 3d, 4d}
+            });
+
+            var mc = new Matrix(new[] {
+                new [] { 2d, 4d},
+                new [] { 1d, 3d}
+            });
+
+            var m2 = m.Rotate(false);
+
+            Assert.That(m2[0, 0], Is.EqualTo(2));
+            Assert.That(m2[0, 1], Is.EqualTo(4));
+            Assert.That(m2[1, 0], Is.EqualTo(1));
+            Assert.That(m2[1, 1], Is.EqualTo(3));
+            Assert.That(m2.Equals(mc));
+        }
+
+        [Test]
+        public void Modified_IsFiredWhenVectorDataChanges()
+        {
+            var m = new Matrix(new[]
+            {
+                new [] { 3d, 5, 2},
+                new [] { 6d, 8.7, 4.3 },
+                new [] { 7d, 4, 6 }
+            });
+
+            var ave = m.MeanVector;
+            var covar = m.CovarianceMatrix;
+
+            bool modified = false;
+
+            m.Modified += (s, e) =>
+            {
+                modified = true;
+            };
+
+            m.Rows[0].Apply(r => r * 12);
+
+            Assert.That(modified);
+            Assert.That(m.MeanVector.Equals(ave), Is.False);
+            Assert.That(m.CovarianceMatrix.Equals(covar), Is.False);
+        }
+
         [Test]
         public void MeanAjdust_NewMeanIsZero()
         {
@@ -45,6 +220,29 @@ namespace LinqInfer.Tests.Maths
             Assert.That(mm[1, 0], Is.EqualTo(6 * 3 + 8.7d * 6 + 4.3d * 7));
         }
 
+        [Test]
+        public void MultiplicationOperator_OfRowMatrixAndColumnMatrix()
+        {
+            var m1 = new Matrix(new[]
+            {
+                new [] { 2d, 1, 4 },
+                new [] { 1d, 5, 2 }
+            });
+
+            var m2 = new Matrix(new[]
+            {
+                new [] { 3d, 2 },
+                new [] { -1d, 4},
+                new [] { 1d, 2}
+            });
+
+            var mm = m2 * m1;
+            //var mm1 = Matrix.Multiply(m1, m2);
+            //var mm2 = Matrix.Multiply(m2, m1);
+
+            Assert.That(mm, Is.Not.Null);
+        }
+
 
         [Test]
         public void MultiplicationOperator_OfColumnMatrixAndRowMatrix()
@@ -62,6 +260,7 @@ namespace LinqInfer.Tests.Maths
             });
 
             var mm = m1 * m2;
+            var mm2 = m2 * m1;
 
             Assert.That(mm.Width, Is.EqualTo(3));
             Assert.That(mm.Height, Is.EqualTo(3));

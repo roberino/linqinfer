@@ -13,12 +13,12 @@ namespace LinqInfer.Data.Sampling
         /// </summary>
         /// <param name="sample">The sample data</param>
         /// <returns>A Feature processing pipeline</returns>
-        public static FeatureProcessingPipline<DataItem> CreatePipeline(this DataSample sample)
+        public static FeatureProcessingPipeline<DataItem> CreatePipeline(this DataSample sample)
         {
             var featureExtractor = sample.CreateFeatureExtractor();
             var data = sample.SampleData.AsQueryable();
 
-            return new FeatureProcessingPipline<DataItem>(data, featureExtractor);
+            return new FeatureProcessingPipeline<DataItem>(data, featureExtractor);
         }
 
         /// <summary>

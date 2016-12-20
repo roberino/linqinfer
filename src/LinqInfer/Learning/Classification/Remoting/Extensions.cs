@@ -20,7 +20,7 @@ namespace LinqInfer.Learning.Classification.Remoting
         }
 
         public static async Task<IObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipline<TInput> pipeline,
+            this FeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             Uri serverEndpoint,
             bool saveRemotely = false,

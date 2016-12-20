@@ -12,6 +12,7 @@ namespace LinqInfer.Text.VectorExtraction
     {
         private readonly IList<IFeature> _features;
         private readonly IDictionary<string, int> _words;
+        private readonly bool _normalise;
         private int _normalisingFrequency;
 
         internal TextVectorExtractor()
@@ -19,13 +20,15 @@ namespace LinqInfer.Text.VectorExtraction
             _words = new Dictionary<string, int>();
             _features = new List<IFeature>();
             _normalisingFrequency = 1;
+            _normalise = true;
         }
 
-        internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency)
+        internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true)
         {
             int i = 0;
 
             _normalisingFrequency = normalisingFrequency;
+            _normalise = normalise;
 
             _words = words
                 .ToDictionary(w => w, _ => i++);
@@ -71,7 +74,22 @@ namespace LinqInfer.Text.VectorExtraction
 
         public double[] ExtractVector(IEnumerable<IToken> tokens)
         {
-            var vectorRaw = new int[VectorSize];
+            var vectorRaw = ExtractVectorDenormal(tokens);
+
+            if (!_normalise) return vectorRaw;
+
+            var nf = (double)_normalisingFrequency;
+
+            return vectorRaw
+                .Select(v => v == 0 ? 0d :
+                    Math.Log((Math.Min(v + 1, nf)) / nf * 10d
+                    , 10))
+                .ToArray();
+        }
+
+        private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
+        {
+            var vectorRaw = new double[VectorSize];
 
             foreach (var token in tokens)
             {
@@ -83,13 +101,7 @@ namespace LinqInfer.Text.VectorExtraction
                 }
             }
 
-            var nf = (double)_normalisingFrequency;
-
-            return vectorRaw
-                .Select(v => v == 0 ? 0d :
-                    Math.Log((Math.Min(v + 1, nf)) / nf * 10d
-                    , 10))
-                .ToArray();
+            return vectorRaw;
         }
 
         public double[] NormaliseUsing(IEnumerable<IEnumerable<IToken>> samples)

@@ -11,17 +11,17 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    internal class DocumentIndex : IBinaryPersistable, IDocumentIndex
+    internal class DocumentIndex : IDocumentIndex
     {
         private readonly ITokeniser _tokeniser;
-        private readonly IDictionary<string, WordMap> _frequencies;
+        private readonly IDictionary<string, TermDocumentFrequencyMap> _frequencies;
 
         private int _documentCount;
 
         public DocumentIndex(ITokeniser tokeniser = null)
         {
             _tokeniser = tokeniser ?? new Tokeniser();
-            _frequencies = new Dictionary<string, WordMap>();
+            _frequencies = new Dictionary<string, TermDocumentFrequencyMap>();
         }
 
         public IFloatingPointFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
@@ -73,7 +73,7 @@ namespace LinqInfer.Text
                 .CreateObjectTextVectoriser(tokeniser);
         }
 
-        public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128)
+        public IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128, bool normalise = true)
         {
             Contract.Requires(maxVectorSize > 0);
 
@@ -82,7 +82,7 @@ namespace LinqInfer.Text
             return new VectorExtraction.TextVectorExtractor(wf
                 .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
                 .Select(w => w.Item1)
-                .Take(maxVectorSize), wf.Max(f => f.Item3));
+                .Take(maxVectorSize), normalise ? wf.Max(f => f.Item3) : 1, normalise);
         }
 
         public ITokeniser Tokeniser
@@ -90,6 +90,14 @@ namespace LinqInfer.Text
             get
             {
                 return _tokeniser;
+            }
+        }
+
+        public IEnumerable<string> Terms
+        {
+            get
+            {
+                return _frequencies.Keys;
             }
         }
 
@@ -108,6 +116,7 @@ namespace LinqInfer.Text
                 return _frequencies.Select(f => new Tuple<string, long, int>(f.Key, f.Value.Count, f.Value.DocFrequencies.Count));
             }
         }
+
         internal IEnumerable<Tuple<string, long, int>> WordFrequenciesByDocumentKey(string docKey)
         {
             foreach (var freq in _frequencies.Where(f => f.Value.DocFrequencies.ContainsKey(docKey)))
@@ -124,13 +133,13 @@ namespace LinqInfer.Text
 
             foreach (var wordGroup in document.Tokens.Where(t => t.Type == TokenType.Word).GroupBy(t => t.Text.ToLowerInvariant()))
             {
-                WordMap wordData;
+                TermDocumentFrequencyMap wordData;
 
                 lock (_frequencies)
                 {
                     if (!_frequencies.TryGetValue(wordGroup.Key, out wordData))
                     {
-                        _frequencies[wordGroup.Key] = wordData = new WordMap();
+                        _frequencies[wordGroup.Key] = wordData = new TermDocumentFrequencyMap();
                     }
                 }
 
@@ -208,7 +217,7 @@ namespace LinqInfer.Text
 
             foreach (var item in data)
             {
-                WordMap m;
+                TermDocumentFrequencyMap m;
 
                 if (!_frequencies.TryGetValue(item.Key, out m))
                 {
@@ -253,7 +262,7 @@ namespace LinqInfer.Text
                 .Select(d => new KeyValuePair<string, float>(d.Key, (float)d.Value));
         }
 
-        private IDictionary<string, WordMap> GetWordFrequencies(string text)
+        private IDictionary<string, TermDocumentFrequencyMap> GetWordFrequencies(string text)
         {
             var words = _tokeniser.Tokenise(text).Where(t => t.Type == TokenType.Word);
 
@@ -262,11 +271,11 @@ namespace LinqInfer.Text
                 .Distinct()
                 .Select(w =>
                 {
-                    WordMap m;
+                    TermDocumentFrequencyMap m;
 
                     if (!_frequencies.TryGetValue(w.Text, out m))
                     {
-                        m = new WordMap() { Count = 0 };
+                        m = new TermDocumentFrequencyMap() { Count = 0 };
                     }
 
                     return new
@@ -311,14 +320,67 @@ namespace LinqInfer.Text
             }
         }
 
-        private class WordMap : IBinaryPersistable
+        public XDocument ExportAsXml()
+        {
+            return new XDocument(
+                new XElement("index", new XAttribute("doc-count", _documentCount),
+                    _frequencies.Select(f =>
+                        new XElement("term",
+                            new XAttribute("text", f.Key),
+                            new XAttribute("frequency", f.Value.Count),
+                            KeyPairToString(f.Value.DocFrequencies)))));
+        }
+
+        public void ImportXml(XDocument xml)
+        {
+            _documentCount = int.Parse(xml.Root.Attribute("doc-count").Value);
+
+            foreach (var element in xml.Root.Elements().Where(e => e.Name.LocalName == "term"))
+            {
+                _frequencies[element.Attribute("text").Value] = new TermDocumentFrequencyMap(
+                    StringToKeyPairs(element.Value).ToDictionary(k => k.Key, v => v.Value),
+                        long.Parse(element.Attribute("frequency").Value));
+            }
+        }
+
+        private string KeyPairToString(IEnumerable<KeyValuePair<string, int>> pairs)
+        {
+            var sb = new StringBuilder();
+
+            foreach(var kp in pairs)
+            {
+                sb.Append(kp.Key + ":" + kp.Value + ",");
+            }
+
+            return sb.ToString();
+        }
+
+        private IEnumerable<KeyValuePair<string, int>> StringToKeyPairs(string data)
+        {
+            foreach (var item in data.Split(','))
+            {
+                var i = item.LastIndexOf(':');
+
+                if (i < 0) yield break;
+
+                yield return new KeyValuePair<string, int>(item.Substring(0, i), int.Parse(item.Substring(i + 1)));
+            }
+        }
+
+        private class TermDocumentFrequencyMap : IBinaryPersistable
         {
             private Dictionary<string, int> _docFrequencies;
 
-            public WordMap()
+            public TermDocumentFrequencyMap()
             {
                 _docFrequencies = new Dictionary<string, int>();
                 Count = 0;
+            }
+
+            public TermDocumentFrequencyMap(Dictionary<string, int> docFrequencies, long count)
+            {
+                _docFrequencies = docFrequencies;
+                Count = count;
             }
 
             public IDictionary<string, int> DocFrequencies { get { return _docFrequencies; } }

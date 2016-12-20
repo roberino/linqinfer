@@ -132,12 +132,12 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Normalises each element over the sum of all values.
+        /// Normalises each element over the sum (default) or the length of all values.
         /// </summary>
         /// <returns>A new normalised vector</returns>
-        public ColumnVector1D Normalise()
+        public ColumnVector1D Normalise(bool bySum = true)
         {
-            var t = Sum();
+            var t = bySum ? Sum() : EuclideanLength;
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 

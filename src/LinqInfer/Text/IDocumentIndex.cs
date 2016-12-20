@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Text
 {
-    public interface IDocumentIndex : IBinaryPersistable
+    public interface IDocumentIndex : IBinaryPersistable, IXmlExportable, IXmlImportable
     {
         void IndexDocument(TokenisedTextDocument document);
         void IndexDocuments(IEnumerable<TokenisedTextDocument> documents);

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,8 +10,8 @@ namespace LinqInfer.Maths
 {
     public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>
     {
-        private readonly Lazy<Vector> _mean;
-        private readonly Lazy<Matrix> _covariance;
+        private Lazy<Vector> _mean;
+        private Lazy<Matrix> _covariance;
 
         public Matrix(IEnumerable<Vector> rows)
         {
@@ -22,10 +24,16 @@ namespace LinqInfer.Maths
 
             Rows = rowList;
 
-            _mean = new Lazy<Vector>(() =>
-                Rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
+            foreach (var r in rowList)
+            {
+                r.Modified += (s, e) =>
+                {
+                    Setup();
+                    OnModify();
+                };
+            }
 
-            _covariance = new Lazy<Matrix>(CalculateCovarianceMatrix);
+            Setup();
         }
 
         public Matrix(IEnumerable<double[]> rows) : this(rows.Select(r => new Vector(r)))
@@ -37,12 +45,20 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Fires when underlying data changes
+        /// </summary>
+        public event EventHandler Modified;
+
+        /// <summary>
         /// Returns a mean of each dimension
         /// </summary>
         public Vector MeanVector { get { return _mean.Value; } }
 
+        /// <summary>
+        /// Returns the covariance matrix
+        /// </summary>
         public Matrix CovarianceMatrix { get { return _covariance.Value; } }
-
+        
         /// <summary>
         /// Returns a new matrix with the mean subtracted from the x values
         /// </summary>
@@ -68,17 +84,23 @@ namespace LinqInfer.Maths
         /// </summary>
         public bool IsSquare { get { return Width == Height; } }
 
+        /// <summary>
+        /// Returns the value at the row and column index
+        /// </summary>
         public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
 
         public IList<Vector> Rows { get; private set; }
 
-        public IEnumerable<Vector> Columns
+        /// <summary>
+        /// Returns the columns of the matrix as vectors
+        /// </summary>
+        public IEnumerable<ColumnVector1D> Columns
         {
             get
             {
                 for (int i = 0; i < Width; i++)
                 {
-                    yield return new Vector(Column(i).ToArray());
+                    yield return new ColumnVector1D(Column(i).ToArray());
                 }
             }
         }
@@ -106,27 +128,136 @@ namespace LinqInfer.Maths
             var mu_x = MeanVector[x];
             var mu_y = MeanVector[y];
 
-            return Rows.Select(v => (v[x] - mu_x) * (v[y] - mu_y)).Sum() / (Height - (isSampleData ? 1 : 0));
+            // return Rows.Select(v => (v[x] - mu_x) * (v[y] - mu_y)).Sum() / (Height - (isSampleData ? 1 : 0));
+
+            double t = 0;
+
+            foreach (var v in Rows)
+            {
+                t += (v[x] - mu_x) * (v[y] - mu_y);
+            }
+
+            return t / (Height - (isSampleData ? 1 : 0));
         }
 
         /// <summary>
-        /// Rotates the elements in the matrix clockwise
+        /// Transposes the matrix into a new matrix
         /// </summary>
-        public Matrix Rotate()
+        /// <returns></returns>
+        public Matrix Transpose()
         {
-            var newData = new List<double[]>();
+            var newData = CreateArray(Height, Width);
 
-            for (int y = 0; y < Width; y++)
+            for (int y = 0; y < Height; y++)
             {
-                var row = new double[Height];
-                for (int x = 0; x < Height; x++)
+                var xv = Rows[y].GetUnderlyingArray();
+                
+                for (int x = 0; x < xv.Length; x++)
                 {
-                    row[x] = this[Height - x - 1, y];
+                    newData[x][y] = xv[x];
                 }
-                newData.Add(row);
             }
 
             return new Matrix(newData);
+        }
+
+        /// <summary>
+        /// Rotates the elements in the matrix (clockwise by default)
+        /// </summary>
+        public Matrix Rotate(bool clockwise = true)
+        {
+            var newData = new List<double[]>();
+
+            if (clockwise)
+            {
+                for (int y = 0; y < Width; y++)
+                {
+                    var row = new double[Height];
+                    for (int x = 0; x < row.Length; x++)
+                    {
+                        row[x] = this[Height - x - 1, y];
+                    }
+                    newData.Add(row);
+                }
+            }
+            else
+            {
+                for (int y = 0; y < Width; y++)
+                {
+                    var row = new double[Height];
+                    for (int x = 0; x < row.Length; x++)
+                    {
+                        row[x] = this[x, Width - y - 1];
+                    }
+                    newData.Add(row);
+                }
+            }
+
+            return new Matrix(newData);
+        }
+
+        public void Iterate(Action<int, int, double> action)
+        {
+            for (int y = 0; y < Rows.Count; y++)
+            {
+                var row = Rows[y].GetUnderlyingArray();
+
+                for (int x = 0; x < row.Length; x++)
+                {
+                    action(x, y, row[x]);
+                }
+            }
+        }
+
+        public void Apply(Func<int, int, double, double> valueFunc)
+        {
+            for (int y = 0; y < Rows.Count; y++)
+            {
+                Rows[y].Apply((v, x) => valueFunc(x, y, v));
+            }
+
+            Setup();
+            OnModify();
+        }
+
+        public static Matrix DiagonalMatrix(Func<int, double> valueFactory, int size)
+        {
+            Contract.Assert(size > 0);
+
+            var data = CreateArray(size, size);
+
+            for (int i = 0; i < size; i++)
+            {
+                data[i][i] = valueFactory(i);
+            }
+
+            return new Matrix(data);
+        }
+
+        public static Matrix DiagonalMatrix(Vector values)
+        {
+            var a = values.GetUnderlyingArray();
+            return DiagonalMatrix(i => a[i], values.Size);
+        }
+
+        public static Matrix IdentityMatrix(int size)
+        {
+            return DiagonalMatrix(_ => 1, size);
+        }
+
+        internal static Matrix Multiply(Matrix a, Matrix b)
+        {
+            if (a.Height != b.Width)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var ab = new Matrix(CreateArray(a.Height, b.Width));
+            var bcols = b.Columns.ToArray();
+
+            ab.Apply((i, k, _) => a.Rows[k].DotProduct(bcols[i]));
+
+            return ab;
         }
 
         public static Matrix operator -(Matrix m1, Matrix m2)
@@ -156,7 +287,7 @@ namespace LinqInfer.Maths
 
             double[][] c = CreateArray(m1.Height, m2.Width);
 
-            var m2Colj = new double[m2.Width];
+            var m2Colj = new double[m1.Width];
 
             for (int j = 0; j < m2.Width; j++)
             {
@@ -180,8 +311,6 @@ namespace LinqInfer.Maths
             }
 
             return new Matrix(c);
-
-            // return new Matrix(data);
         }
 
         public static ColumnVector1D operator *(Matrix m, Vector v)
@@ -265,6 +394,14 @@ namespace LinqInfer.Maths
             return x;
         }
 
+        public void WriteAsCsv(TextWriter output, char delimitter = ',', int precision = 8)
+        {
+            foreach (var vect in Rows)
+            {
+                output.WriteLine(vect.ToCsv(delimitter, precision));
+            }
+        }
+
         public override string ToString()
         {
             return Rows.Aggregate(new StringBuilder(), (s, v) => s.AppendLine('|' + v.ToCsv(2) + '|')).ToString();
@@ -309,6 +446,19 @@ namespace LinqInfer.Maths
             }
 
             return x;
+        }
+
+        private void OnModify()
+        {
+            Modified?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Setup()
+        {
+            _mean = new Lazy<Vector>(() =>
+                Rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
+
+            _covariance = new Lazy<Matrix>(CalculateCovarianceMatrix);
         }
 
         private Matrix CalculateCovarianceMatrix()

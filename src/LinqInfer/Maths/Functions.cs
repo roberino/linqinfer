@@ -51,6 +51,17 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a random number generator which returns a <see cref="double"/> between zero and max (exclusive).
+        /// </summary>
+        /// <param name="min">The minimum value inclusive</param>
+        /// <param name="max">The maximum value exclusive</param>
+        /// <returns>A double precision floating point number</returns>
+        public static Func<double> RandomGenerator(double min = 0, double max = 1)
+        {
+            return () => RandomDouble(min, max);
+        }
+
+        /// <summary>
         /// Returns a random number between zero and max (exclusive).
         /// </summary>
         /// <param name="min">The minimum value inclusive</param>

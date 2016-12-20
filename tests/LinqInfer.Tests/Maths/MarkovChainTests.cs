@@ -7,6 +7,21 @@ namespace LinqInfer.Tests.Maths
     [TestFixture]
     public class MarkovChainTests
     {
+        [TestCase("abdadead", 'a', 'd', 1, 2)]
+        [TestCase("abdadead", 'a', 'e', 1, 2)]
+        [TestCase("abbgbngb", 'b', 'g', 2, 3)]
+        public void AddSequence_and_GetPriorFrequencies_ReturnsCorrectFrequency(string sequence, char test, char assertChar, int assertFreq, int totalCount)
+        {
+            var mkc = new DiscreteMarkovChain<char>();
+
+            mkc.AnalyseSequence(sequence);
+
+            var freq = mkc.GetPriorFrequencies(test);
+
+            Assert.That(freq.Count, Is.EqualTo(totalCount));
+            Assert.That(freq[assertChar], Is.EqualTo(assertFreq));
+        }
+
         [TestCase("abdadead", 'a', 'd', 2, 2)]
         [TestCase("abdadead", 'a', 'b', 1, 2)]
         [TestCase("abdadead", 'b', 'd', 1, 1)]

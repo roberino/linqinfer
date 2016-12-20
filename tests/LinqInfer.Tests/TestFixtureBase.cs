@@ -5,11 +5,27 @@ using System.Reflection;
 using System.Linq;
 using LinqInfer.Maths;
 using NUnit.Framework.Constraints;
+using System.Diagnostics;
 
 namespace LinqInfer.Tests
 {
     public class TestFixtureBase : AssertionHelper
     {
+        public static TimeSpan TimeTest(Action test, string name = null)
+        {
+            var sw = new Stopwatch();
+
+            sw.Start();
+
+            test();
+
+            sw.Stop();
+
+            Console.WriteLine("Invoke {0} took {1}", name ?? test.Method.Name, sw.Elapsed);
+
+            return sw.Elapsed;
+        }
+
         public static void AssertEquiv(Fraction x, double y, int precision = 6)
         {
             Console.WriteLine("{0}={1}~={2}", x, x.Value, y);
