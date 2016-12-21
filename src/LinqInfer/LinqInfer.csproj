@@ -173,6 +173,7 @@
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
+    <Compile Include="Text\DocumentTermWeightingData.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
     <Compile Include="Text\HttpTokenReader.cs" />

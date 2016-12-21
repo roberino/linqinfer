@@ -12,6 +12,67 @@ namespace LinqInfer.Tests.Text
     public class DocumentIndexTests : TestFixtureBase
     {
         [Test]
+        public void Search_Calculates_Tf_Idf_Correctly()
+        {
+            var index = new DocumentIndex();
+
+            var doc1 = new TokenisedTextDocument("1", index.Tokeniser.Tokenise("a a x b"));
+            var doc2 = new TokenisedTextDocument("2", index.Tokeniser.Tokenise("c x d"));
+            var doc3 = new TokenisedTextDocument("3", index.Tokeniser.Tokenise("e y f"));
+
+            index.IndexDocuments(new[] { doc1, doc2, doc3 });
+
+            var result = index.Search("a x").Single();
+
+            var totalNumDocs = 3f;
+            var docsContainingX = 2f;
+            var docsContainingA = 1f;
+
+            var idf_of_x = Math.Log(totalNumDocs / docsContainingX);
+            var idf_of_a = Math.Log(totalNumDocs / docsContainingA);
+            var tf_of_x_doc1 = 1f;
+            var tf_of_a_doc1 = 2f;
+
+            var tf_idf_x = tf_of_x_doc1 * (idf_of_x + 1);
+            var tf_idf_a = tf_of_a_doc1 * (idf_of_a + 1);
+
+            Assert.That(result.Score, IsAround(tf_idf_x * tf_idf_a));
+        }
+
+        [Test]
+        public void IndexDocument_SingleTerm_SetsFrequencyDataCorrectly()
+        {
+            var index = new DocumentIndex();
+
+            var doc = new TokenisedTextDocument("1", index.Tokeniser.Tokenise("x"));
+
+            index.IndexDocument(doc);
+
+            var freqData = index.WordFrequencies.Single(f => f.Item1 == "x");
+
+            Assert.That(freqData.Item1, Is.EqualTo("x"));
+            Assert.That(freqData.Item2, Is.EqualTo(1));
+            Assert.That(freqData.Item3, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void IndexDocument_SingleTerm_MultipleDocs_SetsFrequencyDataCorrectly()
+        {
+            var index = new DocumentIndex();
+
+            var doc1 = new TokenisedTextDocument("1", index.Tokeniser.Tokenise("x"));
+            var doc2 = new TokenisedTextDocument("2", index.Tokeniser.Tokenise("x x"));
+
+            index.IndexDocuments(new[] { doc1, doc2 });
+
+            var freqData = index.WordFrequenciesByDocumentKey("2").Single();
+
+            Assert.That(freqData.Item1, Is.EqualTo("x"));
+            Assert.That(freqData.Item2, Is.EqualTo(2));
+            Assert.That(freqData.Item3, Is.EqualTo(2));
+        }
+
+        [Test]
         public void IndexText_ThenSearch_MultipleMatches_ScoresHigher()
         {
             var index = new DocumentIndex();

@@ -32,9 +32,9 @@ namespace LinqInfer.Tests
             Assert.That(Math.Round(x.Value, precision), Is.EqualTo(Math.Round(y, precision)));
         }
 
-        public static RangeConstraint IsAround(double expected)
+        public static RangeConstraint IsAround(double expected, double maxErr = 0.00001d)
         {
-            return Is.InRange(expected - 0.00001d, expected + 0.00001d);
+            return Is.InRange(expected - maxErr, expected + maxErr);
         }
 
         public static Stream GetResource(string name)
