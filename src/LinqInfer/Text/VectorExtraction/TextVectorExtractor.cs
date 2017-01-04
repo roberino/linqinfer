@@ -10,24 +10,32 @@ namespace LinqInfer.Text.VectorExtraction
 {
     internal class TextVectorExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>
     {
+        private const int EXTENDED_FEATURE_COUNT = 4;
         private readonly IList<IFeature> _features;
         private readonly IDictionary<string, int> _words;
         private readonly bool _normalise;
-        private int _normalisingFrequency;
+        private int[] _normalisingFrequencies;
+        private int _normalisingFrequencyDefault;
 
         internal TextVectorExtractor()
         {
             _words = new Dictionary<string, int>();
             _features = new List<IFeature>();
-            _normalisingFrequency = 1;
+            _normalisingFrequencies = Enumerable.Range(1, VectorSize).Select(_ => 1).ToArray();
+            _normalisingFrequencyDefault = 1000;
             _normalise = true;
         }
 
-        internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true)
+        internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true) : this(words, Enumerable.Range(1, words.Count() + EXTENDED_FEATURE_COUNT).Select(_ => normalisingFrequency).ToArray(), normalise)
+        {
+        }
+
+        internal TextVectorExtractor(IEnumerable<string> words, int[] normalisingFrequencies, bool normalise = true)
         {
             int i = 0;
 
-            _normalisingFrequency = normalisingFrequency;
+            _normalisingFrequencies = normalisingFrequencies;
+            _normalisingFrequencyDefault = normalisingFrequencies.Sum();
             _normalise = normalise;
 
             _words = words
@@ -40,14 +48,14 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IFloatingPointFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
         {
-            return new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequency);
+            return new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies);
         }
 
         public int VectorSize
         {
             get
             {
-                return _words.Count;
+                return _words.Count + EXTENDED_FEATURE_COUNT;
             }
         }
 
@@ -77,14 +85,24 @@ namespace LinqInfer.Text.VectorExtraction
             var vectorRaw = ExtractVectorDenormal(tokens);
 
             if (!_normalise) return vectorRaw;
-
-            var nf = (double)_normalisingFrequency;
+            
+            int i = 0;
 
             return vectorRaw
-                .Select(v => v == 0 ? 0d :
-                    Math.Log((Math.Min(v + 1, nf)) / nf * 10d
+                .Select(v => new
+                {
+                    value = v,
+                    nf = GetNormalisingFrequency(i++)
+                })
+                .Select(v => v.value == 0 ? 0d :
+                    Math.Log((Math.Min(v.value + 1, v.nf) / v.nf * 9d + 1)
                     , 10))
                 .ToArray();
+        }
+
+        private int GetNormalisingFrequency(int index)
+        {
+            return (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault;
         }
 
         private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
@@ -98,6 +116,24 @@ namespace LinqInfer.Text.VectorExtraction
                 if (_words.TryGetValue(token.Text, out i))
                 {
                     vectorRaw[i]++;
+                }
+                else
+                {
+                    switch (token.Type)
+                    {
+                        case TokenType.Word:
+                            vectorRaw[VectorSize - 1] += 1;
+                            break;
+                        case TokenType.Symbol:
+                            vectorRaw[VectorSize - 2] += 1;
+                            break;
+                        case TokenType.Number:
+                            vectorRaw[VectorSize - 3] += 1;
+                            break;
+                        case TokenType.SentenceEnd:
+                            vectorRaw[VectorSize - 4] += 1;
+                            break;
+                    }
                 }
             }
 
@@ -117,7 +153,8 @@ namespace LinqInfer.Text.VectorExtraction
 
             using (var writer = new BinaryWriter(output))
             {
-                writer.Write(_normalisingFrequency);
+                foreach (var f in _normalisingFrequencies) writer.Write(f);
+                writer.Write(_normalisingFrequencyDefault);
             }
         }
 
@@ -132,9 +169,16 @@ namespace LinqInfer.Text.VectorExtraction
                 _words[w.Key] = w.Value;
             }
 
+            _normalisingFrequencies = Enumerable.Range(0, _words.Count + EXTENDED_FEATURE_COUNT).Select(_ => 1).ToArray();
+
             using (var reader = new BinaryReader(input))
             {
-                _normalisingFrequency = reader.ReadInt32();
+                for (var i = 0; i < _normalisingFrequencies.Length; i++)
+                {
+                    _normalisingFrequencies[i] = reader.ReadInt32();
+                }
+
+                _normalisingFrequencyDefault = reader.ReadInt32();
             }
 
             SetupFeatures(true);
@@ -151,6 +195,11 @@ namespace LinqInfer.Text.VectorExtraction
             {
                 _features.Add(f);
             }
+
+            _features.Add(new Feature() { DataType = TypeCode.String, Index = _features.Count, Key = "_UWC", Label = "Unknown Word Count" });
+            _features.Add(new Feature() { DataType = TypeCode.String, Index = _features.Count, Key = "_SC", Label = "Symbol Count" });
+            _features.Add(new Feature() { DataType = TypeCode.String, Index = _features.Count, Key = "_NC", Label = "Number Count" });
+            _features.Add(new Feature() { DataType = TypeCode.String, Index = _features.Count, Key = "_SE", Label = "Sentence End" });
         }
     }
 }

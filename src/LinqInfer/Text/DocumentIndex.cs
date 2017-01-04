@@ -30,13 +30,13 @@ namespace LinqInfer.Text
         /// <summary>
         /// Creates a new document index
         /// </summary>
-        /// <param name="calculationMethod">The calculation method used to determine the weight of each result</param>
+        /// <param name="weightCalculationMethod">The calculation method used to determine the weight of each result</param>
         /// <param name="tokeniser">The tokeniser used to tokenise documents and queries</param>
-        public DocumentIndex(Func<IList<DocumentTermWeightingData>, double> calculationMethod, ITokeniser tokeniser = null)
+        public DocumentIndex(Func<IList<DocumentTermWeightingData>, double> weightCalculationMethod, ITokeniser tokeniser = null)
         {
             _tokeniser = tokeniser ?? new Tokeniser();
             _frequencies = new Dictionary<string, TermDocumentFrequencyMap>();
-            _calculationMethod = calculationMethod;
+            _calculationMethod = weightCalculationMethod;
         }
 
         /// <summary>
@@ -62,16 +62,23 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
-        /// Returns an enumeration of <see cref="Tuple{T1, T2, T3}"/> 
-        /// where Item1 = the term, Item2 = the number of docs where the term occurs and Item3 = the number of docs containing the term
+        /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        internal IEnumerable<Tuple<string, long, int>> WordFrequenciesByDocumentKey(string docKey)
+        public ISemanticSet ExtractTerms()
+        {
+            return new SemanticSet(new HashSet<string>(_frequencies.Keys));
+        }
+
+        /// <summary>
+        /// Returns an enumeration of <see cref="DocumentTermWeightingData"/> for a given document key
+        /// </summary>
+        internal IEnumerable<DocumentTermWeightingData> WordFrequenciesByDocumentKey(string docKey)
         {
             foreach (var freq in _frequencies.Where(f => f.Value.DocFrequencies.ContainsKey(docKey)))
             {
                 var df = freq.Value.DocFrequencies[docKey];
 
-                yield return new Tuple<string, long, int>(freq.Key, freq.Value.Count, df);
+                yield return new DocumentTermWeightingData() { Term = freq.Key, DocumentCount = _documentCount, DocumentFrequency = freq.Value.Count, TermFrequency = df };
             }
         }
 
@@ -312,12 +319,18 @@ namespace LinqInfer.Text
         {
             Contract.Requires(maxVectorSize > 0);
 
-            var wf = WordFrequencies.ToList();
+            var wf = WordFrequencies.Select(w => new DocumentTermWeightingData()
+                {
+                    DocumentCount = _documentCount,
+                    DocumentFrequency = w.Item2,
+                    Term = w.Item1,
+                    TermFrequency = w.Item3
+                }).ToList();
 
             return new VectorExtraction.TextVectorExtractor(wf
-                .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
-                .Select(w => w.Item1)
-                .Take(maxVectorSize), wf.Max(f => f.Item3)).CreateObjectTextVectoriser(tokeniser);
+                .OrderByDescending(w => _calculationMethod(new[] { w })) // Math.Log((double)w.Item2 / (double)w.Item3 + 1)
+                .Select(w => w.Term)
+                .Take(maxVectorSize), wf.Select(f => (int)f.TermFrequency).ToArray()).CreateObjectTextVectoriser(tokeniser);
         }
 
         internal IFloatingPointFeatureExtractor<T> CreateVectorExtractorByDocumentKey<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
@@ -329,31 +342,27 @@ namespace LinqInfer.Text
 
             if (bucketSize < 1) throw new ArgumentException("Vector size too small");
 
-            var frequentWordsByKey = new List<string>();
-
-            int normFactor = 1;
-
-            foreach (var key in docKeys)
+            var frequentWordsByKey = docKeys.SelectMany(k =>
             {
-                var f = WordFrequenciesByDocumentKey(key).ToList();
+                var f = WordFrequenciesByDocumentKey(k).ToList();
 
-                frequentWordsByKey.AddRange(f
+                return f
                     .Select(x => new
                     {
-                        term = x.Item1,
-                        freqScore = Math.Log((double)x.Item3 / (double)x.Item2)
+                        data = x,
+                        freqScore = _calculationMethod(new[] { x }),
+                        nf = f.Max(t => (int)t.TermFrequency)
                     })
                     .OrderByDescending(
                         x => x.freqScore)
-                        .Select(x => x.term).Take(bucketSize));
+                        .Select(x => x).Take(bucketSize);
 
-                var nf = f.Max(x => x.Item3);
-
-                if (nf > normFactor) normFactor = nf;
-            }
+            })
+            .Distinct((x, y) => string.Equals(x.data.Term, y.data.Term), x => x.data.Term.GetHashCode())
+            .ToList();
 
             return new VectorExtraction
-                .TextVectorExtractor(frequentWordsByKey.Distinct(), normFactor)
+                .TextVectorExtractor(frequentWordsByKey.Select(d => d.data.Term), frequentWordsByKey.Select(d => d.nf).ToArray())
                 .CreateObjectTextVectoriser(tokeniser);
         }
 

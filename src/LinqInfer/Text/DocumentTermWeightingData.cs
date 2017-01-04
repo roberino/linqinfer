@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LinqInfer.Text
 {
-    public sealed class DocumentTermWeightingData
+    public sealed class DocumentTermWeightingData : IEquatable<DocumentTermWeightingData>
     {
         internal DocumentTermWeightingData()
         {
@@ -32,6 +32,30 @@ namespace LinqInfer.Text
                 var vect = ColumnVector1D.Create(idf, x.TermFrequency).Normalise().GetUnderlyingArray();
                 return t + vect[0] * vect[1];
             });
+        }
+
+        public bool Equals(DocumentTermWeightingData other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            return string.Equals(other.Term, Term);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as DocumentTermWeightingData);
+        }
+
+        public override int GetHashCode()
+        {
+            return Term.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} ({1}/{2})", Term, TermFrequency, DocumentFrequency);
         }
 
         /// <summary>

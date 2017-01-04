@@ -12,6 +12,25 @@ namespace LinqInfer.Tests.Text
     public class DocumentIndexTests : TestFixtureBase
     {
         [Test]
+        public void ExtractTerms_ReturnsExpectedSet()
+        {
+            var index = new DocumentIndex();
+
+            var doc1 = new TokenisedTextDocument("1", index.Tokeniser.Tokenise("a a x b"));
+            var doc2 = new TokenisedTextDocument("2", index.Tokeniser.Tokenise("c x d"));
+            var doc3 = new TokenisedTextDocument("3", index.Tokeniser.Tokenise("e y f 1"));
+
+            index.IndexDocuments(new[] { doc1, doc2, doc3 });
+
+            var setOfTerms = index.ExtractTerms();
+
+            Assert.That(setOfTerms.Count, Is.EqualTo(8));
+            Assert.That(setOfTerms.IsDefined("a"));
+            Assert.That(setOfTerms.IsDefined("x"));
+            Assert.That(setOfTerms.IsDefined("1"), Is.False);
+        }
+
+        [Test]
         public void Search_Calculates_Tf_Idf_Correctly()
         {
             var index = new DocumentIndex();
@@ -67,9 +86,9 @@ namespace LinqInfer.Tests.Text
 
             var freqData = index.WordFrequenciesByDocumentKey("2").Single();
 
-            Assert.That(freqData.Item1, Is.EqualTo("x"));
-            Assert.That(freqData.Item2, Is.EqualTo(2));
-            Assert.That(freqData.Item3, Is.EqualTo(2));
+            Assert.That(freqData.Term, Is.EqualTo("x"));
+            Assert.That(freqData.DocumentFrequency, Is.EqualTo(2));
+            Assert.That(freqData.TermFrequency, Is.EqualTo(2));
         }
 
         [Test]

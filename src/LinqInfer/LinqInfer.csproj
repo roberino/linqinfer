@@ -115,8 +115,12 @@
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
+    <Compile Include="Genetics\AlgorithmOptimiser.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
+    <Compile Include="Genetics\MutatableIntegerParameter.cs" />
+    <Compile Include="Genetics\MutatableDoubleParameter.cs" />
+    <Compile Include="Genetics\MutatableParameter.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
@@ -282,6 +286,7 @@
     <Compile Include="Utility\ConstrainableDictionary.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
+    <Compile Include="Utility\DynamicEqualityComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\TypeExtensions.cs" />
   </ItemGroup>

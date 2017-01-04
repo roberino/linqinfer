@@ -74,8 +74,9 @@ namespace LinqInfer.Text
             var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), objtokeniser(x)));
 
             index.IndexDocuments(docs);
-            
-            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
+
+            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
+            //return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
         }
 
         /// <summary>
@@ -147,6 +148,17 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Converts a string into an enumeration of tokens.
+        /// </summary>
+        /// <param name="text">The text</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns>An enumeration of <see cref="IToken"/></returns>
+        public static IEnumerable<IToken> Tokenise(this string text, ITokeniser tokeniser = null)
+        {
+            return ((tokeniser ?? new Tokeniser()).Tokenise(text));
+        }
+
+        /// <summary>
         /// Converts a stream into an enumeration of tokens.
         /// </summary>
         /// <param name="stream">The stream of text</param>
@@ -155,7 +167,7 @@ namespace LinqInfer.Text
         /// <returns>An enumeration of <see cref="IToken"/></returns>
         public static IEnumerable<IToken> Tokenise(this Stream stream, Encoding encoding = null, ITokeniser tokeniser = null)
         {
-            return (new StreamTokeniser(encoding, tokeniser).Tokensise(stream));
+            return (new StreamTokeniser(encoding, tokeniser).Tokenise(stream));
         }
 
         /// <summary>

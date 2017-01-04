@@ -15,7 +15,7 @@ namespace LinqInfer.Text
             _encoding = encoding ?? Encoding.UTF8;
         }
 
-        public IEnumerable<IToken> Tokensise(Stream stream)
+        public IEnumerable<IToken> Tokenise(Stream stream)
         {
             using (var reader = new StreamReader(stream, _encoding, false, 1024, true))
             {
