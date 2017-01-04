@@ -40,7 +40,10 @@ namespace LinqInfer.Genetics
             {
                 var score = algorithm(_parameters);
 
-                _parameters.SetOutcome(score);
+                if (!_parameters.SetOutcome(score, n))
+                {
+                    break;
+                }
 
                 // if (iterations == n) DebugOutput.Log(score);
             }
@@ -65,6 +68,22 @@ namespace LinqInfer.Genetics
             public MutatableParameter Define(string key, MutatableParameter parameter)
             {
                 Contract.Assert(parameter != null);
+
+                _params[key] = parameter;
+
+                return parameter;
+            }
+
+            /// <summary>
+            /// Defines a double presision floating point parameter
+            /// </summary>
+            /// <param name="key">The key</param>
+            /// <param name="categories">The set of categories to choose from</param>
+            /// <param name="initialValue">The initial value</param>
+            /// <returns>A <see cref="MutatableCategoricalParameter{T}"/></returns>
+            public MutatableCategoricalParameter<T> DefineCategoricalVariable<T>(string key, T initialValue, params T[] categories)
+            {
+                var parameter = new MutatableCategoricalParameter<T>(initialValue, new HashSet<T>(categories));
 
                 _params[key] = parameter;
 
@@ -132,16 +151,16 @@ namespace LinqInfer.Genetics
                 return _params[key];
             }
 
-            internal void SetOutcome(double fitnessScore)
+            internal bool SetOutcome(double fitnessScore, int iteration)
             {
-                if (!_params.Any()) return;
+                if (!_params.Any()) return false;
 
                 foreach (var parameter in _params.Where(p => p.Value.WasMutated))
                 {
                     parameter.Value.Score(fitnessScore);
                 }
 
-                var unmutated = _params.Where(p => p.Value.MutationCounter < 5 || !p.Value.ValueFitnessScoreCovariance.HasValue).RandomOrder().FirstOrDefault().Value;
+                var unmutated = _params.Where(p => p.Value.WasAccessed && !p.Value.IsExhausted && (p.Value.MutationCounter < 5 || !p.Value.ValueFitnessScoreCovariance.HasValue)).RandomOrder().FirstOrDefault().Value;
 
                 if (unmutated != null)
                 {
@@ -149,10 +168,22 @@ namespace LinqInfer.Genetics
                 }
                 else
                 {
-                    var bestCandidateForMutation = _params.OrderByDescending(p => Math.Abs(p.Value.ValueFitnessScoreCovariance.Value)).First();
+                    if (iteration % (_params.Count * 5) == 0)
+                    {
+                        foreach(var p in _params)
+                        {
+                            p.Value.Optimise();
+                        }
 
-                    bestCandidateForMutation.Value.Mutate();
+                        return true;
+                    } 
+
+                    var bestCandidateForMutation = _params.Where(p => p.Value.WasAccessed).OrderByDescending(p => Math.Abs(p.Value.ValueFitnessScoreCovariance.Value)).FirstOrDefault().Value;
+
+                    if (bestCandidateForMutation != null) bestCandidateForMutation.Mutate();
                 }
+
+                return !_params.All(p => p.Value.IsExhausted);
             }
 
             internal void Reset()

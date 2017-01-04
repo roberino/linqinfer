@@ -27,6 +27,83 @@ namespace LinqInfer.Tests.Genetics
         }
 
         [Test]
+        public void Optimise_CategoricalParameter_FindsBestValueOverNIterations()
+        {
+            var ao = new AlgorithmOptimiser();
+
+            var x = ao.Parameters.DefineCategoricalVariable("x", 'a', 'a', 'b', 'c');
+            var y = ao.Parameters.DefineDouble("y", 1, 2, 1.5);
+
+            var bestParams = ao.Optimise(p =>
+            {
+                switch (x)
+                {
+                    case 'a':
+                        return 0.5;
+                    case 'b':
+                        return 1;
+                    default:
+                        return 0;
+                }
+            }, 50);
+
+            Assert.That(x.OptimalValue, Is.EqualTo('b'));
+        }
+
+        [Test]
+        public void Optimise_CategoricalParameterAndDouble_FindsBestValueOverNIterations()
+        {
+            var ao = new AlgorithmOptimiser();
+
+            var x = ao.Parameters.DefineCategoricalVariable("x", 'a', 'a', 'b', 'c');
+            var y = ao.Parameters.DefineDouble("y", 0, 5, 0.5);
+
+            var bestParams = ao.Optimise(p =>
+            {
+                Console.WriteLine("{0}/{1}", x, y);
+
+                switch (x)
+                {
+                    case 'a':
+                        return 0.5;
+                    case 'b':
+                        return 1;
+                    default:
+                        return y;
+                }
+            }, 150);
+
+            Assert.That(x.OptimalValue, Is.EqualTo('c'));
+            Assert.That(y.OptimalValue, Is.GreaterThan(4d));
+        }
+
+        [Test]
+        public void Optimise_CategoricalParameterAndDouble2_FindsBestValueOverNIterations()
+        {
+            var ao = new AlgorithmOptimiser();
+
+            var x = ao.Parameters.DefineCategoricalVariable("x", 'a', 'a', 'b', 'c');
+            var y = ao.Parameters.DefineDouble("y", 0, 5, 0.5);
+
+            var bestParams = ao.Optimise(p =>
+            {
+                Console.WriteLine("{0}/{1}", x, y);
+
+                switch (x)
+                {
+                    case 'a':
+                        return 0.5;
+                    case 'b':
+                        return 6;
+                    default:
+                        return y;
+                }
+            }, 150);
+
+            Assert.That(x.OptimalValue, Is.EqualTo('b'));
+        }
+
+        [Test]
         public void Optimise_MoreComplexExpRelationship_MutatesBasedOnHighestVariance()
         {
             var ao = new AlgorithmOptimiser();
@@ -34,7 +111,7 @@ namespace LinqInfer.Tests.Genetics
             var x = ao.Parameters.DefineDouble("x", 4, 102, 55);
             var y = ao.Parameters.DefineDouble("y", 43, 300, 120);
 
-            int xm = 0;
+            int xm = 0; int ym = 0;
 
             foreach (var n in Enumerable.Range(0, 20))
             {
@@ -49,12 +126,14 @@ namespace LinqInfer.Tests.Genetics
                 Console.WriteLine("Mutation Counter = x{0} y{1}", x.MutationCounter, y.MutationCounter);
                 Console.WriteLine("Optimal Values = x{0} y{1}", x.OptimalValue, y.OptimalValue);
 
-                if (x.MutationCounter > y.MutationCounter) xm++;
+                xm += x.MutationCounter;
+                ym += y.MutationCounter;
 
                 ao.Reset();
             }
 
-            Assert.That(xm > 5);
+            Assert.That(xm > 100);
+            Assert.That(ym > 100);
         }
 
         [Test]

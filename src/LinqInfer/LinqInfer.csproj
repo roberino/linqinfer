@@ -118,6 +118,8 @@
     <Compile Include="Genetics\AlgorithmOptimiser.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
+    <Compile Include="Genetics\MutatableValueParameter.cs" />
+    <Compile Include="Genetics\MutatableCategoricalParameter.cs" />
     <Compile Include="Genetics\MutatableIntegerParameter.cs" />
     <Compile Include="Genetics\MutatableDoubleParameter.cs" />
     <Compile Include="Genetics\MutatableParameter.cs" />

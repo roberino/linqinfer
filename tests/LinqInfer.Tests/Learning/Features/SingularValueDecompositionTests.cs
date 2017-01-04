@@ -8,6 +8,7 @@ namespace LinqInfer.Tests.Learning.Features
     public class SingularValueDecompositionTests
     {
         [Test]
+        [Ignore("WIP")]
         public void Transform_SimpleExample_ReturnsExpectedOutput()
         {
             var m = new Matrix(new[]

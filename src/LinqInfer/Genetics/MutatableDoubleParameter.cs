@@ -1,27 +1,22 @@
 ﻿using LinqInfer.Maths;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Genetics
 {
-    public class MutatableDoubleParameter : MutatableParameter
+    public class MutatableDoubleParameter : MutatableValueParameter<double>
     {
-        private readonly List<Tuple<double, double>> _values;
         private readonly double _randomVar;
-        private readonly double _initialValue;
 
-        public MutatableDoubleParameter(double initialValue, double minValue, double maxValue)
+        public MutatableDoubleParameter(double initialValue, double minValue, double maxValue) : base(initialValue)
         {
             Contract.Assert(initialValue >= minValue);
             Contract.Assert(initialValue <= maxValue);
             Contract.Assert(minValue <= maxValue);
 
             _randomVar = (maxValue - minValue) / 100;
-            _values = new List<Tuple<double, double>>();
 
-            CurrentValue = _initialValue = initialValue;
             MinValue = minValue;
             MaxValue = maxValue;
         }
@@ -36,13 +31,7 @@ namespace LinqInfer.Genetics
             return (float)(double)p.CurrentValue;
         }
 
-        public override object OptimalValue
-        {
-            get
-            {
-                return _values.Count > 0 ? _values.OrderByDescending(v => v.Item2).First().Item1 : CurrentValue;
-            }
-        }
+        public override bool IsExhausted { get { return false; } }
 
         public override double? ValueFitnessScoreCovariance
         {
@@ -52,7 +41,7 @@ namespace LinqInfer.Genetics
 
                 var lastValues = new List<double[]>();
 
-                for (var i = _values.Count - 1; i > _values.Count - 50 && i > 0; i--)
+                for (var i = _values.Count - 1; i > _values.Count - BACKLOG_SIZE && i > 0; i--)
                 {
                     var v = _values[i];
                     lastValues.Add(new[] { v.Item1, v.Item2 });
@@ -64,23 +53,9 @@ namespace LinqInfer.Genetics
             }
         }
 
-        public override TypeCode Type { get { return TypeCode.Double; } }
-
         public double MinValue { get; private set; }
 
         public double MaxValue { get; private set; }
-
-        protected override void SubmitScore(double fitnessScore)
-        {
-            _values.Add(new Tuple<double, double>((double)CurrentValue, fitnessScore));
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-            _values.Clear();
-            CurrentValue = _initialValue;
-        }
 
         protected override object MutateValue()
         {

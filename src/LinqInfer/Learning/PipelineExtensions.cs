@@ -125,6 +125,23 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Extracts vector data as a matrix
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <param name="pipeline">A feature pipeline</param>
+        /// <param name="limit">The maximum amount of data</param>
+        /// <returns>A <see cref="ExecutionPipline{Matrix}"/></returns>
+        public static ExecutionPipline<Matrix> ToMatrix<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int limit = 100) where TInput : class
+        {
+            Contract.Assert(limit > 0);
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                return new Matrix(p.ExtractVectors().Take(limit));
+            });
+        }
+
+        /// <summary>
         /// Writes the extracted data as CSV
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -132,7 +149,7 @@ namespace LinqInfer.Learning
         /// <param name="writer">A text writer</param>
         /// <param name="label">An optional function which will label each row (as the first column)</param>
         /// <returns></returns>
-        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null) where TInput : class
+        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null, char delimitter = ',') where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -142,9 +159,9 @@ namespace LinqInfer.Learning
                     {
                         if (label != null)
                         {
-                            writer.Write("\"" + label(m.Value).Replace("\"", "\\\"") + "\",");
+                            writer.Write("\"" + label(m.Value).Replace("\"", "\\\"") + "\"" + delimitter);
                         }
-                        writer.WriteLine(m.Vector.ToCsv());
+                        writer.WriteLine(m.Vector.ToCsv(delimitter));
                     }
                 }
 
@@ -258,12 +275,31 @@ namespace LinqInfer.Learning
             this ITrainingSet<TInput, TClass> trainingSet,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
         {
+            return ToMultilayerNetworkClassifier(trainingSet, 0.1d, hiddenLayers);
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied training data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A training set</param>
+        /// <param name="learningRate">The learning rate (rate of neuron weight adjustment when training)</param>
+        /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
+        /// <returns>An executable object which produces a classifier</returns>
+        public static ExecutionPipline<IPrunableObjectClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+            this ITrainingSet<TInput, TClass> trainingSet,
+            double learningRate = 0.1d,
+            params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
+        {
             var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
             var pipeline = trainingSet.FeaturePipeline;
             var inputSize = pipeline.VectorSize;
             var outputSize = trainingPipline.OutputMapper.VectorSize;
 
             var parameters = NetworkParameters.Sigmoidal(new[] { inputSize }.Concat(hiddenLayers).Concat(new[] { outputSize }).ToArray());
+
+            parameters.LearningRate = learningRate;
 
             parameters.Validate();
 

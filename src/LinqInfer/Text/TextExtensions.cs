@@ -80,6 +80,28 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// using the supplied keywords
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="keywords">The keywords to use for constructing a vector</param>
+        /// <returns></returns>
+        public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, params string[] keywords) where T : class
+        {
+            var tokeniser = new Tokeniser();
+            var otokeniser = new ObjectTextExtractor<T>(tokeniser);
+            var objtokeniser = otokeniser.CreateObjectTextTokeniser();
+            var vectorExtractor = new TextVectorExtractor(keywords, 100, false);
+
+            var pipeline = new FeatureProcessingPipeline<T>(data, vectorExtractor.CreateObjectTextVectoriser(objtokeniser));
+
+            pipeline.NormaliseData();
+
+            return pipeline;
+        }
+
+        /// <summary>
         /// Creates a semantic neural network classifier which
         /// uses term frequency over known classifications of objects.
         /// </summary>
