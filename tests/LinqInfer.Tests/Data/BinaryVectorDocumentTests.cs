@@ -63,6 +63,38 @@ namespace LinqInfer.Tests.Data
         }
 
         [Test]
+        public void Export_DocWithChildren()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.Version = 2;
+
+            doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
+
+            var doc1 = new BinaryVectorDocument();
+
+            doc1.Vectors.Add(ColumnVector1D.Create(8.2432, 89.4));
+            doc1.Vectors.Add(ColumnVector1D.Create(20, 0.14));
+
+            doc.Children.Add(doc1);
+
+            using (var store = new InMemoryBlobStore())
+            {
+                store.Store("a", doc);
+
+                var doc2 = store.Restore("a", new BinaryVectorDocument());
+
+                Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
+                Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
+                Assert.That(doc.Children[0].Vectors[1][1], Is.EqualTo(0.14));
+            }
+
+            var xml = doc.ExportAsXml();
+
+            Console.WriteLine(xml);
+        }
+
+        [Test]
         public void SetNullPropertyValue_ThrowsError()
         {
             var doc = new BinaryVectorDocument();

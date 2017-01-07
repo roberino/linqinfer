@@ -115,8 +115,14 @@
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
+    <Compile Include="Genetics\AlgorithmOptimiser.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
+    <Compile Include="Genetics\MutatableValueParameter.cs" />
+    <Compile Include="Genetics\MutatableCategoricalParameter.cs" />
+    <Compile Include="Genetics\MutatableIntegerParameter.cs" />
+    <Compile Include="Genetics\MutatableDoubleParameter.cs" />
+    <Compile Include="Genetics\MutatableParameter.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
@@ -173,6 +179,7 @@
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
+    <Compile Include="Text\DocumentTermWeightingData.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
     <Compile Include="Text\HttpTokenReader.cs" />
@@ -281,6 +288,7 @@
     <Compile Include="Utility\ConstrainableDictionary.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
+    <Compile Include="Utility\DynamicEqualityComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\TypeExtensions.cs" />
   </ItemGroup>

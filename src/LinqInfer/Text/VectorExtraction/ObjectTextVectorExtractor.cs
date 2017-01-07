@@ -20,6 +20,11 @@ namespace LinqInfer.Text.VectorExtraction
             _tokeniser = tokeniser;
         }
 
+        public ObjectTextVectorExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int[] normalisingFrequencies) : base(words, normalisingFrequencies)
+        {
+            _tokeniser = tokeniser;
+        }
+
         public ColumnVector1D ExtractColumnVector(T obj)
         {
             return ExtractColumnVector(_tokeniser(obj));

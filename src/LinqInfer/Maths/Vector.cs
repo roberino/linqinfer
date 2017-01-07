@@ -164,6 +164,37 @@ namespace LinqInfer.Maths
             };
         }
 
+        /// <summary>
+        /// Returns the sample or population variance of the values
+        /// </summary>
+        /// <param name="isSampleData">True to treat as a sample and average over the number of items - 1</param>
+        /// <returns>A double</returns>
+        public double Variance(bool isSampleData = true)
+        {
+            var mean = Mean;
+
+            var total = 0d;
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                var v = _values[i] - mean;
+                total += (v * v);
+            }
+
+            return total / (_values.Length - (isSampleData ? 1 : 0));
+        }
+
+        /// <summary>
+        /// Returns the average of all values
+        /// </summary>
+        public double Mean
+        {
+            get
+            {
+                return _values.Average();
+            }
+        }
+
         public double DotProduct(Vector other)
         {
             var v = this * other;

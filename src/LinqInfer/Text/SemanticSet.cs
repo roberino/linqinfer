@@ -55,6 +55,21 @@ namespace LinqInfer.Text
             });
         }
 
+        public string RandomWord()
+        {
+            return this[Functions.Random(MaxId)];
+        }
+
+        /// <summary>
+        /// Returns the last id
+        /// </summary>
+        public int MaxId { get { return _words.Max(w => w.Value); } }
+
+        /// <summary>
+        /// Returns the count of the words in the set
+        /// </summary>
+        public int Count { get { return _words.Count; } }
+
         /// <summary>
         /// Gets a word by internal id
         /// </summary>

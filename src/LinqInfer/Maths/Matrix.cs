@@ -8,6 +8,10 @@ using System.Text;
 
 namespace LinqInfer.Maths
 {
+    /// <summary>
+    /// Represents a matrix of floating point numbers
+    /// with various methods for supporting matrix operations
+    /// </summary>
     public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>
     {
         private Lazy<Vector> _mean;

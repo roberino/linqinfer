@@ -19,9 +19,9 @@ namespace LinqInfer.Tests.Text.VectorExtraction
 
             var vector = ve.ExtractColumnVector(new[] { token1, token2, token1 });
 
-            Assert.That(vector.Size, Is.EqualTo(2));
+            Assert.That(vector.Size, Is.EqualTo(6));
             Assert.That(vector[1], Is.EqualTo(0f));
-            Assert.That((int)(vector[0] * 1000), Is.EqualTo(778));
+            Assert.That((int)(vector[0] * 1000), Is.EqualTo(806));
         }
 
         [Test]
@@ -43,8 +43,8 @@ namespace LinqInfer.Tests.Text.VectorExtraction
 
                     var vector = ve2.ExtractColumnVector(new[] { new Token("oranges", 0) });
 
-                    Assert.That(vector.Size, Is.EqualTo(2));
-                    Assert.That((int)(vector[1] * 1000), Is.EqualTo(602));
+                    Assert.That(vector.Size, Is.EqualTo(6));
+                    Assert.That((int)(vector[1] * 1000), Is.EqualTo(662));
                 }
             }
         }

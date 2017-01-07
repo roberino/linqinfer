@@ -47,6 +47,16 @@ namespace LinqInfer.Text
             }
         }
 
+        public string RandomWord()
+        {
+            return _set.RandomWord();
+        }
+
+        /// <summary>
+        /// Returns the count of the words in the set
+        /// </summary>
+        public int Count { get { return _set.Count; } }
+
         public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75F)
         {
             return _set.FindWordsLike(word, tolerance);

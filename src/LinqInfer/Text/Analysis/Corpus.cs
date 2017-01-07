@@ -60,9 +60,12 @@ namespace LinqInfer.Text.Analysis
                     {
                         if (word.Type == TokenType.SentenceEnd || spaceCount > 1 || ((lastType == TokenType.Word || lastType == TokenType.Number) && word.Type == TokenType.Symbol && (word.Text == ";" || word.Text == ",")))
                         {
-                            yield return currentBlock.ToList();
+                            if (currentBlock.Any())
+                            {
+                                yield return currentBlock.ToList();
 
-                            currentBlock.Clear();
+                                currentBlock.Clear();
+                            }
                             spaceCount = 0;
                         }
                         else

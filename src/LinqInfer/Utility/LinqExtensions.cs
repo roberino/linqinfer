@@ -9,6 +9,33 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Returns a distinct list of items using the comparison functions
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="compareFunc">A function returning true is two objects are considered equal</param>
+        /// <param name="hashCodeFunc">A function returning a hashcode (default will be used if not supplied)</param>
+        /// <returns>A distinct list of T</returns>
+        public static IEnumerable<T> Distinct<T>(this IEnumerable<T> items, Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
+        {
+            var comparer = CreateComparer<T>(compareFunc, hashCodeFunc);
+
+            return items.Distinct(comparer);
+        }
+
+        /// <summary>
+        /// Creates an equality comparer from a comparing function.
+        /// If the type is class then a null value will always compare as false.
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="compareFunc">A function returning true is two objects are considered equal</param>
+        /// <param name="hashCodeFunc">A function returning a hashcode (default will be used if not supplied)</param>
+        /// <returns>An <see cref="IEqualityComparer{T}"/> instance</returns>
+        public static IEqualityComparer<T> CreateComparer<T>(Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
+        {
+            return new DynamicEqualityComparer<T>(compareFunc, hashCodeFunc);
+        }
+
+        /// <summary>
         /// Splits an enumeration into subsets
         /// using a delimiting function.
         /// </summary>

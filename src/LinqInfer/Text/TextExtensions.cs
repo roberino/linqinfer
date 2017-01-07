@@ -60,8 +60,8 @@ namespace LinqInfer.Text
         /// based on term frequency.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="identityFunc"></param>
+        /// <param name="data">The data</param>
+        /// <param name="identityFunc">A function which determines how the data will be indexed</param>
         /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
         /// <returns></returns>
         public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class
@@ -74,8 +74,31 @@ namespace LinqInfer.Text
             var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), objtokeniser(x)));
 
             index.IndexDocuments(docs);
-            
-            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
+
+            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
+            //return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// using the supplied keywords
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="keywords">The keywords to use for constructing a vector</param>
+        /// <returns></returns>
+        public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, params string[] keywords) where T : class
+        {
+            var tokeniser = new Tokeniser();
+            var otokeniser = new ObjectTextExtractor<T>(tokeniser);
+            var objtokeniser = otokeniser.CreateObjectTextTokeniser();
+            var vectorExtractor = new TextVectorExtractor(keywords, 100, false);
+
+            var pipeline = new FeatureProcessingPipeline<T>(data, vectorExtractor.CreateObjectTextVectoriser(objtokeniser));
+
+            pipeline.NormaliseData();
+
+            return pipeline;
         }
 
         /// <summary>
@@ -147,6 +170,17 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Converts a string into an enumeration of tokens.
+        /// </summary>
+        /// <param name="text">The text</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns>An enumeration of <see cref="IToken"/></returns>
+        public static IEnumerable<IToken> Tokenise(this string text, ITokeniser tokeniser = null)
+        {
+            return ((tokeniser ?? new Tokeniser()).Tokenise(text));
+        }
+
+        /// <summary>
         /// Converts a stream into an enumeration of tokens.
         /// </summary>
         /// <param name="stream">The stream of text</param>
@@ -155,7 +189,7 @@ namespace LinqInfer.Text
         /// <returns>An enumeration of <see cref="IToken"/></returns>
         public static IEnumerable<IToken> Tokenise(this Stream stream, Encoding encoding = null, ITokeniser tokeniser = null)
         {
-            return (new StreamTokeniser(encoding, tokeniser).Tokensise(stream));
+            return (new StreamTokeniser(encoding, tokeniser).Tokenise(stream));
         }
 
         /// <summary>

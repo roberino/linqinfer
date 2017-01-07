@@ -85,6 +85,7 @@
     <Compile Include="Data\Remoting\TcpRequestHeaderTests.cs" />
     <Compile Include="Data\Remoting\UriRouteParserTests.cs" />
     <Compile Include="Data\Remoting\VectorTransferServerTests.cs" />
+    <Compile Include="Genetics\AlgorithmOptimiserTests.cs" />
     <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTests.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="Text\HtmlEntityMapTests.cs" />
     <Compile Include="Text\HtmlParserTests.cs" />
     <Compile Include="Text\HttpTokenReaderTests.cs" />
+    <Compile Include="Text\ShakespeareVsMonkey.cs" />
     <Compile Include="Text\TestData.cs" />
     <Compile Include="Text\TextExtensionsTests.cs" />
     <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />

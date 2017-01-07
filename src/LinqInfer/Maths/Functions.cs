@@ -37,6 +37,19 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the average of two numbers 
+        /// with a degree of random variance
+        /// </summary>
+        /// <param name="x0">Value 0</param>
+        /// <param name="x1">Value 1</param>
+        /// <param name="randomVariability">The random amount (+/-) of variance</param>
+        /// <returns>A double</returns>
+        public static int Mutate(int x0, int x1, int randomVariability)
+        {
+            return ((x0 + x1) / 2) + Random(randomVariability) + (-Random(randomVariability));
+        }
+
+        /// <summary>
         /// Returns a random number between zero and max (inclusive).
         /// </summary>
         /// <param name="max">The maximum value</param>
@@ -48,6 +61,28 @@ namespace LinqInfer.Maths
             //Console.WriteLine(v);
 
             return v;
+        }
+
+        /// <summary>
+        /// Creates a function which picks at random an items from a set
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="items">The items in the set</param>
+        public static Func<T> RandomPicker<T>(params T[] items)
+        {
+            var indexedSet = items.ToList();
+            return () => indexedSet[Random(indexedSet.Count - 1)];
+        }
+
+        /// <summary>
+        /// Creates a function which picks at random an items from a set
+        /// </summary>
+        /// <typeparam name="T">The type of item</typeparam>
+        /// <param name="listOfItems">The items in the set</param>
+        public static Func<T> RandomPicker<T>(this ISet<T> listOfItems)
+        {
+            var indexedSet = listOfItems.ToList();
+            return () => indexedSet[Random(indexedSet.Count - 1)];
         }
 
         /// <summary>
