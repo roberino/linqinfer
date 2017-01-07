@@ -60,8 +60,8 @@ namespace LinqInfer.Text
         /// based on term frequency.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="identityFunc"></param>
+        /// <param name="data">The data</param>
+        /// <param name="identityFunc">A function which determines how the data will be indexed</param>
         /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
         /// <returns></returns>
         public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class

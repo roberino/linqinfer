@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace LinqInfer.Data
 {
-    public class BinaryVectorDocument : IBinaryPersistable
+    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable
     {
         private const string PropertiesName = "PROP";
         private const string BlobName = "BLOB";
@@ -145,6 +146,37 @@ namespace LinqInfer.Data
             var writer = new BinaryWriter(output, Encoding.UTF8);
 
             Write(writer, 0);
+        }
+
+        public XDocument ExportAsXml()
+        {
+            var date = DateTime.UtcNow;
+
+            var doc = new XDocument(new XElement("doc",
+                new XAttribute("version", Version),
+                new XAttribute("checksum", Checksum),
+                new XAttribute("exported", date)));
+
+            var propsNode = new XElement(PropertiesName.ToLower(),
+                _properties.Select(p => new XElement("property",
+                    new XAttribute("key", p.Key),
+                    new XAttribute("value", p.Value))));
+
+            var dataNode = new XElement(DataName.ToLower(),
+                _vectorData.Select(v => new XElement("vector", Convert.ToBase64String(v.ToByteArray()))));
+
+            var blobsNode = new XElement(BlobName.ToLower() + "s",
+                _blobs.Select(b => new XElement(BlobName.ToLower(),
+                    new XAttribute("key", b.Key), new XElement(Convert.ToBase64String(b.Value)))));
+
+            var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml().Root));
+
+            doc.Root.Add(propsNode);
+            doc.Root.Add(dataNode);
+            doc.Root.Add(blobsNode);
+            doc.Root.Add(childrenNode);
+
+            return doc;
         }
 
         protected void Read(BinaryReader reader, int level)

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Genetics
@@ -9,6 +10,8 @@ namespace LinqInfer.Genetics
     public sealed class AlgorithmOptimiser
     {
         private readonly AlgorithmParameterSet _parameters;
+
+        private Func<AlgorithmParameterSet, double> _algorithm;
 
         public AlgorithmOptimiser()
         {
@@ -48,6 +51,8 @@ namespace LinqInfer.Genetics
                 // if (iterations == n) DebugOutput.Log(score);
             }
 
+            _algorithm = algorithm;
+
             return _parameters.OptimalParameters;
         }
 
@@ -65,7 +70,7 @@ namespace LinqInfer.Genetics
             /// </summary>
             /// <param name="key">The parameter name (key)</param>
             /// <param name="parameter">The parameter definition</param>
-            public MutatableParameter Define(string key, MutatableParameter parameter)
+            public T Define<T>(string key, T parameter) where T : MutatableParameter
             {
                 Contract.Assert(parameter != null);
 
@@ -83,11 +88,7 @@ namespace LinqInfer.Genetics
             /// <returns>A <see cref="MutatableCategoricalParameter{T}"/></returns>
             public MutatableCategoricalParameter<T> DefineCategoricalVariable<T>(string key, T initialValue, params T[] categories)
             {
-                var parameter = new MutatableCategoricalParameter<T>(initialValue, new HashSet<T>(categories));
-
-                _params[key] = parameter;
-
-                return parameter;
+                return Define(key, new MutatableCategoricalParameter<T>(initialValue, new HashSet<T>(categories)));
             }
 
             /// <summary>
@@ -100,11 +101,7 @@ namespace LinqInfer.Genetics
             /// <returns>A <see cref="MutatableDoubleParameter"/></returns>
             public MutatableDoubleParameter DefineDouble(string key, double minValue, double maxValue, double initialValue = 0)
             {
-                var parameter = new MutatableDoubleParameter(initialValue, minValue, maxValue);
-
-                _params[key] = parameter;
-
-                return parameter;
+                return Define(key, new MutatableDoubleParameter(initialValue, minValue, maxValue));
             }
 
             /// <summary>
@@ -117,11 +114,7 @@ namespace LinqInfer.Genetics
             /// <returns>A <see cref="MutatableIntegerParameter"/></returns>
             public MutatableIntegerParameter DefineInteger(string key, int minValue, int maxValue, int initialValue = 0)
             {
-                var parameter = new MutatableIntegerParameter(initialValue, minValue, maxValue);
-
-                _params[key] = parameter;
-
-                return parameter;
+                return Define(key, new MutatableIntegerParameter(initialValue, minValue, maxValue));
             }
 
             /// <summary>
@@ -146,9 +139,23 @@ namespace LinqInfer.Genetics
                 return (T)_params[key].CurrentValue;
             }
 
-            public MutatableParameter GetParameter(string key)
+            /// <summary>
+            /// Gets a parameter by key
+            /// </summary>
+            public T GetParameter<T>(string key) where T : MutatableParameter
             {
-                return _params[key];
+                return _params[key] as T;
+            }
+
+            /// <summary>
+            /// Writes out the current values to the text writer
+            /// </summary>
+            public void PrintCurrentValues(TextWriter writer)
+            {
+                foreach (var p in _params)
+                {
+                    writer.WriteLine("{0} = {1}", p.Key, p.Value.CurrentValue);
+                }
             }
 
             internal bool SetOutcome(double fitnessScore, int iteration)

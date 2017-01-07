@@ -164,9 +164,19 @@ namespace LinqInfer.Learning.Classification
 
         public void Save(Stream output)
         {
+            Export().Save(output);
+
+            output.Flush();
+        }
+
+        /// <summary>
+        /// Exports the raw data
+        /// </summary>
+        public BinaryVectorDocument Export()
+        {
             var doc = new BinaryVectorDocument();
 
-            foreach(var prop in _properties)
+            foreach (var prop in _properties)
             {
                 doc.Properties["_" + prop.Key] = prop.Value;
             }
@@ -176,7 +186,7 @@ namespace LinqInfer.Learning.Classification
             doc.Properties["InitialWeightRangeMin"] = _parameters.InitialWeightRange.Min.ToString();
             doc.Properties["InitialWeightRangeMax"] = _parameters.InitialWeightRange.Max.ToString();
             doc.Properties["LearningRate"] = _parameters.LearningRate.ToString();
-            
+
             doc.Properties["Label"] = "Network";
 
             int i = 0;
@@ -192,9 +202,7 @@ namespace LinqInfer.Learning.Classification
                 doc.Children.Add(layerDoc);
             }
 
-            doc.Save(output);
-
-            output.Flush();
+            return doc;
         }
 
         public void Load(Stream input)

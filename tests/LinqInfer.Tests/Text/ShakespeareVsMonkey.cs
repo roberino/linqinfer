@@ -24,15 +24,15 @@ namespace LinqInfer.Tests.Text
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
             {
-                var shakespeare = new Corpus(corpusStream.Tokenise()).Blocks.Take(15).ToList();
-                var monkeyText = new Corpus(GenerateMonkeyText(30).Tokenise()).Blocks.Take(15).ToList();
+                var shakespeare = new Corpus(corpusStream.Tokenise()).Blocks.Take(300).ToList();
+                var monkeyText = new Corpus(GenerateMonkeyText(300).Tokenise()).Blocks.Take(15).ToList();
 
-                var data = shakespeare.Select(s => new
+                var data = shakespeare.Take(15).Select(s => new
                 {
                     text = s.Aggregate(new StringBuilder(), (b, t) => b.Append(t).Append(' ')).ToString(),
                     cls = "s"
                 })
-                .Concat(monkeyText.Select(s => new
+                .Concat(monkeyText.Take(15).Select(s => new
                 {
                     text = s.Aggregate(new StringBuilder(), (b, t) => b.Append(t).Append(' ')).ToString(),
                     cls = "m"
@@ -43,24 +43,24 @@ namespace LinqInfer.Tests.Text
 
                 var ao = new AlgorithmOptimiser();
 
-                var vectorSize = ao.Parameters.DefineInteger("vectorSize", 30, 250, 30);
+                var vectorSize = ao.Parameters.DefineInteger("vectorSize", 30, 2048, 30);
                 var pcaFactor = ao.Parameters.DefineInteger("pcaFactor", 0, 60, 10);
                 var errorTolerance = ao.Parameters.DefineDouble("errorTolerance", 0.003, 0.05, 0.01);
                 var learningRate = ao.Parameters.DefineDouble("learningRate", 0.01, 0.3, 0.1);
                 var hiddenLayer = ao.Parameters.DefineInteger("hiddenLayer", 0, 80, 4);
 
-                var i = 0;
-
                 var optimalParams = ao.Optimise(p =>
                 {
-                    var pipeline = data.CreateTextFeaturePipeline("hath", "my", "with", "of", "thee", "thy", "i", "monkey", "jungle", "banana", "vine", "tarzan");
+                    var pipeline = data.CreateTextFeaturePipeline(a => a.cls, vectorSize);
+
+                    //var pipeline = data.CreateTextFeaturePipeline("hath", "my", "with", "of", "thee", "thy", "i", "monkey", "jungle", "banana", "vine", "tarzan");
 
                     //foreach (var f in pipeline.FeatureExtractor.FeatureMetadata)
                     //{
                     //    Console.WriteLine(f.Label);
                     //}
 
-                    if (i++ == 0) pipeline.ToCsv(Console.Out, x => x.cls, '\t').Execute();
+                    //if (i++ == 0) pipeline.ToCsv(Console.Out, x => x.cls, '\t').Execute();
 
                     if (pcaFactor > 1) pipeline.PrincipalComponentReduction(pcaFactor);
 
@@ -71,59 +71,33 @@ namespace LinqInfer.Tests.Text
 
                     foreach (var n in Enumerable.Range(1, 10))
                     {
+                        var expectedClass = n > 5 ? "s" : "m";
+
                         var testCase = new
                         {
-                            text = GenerateMonkeyText(10),
+                            text = expectedClass == "m" ? GenerateMonkeyText(10) : shakespeare.Skip(15).RandomOrder().FirstOrDefault().Aggregate(new StringBuilder(), (s, x) => s.Append(x).Append(" ")).ToString(),
                             cls = "?"
                         };
 
                         var result = classifier.Classify(testCase);
 
-                        if (result.First().ClassType == "m")
+                        if (result.First().ClassType == expectedClass)
                         {
                             t++;
                         }
 
-                        foreach (var r in result) Console.WriteLine(r);
+                        //foreach (var r in result) Console.WriteLine(r);
                     }
 
                     Console.WriteLine("Result {0}/10", t);
 
                     return t;
-                }, 10);
+                }, 25);
 
                 foreach (var p in optimalParams)
                 {
                     Console.WriteLine("Optimal {0} = {1}", p.Key, p.Value);
                 }
-
-                //var pipeline = data.
-                //    CreateTextFeaturePipeline(x => Guid.NewGuid().ToString(), 100);
-
-                //foreach(var f in pipeline.FeatureExtractor.FeatureMetadata)
-                //{
-                //    Console.WriteLine(f.Label);
-                //}
-
-                //pipeline.PrincipalComponentReduction(64);
-
-                //pipeline.ToCsv(Console.Out).Execute();
-                
-                //var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.cls, 0.07f).Execute();
-                
-                //foreach (var n in Enumerable.Range(1, 10))
-                //{
-                //    var testCase = new
-                //    {
-                //        text = GenerateMonkeyText(),
-                //        cls = "?"
-                //    };
-
-                //    var result = classifier.Classify(testCase);
-
-                //    Console.WriteLine(testCase.text);
-                //    foreach (var r in result) Console.WriteLine(r);
-                //}
             }
         }
 
@@ -151,7 +125,7 @@ namespace LinqInfer.Tests.Text
                 foreach (var y in Enumerable.Range(0, Functions.Random(8) + 3))
                 {
                     //text.Append(_dict.RandomWord() + " ");
-                    text.Append(rnd() + " ");
+                    text.Append(" " + rnd());
                 }
 
                 text.Append('.');
