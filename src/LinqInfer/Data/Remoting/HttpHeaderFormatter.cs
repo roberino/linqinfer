@@ -13,6 +13,7 @@ namespace LinqInfer.Data.Remoting
         private const string Error = "500 Internal Server Error";
         private const string HttpHead = "HTTP/{0} {1}";
 
+        public const string DefaultHttpProtocol = "1.1";
         public const string ContentTypeHeaderName = "Content-Type";
         public const string ContentLengthHeaderName = "Content-Length";
         public const string AcceptHeaderName = "Accept";

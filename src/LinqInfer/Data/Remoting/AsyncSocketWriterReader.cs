@@ -72,7 +72,7 @@ namespace LinqInfer.Data.Remoting
             return sent;
         }
 
-        public async Task<long> WriteAsync(Stream input, TcpResponseHeader header = null)
+        public async Task<long> WriteAsync(Stream input, IResponseHeader header = null)
         {
             var stream = new NetworkStream(_socket);
 

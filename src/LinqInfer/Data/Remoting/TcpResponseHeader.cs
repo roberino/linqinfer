@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 
 namespace LinqInfer.Data.Remoting
 {
-    public class TcpResponseHeader
+    public class TcpResponseHeader : IResponseHeader
     {
-        private const string ContentLengthHeader = "Content-Length";
-        private const string ContentTypeHeader = "Content-Type";
+        internal const string ContentLengthHeader = "Content-Length";
+        internal const string ContentTypeHeader = "Content-Type";
 
         private readonly IDictionary<string, string[]> _headers;
 
@@ -18,7 +17,7 @@ namespace LinqInfer.Data.Remoting
         private Encoding _encoding;
         private string _mimeType;
 
-        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null)
+        internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null, string httpProtocol = HttpHeaderFormatter.DefaultHttpProtocol)
         {
             _contentLength = contentLength;
             _headers = headers ?? new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
@@ -26,7 +25,7 @@ namespace LinqInfer.Data.Remoting
             TransportProtocol = headers != null ? TransportProtocol.Http : TransportProtocol.Tcp;
 
             ContentMimeType = "application/octet-stream";
-            HttpProtocol = "1.1";
+            HttpProtocol = httpProtocol;
             Date = DateTime.UtcNow;
             _encoding = new UTF8Encoding(true);
         }
@@ -80,7 +79,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        internal byte[] GetBytes()
+        public byte[] GetBytes()
         {
             if (TransportProtocol == TransportProtocol.Http)
             {

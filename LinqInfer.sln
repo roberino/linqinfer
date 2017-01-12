@@ -33,6 +33,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.NeuralServer", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.NeuralClient", "src\LinqInfer.NeuralClient\LinqInfer.NeuralClient.csproj", "{9B764246-2011-4034-9697-287FEDA9ECC4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Owin", "src\LinqInfer.Owin\LinqInfer.Owin.csproj", "{DE3085EA-03DF-4075-8F21-C33590E3515A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Owin.Tests", "tests\LinqInfer.Owin.Tests\LinqInfer.Owin.Tests.csproj", "{15D77CCC-4A3D-4A9F-AA87-E9889570A954}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +107,22 @@ Global
 		{9B764246-2011-4034-9697-287FEDA9ECC4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B764246-2011-4034-9697-287FEDA9ECC4}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
 		{9B764246-2011-4034-9697-287FEDA9ECC4}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
+		{DE3085EA-03DF-4075-8F21-C33590E3515A}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Debug-Net45|Any CPU.ActiveCfg = Debug|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Debug-Net45|Any CPU.Build.0 = Debug|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Release-Net45|Any CPU.ActiveCfg = Release|Any CPU
+		{15D77CCC-4A3D-4A9F-AA87-E9889570A954}.Release-Net45|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

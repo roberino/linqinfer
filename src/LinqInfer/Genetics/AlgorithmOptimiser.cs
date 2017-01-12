@@ -7,6 +7,11 @@ using System.Linq;
 
 namespace LinqInfer.Genetics
 {
+    /// <summary>
+    /// Simple genetic optimiser for tuning parameters of an algorithm. The <see cref="AlgorithmOptimiser"/>
+    /// attempts to find the best set of parameters with regards to achieving the maximum
+    /// "fitness" of a function.
+    /// </summary>
     public sealed class AlgorithmOptimiser
     {
         private readonly AlgorithmParameterSet _parameters;

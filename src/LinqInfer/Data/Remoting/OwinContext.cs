@@ -81,7 +81,9 @@ namespace LinqInfer.Data.Remoting
                 Contract.Requires(value != null);
 
                 var p = value.StartsWith("/") ? value : "/" + value;
-                Request.Header.Path = p;
+
+                ((TcpRequestHeader)Request.Header).Path = p;
+
                 SetRequestUri(RequestUri, p, false);
             }
         }
