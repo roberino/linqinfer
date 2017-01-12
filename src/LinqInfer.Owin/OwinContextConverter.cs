@@ -252,7 +252,10 @@ namespace LinqInfer.Owin
 
             public void CopyFrom(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
             {
-                throw new NotSupportedException();
+                foreach (var header in headers)
+                {
+                    _response.Headers.SetValues(header.Key, header.Value.ToArray());
+                }
             }
 
             public byte[] GetBytes()
