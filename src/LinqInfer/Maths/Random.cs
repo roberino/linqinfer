@@ -5,11 +5,11 @@ namespace LinqInfer.Maths
 {
     internal class Random : IDisposable
     {
-        private readonly RNGCryptoServiceProvider _randG;
+        private readonly RandomNumberGenerator _randG;
 
         public Random()
         {
-            _randG = new RNGCryptoServiceProvider();
+            _randG = RandomNumberGenerator.Create();
         }
 
         public double NextDouble()

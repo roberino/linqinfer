@@ -13,6 +13,7 @@ namespace LinqInfer.Data.Remoting
         private const string Error = "500 Internal Server Error";
         private const string HttpHead = "HTTP/{0} {1}";
 
+        public const string DefaultHttpProtocol = "1.1";
         public const string ContentTypeHeaderName = "Content-Type";
         public const string ContentLengthHeaderName = "Content-Length";
         public const string AcceptHeaderName = "Accept";
@@ -74,13 +75,27 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        public static string TranslateVerb(Verb verb)
+        {
+            switch (verb)
+            {
+                case Verb.Create:
+                    return "PUT";
+                case Verb.Update:
+                    return "POST";
+                case Verb.Default:
+                    return "GET";
+            }
+
+            return verb.ToString().ToUpper();
+        }
+
         public void Dispose()
         {
             _writer.Flush();
 
             if (_closeWriter)
             {
-                _writer.Close();
                 _writer.Dispose();
             }
         }

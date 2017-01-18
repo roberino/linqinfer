@@ -108,6 +108,21 @@ namespace LinqInfer.Tests.Probability
         }
 
         [Test]
+        public void AsSampleSpace_Various()
+        {
+            var sample = new[] { 1, 1, 2, 3, 5, 8, 13 }.AsQueryable().AsSampleSpace();
+
+            Assert.That(sample.ProbabilityOfEvent(x => x == 1), Is.EqualTo((2).OutOf(7)));
+            Assert.That(sample.ProbabilityOfEvent(x => x > 2), Is.EqualTo((4).OutOf(7)));
+            Assert.That(sample.ProbabilityOfEventAorB(x => x > 2, y => y < 2), Is.EqualTo((6).OutOf(7)));
+            Assert.That(sample.ProbabilityOfEventAandB(x => x > 2, y => y < 2), Is.EqualTo((0).OutOf(7)));
+            Assert.That(sample.ProbabilityOfAny(x => x > 2, y => y < 2), Is.EqualTo((6).OutOf(7)));
+            Assert.That(sample.ProbabilityOfAll(x => x > 2, y => y < 2), Is.EqualTo((0).OutOf(7)));
+            Assert.That(sample.IsExhaustive(x => x > 0), Is.True);
+            Assert.That(sample.IsSimple(x => x == 8), Is.True);
+        }
+
+        [Test]
         public void AsSampleSpace_AreMutuallyExclusive_ReturnsTrue_ForUniqueItems()
         {
             var sample = TestData.CreateQueryablePirates().AsSampleSpace();

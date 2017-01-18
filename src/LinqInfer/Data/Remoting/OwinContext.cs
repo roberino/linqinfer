@@ -35,7 +35,7 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
-                SetRequestUri(new Uri(header.TransportProtocol.ToString().ToLower() + Uri.SchemeDelimiter + header.Headers["Host"][0]), header.Path);
+                SetRequestUri(new Uri(header.TransportProtocol.ToString().ToLower() + Util.SchemeDelimiter + header.Headers["Host"][0]), header.Path);
             }
 
             if (!header.Headers.ContainsKey("REMOTE_ADDR"))
@@ -81,7 +81,9 @@ namespace LinqInfer.Data.Remoting
                 Contract.Requires(value != null);
 
                 var p = value.StartsWith("/") ? value : "/" + value;
-                Request.Header.Path = p;
+
+                ((TcpRequestHeader)Request.Header).Path = p;
+
                 SetRequestUri(RequestUri, p, false);
             }
         }

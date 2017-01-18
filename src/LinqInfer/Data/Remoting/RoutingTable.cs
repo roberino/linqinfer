@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -36,17 +37,30 @@ namespace LinqInfer.Data.Remoting
             });
         }
 
+        internal IEnumerable<IUriRoute> Mappings(Uri uri)
+        {
+            IDictionary<string, string> para;
+
+            return _routes.Where(r => r.UriRoute.Mapper.TryMap(uri, Verb.All, out para)).Select(r => r.UriRoute);
+        }
+
         private Func<T, Task<bool>> Map(IEnumerable<RouteHandlerPair> applicableRoutes, Uri uri, Verb verb = Verb.Default, bool throwIfMissing = true)
         {
             foreach (var route in applicableRoutes)
             {
+#if NET_STD
+                var method = route.Handler.GetMethodInfo();
+#else
+                var method = route.Handler.Method;
+#endif
+
                 IDictionary<string, string> parameters;
 
                 if (route.UriRoute.Mapper.TryMap(uri, verb, out parameters))
                 {
                     return (c) =>
                     {
-                        DebugOutput.Log("Using handler {0} {1} => {2}", route.UriRoute.Verbs, route.UriRoute.Template, route.Handler.Method.Name);
+                        DebugOutput.Log("Using handler {0} {1} => {2}", route.UriRoute.Verbs, route.UriRoute.Template, method.Name);
 
                         return route.Handler(parameters, c);
                     };

@@ -44,6 +44,10 @@ namespace LinqInfer.Data.Remoting
 
             if (fe != null)
             {
+#if NET_STD
+                await Task.FromResult(0);
+                throw new NotSupportedException();
+#else
                 DebugOutput.Log("Forwarding to {0}", fe);
 
                 using (var client = new VectorTransferClient(_serverId, fe.Port, fe.Host))
@@ -55,6 +59,7 @@ namespace LinqInfer.Data.Remoting
                     await tx.Send(endBatch);
                     await tx.End(endBatch.Properties);
                 }
+#endif
             }
         }
 

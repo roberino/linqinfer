@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace LinqInfer.Data.Remoting
 {
-    public sealed class TcpRequestHeader
+    public sealed class TcpRequestHeader : IRequestHeader
     {
         private static readonly Regex _httpHeaderTest;
 
@@ -111,26 +111,6 @@ namespace LinqInfer.Data.Remoting
         public IDictionary<string, string[]> Headers { get; private set; }
 
         public long ContentLength { get; private set; }
-
-        internal void WriteTo(Stream output)
-        {
-            if (TransportProtocol == TransportProtocol.Http)
-            {
-                using (var writer = new StreamWriter(output, Encoding.ASCII, 1024, true))
-                {
-                    using (var formatter = new HttpHeaderFormatter(writer))
-                    {
-                        formatter.WriteRequestAndProtocol(HttpVerb, Path, HttpProtocol);
-                        formatter.WriteHeaders(Headers);
-                        formatter.WriteEnd();
-                    }
-                }
-            }
-            else
-            {
-                new BinaryWriter(output, Encoding.UTF8, true).Write(ContentLength);
-            }
-        }
 
         private void ParseHttpHeader(string text)
         {

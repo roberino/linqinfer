@@ -32,7 +32,7 @@ namespace LinqInfer.Utility
         /// <param name="allowNull">True if null values are allowed</param>
         public void EnforceType<T1>(K key, bool allowNull = false)
         {
-            if (typeof(T) != typeof(object) && typeof(T).IsAssignableFrom(typeof(T1)))
+            if (typeof(T) != typeof(object) && typeof(T).GetTypeInf().IsAssignableFrom(typeof(T1)))
             {
                 throw new ArgumentException("Invalid type constraint - " + typeof(T1).FullName);
             }
@@ -43,7 +43,7 @@ namespace LinqInfer.Utility
                 {
                     if (v == null) return allowNull;
 
-                    return (typeof(T1).IsAssignableFrom(v.GetType()));
+                    return (typeof(T1).GetTypeInf().IsAssignableFrom(v.GetType()));
                 }
                 return true;
             }, "Invalid value type");

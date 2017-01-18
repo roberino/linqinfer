@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -73,7 +74,7 @@ namespace LinqInfer.Data
             return FromClob(clob, t =>
             {
                 var type = Type.GetType(t);
-                var constr = type?.GetConstructor(Type.EmptyTypes);
+                var constr = type?.GetTypeInf().GetConstructor(Type.EmptyTypes);
                 if (constr == null) throw new ArgumentException("Cant find type or default constructor - " + t + ", " + type);
                 return (T)constr.Invoke(new object[0]);
             });

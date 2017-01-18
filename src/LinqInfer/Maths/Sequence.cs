@@ -128,16 +128,6 @@ namespace LinqInfer.Maths
         public override int GetHashCode()
         {
             return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_values);
-
-            //int h = 1;
-
-
-            //return _values.Aggregate(h, (v, t) =>
-            //{
-            //    v &= t.GetHashCode();
-
-            //    return v;
-            //});
         }
 
         public override bool Equals(object obj)

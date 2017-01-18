@@ -2,7 +2,9 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Data.Remoting
@@ -87,6 +89,84 @@ namespace LinqInfer.Tests.Data.Remoting
         }
 
         [Test]
+        public async Task Bind_To_ComplexArgFunc_TestRoute()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.Bind("/funcy/yo", Verb.Post).To(new ComplexParams(), p =>
+                {
+                    return Task.FromResult(p.Name);
+                });
+
+                var url = new Uri(api.BaseEndpoint, "/funcy/yo");
+
+                using (var ms = new MemoryStream())
+                {
+                    await sz.Serialise(new ComplexParams()
+                    {
+                        Name = "o"
+                    }, Encoding.UTF8, sz.SupportedMimeTypes[0], ms);
+
+                    ms.Flush();
+                    ms.Position = 0;
+
+                    var result =
+                        await api.TestRoute<string>(url, Verb.Post, ms);
+
+                    Assert.That(result, Is.EqualTo("o"));
+                }
+            }
+        }
+
+        [Test]
+        public async Task Bind_To_DynamicArgFunc_TestRoute()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.Bind("/funcy/yo", Verb.Post).To<dynamic, int>(x => Task.FromResult((int)(x.xy * 10)));
+
+                var url = new Uri(api.BaseEndpoint, "/funcy/yo");
+
+                using (var ms = new MemoryStream())
+                {
+                    await sz.Serialise(new
+                    {
+                        xy = 123
+                    }, Encoding.UTF8, sz.SupportedMimeTypes[0], ms);
+
+                    ms.Flush();
+                    ms.Position = 0;
+
+                    var result =
+                        await api.TestRoute<int>(url, Verb.Post, ms);
+
+                    Assert.That(result, Is.EqualTo(1230));
+                }
+
+                using (var ms = new MemoryStream())
+                {
+                    await sz.Serialise(new
+                    {
+                        xy = 5,
+                        ot = 23
+                    }, Encoding.UTF8, sz.SupportedMimeTypes[0], ms);
+
+                    ms.Flush();
+                    ms.Position = 0;
+
+                    var result =
+                        await api.TestRoute<int>(url, Verb.Post, ms);
+
+                    Assert.That(result, Is.EqualTo(50));
+                }
+            }
+        }
+
+        [Test]
         public async Task Bind_To_DefinedFunc_TestRoute()
         {
             var sz = new JsonSerialiser();
@@ -130,6 +210,26 @@ namespace LinqInfer.Tests.Data.Remoting
                 {
                     Assert.That(ex, Is.InstanceOf<HttpException>());
                 }
+            }
+        }
+
+        [Test]
+        public async Task Bind_To_Route_QueryString()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.Bind("/funk?x=4").To(new
+                {
+                    x = 4
+                }, a => Task.FromResult(a.x * 5));
+
+                var url = new Uri(api.BaseEndpoint, "/funk?x=3");
+
+                var y = await api.TestRoute<int>(url);
+
+                Assert.That(y, Is.EqualTo(15));
             }
         }
 
@@ -189,6 +289,13 @@ namespace LinqInfer.Tests.Data.Remoting
 
                 Assert.That(result.x, Is.EqualTo(220)); 
             }
+        }
+
+        private class ComplexParams
+        {
+            public string Name { get; set; }
+
+            public dynamic Data { get; set; }
         }
     }
 }

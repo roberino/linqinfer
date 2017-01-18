@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -43,5 +44,19 @@ namespace LinqInfer.Data.Remoting
         /// <param name="headers">Optional additional headers</param>
         /// <returns>The method result</returns>
         Task<T> TestRoute<T>(Uri uri, T sampleResult, IDictionary<string, string[]> headers = null);
+
+        /// <summary>
+        /// Tests a route
+        /// </summary>
+        /// <typeparam name="T">The return type</typeparam>
+        /// <param name="uri">The uri to test</param>
+        /// <param name="httpVerb">The http verb (e.g. GET, POST)</param>
+        /// <param name="requestBody">The request body stream</param>
+        /// <param name="headers">Optional additional headers</param>
+        /// <returns>The method result</returns>
+        Task<T> TestRoute<T>(Uri uri,
+            Verb httpVerb,
+            Stream requestBody = null,
+            IDictionary<string, string[]> headers = null);
     }
 }

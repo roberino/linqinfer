@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using System.Reflection;
 
 namespace LinqInfer.Data
 {
@@ -100,7 +101,7 @@ namespace LinqInfer.Data
 
             if (_properties.TryGetValue(key, out val))
             {
-                if (typeof(T).IsEnum)
+                if (typeof(T).GetTypeInf().IsEnum)
                 {
                     try
                     {

@@ -34,42 +34,54 @@ namespace LinqInfer.Data.Remoting
         {
             var argType = typeof(TArg);
 
+#if NET_STD
+            var method = func.GetMethodInfo();
+#else
+            var method = func.Method;
+#endif
+
             var exec = new Func<TArg, IOwinContext, Task>(async (a, c) =>
             {
-                ValidateContextAndAppendDebugInfo(c, func.Method, argType, typeof(TResult));
+                ValidateContextAndAppendDebugInfo(c, method, argType, typeof(TResult));
 
                 var result = func(a);
 
                 await SerialiseAndSetMimeAndStatus(c, result);
             });
 
-            return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
+            return BindParamsToMethod(exec, method, defaultValue, fallbackToDefault);
+        }
+
+        internal async Task SerialiseAndSetMimeAndStatus<T>(IOwinContext context, T result, int status = 200)
+        {
+            var mimeType = context.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
+
+            context.Response.Header.ContentMimeType = mimeType;
+            context.Response.Header.StatusCode = status;
+
+            await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
         }
 
         private Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
         {
+#if NET_STD
+            var method = func.GetMethodInfo();
+#else
+            var method = func.Method;
+#endif
+
             var argType = typeof(TArg);
 
             var exec = new Func<TArg, IOwinContext, Task>(async (a, c) =>
             {
-                ValidateContextAndAppendDebugInfo(c, func.Method, argType, typeof(TResult));
+                ValidateContextAndAppendDebugInfo(c, method, argType, typeof(TResult));
 
                 var result = await func(a);
 
                 await SerialiseAndSetMimeAndStatus(c, result);
             });
 
-            return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
-        }
-
-        private async Task SerialiseAndSetMimeAndStatus<T>(IOwinContext context, T result)
-        {
-            var mimeType = context.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
-
-            await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
-
-            context.Response.Header.ContentMimeType = mimeType;
-            context.Response.Header.StatusCode = 200;
+            return BindParamsToMethod(exec, method, defaultValue, fallbackToDefault);
         }
 
         private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
@@ -113,7 +125,7 @@ namespace LinqInfer.Data.Remoting
 
             if (c.TryGetValue("ext.ExpectedResponseType", out expectedResponseType))
             {
-                if (expectedResponseType is Type && !((Type)expectedResponseType).IsAssignableFrom(resultType))
+                if (expectedResponseType is Type && !((Type)expectedResponseType).GetTypeInf().IsAssignableFrom(resultType))
                 {
                     throw new ArgumentException("Invalid type - " + expectedResponseType);
                 }
@@ -129,13 +141,13 @@ namespace LinqInfer.Data.Remoting
         {
             var type = typeof(T);
 
-            var defaultIsNull = !type.IsValueType && (defaultValue as object) == null;
+            var defaultIsNull = !type.GetTypeInf().IsValueType && (defaultValue as object) == null;
             var instance = defaultValue;
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var properties = type.GetTypeInf().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             if (defaultIsNull)
             {
-                var ctor = type.GetConstructor(Type.EmptyTypes);
+                var ctor = type.GetTypeInf().GetConstructor(Type.EmptyTypes);
 
                 if (ctor == null) throw new ArgumentException("No default constructor");
 

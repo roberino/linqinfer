@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 namespace LinqInfer.Learning.Classification
@@ -58,24 +58,17 @@ namespace LinqInfer.Learning.Classification
             return _classifier.Classify(obj);
         }
 
+        public void Train(TInput obj, TClass classification)
+        {
+            if (_classifier == null) throw new InvalidOperationException("Pipeline not initialised");
+
+            new BackPropagationLearning(_network)
+                .Train(new ColumnVector1D(_config.FeatureExtractor.ExtractVector(obj)), new ColumnVector1D(_config.OutputMapper.ExtractVector(classification)));
+        }
+
         public override string ToString()
         {
             return _network == null ? "Un-initialised classifier" : "NN classifier" + _network.ToString();
-        }
-
-        private static Config Setup(
-            IFeatureExtractor<TInput, double> featureExtractor,
-            ICategoricalOutputMapper<TClass> outputMapper,
-            TInput normalisingSample)
-        {
-            if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-
-            return new Config()
-            {
-                NormalisingSample = normalisingSample,
-                FeatureExtractor = featureExtractor,
-                OutputMapper = outputMapper
-            };
         }
 
         public void PruneFeatures(params int[] featureIndexes)
@@ -100,6 +93,21 @@ namespace LinqInfer.Learning.Classification
         public object Clone()
         {
             return Clone(true);
+        }
+
+        private static Config Setup(
+            IFeatureExtractor<TInput, double> featureExtractor,
+            ICategoricalOutputMapper<TClass> outputMapper,
+            TInput normalisingSample)
+        {
+            if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
+
+            return new Config()
+            {
+                NormalisingSample = normalisingSample,
+                FeatureExtractor = featureExtractor,
+                OutputMapper = outputMapper
+            };
         }
 
         private void Setup(MultilayerNetwork network)

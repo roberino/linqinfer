@@ -1,7 +1,7 @@
 {
-  "version": "3.5.4",
+  "version": "3.6.0",
   "title": "LinqInfer",
-  "description": "A lightweight and slightly experimental inference library for C#",
+  "description": "A lightweight and slightly experimental inference library for .NET",
   "language": "en-GB",
   "authors": [ "R Eyres" ],
   "packOptions": {
@@ -13,13 +13,44 @@
       "url": "git://github.com/roberino/linqinfer"
     }
   },
-  "resource": [
-    "Resources/*.txt"
-  ],
+  "dependencies": {
+  },
+  "buildOptions": {
+    "embed": [
+      "Resources/*.txt"
+    ]
+  },
   "runtimes": {
     "win": {}
   },
   "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50",
+      "dependencies": {
+        /* See http://packagesearch.azurewebsites.net/ */
+        "NETStandard.Library": "1.6.0",
+        "System.Runtime": "4.3.0",
+        "System.Reflection": "4.3.0",
+        "System.Linq": "4.3.0",
+        "System.Dynamic.Runtime": "4.0.11",
+        "System.Diagnostics.Contracts": "4.0.1",
+        "System.ComponentModel.Primitives": "4.1.0",
+        "System.Runtime.Serialization.Formatters": "4.3.0",
+        "System.Threading.Thread": "4.0.0",
+        "System.Security.Claims": "4.0.1",
+        "System.Net.NameResolution": "4.0.0",
+        "System.Diagnostics.Process": "4.1.0",
+        "System.Linq.Parallel": "4.3.0",
+        "System.Linq.Queryable": "4.3.0"
+      },
+      "buildOptions": {
+        "define": [ "NET_STD" ],
+        "compile": {
+          "exclude": [ "Learning/Classification/Remoting/*.cs" ],
+          "excludeFiles": [ "Data/Remoting/VectorTransferClient.cs", "Data/Remoting/TransferHandle.cs" ]
+        }
+      }
+    },
     "net45": {
       "frameworkAssemblies": {
         "System.Xml": "",

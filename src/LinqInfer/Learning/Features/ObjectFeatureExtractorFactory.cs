@@ -12,7 +12,7 @@ namespace LinqInfer.Learning.Features
         static ObjectFeatureExtractorFactory()
         {
 #if NET_STD
-            var type = typeof(ObjectFeatureExtractor)
+            var type = typeof(ObjectFeatureExtractorFactory)
                     .GetTypeInfo();
 
             _converters =

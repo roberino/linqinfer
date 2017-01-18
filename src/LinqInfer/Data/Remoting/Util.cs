@@ -5,6 +5,10 @@ namespace LinqInfer.Data.Remoting
 {
     internal static class Util
     {
+        public const string UriSchemeHttp = "http";
+
+        public const string SchemeDelimiter = "://";
+
         public static string GenerateId()
         {
             return Environment.MachineName + '-' + Guid.NewGuid().ToString("N");
@@ -13,7 +17,7 @@ namespace LinqInfer.Data.Remoting
         internal static Uri ConvertProtocol(Uri uri, TransportProtocol protocol)
         {
             Contract.Ensures(protocol != TransportProtocol.None);
-            return new Uri(protocol.ToString() + Uri.SchemeDelimiter + uri.Host + ':' + uri.Port + uri.PathAndQuery);
+            return new Uri(protocol.ToString() + Util.SchemeDelimiter + uri.Host + ':' + uri.Port + uri.PathAndQuery);
         }
 
         internal static void ValidateHttpUri(Uri uri)
@@ -23,7 +27,7 @@ namespace LinqInfer.Data.Remoting
                 throw new ArgumentNullException("uri");
             }
 
-            if (uri.Scheme != Uri.UriSchemeHttp)
+            if (uri.Scheme != Util.UriSchemeHttp)
             {
                 throw new ArgumentException("Only HTTP scheme supported e.g. http://host:3211");
             }

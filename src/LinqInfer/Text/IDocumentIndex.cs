@@ -22,6 +22,13 @@ namespace LinqInfer.Text
         IEnumerable<SearchResult> Search(string query);
 
         /// <summary>
+        /// Gets the raw weighting data for each term within a given query
+        /// </summary>
+        /// <param name="query">The query text</param>
+        /// <returns>A dictionary of terms and <see cref="DocumentTermWeightingData"/></returns>
+        IDictionary<string, IList<DocumentTermWeightingData>> GetQueryWeightingData(string query);
+
+        /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
         ISemanticSet ExtractTerms();

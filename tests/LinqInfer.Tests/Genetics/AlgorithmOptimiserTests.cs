@@ -9,6 +9,29 @@ namespace LinqInfer.Tests.Genetics
     public class AlgorithmOptimiserTests
     {
         [Test]
+        public void Optimise_InverseRelationship_OptimisedAsExpected()
+        {
+            var ao = new AlgorithmOptimiser();
+
+            var x = ao.Parameters.DefineDouble("x", 0, 100, 50);
+            var y = ao.Parameters.DefineDouble("y", 0, 100, 50);
+
+            var bestParams = ao.Optimise(p =>
+            {
+                var r = x / y;
+
+                Console.WriteLine("{0}/{1}={2}", x.CurrentValue, y.CurrentValue, r);
+
+                return r;
+            }, 50);
+
+            Console.WriteLine("x={0},y={1}", x.OptimalValue, y.OptimalValue);
+
+            Assert.That(x.OptimalValue, Is.GreaterThan(90));
+            Assert.That(y.OptimalValue, Is.LessThan(10));
+        }
+
+        [Test]
         public void Optimise_SimpleLogarithmicRelationship_MutatesBasedOnHighestVariance()
         {
             var ao = new AlgorithmOptimiser();

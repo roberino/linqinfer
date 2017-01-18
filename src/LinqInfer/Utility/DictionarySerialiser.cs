@@ -69,11 +69,11 @@ namespace LinqInfer.Utility
                 {
                     //var ctype = type.MakeGenericType(typeof(TKey), typeof(TValue));
 
-                    return (IDictionary<TKey, TValue>)type.GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
+                    return (IDictionary<TKey, TValue>)type.GetTypeInf().GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine(ex);
+                    DebugOutput.Log(ex);
                 }
             }
             return new Dictionary<TKey, TValue>();
@@ -107,11 +107,11 @@ namespace LinqInfer.Utility
                     return (T)(object)DateTime.FromFileTimeUtc(reader.ReadInt64());
                 case TypeCode.Object:
 
-                    if (typeof(IBinaryPersistable).IsAssignableFrom(type))
+                    if (typeof(IBinaryPersistable).GetTypeInf().IsAssignableFrom(type))
                     {
                         var typeName = reader.ReadString();
                         var actualType = Type.GetType(typeName) ?? typeof(T);
-                        var instance = (IBinaryPersistable)actualType.GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
+                        var instance = (IBinaryPersistable)actualType.GetTypeInf().GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
 
                         instance.Load(reader.BaseStream);
 
@@ -161,13 +161,13 @@ namespace LinqInfer.Utility
                     writer.Write((string)(object)obj);
                     break;
                 case TypeCode.Object:
-                    if (typeof(IBinaryPersistable).IsAssignableFrom(type))
+                    if (typeof(IBinaryPersistable).GetTypeInf().IsAssignableFrom(type))
                     {
                         if (obj != null)
                         {
                             var actualType = obj.GetType();
 
-                            if(!actualType.GetConstructors().Any(c => !c.GetParameters().Any()))
+                            if(!actualType.GetTypeInf().GetConstructors().Any(c => !c.GetParameters().Any()))
                             {
                                 throw new NotSupportedException(actualType.FullName + " missing default constructor");
                             }

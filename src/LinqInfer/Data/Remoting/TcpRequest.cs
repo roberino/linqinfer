@@ -1,18 +1,19 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
     public sealed class TcpRequest : IBinaryPersistable, ICloneableObject<TcpRequest>
     {
-        internal TcpRequest(TcpRequestHeader header, Stream body)
+        internal TcpRequest(IRequestHeader header, Stream body)
         {
             Header = header;
             Content = body;
         }
 
-        public TcpRequestHeader Header { get; private set; }
+        public IRequestHeader Header { get; private set; }
 
         public Stream Content { get; private set; }
 
@@ -49,7 +50,22 @@ namespace LinqInfer.Data.Remoting
 
         public void Save(Stream output)
         {
-            Header.WriteTo(output);
+            if (Header.TransportProtocol == TransportProtocol.Http)
+            {
+                using (var writer = new StreamWriter(output, Encoding.ASCII, 1024, true))
+                {
+                    using (var formatter = new HttpHeaderFormatter(writer))
+                    {
+                        formatter.WriteRequestAndProtocol(Header.HttpVerb, Header.Path, Header.HttpProtocol);
+                        formatter.WriteHeaders(Header.Headers);
+                        formatter.WriteEnd();
+                    }
+                }
+            }
+            else
+            {
+                new BinaryWriter(output, Encoding.UTF8, true).Write(Header.ContentLength);
+            }
 
             if (Content.CanRead && Content.Position > 0)
                 Content.CopyTo(output);

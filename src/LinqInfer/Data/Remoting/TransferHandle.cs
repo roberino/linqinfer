@@ -202,6 +202,7 @@ namespace LinqInfer.Data.Remoting
 
             return parameters
                     .GetType()
+                    .GetTypeInf()
                     .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                     .ToDictionary(p => p.Name, p => p.GetValue(parameters)?.ToString());
         }

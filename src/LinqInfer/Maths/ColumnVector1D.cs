@@ -181,18 +181,32 @@ namespace LinqInfer.Maths
         {
             Contract.Requires(v1.Size == v2.Size);
 
-            int i = 0;
+            var newValues = new double[v1.Size];
+            var v1a = v1._values;
+            var v2a = v2._values;
 
-            return new ColumnVector1D(v1._values.Select(x => x + v2._values[i++]).ToArray());
+            for (int i = 0; i < v1a.Length; i++)
+            {
+                newValues[i] = v1a[i] + v2a[i];
+            }
+
+            return new ColumnVector1D(newValues);
         }
 
         public static ColumnVector1D operator *(ColumnVector1D v1, ColumnVector1D v2)
         {
             Contract.Requires(v1.Size == v2.Size);
 
-            int i = 0;
+            var newValues = new double[v1.Size];
+            var v1a = v1._values;
+            var v2a = v2._values;
 
-            return new ColumnVector1D(v1._values.Select(x => x * v2._values[i++]).ToArray());
+            for (int i = 0; i < v1a.Length; i++)
+            {
+                newValues[i] = v1a[i] * v2a[i];
+            }
+
+            return new ColumnVector1D(newValues);
         }
 
         public static ColumnVector1D operator /(ColumnVector1D v1, ColumnVector1D v2)

@@ -34,7 +34,7 @@ namespace LinqInfer.Data.Remoting
 
                 }
             }
-            if (ReceivedData != null) ReceivedData.Close();
+            if (ReceivedData != null) ReceivedData.Dispose();
         }
     }
 }

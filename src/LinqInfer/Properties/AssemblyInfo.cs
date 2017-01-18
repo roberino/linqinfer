@@ -28,3 +28,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("LinqInfer.Tests")]
 [assembly: InternalsVisibleTo("LinqInfer.Storage.SQLite")]
+[assembly: InternalsVisibleTo("LinqInfer.Owin")]

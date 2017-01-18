@@ -68,7 +68,7 @@ namespace LinqInfer.Text
 
             if (currentToken.Length > 0)
             {
-                yield return YieldToken(currentToken, lastToken, type, i - 1);
+                yield return YieldToken(currentToken, lastToken, type, i);
             }
         }
 
@@ -80,11 +80,11 @@ namespace LinqInfer.Text
             {
                 if (type == TokenType.Null)
                 {
-                    nextToken = new Token(lastToken, currentToken.ToString(), i);
+                    nextToken = new Token(lastToken, currentToken.ToString(), i - currentToken.Length);
                 }
                 else
                 {
-                    nextToken = new Token(currentToken.ToString(), i, type);
+                    nextToken = new Token(currentToken.ToString(), i - currentToken.Length, type);
                 }
 
                 currentToken.Clear();

@@ -11,7 +11,7 @@ namespace LinqInfer.Utility
 
         public DynamicEqualityComparer(Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
         {
-            _isClass = typeof(T).IsClass;
+            _isClass = typeof(T).GetTypeInf().IsClass;
             _compareFunc = compareFunc;
             _hashCodeFunc = hashCodeFunc ?? (x => (_isClass && x == null) ? 0 : x.GetHashCode());
         }

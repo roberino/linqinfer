@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Text
 {
@@ -118,7 +119,7 @@ namespace LinqInfer.Text
 
         private static Stream GetResource(string name)
         {
-            var asm = typeof(EnglishDictionary).Assembly; // Assembly.GetExecutingAssembly();
+            var asm = typeof(EnglishDictionary).GetTypeInf().Assembly; // Assembly.GetExecutingAssembly();
             var names = asm.GetManifestResourceNames();
             var rname = names.FirstOrDefault(r => r.EndsWith(name));
 

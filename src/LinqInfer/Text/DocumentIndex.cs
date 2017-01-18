@@ -176,6 +176,40 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Gets the raw weighting data for each term within a given query
+        /// </summary>
+        /// <param name="query">The query text</param>
+        /// <returns>A dictionary of terms and <see cref="DocumentTermWeightingData"/></returns>
+        public IDictionary<string, IList<DocumentTermWeightingData>> GetQueryWeightingData(string query)
+        {
+            var frequencyData = GetWordFrequencies(query);
+
+            var docs = frequencyData.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => (IList<DocumentTermWeightingData>)new List<DocumentTermWeightingData>());
+
+            foreach (var termFreqData in frequencyData)
+            {
+                foreach (var doc in docs)
+                {
+                    int tf = 0;
+
+                    termFreqData.Value.DocFrequencies.TryGetValue(doc.Key, out tf);
+
+                    var data = new DocumentTermWeightingData()
+                    {
+                        Term = termFreqData.Key,
+                        DocumentCount = _documentCount,
+                        DocumentFrequency = termFreqData.Value.Count,
+                        TermFrequency = tf
+                    };
+
+                    doc.Value.Add(data);
+                }
+            }
+
+            return docs;
+        }
+
+        /// <summary>
         /// Saves the index data to the stream
         /// </summary>
         public void Save(Stream output)
@@ -282,29 +316,9 @@ namespace LinqInfer.Text
         {
             var frequencyData = GetWordFrequencies(query);
 
-            var docs = frequencyData.SelectMany(x => x.Value.DocFrequencies.Keys).Distinct().ToDictionary(x => x, x => new List<DocumentTermWeightingData>());
+            var weightings = GetQueryWeightingData(query);
 
-            foreach (var termFreqData in frequencyData)
-            {
-                foreach (var doc in docs)
-                {
-                    int tf = 0;
-
-                    termFreqData.Value.DocFrequencies.TryGetValue(doc.Key, out tf);
-
-                    var data = new DocumentTermWeightingData()
-                    {
-                        Term = termFreqData.Key,
-                        DocumentCount = _documentCount,
-                        DocumentFrequency = termFreqData.Value.Count,
-                        TermFrequency = tf
-                    };
-
-                    doc.Value.Add(data);
-                }
-            }
-
-            return docs
+            return weightings
                 .Select(d => new
                 {
                     key = d.Key,
@@ -482,7 +496,7 @@ namespace LinqInfer.Text
 
             public void Save(Stream output)
             {
-                using (var writer = new BinaryWriter(output, Encoding.Default, true))
+                using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
                 {
                     writer.Write(Count);
                 }
@@ -494,7 +508,7 @@ namespace LinqInfer.Text
 
             public void Load(Stream input)
             {
-                using (var reader = new BinaryReader(input, Encoding.Default, true))
+                using (var reader = new BinaryReader(input, Encoding.UTF8, true))
                 {
                     Count = reader.ReadInt64();
                 }

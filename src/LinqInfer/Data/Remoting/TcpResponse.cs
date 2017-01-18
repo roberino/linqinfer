@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    public sealed class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
+    public class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
     {
         private readonly Stream _innerStream;
         private readonly Stream _compressionStream;
-        private readonly TcpResponseHeader _header;
+        private readonly IResponseHeader _header;
         private readonly ICompressionProvider _compression;
 
         private TextWriter _text;
 
-        internal TcpResponse(TcpRequestHeader requestHeader, ICompressionProvider compression)
+        internal TcpResponse(IRequestHeader requestHeader, ICompressionProvider compression)
         {
             _compression = compression;
             _innerStream = new MemoryStream();
@@ -33,20 +33,27 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        internal TcpResponse(TransportProtocol transportProtocol, Stream responseStream = null)
+        internal TcpResponse(TransportProtocol transportProtocol, Stream responseStream = null, string httpProtocol = HttpHeaderFormatter.DefaultHttpProtocol)
         {
             _compressionStream = responseStream ?? new MemoryStream();
             _innerStream = _compressionStream;
 
-            _header = new TcpResponseHeader(() => _innerStream.Length)
+            _header = new TcpResponseHeader(() => _innerStream.Length, null, httpProtocol)
             {
                  TransportProtocol = transportProtocol
             };
         }
 
-        public TcpResponseHeader Header { get { return _header; } }
+        internal TcpResponse(IResponseHeader header, Stream responseStream)
+        {
+            _compressionStream = responseStream;
+            _innerStream = _compressionStream;
+            _header = header;
+        }
 
-        public Stream Content { get { return _compressionStream; } }
+        public virtual IResponseHeader Header { get { return _header; } }
+
+        public virtual Stream Content { get { return _compressionStream; } }
 
         public bool HasContent
         {
@@ -114,7 +121,7 @@ namespace LinqInfer.Data.Remoting
                     throw new NotSupportedException("Not supported for compressed responses");
                 }
 
-                var res = new TcpResponse(Header.TransportProtocol);
+                var res = new TcpResponse(Header.TransportProtocol, null, Header.HttpProtocol);
 
                 if (Content.Position > 0) Content.CopyTo(res.Content);
 
@@ -123,7 +130,6 @@ namespace LinqInfer.Data.Remoting
                     res.Header.Headers[h.Key] = h.Value;
                 }
 
-                res.Header.HttpProtocol = Header.HttpProtocol;
                 res.Header.IsError = Header.IsError;
                 res.Header.StatusCode = Header.StatusCode;
                 res.Header.StatusText = Header.StatusText;

@@ -75,6 +75,7 @@
     <Compile Include="Data\IObjectSerialiser.cs" />
     <Compile Include="Data\IXmlExportable.cs" />
     <Compile Include="Data\IXmlImportable.cs" />
+    <Compile Include="Data\ObjectBlobber.cs" />
     <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
@@ -84,8 +85,11 @@
     <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
     <Compile Include="Data\Remoting\IHttpApi.cs" />
+    <Compile Include="Data\Remoting\IHttpHeader.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />
     <Compile Include="Data\Remoting\IOwinContext.cs" />
+    <Compile Include="Data\Remoting\IRequestHeader.cs" />
+    <Compile Include="Data\Remoting\IResponseHeader.cs" />
     <Compile Include="Data\Remoting\IServer.cs" />
     <Compile Include="Data\Remoting\ITransferHandle.cs" />
     <Compile Include="Data\Remoting\IUriRoute.cs" />
@@ -179,6 +183,7 @@
     <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
+    <Compile Include="Text\Analysis\Triple.cs" />
     <Compile Include="Text\DocumentTermWeightingData.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
@@ -191,6 +196,8 @@
     <Compile Include="Text\SearchResult.cs" />
     <Compile Include="Text\SemanticSet.cs" />
     <Compile Include="Text\StreamTokeniser.cs" />
+    <Compile Include="Text\TextEncoding.cs" />
+    <Compile Include="Text\TextUtility.cs" />
     <Compile Include="Text\TokenisedTextDocument.cs" />
     <Compile Include="Text\TextExtensions.cs" />
     <Compile Include="Text\TextFuctions.cs" />

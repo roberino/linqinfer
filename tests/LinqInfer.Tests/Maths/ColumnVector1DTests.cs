@@ -69,5 +69,33 @@ namespace LinqInfer.Tests.Probability
 
             Assert.That(vect1.Equals(vect2), Is.False);
         }
+
+        [Test]
+        public void Multiply_Op_ReturnsExpectedOutput()
+        {
+            var vect1 = ColumnVector1D.Create(1, 2, 3, 4);
+            var vect2 = ColumnVector1D.Create(5, 4, 3, 2);
+            var vect3 = vect1 * vect2;
+
+            Assert.That(vect3.Size, Is.EqualTo(4));
+            Assert.That(vect3[0], Is.EqualTo(1 * 5));
+            Assert.That(vect3[1], Is.EqualTo(2 * 4));
+            Assert.That(vect3[2], Is.EqualTo(3 * 3));
+            Assert.That(vect3[3], Is.EqualTo(4 * 2));
+        }
+
+        [Test]
+        public void Addition_Op_ReturnsExpectedOutput()
+        {
+            var vect1 = ColumnVector1D.Create(1, 2, 3, 4);
+            var vect2 = ColumnVector1D.Create(5, 4, 3, 2);
+            var vect3 = vect1 + vect2;
+
+            Assert.That(vect3.Size, Is.EqualTo(4));
+            Assert.That(vect3[0], Is.EqualTo(1 + 5));
+            Assert.That(vect3[1], Is.EqualTo(2 + 4));
+            Assert.That(vect3[2], Is.EqualTo(3 + 3));
+            Assert.That(vect3[3], Is.EqualTo(4 + 2));
+        }
     }
 }
