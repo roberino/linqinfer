@@ -48,12 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelationalDataMapper.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LinqInfer\LinqInfer.csproj">
-      <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
-      <Name>LinqInfer</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

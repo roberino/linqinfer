@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E5FE3E3C-B
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite", "src\LinqInfer.Storage.SqLite\LinqInfer.Storage.SQLite.csproj", "{C0C921B0-3A10-4C74-B78D-05AB436C705E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite", "src\LinqInfer.Storage.SQLite\LinqInfer.Storage.SQLite.csproj", "{C0C921B0-3A10-4C74-B78D-05AB436C705E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Storage.SQLite.Tests", "tests\LinqInfer.Storage.SQLite.Tests\LinqInfer.Storage.SQLite.Tests.csproj", "{3A540288-FF3C-424D-8E9C-9D4FB25B4328}"
 EndProject
