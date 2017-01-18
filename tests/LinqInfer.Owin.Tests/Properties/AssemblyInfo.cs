@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("LinqInfer.Owin.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Euromoney Institutional Investor Plc")]
 [assembly: AssemblyProduct("LinqInfer.Owin.Tests")]
-[assembly: AssemblyCopyright("Copyright © Euromoney Institutional Investor Plc 2017")]
+[assembly: AssemblyCopyright("Copyright © 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

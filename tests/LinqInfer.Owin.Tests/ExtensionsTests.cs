@@ -36,6 +36,11 @@ namespace LinqInfer.Owin.Tests
                     return Task.FromResult(x * 2);
                 });
 
+                api.Bind("/{x}", Verb.Post).To(1, x =>
+                {
+                    return Task.FromResult(x * 3);
+                });
+
                 ServerStatus lastStatus = ServerStatus.Unknown;
 
                 api.StatusChanged += (s, e) =>
@@ -48,7 +53,7 @@ namespace LinqInfer.Owin.Tests
                 Assert.That(lastStatus, Is.EqualTo(ServerStatus.Running));
                 Assert.That(api.Status, Is.EqualTo(ServerStatus.Running));
 
-                // Thread.Sleep(120000);
+                //Thread.Sleep(120000);
 
                 api.Stop();
 

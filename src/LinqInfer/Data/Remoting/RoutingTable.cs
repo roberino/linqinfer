@@ -36,6 +36,13 @@ namespace LinqInfer.Data.Remoting
             });
         }
 
+        internal IEnumerable<IUriRoute> Mappings(Uri uri)
+        {
+            IDictionary<string, string> para;
+
+            return _routes.Where(r => r.UriRoute.Mapper.TryMap(uri, Verb.All, out para)).Select(r => r.UriRoute);
+        }
+
         private Func<T, Task<bool>> Map(IEnumerable<RouteHandlerPair> applicableRoutes, Uri uri, Verb verb = Verb.Default, bool throwIfMissing = true)
         {
             foreach (var route in applicableRoutes)

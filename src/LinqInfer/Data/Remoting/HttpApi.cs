@@ -65,7 +65,10 @@ namespace LinqInfer.Data.Remoting
             return TestRoute<T>(uri, headers);
         }
 
-        public async Task<T> TestRoute<T>(Uri uri, IDictionary<string, string[]> headers = null)
+        public async Task<T> TestRoute<T>(Uri uri, 
+            Verb httpVerb, 
+            Stream requestBody = null,
+            IDictionary<string, string[]> headers = null)
         {
             TcpRequest request;
 
@@ -73,7 +76,7 @@ namespace LinqInfer.Data.Remoting
             {
                 using (var headerFormatter = new HttpHeaderFormatter(writer, true))
                 {
-                    headerFormatter.WriteRequestAndProtocol("GET", uri.PathAndQuery);
+                    headerFormatter.WriteRequestAndProtocol(HttpHeaderFormatter.TranslateVerb(httpVerb), uri.PathAndQuery);
 
                     if (headers == null) headers = new Dictionary<string, string[]>();
 
@@ -86,7 +89,7 @@ namespace LinqInfer.Data.Remoting
 
                 var headerBytes = Encoding.ASCII.GetBytes(writer.ToString());
 
-                request = new TcpRequest(new TcpRequestHeader(headerBytes), Stream.Null);
+                request = new TcpRequest(new TcpRequestHeader(headerBytes), requestBody ?? Stream.Null);
             }
 
             var localContext = new OwinContext(request, new TcpResponse(TransportProtocol.Http), BaseEndpoint);
@@ -104,6 +107,11 @@ namespace LinqInfer.Data.Remoting
             var mimeType = localContext.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
 
             return await _serialiser.Deserialise<T>(response, localContext.Response.Header.TextEncoding, mimeType);
+        }
+
+        public Task<T> TestRoute<T>(Uri uri, IDictionary<string, string[]> headers = null)
+        {
+            return TestRoute<T>(uri, Verb.Get, null, headers);
         }
 
         public RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get, Func<IOwinContext, bool> predicate = null)
@@ -127,14 +135,69 @@ namespace LinqInfer.Data.Remoting
             return route;
         }
 
-        private Task<bool> PostProcess(IOwinContext context)
+        public void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute)
+        {
+            _host.AddComponent(handler, stage);
+        }
+
+        public void AddErrorHandler(Func<IOwinContext, Exception, Task<bool>> errorHandler)
+        {
+            _host.AddErrorHandler(errorHandler);
+        }
+
+        public void Start()
+        {
+            _host.Start();
+        }
+
+        public void Stop(bool wait = false)
+        {
+            _host.Stop(wait);
+        }
+
+        public void Dispose()
+        {
+            _host.Dispose();
+        }
+
+        private async Task<bool> PostProcess(IOwinContext context)
         {
             if (!context.Response.Header.StatusCode.HasValue && !context.Response.HasContent)
             {
                 context.Response.CreateStatusResponse(404);
             }
+            else
+            {
+                if (context.Response.Header.StatusCode == 405)
+                {
+                    var mappings = _routes.GetMappings(context.RequestUri).ToList();
 
-            return Task.FromResult(true);
+                    if (mappings.Any())
+                    {
+                        await WriteOptions(context, mappings);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private Task WriteOptions(IOwinContext context, IList<IUriRoute> mappings)
+        {
+            var supportedVerbs = mappings.SelectMany(m => m.Verbs.ToString().ToUpper().Split(',')).Distinct().ToArray();
+                //.Aggregate(new StringBuilder(), (s,v) => (s.Length > 0 ? s.Append(',') : s).Append(v)).ToString();
+
+            context.Response.Header.Headers["Accept"] = supportedVerbs;
+
+            return _binder.SerialiseAndSetMimeAndStatus(context, new
+            {
+                routes = mappings.Select(m => new
+                {
+                    template = m.Template,
+                    baseUri = m.BaseUri,
+                    verbs = m.Verbs.ToString().ToUpper()
+                })
+            });
         }
 
         private Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
@@ -168,31 +231,6 @@ namespace LinqInfer.Data.Remoting
                     yield return prop.Name;
                 }
             }
-        }
-
-        public void AddComponent(Func<IOwinContext, Task> handler, OwinPipelineStage stage = OwinPipelineStage.PreHandlerExecute)
-        {
-            _host.AddComponent(handler, stage);
-        }
-
-        public void AddErrorHandler(Func<IOwinContext, Exception, Task<bool>> errorHandler)
-        {
-            _host.AddErrorHandler(errorHandler);
-        }
-
-        public void Start()
-        {
-            _host.Start();
-        }
-
-        public void Stop(bool wait = false)
-        {
-            _host.Stop(wait);
-        }
-
-        public void Dispose()
-        {
-            _host.Dispose();
         }
     }
 }

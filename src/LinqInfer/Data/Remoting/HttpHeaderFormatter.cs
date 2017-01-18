@@ -75,6 +75,21 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        public static string TranslateVerb(Verb verb)
+        {
+            switch (verb)
+            {
+                case Verb.Create:
+                    return "PUT";
+                case Verb.Update:
+                    return "POST";
+                case Verb.Default:
+                    return "GET";
+            }
+
+            return verb.ToString().ToUpper();
+        }
+
         public void Dispose()
         {
             _writer.Flush();

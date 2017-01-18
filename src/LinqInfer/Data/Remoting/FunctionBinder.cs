@@ -46,6 +46,16 @@ namespace LinqInfer.Data.Remoting
             return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
         }
 
+        internal async Task SerialiseAndSetMimeAndStatus<T>(IOwinContext context, T result, int status = 200)
+        {
+            var mimeType = context.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
+
+            context.Response.Header.ContentMimeType = mimeType;
+            context.Response.Header.StatusCode = status;
+
+            await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
+        }
+
         private Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
         {
             var argType = typeof(TArg);
@@ -60,16 +70,6 @@ namespace LinqInfer.Data.Remoting
             });
 
             return BindParamsToMethod(exec, func.Method, defaultValue, fallbackToDefault);
-        }
-
-        private async Task SerialiseAndSetMimeAndStatus<T>(IOwinContext context, T result)
-        {
-            var mimeType = context.Request.Header.PreferredMimeType(_serialiser.SupportedMimeTypes);
-
-            await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
-
-            context.Response.Header.ContentMimeType = mimeType;
-            context.Response.Header.StatusCode = 200;
         }
 
         private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)

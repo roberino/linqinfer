@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -27,7 +30,14 @@ namespace LinqInfer.Data.Remoting
                 }
                 else
                 {
-                    c.Response.CreateStatusResponse(404);
+                    if (GetMappings(c.RequestUri).Any())
+                    {
+                        c.Response.CreateStatusResponse(405);
+                    }
+                    else
+                    {
+                        c.Response.CreateStatusResponse(404);
+                    }
                 }
             };
         }
@@ -45,6 +55,11 @@ namespace LinqInfer.Data.Remoting
 
                 return true;
             });
+        }
+
+        internal IEnumerable<IUriRoute> GetMappings(Uri requestUri)
+        {
+            return _routes.Mappings(requestUri);
         }
     }
 }
