@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace LinqInfer.Text.VectorExtraction
             int i = 0;
 
             var featureProps = _type
+                .GetTypeInf()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Where(p => p.PropertyType == typeof(string))
                 .Select(p =>

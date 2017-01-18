@@ -22,6 +22,7 @@ namespace LinqInfer.Data.Remoting
             };
         }
 
+#if !NET_STD
         /// <summary>
         /// Sends extracted data to a server endpoint
         /// </summary>
@@ -41,6 +42,7 @@ namespace LinqInfer.Data.Remoting
                 await handle.End();
             }
         }
+#endif
 
         /// <summary>
         /// Creates a URI route which can be used to map URIs to handlers

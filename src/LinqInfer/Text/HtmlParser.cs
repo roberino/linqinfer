@@ -80,7 +80,7 @@ namespace LinqInfer.Text
 
                     foreach (var c in nextLine)
                     {
-                        if (!XmlConvert.IsXmlChar(c)) continue;
+                        if (!IsValidXmlChar(c)) continue;
 
                         switch (c)
                         {
@@ -233,6 +233,21 @@ namespace LinqInfer.Text
                 ReadNode();
 
                 return ((XElement)_rootNode).Nodes();
+            }
+
+            private static bool IsValidXmlChar(char charv)
+            {
+                var character = (int)charv;
+
+                return
+                (
+                     character == 0x9 || // tab
+                     character == 0xA || // new line
+                     character == 0xD || // CR
+                    (character >= 0x20 && character <= 0xD7FF) ||
+                    (character >= 0xE000 && character <= 0xFFFD) ||
+                    (character >= 0x10000 && character <= 0x10FFFF)
+                );
             }
 
             private bool IsAttributeRead

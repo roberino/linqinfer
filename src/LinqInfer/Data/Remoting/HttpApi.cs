@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -121,16 +122,27 @@ namespace LinqInfer.Data.Remoting
 
         public IUriRoute ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)
         {
-            var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
-            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
+#if NET_STD
+            var method = func.GetMethodInfo();
+#else
+            var method = func.Method;
+#endif
+
+            var parameters = GetParameters<TArg>(method.GetParameters().First());
+            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? method.Name) + "/" + string.Join("/", parameters.ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToAsyncMethod(func, defaultValue));
             return route;
         }
 
         public IUriRoute ExportSyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, TResult> func, string name = null)
         {
-            var parameters = GetParameters<TArg>(func.Method.GetParameters().First());
-            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? func.Method.Name) + "/" + string.Join("/", parameters.Select(p => '{' + p + '}').ToArray()), Verb.Get);
+#if NET_STD
+            var method = func.GetMethodInfo();
+#else
+            var method = func.Method;
+#endif
+            var parameters = GetParameters<TArg>(method.GetParameters().First());
+            var route = BaseEndpoint.CreateRoute("/" + GetPathForName(name ?? method.Name) + "/" + string.Join("/", parameters.Select(p => '{' + p + '}').ToArray()), Verb.Get);
             _routes.AddRoute(route, _binder.BindToSyncMethod(func, defaultValue));
             return route;
         }
@@ -226,7 +238,7 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
-                foreach (var prop in argType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                foreach (var prop in argType.GetTypeInf().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                 {
                     yield return prop.Name;
                 }

@@ -96,7 +96,6 @@ namespace LinqInfer.Data.Remoting
 
             if (_closeWriter)
             {
-                _writer.Close();
                 _writer.Dispose();
             }
         }

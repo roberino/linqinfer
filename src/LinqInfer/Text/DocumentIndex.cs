@@ -496,7 +496,7 @@ namespace LinqInfer.Text
 
             public void Save(Stream output)
             {
-                using (var writer = new BinaryWriter(output, Encoding.Default, true))
+                using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
                 {
                     writer.Write(Count);
                 }
@@ -508,7 +508,7 @@ namespace LinqInfer.Text
 
             public void Load(Stream input)
             {
-                using (var reader = new BinaryReader(input, Encoding.Default, true))
+                using (var reader = new BinaryReader(input, Encoding.UTF8, true))
                 {
                     Count = reader.ReadInt64();
                 }

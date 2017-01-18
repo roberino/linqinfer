@@ -167,11 +167,6 @@ namespace LinqInfer.Storage.SQLite.Providers
             return header.Uri;
         }
 
-        public Task<Uri> UpdateSample(Uri sampleId, IEnumerable<DataItem> items, Func<DataSample, SampleSummary> onUpdate)
-        {
-            throw new NotImplementedException();
-        }
-
         private string KeyFromUri(Uri uri)
         {
             var key = uri.PathAndQuery.Split('/').Last().Trim();

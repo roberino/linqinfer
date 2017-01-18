@@ -49,12 +49,17 @@ namespace LinqInfer.Data.Remoting
 
         protected virtual Uri GetBaseUri(int port, string host)
         {
-            return new Uri(Uri.UriSchemeHttp + Uri.SchemeDelimiter + host + ":" + port);
+            return new Uri(Util.UriSchemeHttp + Util.SchemeDelimiter + host + ":" + port);
         }
 
         public static EndPoint GetEndpoint(string host, int port = DefaultPort)
         {
+
+#if NET_STD
+            var dns = Dns.GetHostEntryAsync(host).Result;
+#else
             var dns = Dns.GetHostEntry(host);
+#endif
             var ipAddress = dns.AddressList[0];
 
             return new IPEndPoint(ipAddress, port);
@@ -97,7 +102,7 @@ namespace LinqInfer.Data.Remoting
             {
                 OnStatusChange(ServerStatus.Error);
                 DebugOutput.Log(ex);
-                throw new ApplicationException(string.Format("Cant start server on address {0} because of: {1}", _baseEndpoint, ex.Message), ex);
+                throw new Exception(string.Format("Cant start server on address {0} because of: {1}", _baseEndpoint, ex.Message), ex);
             }
 
             if (_status == ServerStatus.Running || (_connectThread != null && _connectThread.IsAlive))
@@ -245,7 +250,16 @@ namespace LinqInfer.Data.Remoting
 
                     try
                     {
-                        var res = _socket.BeginAccept(AcceptCallback, _socket);
+                        //var res = _socket.BeginAccept(AcceptCallback, _socket);
+                        
+                        var acceptArgs = new SocketAsyncEventArgs();
+
+                        acceptArgs.Completed += AcceptCompleted;
+
+                        if (!_socket.AcceptAsync(acceptArgs))
+                        {
+                            AcceptCompleted(this, acceptArgs);
+                        }
 
                         DebugOutput.Log("Waiting for a connection on port {0}...", _baseEndpoint.Port);
 
@@ -263,17 +277,6 @@ namespace LinqInfer.Data.Remoting
                         }
                     }
 
-                    // TODO: try _socket.AcceptAsync()
-
-                    //var acceptArgs = new SocketAsyncEventArgs();
-
-                    //acceptArgs.Completed += AcceptCompleted;
-
-                    //if (!_socket.AcceptAsync(acceptArgs))
-                    //{
-                    //    AcceptCompleted(this, acceptArgs);
-                    //}
-
                     while (_status == ServerStatus.Running)
                     {
                         if (_completedHandle.WaitOne(500)) break;
@@ -286,37 +289,16 @@ namespace LinqInfer.Data.Remoting
                     OnStatusChange(ServerStatus.Stopped);
             })
             {
-                IsBackground = true,
+                IsBackground = true,                
+#if !NET_STD
                 Priority = ThreadPriority.Highest
+#endif
             };
         }
 
         private void AcceptCompleted(object sender, SocketAsyncEventArgs e)
         {
             OnAccept(e.AcceptSocket);
-        }
-
-        private void AcceptCallback(IAsyncResult ar)
-        {
-            _completedHandle.Set();
-
-            var listener = (Socket)ar.AsyncState;
-
-            try
-            {
-                var handler = listener.EndAccept(ar);
-
-                OnAccept(handler);
-            }
-            catch (Exception ex)
-            {
-                if (ex is ObjectDisposedException) return;
-
-                if (!HandleTransportError(ex))
-                {
-                    throw;
-                }
-            }
         }
 
         private void OnAccept(Socket handler)
@@ -381,7 +363,12 @@ namespace LinqInfer.Data.Remoting
                     else
                     {
                         DebugOutput.Log("Ending conversation");
+
+#if !NET_STD
                         state.ClientSocket.Disconnect(true);
+#else
+                        state.ClientSocket.Dispose();
+#endif
                     }
                 }
             }
@@ -473,7 +460,7 @@ namespace LinqInfer.Data.Remoting
                     host = "localhost";
                 }
 
-                return new Uri("tcp" + Uri.SchemeDelimiter + host + ":" + ip.Port);
+                return new Uri("tcp" + Util.SchemeDelimiter + host + ":" + ip.Port);
             }
             return null;
         }
@@ -485,7 +472,11 @@ namespace LinqInfer.Data.Remoting
             try
             {
                 _socket.Shutdown(SocketShutdown.Both);
+#if !NET_STD
                 _socket.Close(250);
+#else
+                _socket.Dispose();
+#endif
             }
             catch (Exception ex)
             {
