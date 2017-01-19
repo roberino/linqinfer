@@ -13,7 +13,7 @@ It is an attempt to create a useful library which uses a fluent and LINQ-like ap
 
 Feature extraction is key to many of the classification algorithms and feature pipelines
 represent a pipeline of feature data which can be pumped into various forms. There are a few mechanisms
-for reducing the dimensionality of the input data, such as principle component analysis and 
+for reducing the dimensionality of the input data, such as principle component analysis and custom transformations.
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
