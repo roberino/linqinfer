@@ -1,16 +1,13 @@
 ﻿using LinqInfer.Genetics;
 using LinqInfer.Learning;
-using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Text
 {
@@ -52,15 +49,6 @@ namespace LinqInfer.Tests.Text
                 var optimalParams = ao.Optimise(p =>
                 {
                     var pipeline = data.CreateTextFeaturePipeline(a => a.cls, vectorSize);
-
-                    //var pipeline = data.CreateTextFeaturePipeline("hath", "my", "with", "of", "thee", "thy", "i", "monkey", "jungle", "banana", "vine", "tarzan");
-
-                    //foreach (var f in pipeline.FeatureExtractor.FeatureMetadata)
-                    //{
-                    //    Console.WriteLine(f.Label);
-                    //}
-
-                    //if (i++ == 0) pipeline.ToCsv(Console.Out, x => x.cls, '\t').Execute();
 
                     if (pcaFactor > 1) pipeline.PrincipalComponentReduction(pcaFactor);
 

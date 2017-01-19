@@ -24,9 +24,6 @@
       "url": "git://github.com/roberino/linqinfer"
     }
   },
-  "dependencies": {
-    "System.Net.Http": "4.3.0"
-  },
   "buildOptions": {
     "embed": [
       "Resources/*.txt"
@@ -52,7 +49,8 @@
         "System.Net.NameResolution": "4.0.0",
         "System.Diagnostics.Process": "4.1.0",
         "System.Linq.Parallel": "4.3.0",
-        "System.Linq.Queryable": "4.3.0"
+        "System.Linq.Queryable": "4.3.0",
+        "System.Net.Http": "4.3.0"
       },
       "buildOptions": {
         "define": [

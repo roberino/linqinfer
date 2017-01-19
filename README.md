@@ -2,18 +2,18 @@
 
 ## A lightweight and slightly experimental inference library for C# / LINQ
 
-This library reflects my interest over the last few years in Bayesian probability, 
-probabilistic reasoning and other means of inference.
+This library reflects my interest over the years in Bayesian probability, 
+probabilistic reasoning, classification and other means of inference.
 
-It is both a learning exercise for myself and an attempt to create a useful
-library which uses a fluent and LINQ-like approach to this type of problem solving.
+It is an attempt to create a useful library which uses a fluent and LINQ-like approach to this type of problem solving.
 
 ### Basic library layout
 
 #### Features and Feature Pipelines
 
 Feature extraction is key to many of the classification algorithms and feature pipelines
-represent a pipeline of feature data which can be pumped into various forms.
+represent a pipeline of feature data which can be pumped into various forms. There are a few mechanisms
+for reducing the dimensionality of the input data, such as principle component analysis and 
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
@@ -44,6 +44,11 @@ var classifier1 = pipeline.ToNaiveBayesClassifier(p => p.ClassificationGroup).Ex
 // Multi-layer Neural Network Classifier
 
 var classifier2 = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGroup, 0.3f).Execute();
+
+// or create a training set first
+
+var trainingSet = pipeline.AsTrainingSet(p => p.ClassificationGroup);
+var classifier3 = trainingSet.ToMultilayerNetworkClassifier().Execute();
 
 ```
 
@@ -96,11 +101,20 @@ var index = docs // enumeration of XDocuments
 
 var results = index.Search("brown fox");
 
+// create feature pipelines
+
+var data = GetTextualObjects();
+
+var pipeline = data.CreateTextFeaturePipeline(a => a.cls, vectorSize);
+
 ```
+
+#### Data
+
+Serialisation and data storage interfaces.
 
 ### Examples
 
-See tests for usage examples.
+See tests for more usage examples.
 
 It is still a work in progress.
-
