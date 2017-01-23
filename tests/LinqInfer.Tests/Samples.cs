@@ -17,9 +17,9 @@ namespace LinqInfer.Tests
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
             {
-                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol || t.Text == "."));
+                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol && t.Text == "?"));
 
-                var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd || (w.Type == TokenType.Symbol || w.Text == "."), order);
+                var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd || (w.Type == TokenType.Symbol && w.Text == "?"), order);
 
                 foreach (var n in Enumerable.Range(0, 10))
                 {
@@ -31,6 +31,32 @@ namespace LinqInfer.Tests
                     Console.WriteLine();
                     Console.WriteLine();
                 }
+            }
+        }
+
+        [Test]
+        public void ShakespeareAs4OrderMarkovChain()
+        {
+            using (var corpusStream = GetResource("shakespeare.txt"))
+            {
+                var corpus = corpusStream.Tokenise().Where(t => t.Type != TokenType.Space);
+
+                var mk = corpus.AsMarkovChain(w => 
+                    w.Type == TokenType.SentenceEnd || 
+                    (w.Type == TokenType.Symbol && (w.Text == "?" || w.Text == ",")), 2, t => t.Text);
+
+                foreach (var n in Enumerable.Range(0, 10))
+                {
+                    foreach (var w in mk.Simulate())
+                    {
+                        Console.Write(w.Text + " ");
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+                }
+
+                mk.ExportAsXml().Save(@"C:\stash\mk.xml");
             }
         }
 

@@ -43,7 +43,7 @@ namespace LinqInfer.Tests.Learning
 
             var pipeline = c0.Concat(c1).AsQueryable().CreatePipeline(v => new[] { v.x, v.y }, 2);
 
-            pipeline.ToCsv(Console.Out, x => x.cls).Execute();
+            // pipeline.ToCsv(Console.Out, x => x.cls).Execute();
 
             var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.cls).Execute();
 

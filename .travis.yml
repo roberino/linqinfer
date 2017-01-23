@@ -5,4 +5,4 @@ install:
   - nuget install NUnit.ConsoleRunner -Version 3.6.0 -OutputDirectory build
 script:
   - xbuild /p:Configuration=Release LinqInfer.sln
-  - mono ./build/NUnit.ConsoleRunner.3.6.0/tools/nunit3-console.exe ./tests/LinqInfer.Tests/bin/Release/LinqInfer.Tests.dll
+  - mono ./build/NUnit.ConsoleRunner.3.6.0/tools/nunit3-console.exe ./tests/LinqInfer.Tests/bin/Release/LinqInfer.Tests.dll  /exclude:Build-Omit

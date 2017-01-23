@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Maths.Probability;
 using NUnit.Framework;
+using System;
 using System.Linq;
 
 namespace LinqInfer.Tests.Maths
@@ -7,6 +8,19 @@ namespace LinqInfer.Tests.Maths
     [TestFixture]
     public class MarkovChainTests
     {
+        [Test]
+        public void AddSequence_and_Export()
+        {
+            var mkc = new DiscreteMarkovChain<char>();
+
+            mkc.AnalyseSequence("abcjholsdgkjhjjkkklkjssssdf");
+
+            var xml = mkc.ExportAsXml();
+
+            Console.Write(xml.ToString());
+        }
+
+
         [TestCase("abdadead", 'a', 'd', 1, 2)]
         [TestCase("abdadead", 'a', 'e', 1, 2)]
         [TestCase("abbgbngb", 'b', 'g', 2, 3)]

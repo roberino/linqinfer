@@ -33,11 +33,11 @@ namespace LinqInfer.Tests.Text.Analysis
                 Console.Write("{0} {1}\t", term.Index, term.Label);
             }
 
-            Console.WriteLine();
+            //Console.WriteLine();
 
-            analyser.DocumentTermMatrix.WriteAsCsv(Console.Out, '\t', 2);
+            //analyser.DocumentTermMatrix.WriteAsCsv(Console.Out, '\t', 2);
 
-            Console.WriteLine();
+            //Console.WriteLine();
 
             analyser.DocumentTermCovarianceMatrix.WriteAsCsv(Console.Out, '\t', 2);
 

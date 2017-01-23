@@ -20,7 +20,7 @@ namespace LinqInfer.Tests.Genetics
             {
                 var r = x / y;
 
-                Console.WriteLine("{0}/{1}={2}", x.CurrentValue, y.CurrentValue, r);
+                // Console.WriteLine("{0}/{1}={2}", x.CurrentValue, y.CurrentValue, r);
 
                 return r;
             }, 50);
@@ -83,7 +83,7 @@ namespace LinqInfer.Tests.Genetics
 
             var bestParams = ao.Optimise(p =>
             {
-                Console.WriteLine("{0}/{1}", x, y);
+                // Console.WriteLine("{0}/{1}", x, y);
 
                 switch (x)
                 {
@@ -110,7 +110,7 @@ namespace LinqInfer.Tests.Genetics
 
             var bestParams = ao.Optimise(p =>
             {
-                Console.WriteLine("{0}/{1}", x, y);
+                // Console.WriteLine("{0}/{1}", x, y);
 
                 switch (x)
                 {

@@ -146,7 +146,7 @@ namespace LinqInfer.Tests.Probability
 
             foreach (var r in range)
             {
-                Console.WriteLine("min {0}, max {1}, actual {2}", min, max, r);
+                //Console.WriteLine("min {0}, max {1}, actual {2}", min, max, r);
 
                 //Assert.That(r, Is.AtLeast(min));
                 //Assert.That(r, Is.AtMost(max));

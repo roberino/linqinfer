@@ -18,7 +18,7 @@ namespace LinqInfer.Tests.Maths
                 var x = rnd.NextDouble();
                 total += x;
 
-                Console.WriteLine(x);
+                // Console.WriteLine(x);
             }
 
             var ave = total / iterations;
@@ -45,7 +45,7 @@ namespace LinqInfer.Tests.Maths
 
             var ave = total / (double)iterations;
 
-            Console.WriteLine("Ave:{0}", ave);
+            //Console.WriteLine("Ave:{0}", ave);
 
             Assert.That(ave, Is.AtLeast(36d));
             Assert.That(ave, Is.AtMost(64d));
