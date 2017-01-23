@@ -21,7 +21,7 @@ namespace LinqInfer.Text
         IEnumerable<string> Words { get; }
 
         /// <summary>
-        /// Returns an enumeration of words encoded as ids
+        /// Returns an enumeration of words encoded (mapped) as ids
         /// </summary>
         /// <returns></returns>
         IEnumerable<int> Encode(IEnumerable<string> tokens, bool appendUnknowns = false, Func<string, int> unknownValue = null);

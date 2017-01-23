@@ -5,20 +5,23 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LinqInfer.Maths.Probability
 {
     internal class DiscreteMarkovChain<T> : IDiscreteMarkovChain<T> where T : IEquatable<T>
     {
+        private readonly Func<T, string> _valueExportFunc;
         private readonly Transition _root;
         private readonly byte _order;
 
-        public DiscreteMarkovChain(byte order = 1)
+        public DiscreteMarkovChain(byte order = 1, Func<T, string> valueExportFunc = null)
         {
             Contract.Assert(order > 0);
 
+            _valueExportFunc = valueExportFunc ?? (v => v.ToString());
             _order = order;
-            _root = new Transition(default(T));
+            _root = new Transition();
         }
 
         public void Merge(IDiscreteMarkovChain<T> other)
@@ -306,6 +309,14 @@ namespace LinqInfer.Maths.Probability
             return new NullableState { Value = value, HasValue = value != null };
         }
 
+        public XDocument ExportAsXml()
+        {
+            var doc = new XDocument(new XElement("chain", new XAttribute("order", _order)));
+            var content = _root.ExportAsXml(_valueExportFunc).Root;
+            doc.Root.Add(content);
+            return doc;
+        }
+
         private struct NullableState
         {
             public bool HasValue { get; set; }
@@ -329,6 +340,13 @@ namespace LinqInfer.Maths.Probability
 
         private class Transition
         {
+            private bool _isRoot;
+
+            public Transition() : this(default(T))
+            {
+                _isRoot = true;
+            }
+
             public Transition(T state)
             {
                 State = state;
@@ -351,6 +369,24 @@ namespace LinqInfer.Maths.Probability
                 n.Frequency++;
 
                 return n;
+            }
+
+            public XDocument ExportAsXml(Func<T, string> valueExportFunc)
+            {
+                var doc = new XDocument(new XElement("tx", 
+                    new XAttribute("freq", Frequency)));
+
+                if (!_isRoot)
+                {
+                    doc.Root.Add(new XAttribute("v", valueExportFunc(State)));
+                }
+
+                foreach (var item in Following)
+                {
+                    doc.Root.Add(item.Value.ExportAsXml(valueExportFunc).Root);
+                }
+
+                return doc;
             }
 
             public IDictionary<T, Transition> Following { get; private set; }
