@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -16,7 +17,14 @@ namespace LinqInfer.Tests.Text.Analysis
 
             var analyser = new CorpusAnalyser(docs.Select(x => x.Root.Value));
 
-            analyser.DocumentTermCovarianceMatrix.WriteAsCsv(Console.Out);
+            using (var writer = new StringWriter())
+            {
+                analyser.DocumentTermCovarianceMatrix.WriteAsCsv(writer);
+
+                writer.Flush();
+
+                Assert.That(writer.ToString().Length > 0);
+            }
         }
 
         [Test]
