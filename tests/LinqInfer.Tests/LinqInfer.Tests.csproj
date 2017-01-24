@@ -130,6 +130,7 @@
     <Compile Include="Text\TextExtensionsTests.cs" />
     <Compile Include="Text\TextUtilityTests.cs" />
     <Compile Include="Text\TokeniserTests.cs" />
+    <Compile Include="Text\TokenisingTextWriterTests.cs" />
     <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />
     <Compile Include="Utility\ConstrainableDictionaryTests.cs" />
     <Compile Include="Utility\DictionarySerialiserTests.cs" />

@@ -287,6 +287,7 @@
     <Compile Include="Text\TextMimeType.cs" />
     <Compile Include="Text\Token.cs" />
     <Compile Include="Text\Tokeniser.cs" />
+    <Compile Include="Text\TokenisingTextWriter.cs" />
     <Compile Include="Text\TokenType.cs" />
     <Compile Include="Text\RegexTokeniser.cs" />
     <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />

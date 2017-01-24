@@ -16,8 +16,6 @@ namespace LinqInfer.Genetics
     {
         private readonly AlgorithmParameterSet _parameters;
 
-        private Func<AlgorithmParameterSet, double> _algorithm;
-
         public AlgorithmOptimiser()
         {
             _parameters = new AlgorithmParameterSet();
@@ -55,8 +53,6 @@ namespace LinqInfer.Genetics
 
                 // if (iterations == n) DebugOutput.Log(score);
             }
-
-            _algorithm = algorithm;
 
             return _parameters.OptimalParameters;
         }

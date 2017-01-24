@@ -191,8 +191,6 @@ namespace LinqInfer.Tests.Text
             var ve = index.CreateVectorExtractor();
 
             var vect = ve.ExtractColumnVector(index.Tokeniser.Tokenise("love time fortune"));
-
-            Console.WriteLine(vect);
         }
 
         [Test]

@@ -66,7 +66,7 @@ namespace LinqInfer.Tests.Probability
 
                 foreach (var h in hist.Analyse(sample).Bins)
                 {
-                    Console.WriteLine("{0}={1}", h.Key, h.Value);
+                    //Console.WriteLine("{0}={1}", h.Key, h.Value);
                 }
 
                 var p = histF((1).OutOf(32));

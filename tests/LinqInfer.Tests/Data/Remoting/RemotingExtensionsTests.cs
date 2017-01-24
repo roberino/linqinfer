@@ -25,6 +25,7 @@ namespace LinqInfer.Tests.Data.Remoting
             app.Dispose();
         }
 
+        [Category("Build-Omit")]
         [Test]
         public async Task CreateRemoteService_SendTo()
         {
