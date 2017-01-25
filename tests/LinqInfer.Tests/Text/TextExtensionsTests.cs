@@ -126,7 +126,7 @@ namespace LinqInfer.Tests.Text
             Assert.That(t, Is.GreaterThanOrEqualTo(passPercent / 100f));
         }
 
-        public bool TextFeaturePipelineToNNClassifier()
+        private bool TextFeaturePipelineToNNClassifier()
         {
             var data = new[]
             {
@@ -169,6 +169,7 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
+        [Category("Build-Omit")]
         public void CreateSemanticClassifier_ReturnsExpectedOutput()
         {
             var data = new[]

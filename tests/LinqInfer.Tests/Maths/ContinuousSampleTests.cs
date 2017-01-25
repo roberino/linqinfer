@@ -10,6 +10,7 @@ namespace LinqInfer.Tests.Probability
     public class ContinuousSampleTests
     {
         [Test]
+        [Category("Build-Omit")]
         public void ProbabilityOf_LinearSample()
         {
             var kde = new KernelDensityEstimator();
@@ -23,8 +24,9 @@ namespace LinqInfer.Tests.Probability
         }
 
         [Test]
+        [Category("Build-Omit")]
         public void ProbabilityOf_RandomSample()
-        {
+        {            
             var kde = new KernelDensityEstimator();
             var data = Enumerable.Range(1, 50).Select(n => Fraction.Random(100, 1)).AsQueryable();
             var sample = new ContinuousSample<Fraction>(data, kde);

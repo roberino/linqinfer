@@ -85,6 +85,7 @@
     <Compile Include="Data\Remoting\HttpException.cs" />
     <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
     <Compile Include="Data\Remoting\ICompressionProvider.cs" />
+    <Compile Include="Data\Remoting\IHttpApiBuilder.cs" />
     <Compile Include="Data\Remoting\IHttpApi.cs" />
     <Compile Include="Data\Remoting\IHttpHeader.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />

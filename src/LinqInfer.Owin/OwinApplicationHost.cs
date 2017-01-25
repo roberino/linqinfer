@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
-using Microsoft.Owin.Hosting;
 using Owin;
 using System;
 using System.Collections.Generic;
@@ -17,13 +16,15 @@ namespace LinqInfer.Owin
         private readonly List<Middleware> _handlers;
         private readonly List<Func<IOwinContext, Exception, Task<bool>>> _errorHandlers;
         private readonly OwinContextConverter _contextConverter;
+        private readonly Func<Uri, Action<IAppBuilder>, IDisposable> _onStartup;
 
         private ServerStatus _status;
         private IDisposable _server;
 
-        public OwinApplicationHost(Uri baseEndpoint)
+        public OwinApplicationHost(Uri baseEndpoint, Func<Uri, Action<IAppBuilder>, IDisposable> onStartup)
         {
             _baseEndpoint = baseEndpoint;
+            _onStartup = onStartup;
             _status = ServerStatus.Stopped;
             _handlers = new List<Middleware>();
             _errorHandlers = new List<Func<IOwinContext, Exception, Task<bool>>>();
@@ -137,10 +138,8 @@ namespace LinqInfer.Owin
             }
 
             _status = ServerStatus.Connecting;
-            _server = WebApp.Start(new StartOptions(_baseEndpoint.ToString())
-            {
-                ServerFactory = "Microsoft.Owin.Host.HttpListener"
-            }, OnStart);
+
+            _server = _onStartup(_baseEndpoint, RegisterMiddleware);
 
             ChangeStatus(ServerStatus.Running);
         }
@@ -174,7 +173,7 @@ namespace LinqInfer.Owin
             return status;
         }
 
-        private void OnStart(IAppBuilder builder)
+        internal void RegisterMiddleware(IAppBuilder builder)
         {
             builder.Run(c =>
             {

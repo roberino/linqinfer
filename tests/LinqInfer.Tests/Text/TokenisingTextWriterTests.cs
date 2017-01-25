@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -78,9 +79,43 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
+        public void DefaultConstructor_WriteLong()
+        {
+            TestWriteNum((long)1234, (t, v) => t.Write(v));
+        }
+
+        [Test]
+        public void DefaultConstructor_WriteDecimal()
+        {
+            TestWriteNum(1234.673m, (t, v) => t.Write(v));
+        }
+
+        [Test]
         public void DefaultConstructor_WriteFloat()
         {
             TestWriteNum(1234.6543f, (t, v) => t.Write(v));
+        }
+
+        [Test]
+        public void ConstructorWithInnerWriter_WriteLine()
+        {
+            using (var stringWriter = new StringWriter())
+            {
+                var writer = new TokenisingTextWriter(stringWriter);
+
+                int tokenCount = -1;
+
+                writer.AddSink(t =>
+                {
+                    tokenCount = t.Count();
+                });
+
+                writer.WriteLine("a foggy day");
+                writer.Flush();
+
+                Assert.That(tokenCount, Is.EqualTo(6));
+                Assert.That(stringWriter.ToString(), Is.EqualTo("a foggy day" + Environment.NewLine));
+            }
         }
 
         private void TestWriteNum<T>(T value, Action<TokenisingTextWriter, T> action)

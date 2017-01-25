@@ -14,10 +14,12 @@ namespace LinqInfer.Text
         private readonly ITokeniser _tokeniser;
         private readonly Encoding _encoding;
         private readonly TextWriter _innerWriter;
+        private readonly bool _disposeInnerWriter;
         private bool _isDisposed;
 
-        public TokenisingTextWriter(TextWriter innerWriter, ITokeniser tokeniser = null) : this(innerWriter.Encoding, tokeniser)
+        public TokenisingTextWriter(TextWriter innerWriter, bool disposeInnerWriter = false, ITokeniser tokeniser = null) : this(innerWriter.Encoding, tokeniser)
         {
+            _disposeInnerWriter = disposeInnerWriter;
             _innerWriter = innerWriter;
         }
 
@@ -137,7 +139,7 @@ namespace LinqInfer.Text
         {
             if (disposing)
             {
-                _innerWriter?.Dispose();
+                if (_disposeInnerWriter) _innerWriter?.Dispose();
                 _sinks.Clear();
             }
             _isDisposed = true;

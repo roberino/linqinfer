@@ -1,5 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
+using Microsoft.Owin.Hosting;
+using Owin;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +14,19 @@ namespace LinqInfer.Owin
         {
             ValidateHttpUri(baseEndpoint);
 
-            return new OwinApplicationHost(baseEndpoint);
+            return new OwinApplicationHost(baseEndpoint, (u, a) => WebApp.Start(new StartOptions(u.ToString())
+            {
+                ServerFactory = "Microsoft.Owin.Host.HttpListener"
+            }, a));
+        }
+
+        public static IHttpApiBuilder CreateHttpApi(this Uri baseEndpoint, IAppBuilder appBuilder, IObjectSerialiser serialiser = null)
+        {
+            ValidateHttpUri(baseEndpoint);
+
+            var hostApp = CreateOwinApplication(baseEndpoint);
+
+            return new HttpApi(serialiser ?? new JsonObjectSerialiser(), hostApp);
         }
 
         public static IHttpApi CreateHttpApi(this Uri baseEndpoint, IObjectSerialiser serialiser = null)
