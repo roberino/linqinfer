@@ -68,7 +68,7 @@ namespace LinqInfer.Tests.Genetics
                     default:
                         return 0;
                 }
-            }, 50);
+            }, 150);
 
             Assert.That(x.OptimalValue, Is.EqualTo('b'));
         }
