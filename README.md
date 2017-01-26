@@ -1,5 +1,7 @@
 # linqinfer
 
+[![Build Status](https://travis-ci.org/roberino/linqinfer.svg?branch=master)](https://travis-ci.org/roberino/linqinfer)
+
 ## A lightweight and slightly experimental inference library for C# / LINQ
 
 This library reflects my interest over the years in Bayesian probability, 
