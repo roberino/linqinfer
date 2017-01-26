@@ -16,7 +16,7 @@ namespace LinqInfer.Genetics
             _possibleValueCount = categories.Count;
         }
 
-        public double RandomVariability { get; set; } = 0.3d;
+        public double RandomVariability { get; set; } = 0.2d;
 
         public override bool IsExhausted
         {

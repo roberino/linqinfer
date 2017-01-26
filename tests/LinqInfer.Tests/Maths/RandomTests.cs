@@ -12,11 +12,15 @@ namespace LinqInfer.Tests.Maths
         {
             var rnd = new LinqInfer.Maths.Random();
             double total = 0;
+            double first = 0;
 
             foreach(var n in Enumerable.Range(1, iterations))
             {
                 var x = rnd.NextDouble();
-                total += x;
+
+                if (total == 0) first = x;
+
+                 total += x;
 
                 // Console.WriteLine(x);
             }
@@ -27,6 +31,7 @@ namespace LinqInfer.Tests.Maths
 
             Assert.That(ave, Is.AtLeast(0.4d));
             Assert.That(ave, Is.AtMost(0.6d));
+            Assert.That(ave, Is.Not.EqualTo(first));
         }
 
         [TestCase(1000)]

@@ -36,6 +36,8 @@ namespace LinqInfer.Tests.Maths
 
             var m2 = covar * covar;
 
+            Debug.Assert(m2 != null);
+
             Console.WriteLine(sw.Elapsed);
         }
 
@@ -53,11 +55,15 @@ namespace LinqInfer.Tests.Maths
             {
                 a = new Matrix(vectors1);
                 b = new Matrix(vectors2);
+
+                Debug.Assert(a != null);
+                Debug.Assert(b != null);
             }, "Setup");
 
             TimeTest(() =>
             {
                 var m1 = a * b;
+                Debug.Assert(m1 != null);
 
             }, "Multiply (operator)");
 
@@ -65,6 +71,7 @@ namespace LinqInfer.Tests.Maths
             TimeTest(() =>
             {
                 var m2 = Matrix.Multiply(a, b);
+                Debug.Assert(m2 != null);
 
             }, "Multiply (method)");
         }
