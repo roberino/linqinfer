@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1-beta",
+  "version": "3.0.2",
   "title": "LinqInfer.Data.Orm",
   "description": "Object relational mapping helpers for LinqInfer",
   "language": "en-GB",
@@ -17,7 +17,7 @@
     "win": {}
   },
   "dependencies": {
-    "LinqInfer": "3.0.*"
+    "LinqInfer": "3.6.*"
   },
   "frameworks": {
     "net45": {

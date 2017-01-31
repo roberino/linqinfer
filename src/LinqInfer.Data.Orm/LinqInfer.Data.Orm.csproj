@@ -36,10 +36,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <ProjectReference Include="..\LinqInfer\LinqInfer.csproj">
-      <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
-      <Name>LinqInfer</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnMapping.cs" />

@@ -17,8 +17,8 @@
     "win": {}
   },
   "dependencies": {
-    "LinqInfer": "3.0.*",
-    "LinqInfer.Data.Orm": "3.0.*",
+    "LinqInfer": "3.6.*",
+    "LinqInfer.Data.Orm": "3.0.2",
     "System.Data.SQLite.Core": "1.0.101"
   },
   "frameworks": {
