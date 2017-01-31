@@ -5,8 +5,19 @@ namespace LinqInfer.Data.Remoting
     [Flags]
     public enum TransportProtocol : byte
     {
-        None = 0,
+        /// <summary>
+        /// Unknown protocol
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// Raw (internal) TCP protocol
+        /// </summary>
         Tcp = 1,
+
+        /// <summary>
+        /// HTTP
+        /// </summary>
         Http = 2
     }
 }

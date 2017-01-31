@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,13 +10,16 @@ namespace LinqInfer.Text
 {
     public sealed class TokenisingTextWriter : TextWriter
     {
+        private readonly StringBuilder _buffer;
         private readonly List<Func<IEnumerable<IToken>, IEnumerable<IToken>>> _filters;
         private readonly List<Func<IEnumerable<IToken>, Task>> _sinks;
         private readonly ITokeniser _tokeniser;
         private readonly Encoding _encoding;
         private readonly TextWriter _innerWriter;
         private readonly bool _disposeInnerWriter;
+        private int _maxBufferSize;
         private bool _isDisposed;
+        private int _charIndex;
 
         public TokenisingTextWriter(TextWriter innerWriter, bool disposeInnerWriter = false, ITokeniser tokeniser = null) : this(innerWriter.Encoding, tokeniser)
         {
@@ -25,10 +29,25 @@ namespace LinqInfer.Text
 
         public TokenisingTextWriter(Encoding encoding = null, ITokeniser tokeniser = null)
         {
+            _maxBufferSize = 8192;
+            _buffer = new StringBuilder();
             _filters = new List<Func<IEnumerable<IToken>, IEnumerable<IToken>>>();
             _sinks = new List<Func<IEnumerable<IToken>, Task>>();
             _encoding = encoding ?? Encoding.UTF8;
             _tokeniser = tokeniser ?? new Tokeniser();
+        }
+
+        public int MaxBufferSize
+        {
+            get
+            {
+                return _maxBufferSize;
+            }
+            set
+            {
+                Contract.Assert(value > 0);
+                _maxBufferSize = value;
+            }
         }
 
         public override Encoding Encoding
@@ -107,10 +126,19 @@ namespace LinqInfer.Text
             ProcessNumberAsync(value).Wait();
         }
 
+        public override void Write(char value)
+        {
+            AssertNotDisposed();
+
+            ProcessAsync(value).Wait();
+        }
+
+#if !NET_STD
         public override void Close()
         {
             _innerWriter?.Close();
         }
+#endif
 
         public override void Flush()
         {
@@ -150,13 +178,74 @@ namespace LinqInfer.Text
             await ProcessAsync(new[] { new Token(number.ToString(), 0, TokenType.Number) });
         }
 
-        private async Task ProcessAsync(string text)
+        private Task ProcessAsync(char ch)
         {
-            if (_sinks.Any())
-            {
-                var tokens = _tokeniser.Tokenise(text).ToList();
+            return ProcessAsync(ch.ToString());
+        }
 
-                await ProcessAsync(tokens);
+        public async Task FlushTokenBuffer()
+        {
+            if(_buffer.Length > 0)
+            {
+                var text = _buffer.ToString();
+                _buffer.Clear();
+                await ProcessAsync(text, true);
+            }
+        }
+
+        private async Task ProcessAsync(string text, bool isLast = false)
+        {
+            if (_sinks.Any() && !string.IsNullOrEmpty(text))
+            {
+                var lastChar = text[text.Length - 1];
+
+                if (char.IsWhiteSpace(lastChar) || isLast)
+                {
+                    string currentText;
+
+                    if (_buffer.Length > 0)
+                    {
+                        _buffer.Append(text);
+                        currentText = _buffer.ToString();
+                    }
+                    else
+                    {
+                        currentText = text;
+                    }
+
+                    var tokens = _tokeniser.Tokenise(currentText).ToList();
+
+                    await ProcessAsync(tokens);
+                }
+                else
+                {
+                    _buffer.Append(text);
+
+                    if(_buffer.Length > MaxBufferSize)
+                    {
+                        await TryFlushExcessBuffer();
+                    }
+                }
+            }
+        }
+
+        private async Task TryFlushExcessBuffer()
+        {
+            var tokens = _tokeniser.Tokenise(_buffer.ToString()).ToList();
+
+            if (tokens.Count > 2)
+            {
+                _buffer.Clear();
+
+                await ProcessAsync(tokens.Take(tokens.Count - 1));
+
+                _buffer.Append(tokens.Last().Text);
+            }
+
+
+            if (_buffer.Length > MaxBufferSize)
+            {
+                throw new Exception("Buffer over max size: " + _buffer.Length);
             }
         }
 
@@ -164,6 +253,8 @@ namespace LinqInfer.Text
         {
             if (_sinks.Any())
             {
+                if (_charIndex > 0) tokens = Reindex(tokens).ToList();
+
                 foreach (var filter in _filters)
                 {
                     tokens = filter(tokens);
@@ -177,6 +268,37 @@ namespace LinqInfer.Text
                 }
 
                 await Task.WhenAll(tasks);
+            }
+        }
+
+        private IEnumerable<IToken> Reindex(IEnumerable<IToken> tokens)
+        {
+            IToken last = null;
+
+            foreach (var t in tokens)
+            {
+                if (t is Token)
+                {
+                    ((Token)t).Index = ((Token)t).Index + _charIndex;
+                    last = t;
+                    yield return t;
+                }
+                else
+                {
+                    var next = new Token(t.Text, t.Index + _charIndex, t.Type)
+                    {
+                        Weight = t.Weight
+                    };
+
+                    last = next;
+
+                    yield return next;
+                }
+            }
+
+            if (last != null)
+            {
+                _charIndex = last.Index + last.Text.Length;
             }
         }
 

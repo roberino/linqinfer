@@ -1,6 +1,9 @@
 ﻿using LinqInfer.Data.Remoting;
 using NUnit.Framework;
 using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +28,69 @@ namespace LinqInfer.Owin.Tests
             }
         }
 
+        [Test]
+        public async Task CreateHttpApi_Bind_AndInvoke_ReturnsValidResponse()
+        {
+            var serverUri = new Uri("http://localhost:8023");
+
+            using (var api = serverUri.CreateHttpApi())
+            {
+                api.Bind("/{x}").To(1, x =>
+                {
+                    return Task.FromResult(x * 2);
+                });
+
+                api.Start();
+
+                using (var client = new HttpClient())
+                {
+                    var res = await client.GetAsync(new Uri(serverUri, "/16"));
+
+                    var text = await res.Content.ReadAsStringAsync();
+
+                    Assert.That(int.Parse(text), Is.EqualTo(32));
+                }
+            }
+        }
+
+        [Test]
+        public async Task CreateOwinApplication_BufferedResponse_WriteAndCloneResponse()
+        {
+            var serverUri = new Uri("http://localhost:8023");
+            IOwinContext clonedContext = null;
+
+            using (var app = serverUri.CreateOwinApplication(true))
+            {
+                app.AddComponent(c =>
+                {
+                    c.Response.CreateTextResponse().Write("Hello");
+
+                    clonedContext = c.Clone(true);
+
+                    return Task.FromResult(1);
+                });
+
+                app.Start();
+
+                using (var client = new HttpClient())
+                {
+                    var res = await client.GetAsync(serverUri);
+
+                    var text = await res.Content.ReadAsStringAsync();
+
+                    Assert.That(text, Is.EqualTo("Hello"));
+                }
+
+                Assert.That(clonedContext, Is.Not.Null);
+            }
+
+            Assert.That(clonedContext.Request.Header.ContentLength, Is.EqualTo(0));
+            Assert.That(clonedContext.Request.Header.Headers.Count, Is.GreaterThan(0));
+            Assert.That(clonedContext.Request.Header.HttpVerb, Is.EqualTo("GET"));
+            Assert.That(clonedContext.Request.Header.Path, Is.EqualTo("/"));
+            Assert.That(clonedContext.Request.Content.Position, Is.EqualTo(0));
+            Assert.That(clonedContext.Response.Content.Position, Is.EqualTo(8));
+        }
 
         [Test]
         public void CreateHttpApi_StartServer_StopServer_StatusIsCorrect()
@@ -53,7 +119,7 @@ namespace LinqInfer.Owin.Tests
                 Assert.That(lastStatus, Is.EqualTo(ServerStatus.Running));
                 Assert.That(api.Status, Is.EqualTo(ServerStatus.Running));
 
-                //Thread.Sleep(120000);
+                Thread.Sleep(30000);
 
                 api.Stop();
 

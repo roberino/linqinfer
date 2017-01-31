@@ -17,12 +17,14 @@ namespace LinqInfer.Owin
         private readonly List<Func<IOwinContext, Exception, Task<bool>>> _errorHandlers;
         private readonly OwinContextConverter _contextConverter;
         private readonly Func<Uri, Action<IAppBuilder>, IDisposable> _onStartup;
+        private readonly bool _bufferResponse;
 
         private ServerStatus _status;
         private IDisposable _server;
 
-        public OwinApplicationHost(Uri baseEndpoint, Func<Uri, Action<IAppBuilder>, IDisposable> onStartup)
+        public OwinApplicationHost(Uri baseEndpoint, Func<Uri, Action<IAppBuilder>, IDisposable> onStartup, bool bufferResponse = false)
         {
+            _bufferResponse = bufferResponse;
             _baseEndpoint = baseEndpoint;
             _onStartup = onStartup;
             _status = ServerStatus.Stopped;
@@ -128,6 +130,8 @@ namespace LinqInfer.Owin
                     }
                 }
             }
+
+            await context.Response.FlushAsync();
         }
 
         public void Start()
@@ -177,7 +181,7 @@ namespace LinqInfer.Owin
         {
             builder.Run(c =>
             {
-                var context = _contextConverter.Convert(c);
+                var context = _contextConverter.Convert(c, _bufferResponse);
 
                 return ProcessContext(context);
             });

@@ -26,7 +26,7 @@ namespace LinqInfer.Tests.Data.Remoting
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public async Task SendBasicRequest_RespondsAsExpected()
         {
             using (var host = new HttpApplicationHost("123", 9032))
@@ -49,7 +49,7 @@ namespace LinqInfer.Tests.Data.Remoting
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public async Task Send_UsingRoutingHandler()
         {
             using (var host = new HttpApplicationHost("123", 9032))
@@ -74,7 +74,7 @@ namespace LinqInfer.Tests.Data.Remoting
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public async Task Send_MultipleComponents_RespondsAsExpected()
         {
             using (var host = new HttpApplicationHost("123", 9032))

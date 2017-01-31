@@ -10,7 +10,7 @@ namespace LinqInfer.Tests.Probability
     public class ContinuousSampleTests
     {
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public void ProbabilityOf_LinearSample()
         {
             var kde = new KernelDensityEstimator();
@@ -24,7 +24,7 @@ namespace LinqInfer.Tests.Probability
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public void ProbabilityOf_RandomSample()
         {            
             var kde = new KernelDensityEstimator();

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace LinqInfer.Data.Remoting
 {
+    //TODO: Should be split into stateful object and parser
     public sealed class TcpRequestHeader : IRequestHeader
     {
         private static readonly Regex _httpHeaderTest;
@@ -56,6 +57,19 @@ namespace LinqInfer.Data.Remoting
                 Query = new Dictionary<string, string[]>();
                 IsComplete = true;
             }
+        }
+
+        internal TcpRequestHeader(IRequestHeader other)
+        {
+            ContentEncoding = other.ContentEncoding;
+            ContentLength = other.ContentLength;
+            ContentMimeType = other.ContentMimeType;
+            Headers = other.Headers.ToDictionary(h => h.Key, h => h.Value.ToArray());
+            HttpProtocol = other.HttpProtocol;
+            HttpVerb = other.HttpVerb;
+            Path = other.Path;
+            Query = other.Query;
+            TransportProtocol = other.TransportProtocol;
         }
 
         internal void Append(byte[] data)

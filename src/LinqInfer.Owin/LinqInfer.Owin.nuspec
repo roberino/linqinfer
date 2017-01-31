@@ -2,7 +2,7 @@
 <package>
 	<metadata> 
 		<id>$id$</id>
-		<version>1.0.1-beta</version>
+		<version>1.0.3</version>
 		<title>LinqInfer.Owin</title>
 		<authors>R Eyres</authors>
 		<owners>R Eyres</owners>
