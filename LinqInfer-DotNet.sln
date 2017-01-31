@@ -5,10 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LinqInfer.DotNet", "src\LinqInfer\LinqInfer.DotNet.xproj", "{C0FDF394-F8C4-4D35-94AB-FAB0789CE7CE}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LinqInfer-DotNet.Tests", "tests\LinqInfer-DotNet.Tests\LinqInfer-DotNet.Tests.xproj", "{7947C861-5675-4F63-A84E-9AE629966A7D}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LinqInfer.AspNetCore", "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.xproj", "{BC06DCAA-6212-4200-9E97-C01EC6B91268}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
