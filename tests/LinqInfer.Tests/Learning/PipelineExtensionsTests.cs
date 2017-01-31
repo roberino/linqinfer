@@ -180,7 +180,7 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
         {
             int successCounter = 0; int failureCounter = 0;

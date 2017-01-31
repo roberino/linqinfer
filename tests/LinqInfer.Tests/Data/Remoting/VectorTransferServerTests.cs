@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Data.Remoting
 {
-    [Category("Build-Omit")]
+    [Category("BuildOmit")]
     [TestFixture]
     public class VectorTransferServerTests
     {

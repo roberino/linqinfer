@@ -169,7 +169,7 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
-        [Category("Build-Omit")]
+        [Category("BuildOmit")]
         public void CreateSemanticClassifier_ReturnsExpectedOutput()
         {
             var data = new[]

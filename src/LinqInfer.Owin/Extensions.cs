@@ -10,14 +10,14 @@ namespace LinqInfer.Owin
 {
     public static class Extensions
     {
-        public static IOwinApplication CreateOwinApplication(this Uri baseEndpoint)
+        public static IOwinApplication CreateOwinApplication(this Uri baseEndpoint, bool bufferResponse = false)
         {
             ValidateHttpUri(baseEndpoint);
 
             return new OwinApplicationHost(baseEndpoint, (u, a) => WebApp.Start(new StartOptions(u.ToString())
             {
                 ServerFactory = "Microsoft.Owin.Host.HttpListener"
-            }, a));
+            }, a), bufferResponse);
         }
 
         public static IHttpApiBuilder CreateHttpApi(this Uri baseEndpoint, IAppBuilder appBuilder, IObjectSerialiser serialiser = null)

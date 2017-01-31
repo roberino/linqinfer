@@ -8,26 +8,27 @@ using System.Threading.Tasks;
 using owin = Microsoft.Owin;
 using System.Text;
 using System.Linq;
+using System.Net;
 
 namespace LinqInfer.Owin
 {
     public class OwinContextConverter
     {
-        public IOwinContext Convert(owin.IOwinContext context)
+        public IOwinContext Convert(owin.IOwinContext context, bool bufferResponse)
         {
-            return new ContextWrapper(context);
+            return new ContextWrapper(context, bufferResponse);
         }
 
         private class ContextWrapper : IOwinContext
         {
             private readonly owin.IOwinContext _owinContext;
 
-            public ContextWrapper(owin.IOwinContext owinContext)
+            public ContextWrapper(owin.IOwinContext owinContext, bool bufferResponse)
             {
                 _owinContext = owinContext;
 
                 Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), owinContext.Request.Body);
-                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Response), owinContext.Response.Body);
+                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Response), owinContext.Response.Body, bufferResponse);
             }
 
             public object this[string key]
@@ -117,7 +118,21 @@ namespace LinqInfer.Owin
 
             public IOwinContext Clone(bool deep)
             {
-                throw new NotImplementedException();
+                string host = _owinContext.Request.LocalIpAddress;
+
+                IPAddress ipHost;
+
+                if (IPAddress.TryParse(host, out ipHost))
+                {
+                    if (ipHost.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    {
+                        host = (ipHost.IsIPv6SiteLocal || host == "::1") ? "localhost" : ipHost.MapToIPv4().ToString();
+                    }
+                }
+
+                var clientUri = new Uri(_owinContext.Request.Uri.Scheme + Uri.SchemeDelimiter + host + ":" + _owinContext.Request.LocalPort);
+
+                return new OwinContext(Request.Clone(deep), Response.Clone(deep), clientUri);
             }
 
             public bool Contains(KeyValuePair<string, object> item)

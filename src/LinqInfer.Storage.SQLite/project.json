@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1-beta",
+  "version": "3.0.2",
   "title": "LinqInfer.Storage.SQLite",
   "description": "SQLite storage for LinqInfer",
   "language": "en-GB",

@@ -112,11 +112,24 @@ namespace LinqInfer.Data.Remoting
         {
             if (deep)
             {
-                if (Content == Stream.Null)
+                if (Content.CanSeek)
                 {
-                    var ms = new MemoryStream();
-                    Content.CopyTo(ms);
-                    return new TcpRequest(Header, ms);
+                    var pos = Content.Position;
+                    Content.Position = 0;
+                    try
+                    {
+                        var ms = new MemoryStream();
+                        Content.CopyTo(ms);
+                        return new TcpRequest(new TcpRequestHeader(Header), ms);
+                    }
+                    finally
+                    {
+                        Content.Position = pos;
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Request stream must support seek");
                 }
             }
 

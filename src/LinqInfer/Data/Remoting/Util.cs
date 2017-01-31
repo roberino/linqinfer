@@ -16,7 +16,7 @@ namespace LinqInfer.Data.Remoting
 
         internal static Uri ConvertProtocol(Uri uri, TransportProtocol protocol)
         {
-            Contract.Ensures(protocol != TransportProtocol.None);
+            Contract.Ensures(protocol != TransportProtocol.Unknown);
             return new Uri(protocol.ToString() + Util.SchemeDelimiter + uri.Host + ':' + uri.Port + uri.PathAndQuery);
         }
 

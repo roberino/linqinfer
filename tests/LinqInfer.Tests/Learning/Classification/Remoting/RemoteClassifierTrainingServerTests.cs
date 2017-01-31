@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Learning.Classification.Remoting
 {
-    [Category("Build-Omit")]
+    [Category("BuildOmit")]
     [TestFixture]
     public class RemoteClassifierTrainingServerTests
     {

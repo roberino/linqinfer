@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,23 +48,97 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
-        public async Task DefaultConstructor_Filtered_Write()
+        public async Task DefaultConstructor_Filtered_WriteAsync()
         {
             var writer = new TokenisingTextWriter();
 
-            int tokenCount = -1;
+            var tokens = new List<IToken>();
 
             writer.AddSink(t =>
             {
-                tokenCount = t.Count();
+                tokens = t.ToList();
                 Assert.That(t.Skip(3).First().Text, Is.EqualTo("day"));
             });
 
             writer.AddFilter(t => t.Where(x => !x.Text.StartsWith("f")));
 
             await writer.WriteAsync("a foggy day");
+            await writer.FlushTokenBuffer();
 
-            Assert.That(tokenCount, Is.EqualTo(4));
+            Assert.That(tokens.Count, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void DefaultConstructor_WriteChars()
+        {
+            var writer = new TokenisingTextWriter();
+
+            var tokens = new List<IToken>();
+
+            writer.AddSink(t =>
+            {
+                tokens = t.ToList();
+            });
+
+            writer.Write('a');
+            writer.Write('b');
+            writer.Write('c');
+
+            Assert.That(tokens.Count, Is.EqualTo(0));
+
+            writer.Write('\n');
+
+            Assert.That(tokens.Count, Is.EqualTo(2));
+            Assert.That(tokens.First().Text, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void DefaultConstructor_Write_BufferIsFlushed()
+        {
+            var writer = new TokenisingTextWriter() { MaxBufferSize = 8 };
+
+            var tokens = new List<IToken>();
+
+            writer.AddSink(t =>
+            {
+                tokens = t.ToList();
+            });
+
+            writer.Write("abcdef");
+
+            Assert.That(tokens.Count, Is.EqualTo(0));
+
+            writer.Write("ghi j");
+
+            Assert.That(tokens.Count, Is.EqualTo(2));
+            Assert.That(tokens.First().Text, Is.EqualTo("abcdefghi"));            
+        }
+
+        [Test]
+        public void DefaultConstructor_OverflowBuffer_ThrowsException()
+        {
+            var writer = new TokenisingTextWriter() { MaxBufferSize = 8 };
+
+            var tokens = new List<IToken>();
+
+            writer.AddSink(t =>
+            {
+                tokens = t.ToList();
+            });
+
+            writer.Write("abcdef");
+
+            Assert.That(tokens.Count, Is.EqualTo(0));
+
+            try
+            {
+                writer.Write("ghij");
+                Assert.Fail("Error not thrown");
+            }
+            catch (AggregateException ex)
+            {
+                Assert.That(ex.InnerException, Is.InstanceOf<Exception>());
+            }
         }
 
         [Test]

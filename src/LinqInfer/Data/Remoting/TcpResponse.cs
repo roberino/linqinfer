@@ -7,20 +7,22 @@ namespace LinqInfer.Data.Remoting
 {
     public class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
     {
-        private readonly Stream _innerStream;
-        private readonly Stream _compressionStream;
+        private readonly Stream _outputStream;
+        private readonly Stream _buffer;
         private readonly IResponseHeader _header;
         private readonly ICompressionProvider _compression;
+        private readonly bool _isBuffered;
 
+        private long _lastFlushPos;
         private TextWriter _text;
 
         internal TcpResponse(IRequestHeader requestHeader, ICompressionProvider compression)
         {
             _compression = compression;
-            _innerStream = new MemoryStream();
-            _compressionStream = compression.CompressTo(_innerStream);
+            _outputStream = new MemoryStream();
+            _buffer = compression.CompressTo(_outputStream);
 
-            _header = new TcpResponseHeader(() => _innerStream.Length)
+            _header = new TcpResponseHeader(() => _outputStream.Length)
             {
                 TransportProtocol = requestHeader.TransportProtocol,
                 HttpProtocol = requestHeader.HttpProtocol
@@ -35,25 +37,34 @@ namespace LinqInfer.Data.Remoting
 
         internal TcpResponse(TransportProtocol transportProtocol, Stream responseStream = null, string httpProtocol = HttpHeaderFormatter.DefaultHttpProtocol)
         {
-            _compressionStream = responseStream ?? new MemoryStream();
-            _innerStream = _compressionStream;
+            _buffer = responseStream ?? new MemoryStream();
+            _outputStream = _buffer;
 
-            _header = new TcpResponseHeader(() => _innerStream.Length, null, httpProtocol)
+            _header = new TcpResponseHeader(() => _outputStream.Length, null, httpProtocol)
             {
                  TransportProtocol = transportProtocol
             };
         }
 
-        internal TcpResponse(IResponseHeader header, Stream responseStream)
+        internal TcpResponse(IResponseHeader header, Stream responseStream, bool bufferOutput = false)
         {
-            _compressionStream = responseStream;
-            _innerStream = _compressionStream;
+            _outputStream = responseStream;
+            _buffer = bufferOutput ? new MemoryStream() : _outputStream;
+            _isBuffered = bufferOutput;
             _header = header;
         }
 
         public virtual IResponseHeader Header { get { return _header; } }
 
-        public virtual Stream Content { get { return _compressionStream; } }
+        public virtual Stream Content { get { return _buffer; } }
+
+        public bool IsBuffered
+        {
+            get
+            {
+                return _isBuffered;
+            }
+        }
 
         public bool HasContent
         {
@@ -68,7 +79,7 @@ namespace LinqInfer.Data.Remoting
             Header.StatusCode = status;
         }
 
-        public TextWriter CreateTextResponse(Encoding encoding = null)
+        public TextWriter CreateTextResponse(Encoding encoding = null, string mimeType = "text/plain")
         {
             if (_text == null || (encoding != null && _text.Encoding != encoding))
             {
@@ -78,7 +89,7 @@ namespace LinqInfer.Data.Remoting
                 }
 
                 Header.TextEncoding = encoding ?? (Header.TextEncoding ?? new UTF8Encoding(true));
-                Header.ContentMimeType = "text/plain";
+                Header.ContentMimeType = mimeType;
 
                 _text = new StreamWriter(Content, Header.TextEncoding, 1024, true);
             }
@@ -92,40 +103,105 @@ namespace LinqInfer.Data.Remoting
 
             output.Write(header, 0, header.Length);
 
-            await GetSendStream().CopyToAsync(output);
+            if (_isBuffered)
+            {
+                var pos = _buffer.Position;
+                _buffer.Position = 0;
+                await _buffer.CopyToAsync(output);
+                _buffer.Position = pos;
+            }
+            else
+            {
+                await GetSendStream().CopyToAsync(output);
+            }
         }
 
         internal Stream GetSendStream()
         {
             Flush();
 
-            if (!ReferenceEquals(_innerStream, _compressionStream)) _compressionStream.Dispose();
+            if (!ReferenceEquals(_outputStream, _buffer))
+            {
+                if (_isBuffered)
+                {
+                    _buffer.Position = 0;
+                    return _buffer;
+                }
+                _buffer.Dispose();
+            }
 
-            _innerStream.Position = 0;
-            return _innerStream;
+            _outputStream.Position = 0;
+            return _outputStream;
+        }
+
+        public async Task FlushAsync()
+        {
+            if (_text != null) await _text.FlushAsync();
+            await _buffer.FlushAsync();
+
+            if (_isBuffered)
+            {
+                _buffer.Position = _lastFlushPos;
+                await _buffer.CopyToAsync(_outputStream);
+                _lastFlushPos = _buffer.Length;
+            }
+
+            await _outputStream.FlushAsync();
         }
 
         internal void Flush()
         {
             if (_text != null) _text.Flush();
-            _compressionStream.Flush();
-            _innerStream.Flush();
+            _buffer.Flush();
+
+            if (_isBuffered)
+            {
+                if (_lastFlushPos > 0) _buffer.Position = _lastFlushPos;
+                _buffer.CopyTo(_outputStream);
+                _lastFlushPos = _buffer.Length;
+            }
+
+            _outputStream.Flush();
         }
 
         public TcpResponse Clone(bool deep)
         {
             if (deep)
             {
-                if (_compression != null && !(_compression is PassThruCompressionProvider) && !ReferenceEquals(_compressionStream, _innerStream))
+                if (_compression != null && !(_compression is PassThruCompressionProvider) && !ReferenceEquals(_buffer, _outputStream))
                 {
                     throw new NotSupportedException("Not supported for compressed responses");
                 }
 
                 var res = new TcpResponse(Header.TransportProtocol, null, Header.HttpProtocol);
 
-                if (Content.Position > 0) Content.CopyTo(res.Content);
+                if (Content.CanSeek)
+                {
+                    if (_text != null)
+                    {
+                        _text.Flush();
+                    }
 
-                foreach(var h in Header.Headers)
+                    if (Content.Position > 0)
+                    {
+                        var pos = Content.Position;
+                        Content.Position = 0;
+                        try
+                        {
+                            Content.CopyTo(res.Content);
+                        }
+                        finally
+                        {
+                            Content.Position = pos;
+                        }
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported stream - seek not allowed");
+                }
+
+                foreach (var h in Header.Headers)
                 {
                     res.Header.Headers[h.Key] = h.Value;
                 }
@@ -145,8 +221,8 @@ namespace LinqInfer.Data.Remoting
 
         public void Dispose()
         {
-            if (!ReferenceEquals(_innerStream, _compressionStream)) _compressionStream.Dispose();
-            _innerStream.Dispose();
+            if (!ReferenceEquals(_outputStream, _buffer)) _buffer.Dispose();
+            _outputStream.Dispose();
         }
     }
 }

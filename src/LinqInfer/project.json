@@ -1,5 +1,5 @@
 ﻿{
-  "version": "3.6.0-beta",
+  "version": "3.6.2",
   "title": "LinqInfer",
   "description": "A lightweight and slightly experimental inference library for .NET",
   "language": "en-GB",
