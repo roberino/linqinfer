@@ -43,7 +43,7 @@ namespace LinqInfer.Data.Remoting
         {
             parameters = null;
 
-            if (!(string.Equals(_route.BaseUri.Host, uri.Host) && _route.BaseUri.Port == uri.Port)) return false;
+            if (!_route.BindToAnyHost && !(string.Equals(_route.BaseUri.Host, uri.Host) && _route.BaseUri.Port == uri.Port)) return false;
 
             if (!_route.Verbs.HasFlag(verb) && verb != Verb.All) return false;
 

@@ -81,6 +81,7 @@
     <Compile Include="Data\Remoting\DataBatch.cs" />
     <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
     <Compile Include="Data\Remoting\FunctionBinder.cs" />
+    <Compile Include="Data\Remoting\HttpApiBuilder.cs" />
     <Compile Include="Data\Remoting\HttpApplicationHost.cs" />
     <Compile Include="Data\Remoting\HttpException.cs" />
     <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Data\Remoting\IHttpApiBuilder.cs" />
     <Compile Include="Data\Remoting\IHttpApi.cs" />
     <Compile Include="Data\Remoting\IHttpHeader.cs" />
+    <Compile Include="Data\Remoting\IOwinAppBuilder.cs" />
     <Compile Include="Data\Remoting\IOwinApplication.cs" />
     <Compile Include="Data\Remoting\IOwinContext.cs" />
     <Compile Include="Data\Remoting\IRequestHeader.cs" />
@@ -168,6 +170,7 @@
     <Compile Include="Learning\Features\SingularValueDecomposition.cs" />
     <Compile Include="Learning\Features\TrainingSet.cs" />
     <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
+    <Compile Include="Learning\MicroServices\MicroServiceExtensions.cs" />
     <Compile Include="Learning\PipelineExtensions.cs" />
     <Compile Include="Maths\EigenvalueDecomposition.cs" />
     <Compile Include="Maths\Vector.cs" />

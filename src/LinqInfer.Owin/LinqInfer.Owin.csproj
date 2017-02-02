@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="OwinApiMiddleware.cs" />
+    <Compile Include="IOwinApiBuilder.cs" />
     <Compile Include="JsonObjectSerialiser.cs" />
     <Compile Include="OwinApplicationHost.cs" />
     <Compile Include="OwinContextConverter.cs" />

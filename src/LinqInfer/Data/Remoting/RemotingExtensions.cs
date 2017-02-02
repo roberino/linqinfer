@@ -52,9 +52,12 @@ namespace LinqInfer.Data.Remoting
         /// <param name="verbs">The acceptable verbs</param>
         /// <param name="predicate">An optional predicate which will filter out certain contexts</param>
         /// <returns>A <see cref="IUriRoute"/></returns>
-        public static IUriRoute CreateRoute(this Uri endpoint, string routeTemplate, Verb verbs = Verb.All, Func<IOwinContext, bool> predicate = null)
+        public static IUriRoute CreateRoute(this Uri endpoint, string routeTemplate, Verb verbs = Verb.All, Func<IOwinContext, bool> predicate = null, bool bindToAnyHost = false)
         {
-            return new UriRoute(endpoint, routeTemplate, verbs, predicate);
+            return new UriRoute(endpoint, routeTemplate, verbs, predicate)
+            {
+                BindToAnyHost = bindToAnyHost
+            };
         }
 
         public static IOwinApplication CreateHttpApplication(this Uri endpoint)

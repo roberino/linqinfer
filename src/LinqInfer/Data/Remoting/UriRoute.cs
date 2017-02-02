@@ -31,6 +31,8 @@ namespace LinqInfer.Data.Remoting
             Mapper = new UriRouteMapper(this, filter);
         }
 
+        public bool BindToAnyHost { get; set; }
+
         public IUriRouteMapper Mapper { get; private set; }
 
         public Uri BaseUri { get; private set; }

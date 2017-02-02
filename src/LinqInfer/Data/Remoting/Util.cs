@@ -14,6 +14,11 @@ namespace LinqInfer.Data.Remoting
             return Environment.MachineName + '-' + Guid.NewGuid().ToString("N");
         }
 
+        public static Uri Localhost
+        {
+            get { return new Uri(UriSchemeHttp + SchemeDelimiter + "localhost"); }
+        }
+
         internal static Uri ConvertProtocol(Uri uri, TransportProtocol protocol)
         {
             Contract.Ensures(protocol != TransportProtocol.Unknown);
