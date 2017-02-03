@@ -71,6 +71,16 @@ namespace LinqInfer.Data.Remoting
 
                     headers["Host"] = new[] { baseUri.Host + (baseUri.Port != 80 ? ":" + baseUri.Port : "") };
 
+                    if (requestBody != null)
+                    {
+                        if (!requestBody.CanSeek)
+                        {
+                            throw new ArgumentException("Request stream does not support seek");
+                        }
+
+                        headers[HttpHeaderFormatter.ContentLengthHeaderName] = new[] { requestBody.Length.ToString() };
+                    }
+
                     headerFormatter.WriteHeaders(headers);
 
                     headerFormatter.WriteEnd();
