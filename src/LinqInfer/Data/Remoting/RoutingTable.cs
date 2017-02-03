@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -16,6 +15,14 @@ namespace LinqInfer.Data.Remoting
         {
             _routes = new List<RouteHandlerPair>();
             _defaultRoute = defaultRoute;
+        }
+
+        public IEnumerable<IUriRoute> Routes
+        {
+            get
+            {
+                return _routes.Select(r => r.UriRoute);
+            }
         }
 
         public Func<T, Task<bool>> Map(IOwinContext context)
@@ -37,6 +44,17 @@ namespace LinqInfer.Data.Remoting
             });
         }
 
+        public void RemoveRoutes(Func<IUriRoute, bool> predicate)
+        {
+            int i = 0;
+            var indexes = _routes.Select(r => new { i = i++, r = r }).ToList().Where(r => predicate(r.r.UriRoute)).ToList();
+
+            foreach (var index in indexes)
+            {
+                _routes.RemoveAt(index.i);
+            }
+        }
+
         internal IEnumerable<IUriRoute> Mappings(Uri uri)
         {
             IDictionary<string, string> para;
@@ -49,7 +67,7 @@ namespace LinqInfer.Data.Remoting
             foreach (var route in applicableRoutes)
             {
 #if NET_STD
-                var method = route.Handler.GetMethodInfo();
+                var method = route.Handler.GetMethodInf();
 #else
                 var method = route.Handler.Method;
 #endif

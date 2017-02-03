@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,26 @@ namespace LinqInfer.Tests.Data.Remoting
                 {
                     Assert.That(ex.Status, Is.EqualTo(HttpStatusCode.NotFound));
                 }
+            }
+        }
+
+        [Test]
+        public void RemoveRoutes_ByRegex_RemovesMatchingRoutes()
+        {
+            var sz = new JsonSerialiser();
+
+            using (var api = new HttpApi(sz, 9211))
+            {
+                api.Bind("/test/{x}").To(1, x => Task.FromResult(x * 2));
+                api.Bind("/mofo/{x}").To(1, x => Task.FromResult(x * 2));
+
+                Assert.That(api.Routes.Any(r => r.Template == "/test/{x}"), Is.True);
+                Assert.That(api.Routes.Any(r => r.Template == "/mofo/{x}"), Is.True);
+
+                api.RemoveRoutes("test");
+
+                Assert.That(api.Routes.Any(r => r.Template == "/test/{x}"), Is.False);
+                Assert.That(api.Routes.Any(r => r.Template == "/mofo/{x}"), Is.True);
             }
         }
 

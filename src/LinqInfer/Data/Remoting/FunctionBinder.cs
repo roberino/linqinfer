@@ -141,6 +141,7 @@ namespace LinqInfer.Data.Remoting
         {
             var type = typeof(T);
 
+            var instanceFromBody = false;
             var defaultIsNull = !type.GetTypeInf().IsValueType && (defaultValue as object) == null;
             var instance = defaultValue;
             var properties = type.GetTypeInf().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -154,11 +155,12 @@ namespace LinqInfer.Data.Remoting
                 instance = (T)ctor.Invoke(new object[0]);
             }
 
-            if (context.Request.Content.Length > 0)
+            if (context.Request.Header.ContentLength > 0)
             {
                 try
                 {
                     instance = await _serialiser.Deserialise<T>(context.Request.Content, context.Request.Header.ContentEncoding, context.Request.Header.ContentMimeType);
+                    instanceFromBody = instance != null;
                 }
                 catch
                 {
@@ -176,12 +178,12 @@ namespace LinqInfer.Data.Remoting
 
             var missing = values.Where(v => !v.val.Item2).ToList();
 
-            if ((!allowDefaults || defaultIsNull) && missing.Any())
+            if (!instanceFromBody && (!allowDefaults || defaultIsNull) && missing.Any())
             {
                 throw new ArgumentException("Parameter(s) not found: " + string.Join(",", missing.Select(m => m.prop.Name)));
             }
 
-            if (!properties.All(p => p.CanWrite))
+            if (!instanceFromBody && !properties.All(p => p.CanWrite))
             {
                 if (missing.Count == values.Count) return instance;
 
@@ -196,7 +198,7 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
-                foreach (var value in values.Where(v => v.val.Item2))
+                foreach (var value in values.Where(v => v.val.Item2 && v.prop.CanWrite))
                 {
                     value.prop.SetValue(instance, value.val.Item1);
                 }

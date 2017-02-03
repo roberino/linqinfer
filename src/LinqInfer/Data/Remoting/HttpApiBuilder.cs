@@ -34,6 +34,14 @@ namespace LinqInfer.Data.Remoting
             AddComponent(_routes.CreateApplicationDelegate());
         }
 
+        public IEnumerable<IUriRoute> Routes
+        {
+            get
+            {
+                return _routes.Routes;
+            }
+        }
+
         public Task ProcessContext(IOwinContext context)
         {
             return _host.ProcessContext(context);
@@ -98,6 +106,16 @@ namespace LinqInfer.Data.Remoting
         public RouteBinder Bind(string routeTemplate, Verb verb = Verb.Get, Func<IOwinContext, bool> predicate = null)
         {
             return new RouteBinder(_baseUri.CreateRoute(routeTemplate, verb, predicate, _bindToAnyHost), _routes, _binder);
+        }
+
+        public void RemoveRoutes(string templatePattern)
+        {
+            _routes.RemoveRoutes(templatePattern);
+        }
+
+        public void RemoveRoutes(Func<IUriRoute, bool> predicate)
+        {
+            _routes.RemoveRoutes(predicate);
         }
 
         public IUriRoute ExportAsyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, Task<TResult>> func, string name = null)

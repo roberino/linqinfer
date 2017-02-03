@@ -317,7 +317,18 @@ namespace LinqInfer.Owin
             {
                 get
                 {
-                    return _request.Body.Length;
+                    if (_request.Body.CanSeek) return _request.Body.Length;
+
+                    var header = _request.Headers[HttpHeaderFormatter.ContentLengthHeaderName];
+
+                    int len = 0;
+
+                    if (header != null)
+                    {
+                        int.TryParse(header, out len);
+                    }
+
+                    return len;
                 }
             }
 

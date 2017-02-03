@@ -101,7 +101,7 @@ namespace LinqInfer.Owin
             {
                 try
                 {
-                    await handler.Handler(context);
+                  await handler.Handler(context);
 
                     var cancelObj = context["owin.CallCancelled"];
 
@@ -119,6 +119,8 @@ namespace LinqInfer.Owin
                 {
                     // DebugOutput.Log(ex);
 
+                    bool handledAtAll = false;
+
                     foreach (var err in _errorHandlers)
                     {
                         var handled = await err(context, ex);
@@ -126,6 +128,20 @@ namespace LinqInfer.Owin
                         if (!handled)
                         {
                             context.Cancel();
+                        }
+
+                        handledAtAll |= handled;
+                    }
+
+                    if (!handledAtAll)
+                    {
+                        if (ex is ArgumentException)
+                        {
+                            context.Response.CreateStatusResponse(400);
+                        }
+                        else
+                        {
+                            context.Response.CreateStatusResponse(500);
                         }
                     }
                 }

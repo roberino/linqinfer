@@ -1,4 +1,6 @@
 ﻿using LinqInfer.Data.Remoting;
+using LinqInfer.Learning;
+using LinqInfer.Learning.MicroServices;
 using Microsoft.Owin.Hosting;
 using NUnit.Framework;
 using System;

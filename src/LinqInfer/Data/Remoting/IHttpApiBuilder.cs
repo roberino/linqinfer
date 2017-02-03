@@ -27,6 +27,16 @@ namespace LinqInfer.Data.Remoting
         IUriRoute ExportSyncMethod<TArg, TResult>(TArg defaultValue, Func<TArg, TResult> func, string name = null);
 
         /// <summary>
+        /// Removes routes which match the supplied predicate function
+        /// </summary>
+        void RemoveRoutes(Func<IUriRoute, bool> predicate);
+
+        /// <summary>
+        /// Remotes routes where the template matchs the supplied <see cref="System.Text.RegularExpressions.Regex">regular expression</see>
+        /// </summary>
+        void RemoveRoutes(string templatePattern);
+
+        /// <summary>
         /// Tests a route
         /// </summary>
         /// <typeparam name="T">The return type</typeparam>

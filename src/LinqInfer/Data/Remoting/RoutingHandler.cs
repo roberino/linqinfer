@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
@@ -13,6 +14,14 @@ namespace LinqInfer.Data.Remoting
         public RoutingHandler()
         {
             _routes = new RoutingTable<IOwinContext>();
+        }
+
+        public IEnumerable<IUriRoute> Routes
+        {
+            get
+            {
+                return _routes.Routes;
+            }
         }
 
         public Func<IOwinContext, Task> CreateApplicationDelegate()
@@ -55,6 +64,17 @@ namespace LinqInfer.Data.Remoting
 
                 return true;
             });
+        }
+
+        public void RemoveRoutes(string templatePattern)
+        {
+            var patternRegex = new Regex(templatePattern);
+            _routes.RemoveRoutes(r => patternRegex.IsMatch(r.Template));
+        }
+
+        public void RemoveRoutes(Func<IUriRoute, bool> predicate)
+        {
+            _routes.RemoveRoutes(predicate);
         }
 
         internal IEnumerable<IUriRoute> GetMappings(Uri requestUri)
