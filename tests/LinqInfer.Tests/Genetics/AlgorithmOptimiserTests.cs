@@ -75,6 +75,7 @@ namespace LinqInfer.Tests.Genetics
         }
 
         [Test]
+        [Category("BuildOmit")]
         public void Optimise_CategoricalParameterAndDouble_FindsBestValueOverNIterations()
         {
             var ao = new AlgorithmOptimiser();
