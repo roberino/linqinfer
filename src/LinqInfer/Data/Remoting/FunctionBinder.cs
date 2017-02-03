@@ -87,8 +87,9 @@ namespace LinqInfer.Data.Remoting
         private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
         {
             var argType = typeof(TArg);
+            var tc = Type.GetTypeCode(argType);
 
-            if (Type.GetTypeCode(argType) == TypeCode.Object)
+            if (tc == TypeCode.Object)
             {
                 return async c =>
                 {
@@ -107,7 +108,14 @@ namespace LinqInfer.Data.Remoting
 
                     try
                     {
-                        arg = ParamsToPrimative<TArg>(c, p);
+                        if (tc == TypeCode.String)
+                        {
+                            arg = (TArg)(object)(await ParamsToString(c, p));
+                        }
+                        else
+                        {
+                            arg = ParamsToPrimative<TArg>(c, p);
+                        }
                     }
                     catch (ArgumentException)
                     {
@@ -207,10 +215,36 @@ namespace LinqInfer.Data.Remoting
             return instance;
         }
 
+        private async Task<string> ParamsToString(IOwinContext context, string name)
+        {
+            var val = ParamsToPrimative(typeof(string), context, name);
+
+            if (!val.Item2)
+            {
+                if (context.Request.Header.ContentLength > 0)
+                {
+                    try
+                    {
+                        return await _serialiser.Deserialise<string>(context.Request.Content, context.Request.Header.ContentEncoding, context.Request.Header.ContentMimeType);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugOutput.Log(ex);
+                    }
+                }
+
+                throw new ArgumentException("Parameter not found: " + name);
+            }
+
+            if (val.Item1 == null) return null;
+
+            return (string)val.Item1;
+        }
+
         private T ParamsToPrimative<T>(IOwinContext context, string name)
         {
             var val = ParamsToPrimative(typeof(T), context, name);
-
+            
             if (!val.Item2) throw new ArgumentException("Parameter not found: " + name);
 
             if (val.Item1 == null) return default(T);

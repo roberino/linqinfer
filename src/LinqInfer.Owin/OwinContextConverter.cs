@@ -28,7 +28,7 @@ namespace LinqInfer.Owin
                 _owinContext = owinContext;
 
                 Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), owinContext.Request.Body);
-                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Response), owinContext.Response.Body, bufferResponse);
+                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Request.Protocol, owinContext.Response), owinContext.Response.Body, bufferResponse);
             }
 
             public object this[string key]
@@ -174,9 +174,10 @@ namespace LinqInfer.Owin
                 return _owinContext.Environment.TryGetValue(key, out value);
             }
 
-            public Task WriteTo(Stream output)
+            public async Task WriteTo(Stream output)
             {
-                throw new NotImplementedException();
+                await Request.WriteTo(output);
+                await Response.WriteTo(output);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -188,10 +189,12 @@ namespace LinqInfer.Owin
         private class ResponseHeaderWrapper : IResponseHeader
         {
             private readonly owin.IOwinResponse _response;
+            private readonly string _httpProtocol;
 
-            public ResponseHeaderWrapper(owin.IOwinResponse response)
+            public ResponseHeaderWrapper(string httpProtocol, owin.IOwinResponse response)
             {
                 _response = response;
+                _httpProtocol = httpProtocol;
 
                 Date = DateTime.UtcNow;
                 TextEncoding = Encoding.UTF8;
@@ -275,7 +278,17 @@ namespace LinqInfer.Owin
 
             public byte[] GetBytes()
             {
-                throw new NotSupportedException();
+                using (var writer = new StringWriter())
+                {
+                    var formatter = new HttpHeaderFormatter(writer, true);
+
+                    formatter.WriteResponseProtocolAndStatus(_httpProtocol, _response.StatusCode, _response.ReasonPhrase);
+                    formatter.WriteDate();
+                    formatter.WriteHeaders(_response.Headers);
+                    formatter.WriteEnd();
+
+                    return Encoding.ASCII.GetBytes(writer.ToString());
+                }
             }
         }
 
