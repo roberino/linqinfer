@@ -1,4 +1,7 @@
 ﻿using LinqInfer.Data.Remoting;
+using LinqInfer.Learning;
+using LinqInfer.Learning.MicroServices;
+using Microsoft.Owin.Hosting;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -25,6 +28,55 @@ namespace LinqInfer.Owin.Tests
                 var result = await api.TestRoute<int>(new Uri("http://localhost:8023/5"));
 
                 Assert.That(result, Is.EqualTo(10));
+            }
+        }
+
+        [Test]
+        public async Task CreateHttpApi_UsingIAppBuilder()
+        {
+            var serverUri = new Uri("http://localhost:8023");
+
+            using (WebApp.Start(serverUri.ToString(), a =>
+            {
+                a.CreateHttpApi(serverUri).Bind("/{x}").To(1, x =>
+                {
+                    return Task.FromResult(x * 2);
+                });
+            }))
+            {
+                using (var client = new HttpClient())
+                {
+                    var res = await client.GetAsync(new Uri(serverUri, "/16"));
+
+                    var text = await res.Content.ReadAsStringAsync();
+
+                    Assert.That(int.Parse(text), Is.EqualTo(32));
+                }
+            }
+        }
+
+        [Test]
+        public async Task CreateHttpApi_UsingOwinApiBuilder()
+        {
+            var serverUri = new Uri("http://localhost:8023");
+
+            var middleware = serverUri.CreateHttpApiBuilder();
+
+            middleware.Bind("/{x}").To(1, x => Task.FromResult(x * 2));
+
+            using (WebApp.Start(serverUri.ToString(), a =>
+            {
+                a.Run(middleware);
+            }))
+            {
+                using (var client = new HttpClient())
+                {
+                    var res = await client.GetAsync(new Uri(serverUri, "/16"));
+
+                    var text = await res.Content.ReadAsStringAsync();
+
+                    Assert.That(int.Parse(text), Is.EqualTo(32));
+                }
             }
         }
 

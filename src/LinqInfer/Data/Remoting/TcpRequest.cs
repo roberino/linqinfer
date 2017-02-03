@@ -48,6 +48,29 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
+        internal async Task WriteTo(Stream output)
+        {
+            if (Header.TransportProtocol == TransportProtocol.Http)
+            {
+                using (var writer = new StreamWriter(output, Encoding.ASCII, 1024, true))
+                {
+                    using (var formatter = new HttpHeaderFormatter(writer))
+                    {
+                        formatter.WriteRequestAndProtocol(Header.HttpVerb, Header.Path, Header.HttpProtocol);
+                        formatter.WriteHeaders(Header.Headers);
+                        formatter.WriteEnd();
+                    }
+                }
+            }
+            else
+            {
+                new BinaryWriter(output, Encoding.UTF8, true).Write(Header.ContentLength);
+            }
+
+            if (Content.CanRead && Content.CanSeek && Content.Position > 0)
+                await Content.CopyToAsync(output);
+        }
+
         public void Save(Stream output)
         {
             if (Header.TransportProtocol == TransportProtocol.Http)

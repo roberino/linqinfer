@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace LinqInfer.Utility
 {
@@ -39,6 +40,14 @@ namespace LinqInfer.Utility
             return func.Method;
         }
 #endif
+
+        public static bool IsAnonymous<T>()
+        {
+            var type = GetTypeInf<T>();
+            return type.GetCustomAttributes(false).Any(a => a.GetType() == typeof(CompilerGeneratedAttribute))
+                && type.IsGenericType && type.Name.Contains("AnonymousType")
+                && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+        }
 
         public static Type GetNullableTypeType(this Type type)
         {

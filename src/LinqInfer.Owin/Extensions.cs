@@ -20,13 +20,20 @@ namespace LinqInfer.Owin
             }, a), bufferResponse);
         }
 
-        public static IHttpApiBuilder CreateHttpApi(this Uri baseEndpoint, IAppBuilder appBuilder, IObjectSerialiser serialiser = null)
+        public static IAppBuilder Run(this IAppBuilder appBuilder, IOwinApiBuilder apiBuilder)
+        {
+            return apiBuilder.RegisterMiddleware(appBuilder);
+        }
+
+        public static IHttpApiBuilder CreateHttpApi(this IAppBuilder appBuilder, Uri baseEndpoint, IObjectSerialiser serialiser = null)
         {
             ValidateHttpUri(baseEndpoint);
 
-            var hostApp = CreateOwinApplication(baseEndpoint);
+            var hostApp = new OwinApplicationHost(baseEndpoint, null, false);
 
-            return new HttpApi(serialiser ?? new JsonObjectSerialiser(), hostApp);
+            hostApp.RegisterMiddleware(appBuilder);
+                        
+            return new HttpApiBuilder(serialiser ?? new JsonObjectSerialiser(), hostApp, baseEndpoint);
         }
 
         public static IHttpApi CreateHttpApi(this Uri baseEndpoint, IObjectSerialiser serialiser = null)
@@ -36,6 +43,13 @@ namespace LinqInfer.Owin
             var hostApp = CreateOwinApplication(baseEndpoint);
 
             return new HttpApi(serialiser ?? new JsonObjectSerialiser(), hostApp);
+        }
+
+        public static IOwinApiBuilder CreateHttpApiBuilder(this Uri baseEndpoint, IObjectSerialiser serialiser = null)
+        {
+            ValidateHttpUri(baseEndpoint);
+            
+            return new OwinApiMiddleware(serialiser ?? new JsonObjectSerialiser(), baseEndpoint);
         }
 
         public static T AllowOrigin<T>(this T application, Uri origin, bool setDefaultAccessControlIfMissing = true) where T : IOwinApplication

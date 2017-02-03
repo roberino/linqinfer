@@ -56,10 +56,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\LinqInfer.Storage.SQLite\LinqInfer.Storage.SQLite.csproj">
-      <Project>{C0C921B0-3A10-4C74-B78D-05AB436C705E}</Project>
-      <Name>LinqInfer.Storage.SQLite</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj">
       <Project>{57818C8E-99BA-405E-A5C5-6DE2E54883EA}</Project>
       <Name>LinqInfer</Name>

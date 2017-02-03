@@ -23,12 +23,21 @@ namespace LinqInfer.Owin
         {
             private readonly owin.IOwinContext _owinContext;
 
-            public ContextWrapper(owin.IOwinContext owinContext, bool bufferResponse)
+            public ContextWrapper(owin.IOwinContext owinContext, bool cloneable)
             {
                 _owinContext = owinContext;
 
-                Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), owinContext.Request.Body);
-                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Response), owinContext.Response.Body, bufferResponse);
+                Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), cloneable ? Clone(owinContext.Request.Body) : owinContext.Request.Body);
+                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Request.Protocol, owinContext.Response), owinContext.Response.Body, cloneable);
+            }
+
+            private Stream Clone(Stream other)
+            {
+                var ms = new MemoryStream();
+
+                other.CopyTo(ms);
+
+                return ms;
             }
 
             public object this[string key]
@@ -174,9 +183,10 @@ namespace LinqInfer.Owin
                 return _owinContext.Environment.TryGetValue(key, out value);
             }
 
-            public Task WriteTo(Stream output)
+            public async Task WriteTo(Stream output)
             {
-                throw new NotImplementedException();
+                await Request.WriteTo(output);
+                await Response.WriteTo(output);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -188,10 +198,12 @@ namespace LinqInfer.Owin
         private class ResponseHeaderWrapper : IResponseHeader
         {
             private readonly owin.IOwinResponse _response;
+            private readonly string _httpProtocol;
 
-            public ResponseHeaderWrapper(owin.IOwinResponse response)
+            public ResponseHeaderWrapper(string httpProtocol, owin.IOwinResponse response)
             {
                 _response = response;
+                _httpProtocol = httpProtocol;
 
                 Date = DateTime.UtcNow;
                 TextEncoding = Encoding.UTF8;
@@ -275,7 +287,17 @@ namespace LinqInfer.Owin
 
             public byte[] GetBytes()
             {
-                throw new NotSupportedException();
+                using (var writer = new StringWriter())
+                {
+                    var formatter = new HttpHeaderFormatter(writer, true);
+
+                    formatter.WriteResponseProtocolAndStatus(_httpProtocol, _response.StatusCode, _response.ReasonPhrase);
+                    formatter.WriteDate();
+                    formatter.WriteHeaders(_response.Headers);
+                    formatter.WriteEnd();
+
+                    return Encoding.ASCII.GetBytes(writer.ToString());
+                }
             }
         }
 
@@ -317,7 +339,18 @@ namespace LinqInfer.Owin
             {
                 get
                 {
-                    return _request.Body.Length;
+                    if (_request.Body.CanSeek) return _request.Body.Length;
+
+                    var header = _request.Headers[HttpHeaderFormatter.ContentLengthHeaderName];
+
+                    int len = 0;
+
+                    if (header != null)
+                    {
+                        int.TryParse(header, out len);
+                    }
+
+                    return len;
                 }
             }
 

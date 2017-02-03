@@ -216,6 +216,31 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Creates a basic Naive Bayesian classifiers, training the classifier using the supplied feature data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
+        /// <returns></returns>
+        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this ITrainingSet<TInput, TClass> trainingSet) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var pipeline = trainingSet.FeaturePipeline;
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var net = new NaiveBayesNormalClassifier<TClass>(p.FeatureExtractor.VectorSize);
+                var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, p.FeatureExtractor);
+
+                p.NormaliseData();
+
+                classifierPipe.Train(pipeline.Data, trainingSet.ClassifyingExpression);
+
+                return (IObjectClassifier<TClass, TInput>)classifierPipe;
+            });
+        }
+
+        /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>

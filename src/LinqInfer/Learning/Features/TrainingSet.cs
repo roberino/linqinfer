@@ -51,7 +51,7 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                throw new NotImplementedException();
+                return ClassifyingExpression;
             }
         }
 
@@ -59,7 +59,7 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                throw new NotImplementedException();
+                return typeof(TInput);
             }
         }
 
@@ -67,7 +67,7 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                throw new NotImplementedException();
+                return _pipeline.Data.Provider;
             }
         }
 
