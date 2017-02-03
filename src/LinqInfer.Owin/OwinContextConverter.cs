@@ -23,12 +23,21 @@ namespace LinqInfer.Owin
         {
             private readonly owin.IOwinContext _owinContext;
 
-            public ContextWrapper(owin.IOwinContext owinContext, bool bufferResponse)
+            public ContextWrapper(owin.IOwinContext owinContext, bool cloneable)
             {
                 _owinContext = owinContext;
 
-                Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), owinContext.Request.Body);
-                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Request.Protocol, owinContext.Response), owinContext.Response.Body, bufferResponse);
+                Request = new TcpRequest(new RequestHeaderWrapper(owinContext.Request), cloneable ? Clone(owinContext.Request.Body) : owinContext.Request.Body);
+                Response = new TcpResponse(new ResponseHeaderWrapper(owinContext.Request.Protocol, owinContext.Response), owinContext.Response.Body, cloneable);
+            }
+
+            private Stream Clone(Stream other)
+            {
+                var ms = new MemoryStream();
+
+                other.CopyTo(ms);
+
+                return ms;
             }
 
             public object this[string key]
