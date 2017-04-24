@@ -63,35 +63,20 @@ namespace LinqInfer.Tests.Data
         }
 
         [Test]
-        public void Export_DocWithChildren()
+        public void ExportImport_DocWithChildren()
         {
-            var doc = new BinaryVectorDocument();
-
-            doc.Version = 2;
-
-            doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
-
-            var doc1 = new BinaryVectorDocument();
-
-            doc1.Vectors.Add(ColumnVector1D.Create(8.2432, 89.4));
-            doc1.Vectors.Add(ColumnVector1D.Create(20, 0.14));
-
-            doc.Children.Add(doc1);
-
-            using (var store = new InMemoryBlobStore())
-            {
-                store.Store("a", doc);
-
-                var doc2 = store.Restore("a", new BinaryVectorDocument());
-
-                Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
-                Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
-                Assert.That(doc.Children[0].Vectors[1][1], Is.EqualTo(0.14));
-            }
+            var doc = CreateTestDoc();
 
             var xml = doc.ExportAsXml();
 
+            var doc2 = new BinaryVectorDocument();
+
+            doc2.ImportXml(xml);
+
+            var xml2 = doc2.ExportAsXml();
+
             Console.WriteLine(xml);
+            Console.WriteLine(xml2);
         }
 
         [Test]
@@ -131,6 +116,36 @@ namespace LinqInfer.Tests.Data
 
                 Assert.That(doc.Vectors[1][1], Is.EqualTo(3.9));
             }
+        }
+        private BinaryVectorDocument CreateTestDoc()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.Version = 2;
+
+            doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
+
+            var doc1 = new BinaryVectorDocument();
+
+            doc1.Vectors.Add(ColumnVector1D.Create(8.2432, 89.4));
+            doc1.Vectors.Add(ColumnVector1D.Create(20, 0.14));
+
+            doc.Children.Add(doc1);
+
+            using (var store = new InMemoryBlobStore())
+            {
+                store.Store("a", doc);
+
+                var doc2 = store.Restore("a", new BinaryVectorDocument());
+
+                Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
+                Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
+                Assert.That(doc.Children[0].Vectors[1][1], Is.EqualTo(0.14));
+            }
+
+            doc.Blobs["blob1"] = new byte[] { 1, 2, 3, 4 };
+
+            return doc;
         }
     }
 }

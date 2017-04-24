@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable
+    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -164,7 +164,7 @@ namespace LinqInfer.Learning.Classification
 
         public void Save(Stream output)
         {
-            Export().Save(output);
+            ToVectorDocument().Save(output);
 
             output.Flush();
         }
@@ -172,7 +172,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public BinaryVectorDocument Export()
+        public BinaryVectorDocument ToVectorDocument()
         {
             var doc = new BinaryVectorDocument();
 
@@ -205,6 +205,37 @@ namespace LinqInfer.Learning.Classification
             return doc;
         }
 
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            var nn = CreateFromVectorDocument(doc);
+
+            _parameters = nn._parameters;
+            _rootLayer = nn._rootLayer;
+        }
+
+        public static MultilayerNetwork CreateFromVectorDocument(BinaryVectorDocument doc)
+        {
+            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
+            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
+
+            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
+
+            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
+            {
+                LearningRate = double.Parse(doc.Properties["LearningRate"]),
+                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
+            }, properties);
+
+            int i = 0;
+
+            foreach (var layer in network.Layers)
+            {
+                layer.Import(doc.Children[i++]);
+            }
+
+            return network;
+        }
+
         public void Load(Stream input)
         {
             var nn = LoadData(input);
@@ -219,25 +250,7 @@ namespace LinqInfer.Learning.Classification
 
             doc.Load(input);
 
-            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
-            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
-
-            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
-
-            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
-            {
-                LearningRate = double.Parse(doc.Properties["LearningRate"]),
-                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
-            }, properties);
-            
-            int i = 0;
-
-            foreach (var layer in network.Layers)
-            {
-                layer.Import(doc.Children[i++]);
-            }
-
-            return network;
+            return CreateFromVectorDocument(doc);
         }
 
         public override string ToString()

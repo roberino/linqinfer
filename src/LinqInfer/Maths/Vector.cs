@@ -272,6 +272,22 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Converts the vector to a Base64 string
+        /// </summary>
+        public string ToBase64()
+        {
+            return Convert.ToBase64String(ToByteArray());
+        }
+
+        /// <summary>
+        /// Converts the vector from a Base64 string
+        /// </summary>
+        public static Vector FromBase64(string data)
+        {
+            return FromByteArray(Convert.FromBase64String(data));
+        }
+
+        /// <summary>
         /// Converts and exports the values to a byte array (for easy storage).
         /// </summary>
         /// <returns>An array of bytes</returns>

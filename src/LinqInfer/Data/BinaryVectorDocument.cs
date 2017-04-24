@@ -6,11 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using System.Reflection;
 
 namespace LinqInfer.Data
 {
-    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable
+    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable
     {
         private const string PropertiesName = "PROP";
         private const string BlobName = "BLOB";
@@ -37,6 +36,8 @@ namespace LinqInfer.Data
         {
             Load(data);
         }
+
+        public bool ValidateOnImport { get; set; } = true;
 
         public int Version { get; set; }
 
@@ -164,11 +165,11 @@ namespace LinqInfer.Data
                     new XAttribute("value", p.Value))));
 
             var dataNode = new XElement(DataName.ToLower(),
-                _vectorData.Select(v => new XElement("vector", Convert.ToBase64String(v.ToByteArray()))));
+                _vectorData.Select(v => new XElement("vector", v.ToBase64())));
 
             var blobsNode = new XElement(BlobName.ToLower() + "s",
                 _blobs.Select(b => new XElement(BlobName.ToLower(),
-                    new XAttribute("key", b.Key), new XElement(Convert.ToBase64String(b.Value)))));
+                    new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
 
             var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml().Root));
 
@@ -178,6 +179,11 @@ namespace LinqInfer.Data
             doc.Root.Add(childrenNode);
 
             return doc;
+        }
+
+        public void ImportXml(XDocument xml)
+        {
+            ImportXml(xml.Root);
         }
 
         protected void Read(BinaryReader reader, int level)
@@ -227,7 +233,7 @@ namespace LinqInfer.Data
 
             ReadSections(reader, n => actions[n]);
 
-            if (Checksum != checksum)
+            if (ValidateOnImport && Checksum != checksum)
             {
                 throw new ArgumentException("Invalid or corrupted data");
             }
@@ -247,6 +253,44 @@ namespace LinqInfer.Data
                 }
 
                 if (currentName == ChildrenName) break;
+            }
+        }
+
+        private void ImportXml(XElement rootNode)
+        {
+            var checksum = int.Parse(rootNode.Attribute("checksum").Value);
+
+            Version = int.Parse(rootNode.Attribute("version").Value);
+
+            foreach (var prop in rootNode.Element(XName.Get(PropertiesName.ToLower())).Elements().Where(e => e.Name.LocalName == "property" && e.HasAttributes))
+            {
+                _properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
+            }
+
+            foreach (var vect in rootNode.Element(XName.Get(DataName.ToLower())).Elements().Where(e => e.Name.LocalName == "vector"))
+            {
+                var vd = new ColumnVector1D(Vector.FromBase64(vect.Value.Trim()));
+
+                _vectorData.Add(vd);
+            }
+
+            foreach (var blob in rootNode.Element(XName.Get(BlobName.ToLower() + "s")).Elements().Where(e => e.Name.LocalName == BlobName.ToLower()))
+            {
+                _blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
+            }
+
+            foreach (var child in rootNode.Element(XName.Get(ChildrenName.ToLower())).Elements())
+            {
+                var cdoc = new BinaryVectorDocument();
+
+                cdoc.ImportXml(child);
+
+                _children.Add(cdoc);
+            }
+
+            if (ValidateOnImport && Checksum != checksum)
+            {
+                throw new ArgumentException("Invalid or corrupted data");
             }
         }
 

@@ -72,6 +72,7 @@
     <Compile Include="Data\ICloneableObject.cs" />
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\BlobStoreBase.cs" />
+    <Compile Include="Data\IExportableAsVectorDocument.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\IObjectSerialiser.cs" />
     <Compile Include="Data\IXmlExportable.cs" />

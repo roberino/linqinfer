@@ -3,10 +3,14 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using LinqInfer.Data;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetworkObjectClassifier<TClass, TInput> : IPrunableObjectClassifier<TClass, TInput> where TClass : IEquatable<TClass>
+    internal class MultilayerNetworkObjectClassifier<TClass, TInput> : 
+        IPrunableObjectClassifier<TClass, TInput>, 
+        IExportableAsVectorDocument 
+        where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
 
@@ -49,6 +53,24 @@ namespace LinqInfer.Learning.Classification
             _config.OutputMapper.Save(output);
             _config.FeatureExtractor.Save(output);
             _network.Save(output);
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            if (_network == null)
+            {
+                throw new InvalidOperationException("No training data received");
+            }
+
+            var outputMapperClob = _config.OutputMapper.ToClob();
+            var feClob = _config.FeatureExtractor.ToClob();
+
+            var doc = _network.ToVectorDocument();
+
+            doc.Properties["OutputMapper"] = outputMapperClob;
+            doc.Properties["FeatureExtractor"] = feClob;
+
+            return doc;
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
