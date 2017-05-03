@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using LinqInfer.Data;
+using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
     internal class MultilayerNetworkObjectClassifier<TClass, TInput> : 
         IPrunableObjectClassifier<TClass, TInput>, 
-        IExportableAsVectorDocument 
+        IExportableAsVectorDocument,
+        IImportableAsVectorDocument
         where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
@@ -62,15 +64,40 @@ namespace LinqInfer.Learning.Classification
                 throw new InvalidOperationException("No training data received");
             }
 
-            var outputMapperClob = _config.OutputMapper.ToClob();
-            var feClob = _config.FeatureExtractor.ToClob();
+            var root = new BinaryVectorDocument();
 
-            var doc = _network.ToVectorDocument();
+            root.WriteChildObject(_config.FeatureExtractor);
+            root.WriteChildObject(_network);
+            root.WriteChildObject(_config.OutputMapper);
 
-            doc.Properties["OutputMapper"] = outputMapperClob;
-            doc.Properties["FeatureExtractor"] = feClob;
+            //var outputMapperClob = _config.OutputMapper.ToClob();
+            //var feClob = _config.FeatureExtractor.ToClob();
 
-            return doc;
+            //var doc = _network.ToVectorDocument();
+
+            //doc.Properties["OutputMapper"] = outputMapperClob;
+            //doc.Properties["FeatureExtractor"] = feClob;
+
+            return root;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            doc.ReadChildObject(_config.FeatureExtractor);
+
+            if (_network == null)
+            {
+                _network = MultilayerNetwork.CreateFromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+            }
+            else
+            {
+                _network.FromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+            }
+
+            doc.ReadChildObject(_config.OutputMapper);
+
+            //_config.OutputMapper.FromClob(doc.Properties["OutputMapper"]);
+            //_config.FeatureExtractor.FromClob(doc.Properties["FeatureExtractor"]);
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)

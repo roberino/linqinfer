@@ -17,11 +17,13 @@ namespace LinqInfer.Maths
         internal Vector(Vector vector, bool deepClone = true)
         {
             _values = deepClone ? vector._values.ToArray() : vector._values;
+            Refresh();
         }
 
         public Vector(int size)
         {
             _values = new double[size];
+            Refresh();
         }
 
         public Vector(double[] values)
@@ -328,7 +330,22 @@ namespace LinqInfer.Maths
         /// <returns>A CSV string</returns>
         public string ToCsv(char delimitter, int precision = 8)
         {
+            if (precision == int.MaxValue)
+            {
+                return string.Join(delimitter.ToString(), _values.Select(v => v.ToString()));
+            }
+
             return string.Join(delimitter.ToString(), _values.Select(v => Math.Round(v, precision).ToString()));
+        }
+
+        /// <summary>
+        /// Returns a vector from a list of comma separated values (e.g. 1.4, 23.234, 223.2)
+        /// </summary>
+        public static Vector FromCsv(string csv, char delimitter = ',')
+        {
+            Contract.Ensures(csv != null);
+
+            return new Vector(csv.Split(delimitter).Select(v => double.Parse(v.Trim())).ToArray());
         }
 
         public override int GetHashCode()

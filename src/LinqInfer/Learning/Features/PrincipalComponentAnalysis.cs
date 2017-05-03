@@ -41,6 +41,19 @@ namespace LinqInfer.Learning.Features
         /// <returns>A transforming function</returns>
         public Func<double[], double[]> CreatePrincipalComponentTransformation(int numberOfDimensions, int sampleSize = 100)
         {
+            var tx = CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
+
+            return v => tx.Apply(new ColumnVector1D(v)).GetUnderlyingArray();
+        }
+
+        /// <summary>
+        /// Creates a PCA transformer
+        /// </summary>
+        /// <param name="numberOfDimensions">The maximum number of dimensions to return</param>
+        /// <param name="sampleSize">The sample size to use in the analysis</param>
+        /// <returns>A <see cref="IVectorTransformation"/></returns>
+        public IVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
+        {
             var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Take(sampleSize));
             var mean = matrix.MeanVector;
             var eigenDecom = GetEigenvalueDecomposition(matrix);
@@ -51,7 +64,7 @@ namespace LinqInfer.Learning.Features
             var eigenMatrix = eigenDecom.Item2;
             var featureSet = eigenMatrix.SelectRows(orderedVectors.Select(v => v.Key).OrderBy(v => v).ToArray());
 
-            return v => (featureSet * new ColumnVector1D((new ColumnVector1D(v) - mean))).GetUnderlyingArray();
+            return new SerialisableVectorTransformation(featureSet, mean);
         }
 
         private Tuple<Vector, Matrix> GetEigenvalueDecomposition(Matrix sampleMatrix)

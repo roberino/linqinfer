@@ -444,6 +444,24 @@ namespace LinqInfer.Learning
             return classifier;
         }
 
+        /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a blob store.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="docData">An exported multilayer network</returns>
+        public static IPrunableObjectClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+            this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var fe = new MultiFunctionFeatureExtractor<TInput>(featureExtractor);
+
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
+
+            classifier.FromVectorDocument(docData);
+
+            return classifier;
+        }
+
         private static T DefaultOf<T>() where T : class
         {
             try

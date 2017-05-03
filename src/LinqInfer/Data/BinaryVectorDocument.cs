@@ -9,6 +9,10 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Data
 {
+    /// <summary>
+    /// General purpose document for serialising vector and general object data.
+    /// The document supports serialising as XML and to a binary stream
+    /// </summary>
     public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable
     {
         private const string PropertiesName = "PROP";
@@ -37,12 +41,26 @@ namespace LinqInfer.Data
             Load(data);
         }
 
+        /// <summary>
+        /// If true, the checksum will be validated on import
+        /// </summary>
         public bool ValidateOnImport { get; set; } = true;
 
+        public XmlVectorSerialisationMode VectorToXmlSerialisationMode { get; set; } = XmlVectorSerialisationMode.Default;
+
+        /// <summary>
+        /// A version number assigned to the document
+        /// </summary>
         public int Version { get; set; }
 
+        /// <summary>
+        /// The time of creation
+        /// </summary>
         public DateTime Timestamp { get; private set; }
 
+        /// <summary>
+        /// A basic checksum
+        /// </summary>
         public long Checksum
         {
             get
@@ -70,16 +88,6 @@ namespace LinqInfer.Data
             }
         }
 
-        private long AppendCheckSum(string val, long checksum)
-        {
-            foreach(var c in val)
-            {
-                checksum ^= c;
-            }
-
-            return checksum;
-        }
-
         public IDictionary<string, string> Properties
         {
             get
@@ -94,6 +102,11 @@ namespace LinqInfer.Data
             {
                 return _blobs;
             }
+        }
+
+        public bool HasProperty(string name)
+        {
+            return _properties.ContainsKey(name);
         }
 
         public T PropertyOrDefault<T>(string key, T defaultValue)
@@ -153,6 +166,7 @@ namespace LinqInfer.Data
         public XDocument ExportAsXml()
         {
             var date = DateTime.UtcNow;
+            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
 
             var doc = new XDocument(new XElement("doc",
                 new XAttribute("version", Version),
@@ -165,7 +179,7 @@ namespace LinqInfer.Data
                     new XAttribute("value", p.Value))));
 
             var dataNode = new XElement(DataName.ToLower(),
-                _vectorData.Select(v => new XElement("vector", v.ToBase64())));
+                _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
 
             var blobsNode = new XElement(BlobName.ToLower() + "s",
                 _blobs.Select(b => new XElement(BlobName.ToLower(),
@@ -184,6 +198,85 @@ namespace LinqInfer.Data
         public void ImportXml(XDocument xml)
         {
             ImportXml(xml.Root);
+        }
+
+        public enum XmlVectorSerialisationMode
+        {
+            Default,
+            Base64,
+            Csv
+        }
+
+        internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null)
+        {
+            var tname = (type ?? typeof(T)).FullName;
+
+            var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
+
+            if (childNode == null) throw new NullReferenceException("Child object not found : " + tname);
+
+            return childNode;
+        }
+
+        internal T ReadChildObject<T>(T obj, int? index = null)
+        {
+            if (obj == null) return obj;
+
+            var childNode = GetChildDoc<T>(obj.GetType(), index);
+
+            if (obj is IImportableAsVectorDocument)
+            {
+                ((IImportableAsVectorDocument)obj).FromVectorDocument(childNode);
+
+                return obj;
+            }
+
+            if (obj is IBinaryPersistable)
+            {
+                ((IBinaryPersistable)obj).FromClob(childNode.Properties["Data"]);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        internal void WriteChildObject(object obj)
+        {
+            if (obj == null) return;
+
+            var tc = Type.GetTypeCode(obj.GetType());
+
+            if (tc == TypeCode.Object)
+            {
+                if (obj is IExportableAsVectorDocument && obj is IImportableAsVectorDocument)
+                {
+                    var cdoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
+
+                    cdoc.Properties["TypeName"] = obj.GetType().FullName;
+                    cdoc.Properties["TypeGuid"] = obj.GetType().GUID.ToString();
+
+                    Children.Add(cdoc);
+                }
+                else
+                {
+                    if (obj is IBinaryPersistable)
+                    {
+                        var childDoc = new BinaryVectorDocument();
+
+                        childDoc.Properties["TypeName"] = obj.GetType().FullName;
+                        childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
+
+                        Children.Add(childDoc);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
         }
 
         protected void Read(BinaryReader reader, int level)
@@ -239,6 +332,16 @@ namespace LinqInfer.Data
             }
         }
 
+        private long AppendCheckSum(string val, long checksum)
+        {
+            foreach (var c in val)
+            {
+                checksum ^= c;
+            }
+
+            return checksum;
+        }
+
         private void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
         {
             while (true)
@@ -262,6 +365,13 @@ namespace LinqInfer.Data
 
             Version = int.Parse(rootNode.Attribute("version").Value);
 
+            var tfa = rootNode.Attribute("typeFactory");
+
+            if (tfa != null && !string.IsNullOrEmpty(tfa.Value))
+            {
+                // TypeFactory = Type.GetType(tfa.Value);
+            }
+
             foreach (var prop in rootNode.Element(XName.Get(PropertiesName.ToLower())).Elements().Where(e => e.Name.LocalName == "property" && e.HasAttributes))
             {
                 _properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
@@ -269,7 +379,7 @@ namespace LinqInfer.Data
 
             foreach (var vect in rootNode.Element(XName.Get(DataName.ToLower())).Elements().Where(e => e.Name.LocalName == "vector"))
             {
-                var vd = new ColumnVector1D(Vector.FromBase64(vect.Value.Trim()));
+                var vd = new ColumnVector1D(VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64 ? Vector.FromBase64(vect.Value.Trim()) : Vector.FromCsv(vect.Value));
 
                 _vectorData.Add(vd);
             }

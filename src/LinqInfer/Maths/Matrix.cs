@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -12,7 +13,7 @@ namespace LinqInfer.Maths
     /// Represents a matrix of floating point numbers
     /// with various methods for supporting matrix operations
     /// </summary>
-    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>
+    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private Lazy<Vector> _mean;
         private Lazy<Matrix> _covariance;
@@ -62,7 +63,7 @@ namespace LinqInfer.Maths
         /// Returns the covariance matrix
         /// </summary>
         public Matrix CovarianceMatrix { get { return _covariance.Value; } }
-        
+
         /// <summary>
         /// Returns a new matrix with the mean subtracted from the x values
         /// </summary>
@@ -77,11 +78,11 @@ namespace LinqInfer.Maths
         /// Gets the y dimension of the matrix
         /// </summary>
         public int Height { get { return Rows.Count; } }
-        
+
         /// <summary>
         /// Gets the x dimension of the matrix
         /// </summary>
-        public int Width { get { return Rows[0].Size; } }
+        public int Width { get { return Rows.Count == 0 ? 0 : Rows[0].Size; } }
 
         /// <summary>
         /// Returns true if the width and height are equal
@@ -155,7 +156,7 @@ namespace LinqInfer.Maths
             for (int y = 0; y < Height; y++)
             {
                 var xv = Rows[y].GetUnderlyingArray();
-                
+
                 for (int x = 0; x < xv.Length; x++)
                 {
                     newData[x][y] = xv[x];
@@ -341,7 +342,7 @@ namespace LinqInfer.Maths
         {
             // a, b * x     =   ax + by
             // c, d   y         cx + dx
-                
+
             return new ColumnVector1D(x.Rows.Select(v => (v * c).Sum()).ToArray());
         }
 
@@ -389,9 +390,9 @@ namespace LinqInfer.Maths
             var x = new double[Height][];
             var i = 0;
 
-            foreach(var r in Rows)
+            foreach (var r in Rows)
             {
-                x[i] = r.GetUnderlyingArray(); 
+                x[i] = r.GetUnderlyingArray();
                 i++;
             }
 
@@ -516,6 +517,39 @@ namespace LinqInfer.Maths
         private static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)
         {
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var doc = new BinaryVectorDocument();
+
+            foreach (var vect in Rows)
+            {
+                doc.Vectors.Add(new ColumnVector1D(vect));
+            }
+
+            return doc;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            Rows.Clear();
+
+            foreach (var vect in doc.Vectors)
+            {
+                Rows.Add(vect);
+            }
+
+            foreach (var r in Rows)
+            {
+                r.Modified += (s, e) =>
+                {
+                    Setup();
+                    OnModify();
+                };
+            }
+
+            Setup();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths.Probability;
@@ -20,7 +21,7 @@ namespace LinqInfer.Tests.Learning
     public class ImageLearningExamples
     {
         private const int VectorWidth = 7;
-        
+
         [TestCase("X,O,I")]
         public void TrainNetwork_UsingCharacterBitmaps_PCATransform(string testChars)
         {
@@ -92,6 +93,10 @@ namespace LinqInfer.Tests.Learning
                     Console.WriteLine("other {0} = {1}", d.Key, d.Value.ToPercent());
             }
 
+            var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
+
+            data.ExportAsXml().Save(@"C:\stash\mycls" + testChars.Replace(',', '-') + ".xml");
+
             Console.WriteLine("{0} = {1}/{2} failures", testChars, failures, letters.Length);
         }
 
@@ -145,6 +150,10 @@ namespace LinqInfer.Tests.Learning
 
                     return i > 10 || score == 1;
                 });
+
+            var doc = (IExportableAsVectorDocument)classifier;
+
+            //doc.ToVectorDocument().ExportAsXml().Save(@"C:\ne.data.xml");
 
             int failures = 0;
 
