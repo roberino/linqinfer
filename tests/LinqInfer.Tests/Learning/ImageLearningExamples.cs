@@ -18,10 +18,15 @@ using System.Runtime.InteropServices;
 namespace LinqInfer.Tests.Learning
 {
     [TestFixture]
-    public class ImageLearningExamples
+    public class ImageLearningExamples : TestFixtureBase
     {
         private const int VectorWidth = 7;
 
+        public void LoadNetwork()
+        {
+            GetResource("net-X");
+        }
+        
         [TestCase("X,O,I")]
         public void TrainNetwork_UsingCharacterBitmaps_PCATransform(string testChars)
         {
@@ -95,7 +100,7 @@ namespace LinqInfer.Tests.Learning
 
             var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
 
-            data.ExportAsXml().Save(@"C:\stash\mycls" + testChars.Replace(',', '-') + ".xml");
+            data.ExportAsXml().Save(@"C:\stash\roberino\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
 
             Console.WriteLine("{0} = {1}/{2} failures", testChars, failures, letters.Length);
         }
