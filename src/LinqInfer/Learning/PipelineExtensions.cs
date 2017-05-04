@@ -450,10 +450,30 @@ namespace LinqInfer.Learning
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
+        /// <param name="featureExtractor">An optional feature extractor</param>
         public static IPrunableObjectClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(featureExtractor);
+
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
+
+            classifier.FromVectorDocument(docData);
+
+            return classifier;
+        }
+
+        /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a blob store.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="docData">An exported multilayer network</returns>
+        /// <param name="featureExtractorFunc">A feature extracting function</param>
+        public static IPrunableObjectClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+            this BinaryVectorDocument docData, Func<TInput, double[]> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var fe = new MultiFunctionFeatureExtractor<TInput>(new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunc, vectorSize, true));
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
 

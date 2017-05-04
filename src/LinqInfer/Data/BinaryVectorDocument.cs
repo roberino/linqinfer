@@ -41,6 +41,12 @@ namespace LinqInfer.Data
             Load(data);
         }
 
+        public BinaryVectorDocument(XDocument xml, bool validate = false) : this()
+        {
+            ValidateOnImport = validate;
+            ImportXml(xml);
+        }
+
         /// <summary>
         /// If true, the checksum will be validated on import
         /// </summary>
@@ -234,6 +240,8 @@ namespace LinqInfer.Data
             if (obj is IBinaryPersistable)
             {
                 ((IBinaryPersistable)obj).FromClob(childNode.Properties["Data"]);
+
+                return obj;
             }
 
             throw new NotSupportedException();
@@ -391,7 +399,7 @@ namespace LinqInfer.Data
 
             foreach (var child in rootNode.Element(XName.Get(ChildrenName.ToLower())).Elements())
             {
-                var cdoc = new BinaryVectorDocument();
+                var cdoc = new BinaryVectorDocument() { ValidateOnImport = ValidateOnImport, VectorToXmlSerialisationMode = VectorToXmlSerialisationMode };
 
                 cdoc.ImportXml(child);
 

@@ -70,14 +70,6 @@ namespace LinqInfer.Learning.Classification
             root.WriteChildObject(_network);
             root.WriteChildObject(_config.OutputMapper);
 
-            //var outputMapperClob = _config.OutputMapper.ToClob();
-            //var feClob = _config.FeatureExtractor.ToClob();
-
-            //var doc = _network.ToVectorDocument();
-
-            //doc.Properties["OutputMapper"] = outputMapperClob;
-            //doc.Properties["FeatureExtractor"] = feClob;
-
             return root;
         }
 
@@ -96,8 +88,7 @@ namespace LinqInfer.Learning.Classification
 
             doc.ReadChildObject(_config.OutputMapper);
 
-            //_config.OutputMapper.FromClob(doc.Properties["OutputMapper"]);
-            //_config.FeatureExtractor.FromClob(doc.Properties["FeatureExtractor"]);
+            Setup(_network);
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)

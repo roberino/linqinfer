@@ -14,6 +14,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Learning
 {
@@ -22,9 +23,29 @@ namespace LinqInfer.Tests.Learning
     {
         private const int VectorWidth = 7;
 
-        public void LoadNetwork()
+        [Test]
+        public void LoadSerialisedNetworkFromXml()
         {
-            GetResource("net-X");
+            using (var res = GetResource("net-X-O-I.xml"))
+            {
+                var xml = XDocument.Load(res);
+
+                var doc = new BinaryVectorDocument(xml);
+
+                var testSet1 = new[] { 'X', 'O', 'Z', 'I' }
+                    .Select(c => ToCharObj(c, FontFamily.GenericSerif, "testing"))
+                    .Select(l => l.ClassifyAs(l.Character))
+                    .ToArray();
+
+                var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
+
+                var result1 = classifier.Classify(testSet1[3].ObjectInstance);
+
+                Assert.That(result1.First().ClassType, Is.EqualTo('I'));
+                Assert.That(result1.First().Score, IsAround(0.9, 0.1d));
+
+                Assert.That(classifier != null);
+            }
         }
         
         [TestCase("X,O,I")]
