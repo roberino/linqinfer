@@ -1,16 +1,18 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace LinqInfer.Maths
 {
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IEquatable<Vector>
+    public class Vector : IEnumerable<double>, IEquatable<Vector>, IJsonExportable
     {
         protected readonly double[] _values;
 
@@ -346,6 +348,14 @@ namespace LinqInfer.Maths
             Contract.Ensures(csv != null);
 
             return new Vector(csv.Split(delimitter).Select(v => double.Parse(v.Trim())).ToArray());
+        }
+
+        /// <summary>
+        /// Writes the data as a JSON array
+        /// </summary>
+        public void WriteJson(TextWriter output)
+        {
+            output.Write("[" + ToCsv(',', int.MaxValue) + "]");
         }
 
         public override int GetHashCode()

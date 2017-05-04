@@ -13,7 +13,7 @@ namespace LinqInfer.Maths
     /// Represents a matrix of floating point numbers
     /// with various methods for supporting matrix operations
     /// </summary>
-    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument, IJsonExportable
     {
         private Lazy<Vector> _mean;
         private Lazy<Matrix> _covariance;
@@ -550,6 +550,30 @@ namespace LinqInfer.Maths
             }
 
             Setup();
+        }
+
+        public void WriteJson(TextWriter output)
+        {
+            Contract.Ensures(output != null);
+            output.WriteLine("[");
+
+            bool isFirst = true;
+
+            foreach(var vect in Rows)
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    output.Write(",");
+                    output.WriteLine();
+                }
+                vect.WriteJson(output);
+            }
+
+            output.WriteLine("]");
         }
     }
 }

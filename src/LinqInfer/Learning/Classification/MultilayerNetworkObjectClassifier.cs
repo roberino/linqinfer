@@ -8,9 +8,7 @@ using System.IO;
 namespace LinqInfer.Learning.Classification
 {
     internal class MultilayerNetworkObjectClassifier<TClass, TInput> : 
-        IPrunableObjectClassifier<TClass, TInput>, 
-        IExportableAsVectorDocument,
-        IImportableAsVectorDocument
+        IDynamicClassifier<TClass, TInput>
         where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
@@ -113,7 +111,7 @@ namespace LinqInfer.Learning.Classification
         public void Train(TInput obj, TClass classification)
         {
             if (_classifier == null) throw new InvalidOperationException("Pipeline not initialised");
-            
+
             new BackPropagationLearning(_network)
                 .Train(new ColumnVector1D(_config.FeatureExtractor.ExtractVector(obj)), new ColumnVector1D(_config.OutputMapper.ExtractVector(classification)));
 

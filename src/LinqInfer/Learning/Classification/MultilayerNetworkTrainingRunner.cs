@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        public async Task<IPrunableObjectClassifier<TClass, TInput>> TrainUsing(IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy)
+        public async Task<IDynamicClassifier<TClass, TInput>> TrainUsing(IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy)
         {
             var trainingContextFactory = new MultilayerNetworkTrainingContextFactory<TClass>(_trainingSet.OutputMapper);
 

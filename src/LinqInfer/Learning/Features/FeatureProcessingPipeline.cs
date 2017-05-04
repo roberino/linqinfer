@@ -115,7 +115,7 @@ namespace LinqInfer.Learning.Features
         }
 
         /// <summary>
-        /// Filters features
+        /// Filters features using the specified predicate function
         /// </summary>
         public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
@@ -154,7 +154,8 @@ namespace LinqInfer.Learning.Features
         /// Preprocesses the data with transforming function
         /// (only one supported currently)
         /// The transforming function may or may not
-        /// change the size of the extracted vector
+        /// change the size of the extracted vector.
+        /// Function transformations are not serialisable.
         /// </summary>
         /// <param name="transformFunction">The transforming function</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
@@ -254,6 +255,21 @@ namespace LinqInfer.Learning.Features
             {
                 yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractColumnVector(b))).ToList();
             }
+        }
+
+        /// <summary>
+        /// Extracts and exports data into a single document
+        /// </summary>
+        public BinaryVectorDocument ExportData(int? maxRows = null)
+        {
+            var doc = new BinaryVectorDocument();
+
+            foreach(var vec in (maxRows.HasValue ? ExtractVectors().Take(maxRows.Value) : ExtractVectors()))
+            {
+                doc.Vectors.Add(vec);
+            }
+
+            return doc;
         }
     }
 }

@@ -74,6 +74,7 @@
     <Compile Include="Data\BlobStoreBase.cs" />
     <Compile Include="Data\IImportableAsVectorDocument.cs" />
     <Compile Include="Data\IExportableAsVectorDocument.cs" />
+    <Compile Include="Data\IJsonExportable.cs" />
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\IObjectSerialiser.cs" />
     <Compile Include="Data\IPortableObjectFactory.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
+    <Compile Include="Learning\Classification\IDynamicClassifier.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
     <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />

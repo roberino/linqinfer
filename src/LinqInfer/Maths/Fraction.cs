@@ -1,8 +1,10 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.IO;
 
 namespace LinqInfer.Maths
 {
@@ -10,7 +12,7 @@ namespace LinqInfer.Maths
     /// Represent a fraction
     /// </summary>
     [DebuggerDisplay("{Numerator}/{Denominator}")]
-    public struct Fraction : IEquatable<Fraction>, IEquatable<int>, IComparable<Fraction>
+    public struct Fraction : IEquatable<Fraction>, IEquatable<int>, IComparable<Fraction>, IJsonExportable
     {
         public Fraction(int n, int d, bool reduce = true)
         {
@@ -580,6 +582,13 @@ namespace LinqInfer.Maths
             }
 
             return a;
+        }
+
+        public void WriteJson(TextWriter output)
+        {
+            Contract.Ensures(output != null);
+
+            output.Write("{ denominator: " + Denominator + ", numerator: " + Numerator + " }");
         }
 
         public override bool Equals(object obj)
