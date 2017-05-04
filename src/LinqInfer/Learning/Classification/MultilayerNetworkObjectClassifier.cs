@@ -1,15 +1,14 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using LinqInfer.Data;
 
 namespace LinqInfer.Learning.Classification
 {
     internal class MultilayerNetworkObjectClassifier<TClass, TInput> : 
-        IPrunableObjectClassifier<TClass, TInput>, 
-        IExportableAsVectorDocument 
+        IDynamicClassifier<TClass, TInput>
         where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
@@ -22,6 +21,8 @@ namespace LinqInfer.Learning.Classification
             ICategoricalOutputMapper<TClass> outputMapper = null,
             MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
+            Statistics = new ClassifierStats();
+
             if (network != null)
             {
                 Setup(network);
@@ -30,8 +31,12 @@ namespace LinqInfer.Learning.Classification
 
         private MultilayerNetworkObjectClassifier(Config config)
         {
+            Statistics = new ClassifierStats();
+
             _config = config;
         }
+
+        public ClassifierStats Statistics { get; private set; }
 
         public void Load(Stream input)
         {
@@ -62,22 +67,45 @@ namespace LinqInfer.Learning.Classification
                 throw new InvalidOperationException("No training data received");
             }
 
-            var outputMapperClob = _config.OutputMapper.ToClob();
-            var feClob = _config.FeatureExtractor.ToClob();
+            var root = new BinaryVectorDocument();
 
-            var doc = _network.ToVectorDocument();
+            root.WriteChildObject(Statistics);
+            root.WriteChildObject(_config.FeatureExtractor);
+            root.WriteChildObject(_network);
+            root.WriteChildObject(_config.OutputMapper);
 
-            doc.Properties["OutputMapper"] = outputMapperClob;
-            doc.Properties["FeatureExtractor"] = feClob;
+            return root;
+        }
 
-            return doc;
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            doc.ReadChildObject(Statistics, null, true);
+
+            doc.ReadChildObject(_config.FeatureExtractor);
+
+            if (_network == null)
+            {
+                _network = MultilayerNetwork.CreateFromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+            }
+            else
+            {
+                _network.FromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+            }
+
+            doc.ReadChildObject(_config.OutputMapper);
+
+            Setup(_network);
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
         {
             if (_classifier == null) throw new InvalidOperationException("Pipeline not trained");
 
-            return _classifier.Classify(obj);
+            var results = _classifier.Classify(obj);
+
+            Statistics.IncrementClassificationCount();
+            
+            return results;
         }
 
         public void Train(TInput obj, TClass classification)
@@ -86,6 +114,8 @@ namespace LinqInfer.Learning.Classification
 
             new BackPropagationLearning(_network)
                 .Train(new ColumnVector1D(_config.FeatureExtractor.ExtractVector(obj)), new ColumnVector1D(_config.OutputMapper.ExtractVector(classification)));
+
+            Statistics.IncrementTrainingSampleCount();
         }
 
         public override string ToString()
@@ -108,6 +138,7 @@ namespace LinqInfer.Learning.Classification
 
             classifier._network = newNn;
             classifier._classifier = new ObjectClassifier<TClass, TInput, double>(mnClassifier, _config.FeatureExtractor);
+            classifier.Statistics = Statistics.Clone(true);
 
             return classifier;
         }

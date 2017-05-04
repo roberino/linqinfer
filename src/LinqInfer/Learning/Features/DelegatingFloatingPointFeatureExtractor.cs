@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
+    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private readonly Func<T, double[]> _vectorFunc;
 
@@ -99,15 +99,7 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            var doc = new BinaryVectorDocument();
-
-            doc.Properties["VectorSize"] = _vectorSize.ToString();
-            doc.Properties["NormaliseData"] = _normaliseData.ToString();
-
-            if (_normalisingVector != null)
-                doc.Vectors.Add(new ColumnVector1D(_normalisingVector));
-
-            doc.Save(output);
+            ToVectorDocument().Save(output);
         }
 
         public void Load(Stream input)
@@ -116,6 +108,29 @@ namespace LinqInfer.Learning.Features
 
             doc.Load(input);
 
+            FromVectorDocument(doc);
+        }
+
+        public ColumnVector1D ExtractColumnVector(T obj)
+        {
+            return new ColumnVector1D(ExtractVector(obj));
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.Properties["VectorSize"] = _vectorSize.ToString();
+            doc.Properties["NormaliseData"] = _normaliseData.ToString();
+
+            if (_normalisingVector != null)
+                doc.Vectors.Add(new ColumnVector1D(_normalisingVector));
+
+            return doc;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
             if (doc.Vectors.Any())
             {
                 var nv = doc.Vectors.First();
@@ -127,11 +142,6 @@ namespace LinqInfer.Learning.Features
 
                 _normalisingVector = nv.ToDoubleArray();
             }
-        }
-
-        public ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return new ColumnVector1D(ExtractVector(obj));
         }
     }
 }

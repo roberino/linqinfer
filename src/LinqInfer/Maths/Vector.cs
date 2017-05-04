@@ -1,27 +1,31 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace LinqInfer.Maths
 {
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IEquatable<Vector>
+    public class Vector : IEnumerable<double>, IEquatable<Vector>, IJsonExportable
     {
         protected readonly double[] _values;
 
         internal Vector(Vector vector, bool deepClone = true)
         {
             _values = deepClone ? vector._values.ToArray() : vector._values;
+            Refresh();
         }
 
         public Vector(int size)
         {
             _values = new double[size];
+            Refresh();
         }
 
         public Vector(double[] values)
@@ -328,7 +332,30 @@ namespace LinqInfer.Maths
         /// <returns>A CSV string</returns>
         public string ToCsv(char delimitter, int precision = 8)
         {
+            if (precision == int.MaxValue)
+            {
+                return string.Join(delimitter.ToString(), _values.Select(v => v.ToString()));
+            }
+
             return string.Join(delimitter.ToString(), _values.Select(v => Math.Round(v, precision).ToString()));
+        }
+
+        /// <summary>
+        /// Returns a vector from a list of comma separated values (e.g. 1.4, 23.234, 223.2)
+        /// </summary>
+        public static Vector FromCsv(string csv, char delimitter = ',')
+        {
+            Contract.Ensures(csv != null);
+
+            return new Vector(csv.Split(delimitter).Select(v => double.Parse(v.Trim())).ToArray());
+        }
+
+        /// <summary>
+        /// Writes the data as a JSON array
+        /// </summary>
+        public void WriteJson(TextWriter output)
+        {
+            output.Write("[" + ToCsv(',', int.MaxValue) + "]");
         }
 
         public override int GetHashCode()

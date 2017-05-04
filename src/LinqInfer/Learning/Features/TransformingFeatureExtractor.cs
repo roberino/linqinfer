@@ -1,19 +1,22 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class TransformingFeatureExtractor<TInput, TVector> : IFeatureExtractor<TInput, TVector> where TVector : struct
+    internal class TransformingFeatureExtractor<TInput, TVector> : IFeatureExtractor<TInput, TVector>, IExportableAsVectorDocument, IImportableAsVectorDocument where TVector : struct
     {
         private readonly IFeatureExtractor<TInput, TVector> _baseFeatureExtractor;
         private readonly Func<TVector[], TVector[]> _transformation;
-        private readonly int _vectorSize;
         private readonly IList<IFeature> _selectedFeatures;
         private readonly IList<IFeature> _transformedFeatures;
         private readonly IDictionary<string, int> _indexLookup;
+
+        private readonly int _vectorSize;
         private readonly bool _isFiltered;
+        private readonly bool _hasCustomTransformation;
 
         public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, int[] indexSelection = null) : this(baseFeatureExtractor, transformation, indexSelection == null ? null : (Func<IFeature, bool>)(f => indexSelection.Contains(f.Index)))
         {
@@ -22,6 +25,7 @@ namespace LinqInfer.Learning.Features
         public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, Func<IFeature, bool> featureFilter)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
+            _hasCustomTransformation = transformation != null;
             _transformation = transformation ?? (x => x);
             _isFiltered = featureFilter != null;
             _selectedFeatures = (!_isFiltered) ? baseFeatureExtractor.FeatureMetadata.ToList() : RebaseIndex(baseFeatureExtractor.FeatureMetadata.Where(featureFilter));
@@ -63,6 +67,8 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        public int InputSize { get { return _selectedFeatures.Count; } }
+
         public int VectorSize { get { return _vectorSize; } }
 
         public TVector[] NormaliseUsing(IEnumerable<TInput> samples)
@@ -79,14 +85,47 @@ namespace LinqInfer.Learning.Features
             return FilterAndTransform(bnv);
         }
 
-        public void Load(Stream input)
+        public virtual void Load(Stream input)
         {
-            _baseFeatureExtractor.Load(input);
+            var doc = new BinaryVectorDocument();
+            doc.Load(input);
+            FromVectorDocument(doc);
         }
 
-        public void Save(Stream output)
+        public virtual void Save(Stream output)
         {
-            _baseFeatureExtractor.Save(output);
+            ToVectorDocument().Save(output);
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            if (_hasCustomTransformation) throw new NotSupportedException("Custom transformations can't be serialised");
+
+            var doc = new BinaryVectorDocument();
+
+            doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
+
+            if (_isFiltered) doc.Properties["SelectedFeatures"] = string.Join(",", _selectedFeatures.Select(f => f.Key));
+
+            return doc;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            if (doc.Properties.ContainsKey("SelectedFeatures"))
+            {
+                var features = _baseFeatureExtractor.FeatureMetadata.ToDictionary(f => f.Key);
+                var selectedFeatures = doc.Properties["SelectedFeatures"].Split(',').Select(k => features[k]);
+
+                _selectedFeatures.Clear();
+
+                foreach (var feature in selectedFeatures) _selectedFeatures.Add(feature);
+            }
+
+            if (doc.Properties.ContainsKey("BaseFeatureExtractor"))
+            {
+                _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
+            }
         }
 
         private TVector[] FilterAndTransform(TVector[] vector)

@@ -10,20 +10,14 @@ namespace LinqInfer.Learning.Features
 {
     public sealed class FeatureProcessingPipeline<T> : IFeatureProcessingPipeline<T> where T : class
     {
-        private static readonly ObjectFeatureExtractorFactory _objExtractor = new ObjectFeatureExtractorFactory();
-
-        private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
         private readonly IQueryable<T> _data;
         private readonly IList<IBlobStore> _outputs;
-
-        private FloatingPointTransformingFeatureExtractor<T> _transformation;
-
-        private bool _normalisationCompleted;
 
         internal FeatureProcessingPipeline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             _data = data;
-            _featureExtractor = featureExtractor ?? _objExtractor.CreateFeatureExtractor<T>();
+            _featureExtractor = new MultiFunctionFeatureExtractor<T>(featureExtractor);
             _outputs = new List<IBlobStore>();
         }
 
@@ -60,7 +54,7 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                return _transformation ?? _featureExtractor;
+                return _featureExtractor;
             }
         }
 
@@ -88,6 +82,22 @@ namespace LinqInfer.Learning.Features
         }
 
         /// <summary>
+        /// Exports the internal state (not the data) of the pipeline as a <see cref="BinaryVectorDocument"/>
+        /// </summary>
+        public BinaryVectorDocument SaveState()
+        {
+            return _featureExtractor.ToVectorDocument();
+        }
+
+        /// <summary>
+        /// Retores the state of the pipeline from a previously exported <see cref="BinaryVectorDocument"/>
+        /// </summary>
+        public void RestoreState(BinaryVectorDocument data)
+        {
+            _featureExtractor.FromVectorDocument(data);
+        }
+
+        /// <summary>
         /// Filters features by property
         /// </summary>
         public FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
@@ -99,28 +109,17 @@ namespace LinqInfer.Learning.Features
             if (ps.SelectedProperties.Any())
             {
                 FilterFeatures(f => ps.SelectedProperties.Contains(f.Label));
-
-                _normalisationCompleted = false;
             }
 
             return this;
         }
 
         /// <summary>
-        /// Filters features
+        /// Filters features using the specified predicate function
         /// </summary>
         public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
-            if (_transformation == null)
-            {
-                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, null, featureFilter);
-            }
-            else
-            {
-                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, _transformation.Transformation, featureFilter);
-            }
-
-            _normalisationCompleted = false;
+            _featureExtractor.FilterFeatures(featureFilter);
 
             return this;
         }
@@ -136,29 +135,33 @@ namespace LinqInfer.Learning.Features
         {
             var pca = new PrincipalComponentAnalysis(this);
 
-            return PreprocessWith(pca.CreatePrincipalComponentTransformation(numberOfDimensions, sampleSize));
+            return PreprocessWith(pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize));
+        }
+
+        /// <summary>
+        /// Preprocesses the data with the supplied transformation
+        /// </summary>
+        /// <param name="transformation">The vector transformation</param>
+        /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
+        public FeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        {
+            _featureExtractor.PreprocessWith(transformation);
+
+            return this;
         }
 
         /// <summary>
         /// Preprocesses the data with transforming function
         /// (only one supported currently)
         /// The transforming function may or may not
-        /// change the size of the extracted vector
+        /// change the size of the extracted vector.
+        /// Function transformations are not serialisable.
         /// </summary>
         /// <param name="transformFunction">The transforming function</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
         public FeatureProcessingPipeline<T> PreprocessWith(Func<double[], double[]> transformFunction)
         {
-            if (_transformation == null)
-            {
-                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction);
-            }
-            else
-            {
-                _transformation = new FloatingPointTransformingFeatureExtractor<T>(_featureExtractor, transformFunction, _transformation.FeatureFilter);
-            }
-
-            _normalisationCompleted = false;
+            PreprocessWith(new DelegateVectorTransformation(_featureExtractor.VectorSize, transformFunction));
 
             return this;
         }
@@ -213,11 +216,9 @@ namespace LinqInfer.Learning.Features
         {
             var fe = FeatureExtractor;
 
-            if (fe.IsNormalising && !_normalisationCompleted)
+            if (fe.IsNormalising && !_featureExtractor.NormalisationCompleted)
             {
                 fe.NormaliseUsing(_data);
-
-                _normalisationCompleted = true;
             }
 
             return this;
@@ -254,6 +255,21 @@ namespace LinqInfer.Learning.Features
             {
                 yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractColumnVector(b))).ToList();
             }
+        }
+
+        /// <summary>
+        /// Extracts and exports data into a single document
+        /// </summary>
+        public BinaryVectorDocument ExportData(int? maxRows = null)
+        {
+            var doc = new BinaryVectorDocument();
+
+            foreach(var vec in (maxRows.HasValue ? ExtractVectors().Take(maxRows.Value) : ExtractVectors()))
+            {
+                doc.Vectors.Add(vec);
+            }
+
+            return doc;
         }
     }
 }

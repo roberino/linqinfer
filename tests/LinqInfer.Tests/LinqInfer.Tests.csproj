@@ -89,6 +89,7 @@
     <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
     <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
     <Compile Include="Learning\Classification\MultilayerNetworkTests.cs" />
+    <Compile Include="Learning\Classification\ClassifierStatsTests.cs" />
     <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServerTests.cs" />
     <Compile Include="Learning\Features\FeatureProcessingPiplineTests.cs" />
     <Compile Include="Learning\Features\PrincipalComponentsAnalysisTests.cs" />
@@ -164,6 +165,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Text\html_sample2.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Learning\net-X-O-I.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" />

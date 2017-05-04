@@ -1,11 +1,10 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths.Probability;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -13,13 +12,38 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Learning
 {
     [TestFixture]
-    public class ImageLearningExamples
+    public class ImageLearningExamples : TestFixtureBase
     {
         private const int VectorWidth = 7;
+
+        [Test]
+        [Ignore("TODO: Invalid or bad data on dotnet core?")]
+        public void LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
+        {
+            using (var res = GetResource("net-X-O-I.xml"))
+            {
+                var xml = XDocument.Load(res);
+
+                var doc = new BinaryVectorDocument(xml);
+
+                var testSet1 = new[] { 'X', 'O', 'Z', 'I' }
+                    .Select(c => ToCharObj(c, FontFamily.GenericSerif, "testing"))
+                    .Select(l => l.ClassifyAs(l.Character))
+                    .ToArray();
+
+                var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
+
+                var result1 = classifier.Classify(testSet1[3].ObjectInstance);
+
+                Assert.That(result1.First().ClassType, Is.EqualTo('I'));
+                Assert.That(result1.First().Score, IsAround(0.9, 0.1d));
+            }
+        }
         
         [TestCase("X,O,I")]
         public void TrainNetwork_UsingCharacterBitmaps_PCATransform(string testChars)
@@ -92,6 +116,10 @@ namespace LinqInfer.Tests.Learning
                     Console.WriteLine("other {0} = {1}", d.Key, d.Value.ToPercent());
             }
 
+            var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
+
+            // data.ExportAsXml().Save(@"..\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
+
             Console.WriteLine("{0} = {1}/{2} failures", testChars, failures, letters.Length);
         }
 
@@ -145,6 +173,10 @@ namespace LinqInfer.Tests.Learning
 
                     return i > 10 || score == 1;
                 });
+
+            var doc = classifier.ToVectorDocument();
+
+            //doc.ExportAsXml().Save(@"C:\ne.data.xml");
 
             int failures = 0;
 
