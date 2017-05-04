@@ -142,6 +142,7 @@
     <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
     <Compile Include="Learning\Classification\IRawClassifierTrainingContext.cs" />
     <Compile Include="Learning\Classification\NetworkParameterFactory.cs" />
+    <Compile Include="Learning\Classification\ClassifierStats.cs" />
     <Compile Include="Learning\Classification\Remoting\Extensions.cs" />
     <Compile Include="Learning\Classification\Remoting\IRemoteClassifierTrainingClient.cs" />
     <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingClient.cs" />

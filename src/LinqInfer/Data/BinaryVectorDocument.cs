@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Xml.Linq;
 
@@ -213,22 +214,42 @@ namespace LinqInfer.Data
             Csv
         }
 
-        internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null)
+        internal T PropertyOrDefault<T>(Expression<Func<object>> keyExpression, T defaultValue)
+        {
+            var propName = LinqExtensions.GetPropertyName(keyExpression);
+
+            return PropertyOrDefault(propName, defaultValue);
+        }
+
+        internal void SetPropertyFromExpression(Expression<Func<object>> expression)
+        {
+            var propName = LinqExtensions.GetPropertyName(expression);
+            var value = expression.Compile().Invoke();
+
+            if (value != null)
+            {
+                Properties[propName] = value.ToString();
+            }
+        }
+
+        internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null, bool ignoreIfMissing = false)
         {
             var tname = (type ?? typeof(T)).FullName;
 
             var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
 
-            if (childNode == null) throw new NullReferenceException("Child object not found : " + tname);
+            if (childNode == null && !ignoreIfMissing) throw new NullReferenceException("Child object not found : " + tname);
 
             return childNode;
         }
 
-        internal T ReadChildObject<T>(T obj, int? index = null)
+        internal T ReadChildObject<T>(T obj, int? index = null, bool ignoreIfMissing = false)
         {
             if (obj == null) return obj;
 
-            var childNode = GetChildDoc<T>(obj.GetType(), index);
+            var childNode = GetChildDoc<T>(obj.GetType(), index, ignoreIfMissing);
+
+            if (childNode == null) return obj;
 
             if (obj is IImportableAsVectorDocument)
             {

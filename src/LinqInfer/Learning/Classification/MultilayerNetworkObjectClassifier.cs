@@ -1,10 +1,9 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using LinqInfer.Data;
-using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
@@ -24,6 +23,8 @@ namespace LinqInfer.Learning.Classification
             ICategoricalOutputMapper<TClass> outputMapper = null,
             MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
+            Statistics = new ClassifierStats();
+
             if (network != null)
             {
                 Setup(network);
@@ -32,8 +33,12 @@ namespace LinqInfer.Learning.Classification
 
         private MultilayerNetworkObjectClassifier(Config config)
         {
+            Statistics = new ClassifierStats();
+
             _config = config;
         }
+
+        public ClassifierStats Statistics { get; private set; }
 
         public void Load(Stream input)
         {
@@ -66,6 +71,7 @@ namespace LinqInfer.Learning.Classification
 
             var root = new BinaryVectorDocument();
 
+            root.WriteChildObject(Statistics);
             root.WriteChildObject(_config.FeatureExtractor);
             root.WriteChildObject(_network);
             root.WriteChildObject(_config.OutputMapper);
@@ -75,6 +81,8 @@ namespace LinqInfer.Learning.Classification
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
+            doc.ReadChildObject(Statistics, null, true);
+
             doc.ReadChildObject(_config.FeatureExtractor);
 
             if (_network == null)
@@ -95,15 +103,21 @@ namespace LinqInfer.Learning.Classification
         {
             if (_classifier == null) throw new InvalidOperationException("Pipeline not trained");
 
-            return _classifier.Classify(obj);
+            var results = _classifier.Classify(obj);
+
+            Statistics.IncrementClassificationCount();
+            
+            return results;
         }
 
         public void Train(TInput obj, TClass classification)
         {
             if (_classifier == null) throw new InvalidOperationException("Pipeline not initialised");
-
+            
             new BackPropagationLearning(_network)
                 .Train(new ColumnVector1D(_config.FeatureExtractor.ExtractVector(obj)), new ColumnVector1D(_config.OutputMapper.ExtractVector(classification)));
+
+            Statistics.IncrementTrainingSampleCount();
         }
 
         public override string ToString()
@@ -126,6 +140,7 @@ namespace LinqInfer.Learning.Classification
 
             classifier._network = newNn;
             classifier._classifier = new ObjectClassifier<TClass, TInput, double>(mnClassifier, _config.FeatureExtractor);
+            classifier.Statistics = Statistics.Clone(true);
 
             return classifier;
         }

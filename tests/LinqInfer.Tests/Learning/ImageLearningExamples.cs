@@ -2,11 +2,9 @@
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths.Probability;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -24,7 +22,7 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 7;
 
         [Test]
-        public void LoadSerialisedNetworkFromXml()
+        public void LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
         {
             using (var res = GetResource("net-X-O-I.xml"))
             {
@@ -43,8 +41,6 @@ namespace LinqInfer.Tests.Learning
 
                 Assert.That(result1.First().ClassType, Is.EqualTo('I'));
                 Assert.That(result1.First().Score, IsAround(0.9, 0.1d));
-
-                Assert.That(classifier != null);
             }
         }
         
@@ -121,7 +117,7 @@ namespace LinqInfer.Tests.Learning
 
             var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
 
-            data.ExportAsXml().Save(@"C:\stash\roberino\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
+            // data.ExportAsXml().Save(@"..\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
 
             Console.WriteLine("{0} = {1}/{2} failures", testChars, failures, letters.Length);
         }

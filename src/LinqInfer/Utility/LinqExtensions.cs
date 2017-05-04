@@ -77,6 +77,11 @@ namespace LinqInfer.Utility
             return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
         }
 
+        internal static string GetPropertyName<TField>(Expression<Func<TField>> propertyExpression)
+        {
+            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
+        }
+
         /// <summary>
         /// Inverts an expression e.g. not(exp).
         /// </summary>
