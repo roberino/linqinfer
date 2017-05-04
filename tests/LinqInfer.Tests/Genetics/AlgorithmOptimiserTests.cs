@@ -9,6 +9,7 @@ namespace LinqInfer.Tests.Genetics
     public class AlgorithmOptimiserTests
     {
         [Test]
+        [Category("BuildOmit")]
         public void Optimise_InverseRelationship_OptimisedAsExpected()
         {
             var ao = new AlgorithmOptimiser();
