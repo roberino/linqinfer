@@ -174,10 +174,6 @@ namespace LinqInfer.Tests.Learning
                     return i > 10 || score == 1;
                 });
 
-            var doc = classifier.ToVectorDocument();
-
-            //doc.ExportAsXml().Save(@"C:\ne.data.xml");
-
             int failures = 0;
 
             foreach (var m in testSet2)
