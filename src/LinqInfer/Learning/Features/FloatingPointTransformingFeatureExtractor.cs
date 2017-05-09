@@ -10,7 +10,6 @@ namespace LinqInfer.Learning.Features
     internal class FloatingPointTransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private readonly IFeatureExtractor<TInput, double> _baseFeatureExtractor;
-        private readonly IDictionary<string, int> _indexLookup;
         private readonly List<IVectorTransformation> _transformations;
 
         private IList<IFeature> _transformedFeatures;
