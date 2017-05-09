@@ -172,34 +172,7 @@ namespace LinqInfer.Data
 
         public XDocument ExportAsXml()
         {
-            var date = DateTime.UtcNow;
-            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
-
-            var doc = new XDocument(new XElement("doc",
-                new XAttribute("version", Version),
-                new XAttribute("checksum", Checksum),
-                new XAttribute("exported", date)));
-
-            var propsNode = new XElement(PropertiesName.ToLower(),
-                _properties.Select(p => new XElement("property",
-                    new XAttribute("key", p.Key),
-                    new XAttribute("value", p.Value))));
-
-            var dataNode = new XElement(DataName.ToLower(),
-                _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
-
-            var blobsNode = new XElement(BlobName.ToLower() + "s",
-                _blobs.Select(b => new XElement(BlobName.ToLower(),
-                    new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
-
-            var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml().Root));
-
-            doc.Root.Add(propsNode);
-            doc.Root.Add(dataNode);
-            doc.Root.Add(blobsNode);
-            doc.Root.Add(childrenNode);
-
-            return doc;
+            return ExportAsXml(true);
         }
 
         public void ImportXml(XDocument xml)
@@ -234,11 +207,11 @@ namespace LinqInfer.Data
 
         internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null, bool ignoreIfMissing = false)
         {
-            var tname = (type ?? typeof(T)).FullName;
+            var tname = (type ?? typeof(T)).GetTypeInf().Name;
 
             var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
 
-            if (childNode == null && !ignoreIfMissing) throw new NullReferenceException("Child object not found : " + tname);
+            if (childNode == null && !ignoreIfMissing) throw new FormatException("Child object not found : " + tname);
 
             return childNode;
         }
@@ -280,8 +253,7 @@ namespace LinqInfer.Data
                 {
                     var cdoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
 
-                    cdoc.Properties["TypeName"] = obj.GetType().FullName;
-                    cdoc.Properties["TypeGuid"] = obj.GetType().GUID.ToString();
+                    cdoc.Properties["TypeName"] = obj.GetType().GetTypeInf().Name;
 
                     Children.Add(cdoc);
                 }
@@ -291,7 +263,7 @@ namespace LinqInfer.Data
                     {
                         var childDoc = new BinaryVectorDocument();
 
-                        childDoc.Properties["TypeName"] = obj.GetType().FullName;
+                        childDoc.Properties["TypeName"] = obj.GetType().GetTypeInf().Name;
                         childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
 
                         Children.Add(childDoc);
@@ -361,6 +333,52 @@ namespace LinqInfer.Data
             }
         }
 
+        private XDocument ExportAsXml(bool isRoot)
+        {
+            var date = DateTime.UtcNow;
+            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
+
+            var doc = new XDocument(new XElement(isRoot ? "doc" : "node",
+                new XAttribute("version", Version),
+                new XAttribute("checksum", Checksum)));
+
+            if (isRoot) doc.Root.Add(new XAttribute("exported", date));
+
+            if (_properties.Any())
+            {
+                var propsNode = new XElement(PropertiesName.ToLower(),
+                    _properties.Select(p => new XElement("property",
+                        new XAttribute("key", p.Key),
+                        new XAttribute("value", p.Value))));
+
+                doc.Root.Add(propsNode);
+            }
+
+            if (_vectorData.Any())
+            {
+                var dataNode = new XElement(DataName.ToLower(),
+                    _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
+                doc.Root.Add(dataNode);
+            }
+
+            if (_blobs.Any())
+            {
+                var blobsNode = new XElement(BlobName.ToLower() + "s",
+                    _blobs.Select(b => new XElement(BlobName.ToLower(),
+                        new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
+                doc.Root.Add(blobsNode);
+            }
+
+            if (_children.Any())
+            {
+                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml(false).Root));
+
+                doc.Root.Add(childrenNode);
+            }
+
+            return doc;
+        }
+
         private long AppendCheckSum(string val, long checksum)
         {
             foreach (var c in val)
@@ -394,31 +412,24 @@ namespace LinqInfer.Data
 
             Version = int.Parse(rootNode.Attribute("version").Value);
 
-            var tfa = rootNode.Attribute("typeFactory");
-
-            if (tfa != null && !string.IsNullOrEmpty(tfa.Value))
-            {
-                // TypeFactory = Type.GetType(tfa.Value);
-            }
-
-            foreach (var prop in rootNode.Element(XName.Get(PropertiesName.ToLower())).Elements().Where(e => e.Name.LocalName == "property" && e.HasAttributes))
+            foreach (var prop in ChildElements(rootNode, PropertiesName).Where(e => e.Name.LocalName == "property" && e.HasAttributes))
             {
                 _properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
             }
 
-            foreach (var vect in rootNode.Element(XName.Get(DataName.ToLower())).Elements().Where(e => e.Name.LocalName == "vector"))
+            foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == "vector"))
             {
                 var vd = new ColumnVector1D(VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64 ? Vector.FromBase64(vect.Value.Trim()) : Vector.FromCsv(vect.Value));
 
                 _vectorData.Add(vd);
             }
-
-            foreach (var blob in rootNode.Element(XName.Get(BlobName.ToLower() + "s")).Elements().Where(e => e.Name.LocalName == BlobName.ToLower()))
+            
+            foreach (var blob in ChildElements(rootNode, BlobName + "s").Where(e => e.Name.LocalName == BlobName.ToLower()))
             {
                 _blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
             }
 
-            foreach (var child in rootNode.Element(XName.Get(ChildrenName.ToLower())).Elements())
+            foreach (var child in ChildElements(rootNode, ChildrenName))
             {
                 var cdoc = new BinaryVectorDocument() { ValidateOnImport = ValidateOnImport, VectorToXmlSerialisationMode = VectorToXmlSerialisationMode };
 
@@ -431,6 +442,13 @@ namespace LinqInfer.Data
             {
                 throw new ArgumentException("Invalid or corrupted data");
             }
+        }
+
+        private IEnumerable<XElement> ChildElements(XElement parent, string name)
+        {
+            var e = parent.Element(XName.Get(name.ToLower()));
+
+            return (e?.Elements() ?? Enumerable.Empty<XElement>());
         }
 
         protected void Write(BinaryWriter writer, int level)

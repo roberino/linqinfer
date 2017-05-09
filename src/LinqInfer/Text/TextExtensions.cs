@@ -36,6 +36,42 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a blob store.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="docData">An exported multilayer network</returns>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        public static IDynamicClassifier<TClass, string> OpenAsTextualMultilayerNetworkClassifier<TClass>(
+            this BinaryVectorDocument docData, ITokeniser tokeniser = null) where TClass : IEquatable<TClass>
+        {
+            var featureExtractor = new TextVectorExtractor();
+            var t = tokeniser ?? new Tokeniser();
+            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<string>(t.Tokenise);
+
+            return PipelineExtensions.OpenAsMultilayerNetworkClassifier<string, TClass>(docData, objFeatureExtractor);
+        }
+
+        /// <summary>
+        /// Restores a previously saved multi-layer network classifier from a blob store.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The returned class type</typeparam>
+        /// <param name="docData">An exported multilayer network</returns>
+        public static IDynamicClassifier<TClass, TInput> OpenAsTextualMultilayerNetworkClassifier<TClass, TInput>(
+            this BinaryVectorDocument docData)
+            where TClass : IEquatable<TClass>
+            where TInput : class
+        {
+            var featureExtractor = new TextVectorExtractor();
+            var index = new DocumentIndex();
+            var tokeniser = new ObjectTextExtractor<TInput>(index.Tokeniser);
+            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<TInput>(tokeniser.CreateObjectTextTokeniser());
+
+            return PipelineExtensions.OpenAsMultilayerNetworkClassifier<TInput, TClass>(docData, objFeatureExtractor);
+        }
+
+        /// <summary>
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.
         /// </summary>
@@ -76,7 +112,6 @@ namespace LinqInfer.Text
             index.IndexDocuments(docs);
 
             return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
-            //return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractor(objtokeniser, maxVectorSize));
         }
 
         /// <summary>

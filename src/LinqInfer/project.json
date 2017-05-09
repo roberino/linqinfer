@@ -1,7 +1,7 @@
 ﻿{
-  "version": "3.6.4",
+  "version": "3.7.0-beta",
   "title": "LinqInfer",
-  "description": "A lightweight and slightly experimental inference library for .NET",
+  "description": "A lightweight, linq-friendly inference library for .NET",
   "language": "en-GB",
   "authors": [
     "R Eyres"

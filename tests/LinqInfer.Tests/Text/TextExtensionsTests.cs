@@ -126,41 +126,36 @@ namespace LinqInfer.Tests.Text
             Assert.That(t, Is.GreaterThanOrEqualTo(passPercent / 100f));
         }
 
-        private bool TextFeaturePipelineToNNClassifier()
+        [Test]
+        public void CreateTextFeaturePipeline_ToMLNetwork_SaveRestoresState()
         {
-            var data = new[]
-            {
-                new
-                {
-                    data = "love time fortune",
-                    cls = "G"
-                },
-                new
-                {
-                    data = "pain hate loss",
-                    cls = "B"
-                },
-                new
-                {
-                    data = "hurt sorrow hell",
-                    cls = "B"
-                },
-                new
-                {
-                    data = "rainbows sunshine",
-                    cls = "G"
-                },
-                new
-                {
-                    data = "loss hell",
-                    cls = "?"
-                }
-            };
+            var data = CreateTestData();
 
             var pipeline = data.Take(4).AsQueryable().CreateTextFeaturePipeline();
 
             var classifier = pipeline.ToMultilayerNetworkClassifier(x => x.cls).Execute();
 
+            var state = classifier.ToVectorDocument();
+
+            var classifier2 = state.OpenAsTextualMultilayerNetworkClassifier<string, TestDoc>();
+            
+            var test = data.Last();
+
+            var r1 = classifier.Classify(test);
+            var r2 = classifier.Classify(test);
+
+            Assert.That(r1.First().ClassType, Is.EqualTo(r2.First().ClassType));
+            Assert.That(Math.Round(r1.First().Score, 2), Is.EqualTo(Math.Round(r2.First().Score, 2)));
+        }
+
+        private bool TextFeaturePipelineToNNClassifier()
+        {
+            var data = CreateTestData();
+
+            var pipeline = data.Take(4).AsQueryable().CreateTextFeaturePipeline();
+
+            var classifier = pipeline.ToMultilayerNetworkClassifier(x => x.cls).Execute();
+                        
             var test = data.Last();
 
             var results = classifier.Classify(test);
@@ -172,34 +167,7 @@ namespace LinqInfer.Tests.Text
         [Category("BuildOmit")]
         public void CreateSemanticClassifier_ReturnsExpectedOutput()
         {
-            var data = new[]
-            {
-                new
-                {
-                    data = "the time of love and fortune",
-                    cls = "G"
-                },
-                new
-                {
-                    data = "the pain and hate of loss",
-                    cls = "B"
-                },
-                new
-                {
-                    data = "of hurt and sorrow and hell",
-                    cls = "B"
-                },
-                new
-                {
-                    data = "rainbows and sunshine",
-                    cls = "G"
-                },
-                new
-                {
-                    data = "the loss and hell",
-                    cls = "?"
-                }
-            };
+            var data = CreateTestData();
 
             var classifier = data.Take(4).AsQueryable().CreateSemanticClassifier(x => x.cls, 12);
 
@@ -208,6 +176,44 @@ namespace LinqInfer.Tests.Text
             var results = classifier.Classify(test);
 
             Assert.That(results.First().ClassType, Is.EqualTo("B"));
+        }
+
+        private TestDoc[] CreateTestData()
+        {
+            return new[]
+            {
+                new TestDoc
+                {
+                    data = "the time of love and fortune",
+                    cls = "G"
+                },
+                new TestDoc
+                {
+                    data = "the pain and hate of loss",
+                    cls = "B"
+                },
+                new TestDoc
+                {
+                    data = "of hurt and sorrow and hell",
+                    cls = "B"
+                },
+                new TestDoc
+                {
+                    data = "rainbows and sunshine",
+                    cls = "G"
+                },
+                new TestDoc
+                {
+                    data = "the loss and hell",
+                    cls = "?"
+                }
+            };
+        }
+
+        private class TestDoc
+        {
+            public string data { get; set; }
+            public string cls { get; set; }
         }
     }
 }

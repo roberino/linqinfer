@@ -450,7 +450,7 @@ namespace LinqInfer.Learning
         /// <param name="store">A blob store</returns>
         /// <param name="key">The name of a previously stored classifier</returns>
         [Obsolete]
-        public static IPrunableObjectClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
+        public static IDynamicClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
             this IBlobStore store, string key, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             if (featureExtractor == null) featureExtractor = new FeatureProcessingPipeline<TInput>().FeatureExtractor;
@@ -469,7 +469,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
         /// <param name="featureExtractor">An optional feature extractor</param>
-        public static IPrunableObjectClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+        public static IDynamicClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(featureExtractor);
@@ -488,7 +488,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
         /// <param name="featureExtractorFunc">A feature extracting function</param>
-        public static IPrunableObjectClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+        public static IDynamicClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, Func<TInput, double[]> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunc, vectorSize, true));

@@ -200,7 +200,7 @@ namespace LinqInfer.Learning.Features
         /// Specifies where output should be stored
         /// </summary>
         /// <param name="store"></param>
-        /// <returns></returns>
+        [Obsolete]
         public FeatureProcessingPipeline<T> OutputResultsTo(IBlobStore store)
         {
             _outputs.Add(store);
