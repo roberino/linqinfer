@@ -22,7 +22,7 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 7;
 
         [Test]
-        //[Ignore("TODO: Invalid or bad data on dotnet core?")]
+        [Ignore("TODO: System.ArgumentException Invalid or corrupted data on dotnet core linux?")]
         public void LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
         {
             using (var res = GetResource("net-X-O-I.xml"))
