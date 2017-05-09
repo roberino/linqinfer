@@ -172,47 +172,7 @@ namespace LinqInfer.Data
 
         public XDocument ExportAsXml()
         {
-            var date = DateTime.UtcNow;
-            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
-
-            var doc = new XDocument(new XElement("doc",
-                new XAttribute("version", Version),
-                new XAttribute("checksum", Checksum),
-                new XAttribute("exported", date)));
-
-            if (_properties.Any())
-            {
-                var propsNode = new XElement(PropertiesName.ToLower(),
-                    _properties.Select(p => new XElement("property",
-                        new XAttribute("key", p.Key),
-                        new XAttribute("value", p.Value))));
-
-                doc.Root.Add(propsNode);
-            }
-
-            if (_vectorData.Any())
-            {
-                var dataNode = new XElement(DataName.ToLower(),
-                    _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
-                doc.Root.Add(dataNode);
-            }
-
-            if (_blobs.Any())
-            {
-                var blobsNode = new XElement(BlobName.ToLower() + "s",
-                    _blobs.Select(b => new XElement(BlobName.ToLower(),
-                        new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
-                doc.Root.Add(blobsNode);
-            }
-
-            if (_children.Any())
-            {
-                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml().Root));
-
-                doc.Root.Add(childrenNode);
-            }
-
-            return doc;
+            return ExportAsXml(true);
         }
 
         public void ImportXml(XDocument xml)
@@ -371,6 +331,52 @@ namespace LinqInfer.Data
             {
                 throw new ArgumentException("Invalid or corrupted data");
             }
+        }
+
+        private XDocument ExportAsXml(bool isRoot)
+        {
+            var date = DateTime.UtcNow;
+            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
+
+            var doc = new XDocument(new XElement(isRoot ? "doc" : "node",
+                new XAttribute("version", Version),
+                new XAttribute("checksum", Checksum)));
+
+            if (isRoot) doc.Root.Add(new XAttribute("exported", date));
+
+            if (_properties.Any())
+            {
+                var propsNode = new XElement(PropertiesName.ToLower(),
+                    _properties.Select(p => new XElement("property",
+                        new XAttribute("key", p.Key),
+                        new XAttribute("value", p.Value))));
+
+                doc.Root.Add(propsNode);
+            }
+
+            if (_vectorData.Any())
+            {
+                var dataNode = new XElement(DataName.ToLower(),
+                    _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
+                doc.Root.Add(dataNode);
+            }
+
+            if (_blobs.Any())
+            {
+                var blobsNode = new XElement(BlobName.ToLower() + "s",
+                    _blobs.Select(b => new XElement(BlobName.ToLower(),
+                        new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
+                doc.Root.Add(blobsNode);
+            }
+
+            if (_children.Any())
+            {
+                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml(false).Root));
+
+                doc.Root.Add(childrenNode);
+            }
+
+            return doc;
         }
 
         private long AppendCheckSum(string val, long checksum)
