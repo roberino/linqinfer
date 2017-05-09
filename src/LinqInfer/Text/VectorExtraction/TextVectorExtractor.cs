@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
@@ -8,7 +9,7 @@ using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class TextVectorExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>
+    internal class TextVectorExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private const int EXTENDED_FEATURE_COUNT = 4;
         private readonly IList<IFeature> _features;
@@ -147,38 +148,57 @@ namespace LinqInfer.Text.VectorExtraction
 
         public void Save(Stream output)
         {
-            var ds = DictionarySerialiserFactory.ForInstance(_words);
-
-            ds.Write(_words, output);
-
-            using (var writer = new BinaryWriter(output))
-            {
-                foreach (var f in _normalisingFrequencies) writer.Write(f);
-                writer.Write(_normalisingFrequencyDefault);
-            }
+            ToVectorDocument().Save(output);
         }
 
         public void Load(Stream input)
         {
-            var ds = DictionarySerialiserFactory.ForInstance(_words);
+            var doc = new BinaryVectorDocument(input);
 
-            var words = ds.Read(input);
+            FromVectorDocument(doc);
+        }
 
-            foreach (var w in words)
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var doc = new BinaryVectorDocument();
+
+            foreach(var word in _words)
             {
-                _words[w.Key] = w.Value;
+                doc.Properties[word.Key] = word.Value.ToString();
             }
+
+            doc.Properties["_Type"] = "text";
+            doc.Properties["_NormalisingFrequencyDefault"] = _normalisingFrequencyDefault.ToString();
+
+            doc.Vectors.Add(new ColumnVector1D(_normalisingFrequencies.Select(f => (double)f).ToArray()));
+
+            return doc;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            foreach (var prop in doc.Properties.Where(p => !p.Key.StartsWith("_")))
+            {
+                int v;
+
+                if (int.TryParse(prop.Value, out v))
+                {
+                    _words[prop.Key] = v;
+                }
+            }
+
+            _normalisingFrequencyDefault = doc.PropertyOrDefault("_NormalisingFrequencyDefault", 1);
 
             _normalisingFrequencies = Enumerable.Range(0, _words.Count + EXTENDED_FEATURE_COUNT).Select(_ => 1).ToArray();
 
-            using (var reader = new BinaryReader(input))
+            if (doc.Vectors.Any())
             {
-                for (var i = 0; i < _normalisingFrequencies.Length; i++)
-                {
-                    _normalisingFrequencies[i] = reader.ReadInt32();
-                }
+                int i = 0;
 
-                _normalisingFrequencyDefault = reader.ReadInt32();
+                foreach (var f in doc.Vectors.First())
+                {
+                    _normalisingFrequencies[i++] = (int)f;
+                }
             }
 
             SetupFeatures(true);

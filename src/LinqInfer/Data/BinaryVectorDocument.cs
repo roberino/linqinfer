@@ -238,7 +238,7 @@ namespace LinqInfer.Data
 
             var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
 
-            if (childNode == null && !ignoreIfMissing) throw new NullReferenceException("Child object not found : " + tname);
+            if (childNode == null && !ignoreIfMissing) throw new FormatException("Child object not found : " + tname);
 
             return childNode;
         }
