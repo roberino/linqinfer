@@ -20,6 +20,7 @@ namespace LinqInfer.Learning.Features
         private FloatingPointTransformingFeatureExtractor<T> _transformation;
 
         private bool _normalisationCompleted;
+        private bool _normalisationOff;
 
         internal MultiFunctionFeatureExtractor(IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
@@ -73,7 +74,11 @@ namespace LinqInfer.Learning.Features
         {
             get
             {
-                return FeatureExtractor.IsNormalising;
+                return !_normalisationOff && FeatureExtractor.IsNormalising;
+            }
+            set
+            {
+                _normalisationOff = true;
             }
         }
 
