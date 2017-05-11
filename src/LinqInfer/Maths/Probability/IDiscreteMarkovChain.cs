@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Maths.Probability
 {
-    public interface IDiscreteMarkovChain<T> : ITransitionSimulator<T>, IXmlExportable where T : IEquatable<T>
+    public interface IDiscreteMarkovChain<T> : ITransitionSimulator<T>,
+        IXmlExportable, IExportableAsVectorDocument, IImportableAsVectorDocument where T : IEquatable<T>
     {
         int Order { get; }
         void AnalyseSequence(IEnumerable<T> sequence);

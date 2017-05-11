@@ -135,7 +135,11 @@ namespace LinqInfer.Learning.Features
         {
             var pca = new PrincipalComponentAnalysis(this);
 
-            return PreprocessWith(pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize));
+            var pp = pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
+
+            _featureExtractor.IsNormalising = false; // Assume that PCA expects the raw data and does it's own "normalisation"
+
+            return PreprocessWith(pp);
         }
 
         /// <summary>

@@ -22,17 +22,17 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 7;
 
         [Test]
-        [Ignore("TODO: System.ArgumentException Invalid or corrupted data on dotnet core linux?")]
+        [Category("BuildOmit")] // TODO: System.ArgumentException Invalid or corrupted data on dotnet core linux?
         public void LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
         {
             using (var res = GetResource("net-X-O-I.xml"))
             {
                 var xml = XDocument.Load(res);
 
-                var doc = new BinaryVectorDocument(xml);
+                var doc = new BinaryVectorDocument(xml, false, BinaryVectorDocument.XmlVectorSerialisationMode.Default);
 
                 var testSet1 = new[] { 'X', 'O', 'Z', 'I' }
-                    .Select(c => ToCharObj(c, FontFamily.GenericSerif, "testing"))
+                    .Select(c => ToCharObj(c, FontFamily.GenericSansSerif, "testing"))
                     .Select(l => l.ClassifyAs(l.Character))
                     .ToArray();
 
@@ -41,7 +41,7 @@ namespace LinqInfer.Tests.Learning
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 
                 Assert.That(result1.First().ClassType, Is.EqualTo('I'));
-                Assert.That(result1.First().Score, IsAround(0.7, 0.1d));
+                Assert.That(result1.First().Score, IsAround(0.9, 0.1d));
             }
         }
         
@@ -97,7 +97,7 @@ namespace LinqInfer.Tests.Learning
 
             reduced.ToCsv(Console.Out, x => x.Character.ToString()).Execute();
 
-            classifier.ToVectorDocument().ExportAsXml().Save(@"C:\stash\cfls.xml");
+            var doc = classifier.ToVectorDocument();
 
             int failures = 0;
 
@@ -115,14 +115,14 @@ namespace LinqInfer.Tests.Learning
                 var distOfOther = results.ToDistribution();
 
                 foreach (var d in distOfOther)
-                    Console.WriteLine("other {0} = {1}", d.Key, d.Value.ToPercent());
+                    Console.WriteLine("{0} = {1}", d.Key, d.Value.ToPercent());
             }
 
             var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
 
             // data.ExportAsXml().Save(@"..\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
 
-            Console.WriteLine("{0} = {1}/{2} failures", testChars, failures, letters.Length);
+            Console.WriteLine("{0} = {1}/{2} failed", testChars, failures, letters.Length);
         }
 
         [TestCase("X,O,I")]

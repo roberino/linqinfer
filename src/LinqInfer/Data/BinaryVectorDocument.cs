@@ -42,8 +42,9 @@ namespace LinqInfer.Data
             Load(data);
         }
 
-        public BinaryVectorDocument(XDocument xml, bool validate = false) : this()
+        public BinaryVectorDocument(XDocument xml, bool validate = false, XmlVectorSerialisationMode vectorToXmlSerialisationMode = XmlVectorSerialisationMode.Default) : this()
         {
+            VectorToXmlSerialisationMode = vectorToXmlSerialisationMode;
             ValidateOnImport = validate;
             ImportXml(xml);
         }
@@ -172,7 +173,7 @@ namespace LinqInfer.Data
 
         public XDocument ExportAsXml()
         {
-            return ExportAsXml(true);
+            return ExportAsXml(true, VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
         }
 
         public void ImportXml(XDocument xml)
@@ -333,10 +334,9 @@ namespace LinqInfer.Data
             }
         }
 
-        private XDocument ExportAsXml(bool isRoot)
+        private XDocument ExportAsXml(bool isRoot, bool base64v)
         {
             var date = DateTime.UtcNow;
-            var base64v = VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64;
 
             var doc = new XDocument(new XElement(isRoot ? "doc" : "node",
                 new XAttribute("version", Version),
@@ -371,7 +371,7 @@ namespace LinqInfer.Data
 
             if (_children.Any())
             {
-                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml(false).Root));
+                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml(false, base64v).Root));
 
                 doc.Root.Add(childrenNode);
             }
