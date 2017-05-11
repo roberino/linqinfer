@@ -6,22 +6,35 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Data;
 
 namespace LinqInfer.Maths.Probability
 {
     internal class DiscreteMarkovChain<T> : IDiscreteMarkovChain<T> where T : IEquatable<T>
     {
         private readonly Func<T, string> _valueExportFunc;
+        private readonly Func<string, T> _valueImportFunc;
         private readonly Transition _root;
         private readonly byte _order;
 
-        public DiscreteMarkovChain(byte order = 1, Func<T, string> valueExportFunc = null)
+        public DiscreteMarkovChain(byte order = 1, Func<T, string> valueExportFunc = null, Func<string, T> valueImportFunc = null)
         {
             Contract.Assert(order > 0);
 
-            _valueExportFunc = valueExportFunc ?? (v => v.ToString());
+            _valueExportFunc = valueExportFunc;
+            _valueImportFunc = valueImportFunc;
             _order = order;
             _root = new Transition();
+        }
+
+        public DiscreteMarkovChain(BinaryVectorDocument data, Func<T, string> valueExportFunc = null, Func<string, T> valueImportFunc = null)
+        {
+            _valueExportFunc = valueExportFunc;
+            _valueImportFunc = valueImportFunc;
+            _order = data.PropertyOrDefault(() => Order, (byte)1);
+            _root = new Transition();
+
+            FromVectorDocument(data);
         }
 
         public void Merge(IDiscreteMarkovChain<T> other)
@@ -209,6 +222,40 @@ namespace LinqInfer.Maths.Probability
             return new Dictionary<T, int>();
         }
 
+        public XDocument ExportAsXml()
+        {
+            var ve = _valueExportFunc ?? new GenericTypeConvertor<T>().ConvertToString;
+            var doc = new XDocument(new XElement("chain", new XAttribute("order", _order)));
+            var content = _root.ExportAsXml(ve).Root;
+            doc.Root.Add(content);
+            return doc;
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var ve = _valueExportFunc ?? new GenericTypeConvertor<T>().ConvertToString;
+
+            var doc = new BinaryVectorDocument();
+
+            doc.SetPropertyFromExpression(() => Order);
+
+            doc.Children.Add(_root.ExportAsBinaryVectorDoc(ve));
+
+            return doc;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            var vi = _valueImportFunc ?? new GenericTypeConvertor<T>().ConvertFromString;
+
+            if (!doc.Children.Any())
+            {
+                return;
+            }
+
+            _root.ImportBinaryVectorDoc(vi, doc.Children.First());
+        }
+
         private void AnalyseSequencesParallel<S>(IEnumerable<S> sequences) where S : IEnumerable<T>
         {
             int i = 0;
@@ -309,14 +356,6 @@ namespace LinqInfer.Maths.Probability
             return new NullableState { Value = value, HasValue = value != null };
         }
 
-        public XDocument ExportAsXml()
-        {
-            var doc = new XDocument(new XElement("chain", new XAttribute("order", _order)));
-            var content = _root.ExportAsXml(_valueExportFunc).Root;
-            doc.Root.Add(content);
-            return doc;
-        }
-
         private struct NullableState
         {
             public bool HasValue { get; set; }
@@ -387,6 +426,45 @@ namespace LinqInfer.Maths.Probability
                 }
 
                 return doc;
+            }
+
+            internal BinaryVectorDocument ExportAsBinaryVectorDoc(Func<T, string> valueExportFunc)
+            {
+                var doc = new BinaryVectorDocument();
+
+                if (!_isRoot)
+                {
+                    doc.Properties["State"] = valueExportFunc(State);
+                    doc.SetPropertyFromExpression(() => Frequency);
+                }
+
+                foreach (var item in Following)
+                {
+                    doc.Children.Add(item.Value.ExportAsBinaryVectorDoc(valueExportFunc));
+                }
+
+                return doc;
+            }
+
+            internal void ImportBinaryVectorDoc(Func<string, T> valueImportFunc, BinaryVectorDocument doc)
+            {
+                if (!_isRoot)
+                {
+                    State = valueImportFunc(doc.Properties["State"]);
+                    Frequency = doc.PropertyOrDefault(() => Frequency, 0);
+                }
+
+                foreach (var child in doc.Children)
+                {
+                    var tx = new Transition()
+                    {
+                        _isRoot = false
+                    };
+
+                    tx.ImportBinaryVectorDoc(valueImportFunc, child);
+
+                    Following[tx.State] = tx;
+                }
             }
 
             public IDictionary<T, Transition> Following { get; private set; }

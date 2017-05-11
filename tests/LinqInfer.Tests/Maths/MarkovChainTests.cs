@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths.Probability;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -20,6 +21,27 @@ namespace LinqInfer.Tests.Maths
             Console.Write(xml.ToString());
         }
 
+        [Test]
+        public void AddSequence_ToVectorDoc_FromVectorDoc()
+        {
+            var mkc = new DiscreteMarkovChain<char>();
+
+            mkc.AnalyseSequence("abcjholsdgkjhjjkkklkjssssdf");
+
+            var xml = mkc.ToVectorDocument().ExportAsXml();
+
+            var doc = new BinaryVectorDocument(xml);
+
+            var mkc2 = new DiscreteMarkovChain<char>(doc);
+
+            var x = mkc.GetPriorFrequencies('k');
+            var y = mkc2.GetPriorFrequencies('k');
+
+            Console.WriteLine(xml);
+
+            Assert.That(x, Is.EqualTo(y));
+            Assert.That(mkc.Order, Is.EqualTo(mkc2.Order));
+        }
 
         [TestCase("abdadead", 'a', 'd', 1, 2)]
         [TestCase("abdadead", 'a', 'e', 1, 2)]
