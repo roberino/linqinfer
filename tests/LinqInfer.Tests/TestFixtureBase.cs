@@ -6,6 +6,7 @@ using System.Linq;
 using LinqInfer.Maths;
 using NUnit.Framework.Constraints;
 using System.Diagnostics;
+using System.Xml.Linq;
 
 namespace LinqInfer.Tests
 {
@@ -43,6 +44,14 @@ namespace LinqInfer.Tests
             var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
 
             return asm.GetManifestResourceStream(rname);
+        }
+
+        public static XDocument GetResourceAsXml(string name)
+        {
+            using (var stream = GetResource(name))
+            {
+                return XDocument.Load(stream);
+            }
         }
 
         public static byte[] GetResourceAsBytes(string name)

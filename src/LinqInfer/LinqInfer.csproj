@@ -169,6 +169,15 @@
     <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
     <Compile Include="Learning\Features\MultiFunctionFeatureExtractor.cs" />
+    <Compile Include="Maths\FunctionIterator.cs" />
+    <Compile Include="Maths\Graphs\IWeightedGraphStore.cs" />
+    <Compile Include="Maths\Graphs\OptimalPathSearch.cs" />
+    <Compile Include="Maths\Graphs\WeightedGraph.cs" />
+    <Compile Include="Maths\Graphs\WeightedGraphFactory.cs" />
+    <Compile Include="Maths\Graphs\WeightedGraphInMemoryStore.cs" />
+    <Compile Include="Maths\Graphs\WeightedGraphFileStore.cs" />
+    <Compile Include="Maths\Graphs\WeightedGraphNode.cs" />
+    <Compile Include="Maths\Graphs\WeightedPair.cs" />
     <Compile Include="Maths\IHasVectorTransformation.cs" />
     <Compile Include="Learning\Features\ITrainingSet.cs" />
     <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
@@ -313,6 +322,7 @@
     <Compile Include="Utility\ConstrainableDictionary.cs" />
     <Compile Include="Utility\DebugOutput.cs" />
     <Compile Include="Utility\DictionarySerialiser.cs" />
+    <Compile Include="Utility\DynamicComparer.cs" />
     <Compile Include="Utility\DynamicEqualityComparer.cs" />
     <Compile Include="Utility\GenericTypeConvertor.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />

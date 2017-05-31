@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Plotter</title>
+    <script type="text/javascript">
+      function draw() {
+        var canvas = document.getElementById('mainCanvas');
+        if (canvas.getContext) {
+            var ctx = canvas.getContext('2d');
+            var width = parseInt(canvas.getAttribute("width"));
+            var height = width;
+            var canvasData = ctx.getImageData(0, 0, width, height);
+
+            window.drawPixel = function (x, y, r, g, b, a) {
+                var index = (x + y * width) * 4;
+
+                canvasData.data[index + 0] = r;
+                canvasData.data[index + 1] = g;
+                canvasData.data[index + 2] = b;
+                canvasData.data[index + 3] = a;
+            };
+
+		  <vectorData/>
+
+          ctx.putImageData(canvasData, 0, 0);
+
+        }
+      }
+    </script>
+    <style type="text/css">
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body onload="draw();">
+    <canvas id="mainCanvas" width="1000" height="1000"></canvas>
+</body>
+</html>

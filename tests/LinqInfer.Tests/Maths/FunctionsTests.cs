@@ -3,6 +3,7 @@ using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace LinqInfer.Tests.Probability
 {
@@ -23,6 +24,60 @@ namespace LinqInfer.Tests.Probability
             Assert.That(data.Average(), Is.LessThan(81));
         }
 
+        [Test]
+        public void IterateFunction_Defaults()
+        {
+            foreach (var i in Enumerable.Range(1, 10))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 10d, x => k * x * (1 - x));
+
+                Console.WriteLine(y[0]);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_WithHaltingFunc()
+        {
+            foreach (var i in Enumerable.Range(1, 100))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, null, double.IsInfinity);
+
+                Console.WriteLine(y[0]);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_Plot()
+        {
+            foreach (var i in Enumerable.Range(1, 100))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, (n, v) => Console.WriteLine("{0},{1}", n, v), double.IsInfinity);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_PlotToHtml()
+        {
+            var htmlString = new StringBuilder();
+
+            var htmlFormatter = new Action<double, double>((i, x) =>
+            {
+                htmlString.AppendLine($"ctx.lineTo({i * 5}, {x * 800});");
+            });
+
+            foreach (var i in Enumerable.Range(1, 300))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, null, double.IsInfinity);
+
+                htmlFormatter(i, y.First());
+            }
+
+            Console.Write(htmlString);
+        }
 
         [TestCase(0, 1)]
         [TestCase(1, 1)]

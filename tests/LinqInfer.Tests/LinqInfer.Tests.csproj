@@ -66,6 +66,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -98,6 +99,7 @@
     <Compile Include="Learning\ImageLearningExamples.cs" />
     <Compile Include="Learning\LinearSeparabilityExample.cs" />
     <Compile Include="Learning\PipelineExtensionsTests.cs" />
+    <Compile Include="Maths\MandelbrotSet.cs" />
     <Compile Include="Maths\MarkovChainTests.cs" />
     <Compile Include="Maths\MatrixTests.cs" />
     <Compile Include="Maths\MonteCarloSimulationTests.cs" />
@@ -168,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Learning\net-X-O-I.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maths\CanvasTemplate.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" />
