@@ -171,7 +171,7 @@
     <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
     <Compile Include="Learning\Features\MultiFunctionFeatureExtractor.cs" />
     <Compile Include="Maths\FunctionIterator.cs" />
-    <Compile Include="Maths\Graphs\GefxFormatter.cs" />
+    <Compile Include="Maths\Graphs\GexfFormatter.cs" />
     <Compile Include="Maths\Graphs\IWeightedGraphStore.cs" />
     <Compile Include="Maths\Graphs\OptimalPathSearch.cs" />
     <Compile Include="Maths\Graphs\SpatialExtensions.cs" />

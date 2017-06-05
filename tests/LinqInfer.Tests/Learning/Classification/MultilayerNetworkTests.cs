@@ -57,7 +57,7 @@ namespace LinqInfer.Tests.Learning.Classification
 
             var topology = await network.ExportNetworkTopologyAsync();
 
-            var xml = await topology.ExportAsGefxAsync();
+            var xml = await topology.ExportAsGexfAsync();
 
             Console.WriteLine(xml);
         }

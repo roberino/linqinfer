@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable, IExportableAsVectorDocument, IImportableAsVectorDocument, IHasNetworkTopology
+    internal class MultilayerNetwork : 
+        ICloneableObject<MultilayerNetwork>, 
+        IBinaryPersistable, 
+        IExportableAsVectorDocument, 
+        IImportableAsVectorDocument, 
+        IHasNetworkTopology
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -69,7 +74,10 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(IWeightedGraphStore<string, double> store = null)
+        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
+            double width = 100,
+            double height = 100,
+            IWeightedGraphStore<string, double> store = null)
         {
             var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
 
@@ -78,6 +86,10 @@ namespace LinqInfer.Learning.Classification
             List<INeuron> currentNeurons = new List<INeuron>();
 
             int l = 0;
+
+            var mSize = Layers.Max(x => x.Size);
+            var unitW = width / Layers.Count();
+            var unitH = height / mSize;
 
             foreach (var layer in Layers.Reverse())
             {
@@ -92,9 +104,14 @@ namespace LinqInfer.Learning.Classification
                 })
                 .ToList();
 
+                var offsetY = (layer.Size - mSize) / 2d * unitH;
+
                 foreach (var n in currentNeurons)
                 {
                     var node = await graph.FindOrCreateVertexAsync("n" + l + "." + i++);
+
+                    await node.SetPositionAndSizeAsync(width - unitW * l, unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
+                    await node.SetColourAsync(255, 0, 0);
 
                     if (previousVertexes != null)
                     {

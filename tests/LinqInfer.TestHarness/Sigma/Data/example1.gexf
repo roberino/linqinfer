@@ -1,0 +1,98 @@
+﻿<gexf xmlns:viz="http://www.gexf.net/1.1draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.gexf.net/1.2draft">
+  <graph mode="static" defaultedgetype="directed">
+    <nodes>
+      <node id="1" label="n1.2">
+        <viz:position x="66.666666666666657" y="37.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="2" label="n1.7">
+        <viz:position x="66.666666666666657" y="100" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="3" label="n0.2">
+        <viz:position x="100" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="4" label="n2.1">
+        <viz:position x="33.333333333333329" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="5" label="n1.1">
+        <viz:position x="66.666666666666657" y="25" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="6" label="n1.6">
+        <viz:position x="66.666666666666657" y="87.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="7" label="n0.1">
+        <viz:position x="100" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="8" label="n2.0">
+        <viz:position x="33.333333333333329" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="9" label="n1.0">
+        <viz:position x="66.666666666666657" y="12.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="10" label="n1.5">
+        <viz:position x="66.666666666666657" y="75" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="11" label="n0.0">
+        <viz:position x="100" y="37.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="12" label="n1.4">
+        <viz:position x="66.666666666666657" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="13" label="n1.3">
+        <viz:position x="66.666666666666657" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="14" label="n0.3">
+        <viz:position x="100" y="75" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+    </nodes>
+    <edges>
+      <edge id="1" source="1" target="11" weight="0.44842399196837213" />
+      <edge id="2" source="1" target="7" weight="0.6645746018006089" />
+      <edge id="3" source="2" target="11" weight="-0.0058279185995481209" />
+      <edge id="4" source="2" target="7" weight="-0.337685325071523" />
+      <edge id="5" source="4" target="9" weight="-0.35525495559848236" />
+      <edge id="6" source="4" target="5" weight="0.54348218431094253" />
+      <edge id="7" source="5" target="11" weight="0.17733233612400245" />
+      <edge id="8" source="5" target="7" weight="0.073393062898295613" />
+      <edge id="9" source="6" target="11" weight="0.28941349455816467" />
+      <edge id="10" source="6" target="7" weight="-0.078233109086947916" />
+      <edge id="11" source="8" target="9" weight="0.37388479606641822" />
+      <edge id="12" source="8" target="5" weight="-0.28005308041329097" />
+      <edge id="13" source="9" target="11" weight="0.62056710831626938" />
+      <edge id="14" source="9" target="7" weight="-0.47181505109765787" />
+      <edge id="15" source="10" target="11" weight="0.55830262801606145" />
+      <edge id="16" source="10" target="7" weight="0.037895236004350519" />
+      <edge id="17" source="12" target="11" weight="-0.075844141724686232" />
+      <edge id="18" source="12" target="7" weight="0.018106826961772016" />
+      <edge id="19" source="13" target="11" weight="0.38293050739058487" />
+      <edge id="20" source="13" target="7" weight="0.40911973427662662" />
+    </edges>
+  </graph>
+</gexf>

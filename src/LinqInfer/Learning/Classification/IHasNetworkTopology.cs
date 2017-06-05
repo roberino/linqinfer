@@ -5,6 +5,9 @@ namespace LinqInfer.Learning.Classification
 {
     public interface IHasNetworkTopology
     {
-        Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(IWeightedGraphStore<string, double> store = null);
+        Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
+            double width = 100,
+            double height = 100, 
+            IWeightedGraphStore<string, double> store = null);
     }
 }

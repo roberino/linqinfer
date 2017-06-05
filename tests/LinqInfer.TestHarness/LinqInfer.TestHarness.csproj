@@ -33,6 +33,30 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Owin, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.3.1.0\lib\net45\Microsoft.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.FileSystems, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.FileSystems.3.1.0\lib\net45\Microsoft.Owin.FileSystems.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.HttpListener, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener.3.1.0\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Hosting, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.Hosting.3.1.0\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Owin.StaticFiles, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.StaticFiles.3.1.0\lib\net45\Microsoft.Owin.StaticFiles.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,18 +70,55 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SemanicNetworkTrainer.cs" />
+    <Compile Include="Sigma\SigmajsServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="node_modules\jquery\dist\jquery.min.map" />
+    <None Include="node_modules\jquery\dist\jquery.slim.min.map" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Sigma\Data\les-miserables.gexf" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\LinqInfer.Owin\LinqInfer.Owin.csproj">
+      <Project>{de3085ea-03df-4075-8f21-c33590e3515a}</Project>
+      <Name>LinqInfer.Owin</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj">
       <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
       <Name>LinqInfer</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="node_modules\jquery\dist\core.js" />
+    <Content Include="node_modules\jquery\dist\jquery.js" />
+    <Content Include="node_modules\jquery\dist\jquery.min.js" />
+    <Content Include="node_modules\jquery\dist\jquery.slim.js" />
+    <Content Include="node_modules\jquery\dist\jquery.slim.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.exporters.svg.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.layout.forceAtlas2.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.layout.noverlap.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.neo4j.cypher.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.parsers.gexf.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.parsers.json.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.pathfinding.astar.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.plugins.animate.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.plugins.dragNodes.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.plugins.filter.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.plugins.neighborhoods.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.plugins.relativeSize.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.customEdgeShapes.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.customShapes.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.edgeDots.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.edgeLabels.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.parallelEdges.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.renderers.snapshot.min.js" />
+    <Content Include="node_modules\sigma\build\plugins\sigma.statistics.HITS.min.js" />
+    <Content Include="node_modules\sigma\build\sigma.min.js" />
+    <None Include="Sigma\Data\example1.gexf" />
+    <Content Include="Sigma\index.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

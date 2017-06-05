@@ -30,9 +30,9 @@ namespace LinqInfer.Maths.Graphs
 
         public event EventHandler<EventArgsOf<T>> Modified;
 
-        public Task<XDocument> ExportAsGefxAsync()
+        public Task<XDocument> ExportAsGexfAsync()
         {
-            return new GefxFormatter().FormatAsync(this);
+            return new GexfFormatter().FormatAsync(this);
         }
 
         public OptimalPathSearch<T, C> OptimalPathSearch

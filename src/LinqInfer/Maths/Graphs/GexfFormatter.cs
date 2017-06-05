@@ -6,22 +6,22 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Maths.Graphs
 {
-    internal class GefxFormatter
+    internal class GexfFormatter
     {
-        public const string GFXNamespace = "http://www.gexf.net/1.2draft";
-        public const string GFXVisualisationNamespace = "http://www.gexf.net/1.1draft/viz";
+        public const string GEXFNamespace = "http://www.gexf.net/1.2draft";
+        public const string GEXFVisualisationNamespace = "http://www.gexf.net/1.1draft/viz";
         public const string XSINamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
         public async Task<XDocument> FormatAsync<T, C>(WeightedGraph<T, C> graph)
             where T : IEquatable<T>
             where C : IComparable<C>
         {
-            var doc = new XDocument(new XElement(XName.Get("gexf", GFXNamespace)));
-            var graphNode = new XElement(XName.Get("graph", GFXNamespace), new XAttribute("mode", "static"), new XAttribute("defaultedgetype", "directed")); // <graph mode="static" defaultedgetype="directed">
-            var nodes = new XElement(XName.Get("nodes", GFXNamespace));
-            var edges = new XElement(XName.Get("edges", GFXNamespace));
+            var doc = new XDocument(new XElement(XName.Get("gexf", GEXFNamespace)));
+            var graphNode = new XElement(XName.Get("graph", GEXFNamespace), new XAttribute("mode", "static"), new XAttribute("defaultedgetype", "directed")); // <graph mode="static" defaultedgetype="directed">
+            var nodes = new XElement(XName.Get("nodes", GEXFNamespace));
+            var edges = new XElement(XName.Get("edges", GEXFNamespace));
 
-            doc.Root.SetAttributeValue(XNamespace.Xmlns + "viz", GFXVisualisationNamespace);
+            doc.Root.SetAttributeValue(XNamespace.Xmlns + "viz", GEXFVisualisationNamespace);
             doc.Root.SetAttributeValue(XNamespace.Xmlns + "xsi", XSINamespace);
 
             doc.Root.Add(graphNode);
@@ -37,7 +37,7 @@ namespace LinqInfer.Maths.Graphs
             {
                 idLookup[vertex.Label] = i;
 
-                var node = new XElement(XName.Get("node", GFXNamespace),
+                var node = new XElement(XName.Get("node", GEXFNamespace),
                     new XAttribute("id", i),
                     new XAttribute("label", vertex.Label));
 
@@ -49,7 +49,7 @@ namespace LinqInfer.Maths.Graphs
                 {
                     bool hasPlainAttribs = false;
 
-                    var attrsNode = new XElement(XName.Get("attvalues", GFXNamespace));
+                    var attrsNode = new XElement(XName.Get("attvalues", GEXFNamespace));
 
                     foreach (var attr in attribs.Where(ak => !ak.Key.StartsWith("viz:")))
                     {
@@ -61,7 +61,7 @@ namespace LinqInfer.Maths.Graphs
                         }
 
                         attrsNode.Add(
-                            new XElement(XName.Get("attvalues", GFXNamespace),
+                            new XElement(XName.Get("attvalues", GEXFNamespace),
                             new XAttribute("for", ameta.Item2),
                             new XAttribute("value", attr.Value)));
 
@@ -86,7 +86,7 @@ namespace LinqInfer.Maths.Graphs
                         .GroupBy(ax => ax.name)
                     )
                     {
-                        var vnode = new XElement(XName.Get(visualProp.Key, GFXVisualisationNamespace));
+                        var vnode = new XElement(XName.Get(visualProp.Key, GEXFVisualisationNamespace));
 
                         foreach (var g in visualProp)
                         {
@@ -107,11 +107,11 @@ namespace LinqInfer.Maths.Graphs
 
             if (attribLookup.Any())
             {
-                var attrLabelsNode = new XElement(XName.Get("attributes", GFXNamespace), new XAttribute("class", "node"));
+                var attrLabelsNode = new XElement(XName.Get("attributes", GEXFNamespace), new XAttribute("class", "node"));
 
                 foreach(var kv in attribLookup)
                 {
-                    attrLabelsNode.Add(new XElement(XName.Get("attribute", GFXNamespace),
+                    attrLabelsNode.Add(new XElement(XName.Get("attribute", GEXFNamespace),
                         new XAttribute("id", kv.Value.Item2),
                         new XAttribute("title", kv.Key),
                         new XAttribute("type", TranslateType(kv.Value.Item1))));
@@ -128,7 +128,7 @@ namespace LinqInfer.Maths.Graphs
 
             foreach (var edge in allEdges)
             {
-                var edgeNode = new XElement(XName.Get("edge", GFXNamespace),
+                var edgeNode = new XElement(XName.Get("edge", GEXFNamespace),
                     new XAttribute("id", i++),
                     new XAttribute("source", edge.Item1),
                     new XAttribute("target", idLookup[edge.Item3]),

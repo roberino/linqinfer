@@ -18,12 +18,12 @@ namespace LinqInfer.Maths.Graphs
 
             if (size.HasValue)
             {
-                attribs["viz:size"] = size.Value;
+                attribs["viz:size.value"] = size.Value;
             }
 
             if (!string.IsNullOrEmpty(shape))
             {
-                attribs["viz:shape"] = shape;
+                attribs["viz:shape.value"] = shape;
             }
         }
 

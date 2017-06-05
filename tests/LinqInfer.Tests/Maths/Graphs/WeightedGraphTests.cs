@@ -49,7 +49,7 @@ namespace LinqInfer.Tests.Maths.Graphs
 
             await graph.SaveAsync();
 
-            var xml = await graph.ExportAsGefxAsync();
+            var xml = await graph.ExportAsGexfAsync();
 
             Console.WriteLine(xml);
 
@@ -61,8 +61,8 @@ namespace LinqInfer.Tests.Maths.Graphs
             var nodea = allNodes.FirstOrDefault(n => n.Attribute("label").Value == "a");
             var nodeb = allNodes.FirstOrDefault(n => n.Attribute("label").Value == "b");
 
-            var colour = nodea.Elements(XName.Get("color", GefxFormatter.GFXVisualisationNamespace)).FirstOrDefault();
-            var pos = nodea.Elements(XName.Get("position", GefxFormatter.GFXVisualisationNamespace)).FirstOrDefault();
+            var colour = nodea.Elements(XName.Get("color", GexfFormatter.GEXFVisualisationNamespace)).FirstOrDefault();
+            var pos = nodea.Elements(XName.Get("position", GexfFormatter.GEXFVisualisationNamespace)).FirstOrDefault();
 
             Assert.That(colour, Is.Not.Null);
             Assert.That(pos, Is.Not.Null);
@@ -75,7 +75,7 @@ namespace LinqInfer.Tests.Maths.Graphs
             Assert.That(pos.Attribute("y").Value, Is.EqualTo("14"));
             Assert.That(pos.Attribute("z").Value, Is.EqualTo("16"));
 
-            Assert.That(nodeb.Elements().Where(e => e.Name.Namespace == GefxFormatter.GFXVisualisationNamespace).Any(), Is.False);
+            Assert.That(nodeb.Elements().Where(e => e.Name.Namespace == GexfFormatter.GEXFVisualisationNamespace).Any(), Is.False);
         }
 
         [Test]
@@ -117,7 +117,7 @@ namespace LinqInfer.Tests.Maths.Graphs
 
             await graph.SaveAsync();
 
-            var xml = await graph.ExportAsGefxAsync();
+            var xml = await graph.ExportAsGexfAsync();
 
             var xml2 = GetResourceAsXml("gexf.xml");
 
