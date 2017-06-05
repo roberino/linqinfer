@@ -13,6 +13,7 @@ namespace LinqInfer.Maths.Graphs
     public class WeightedGraphFileStore : IWeightedGraphStore<string, double>
     {
         private const string JsonFileExt = ".jnod";
+        private const int LockTimeoutMs = 500;
         private readonly ReaderWriterLockSlim _lock;
         
         private readonly DirectoryInfo _storageDir;
@@ -46,7 +47,7 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        public Task<bool> DeleteAllData()
+        public Task<bool> DeleteAllDataAsync()
         {
             _lock.EnterWriteLock();
 
@@ -69,7 +70,7 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        public async Task<bool> CreateOrUpdateVertex(string label, IDictionary<string, double> edges = null)
+        public async Task<bool> CreateOrUpdateVertexAsync(string label, IDictionary<string, double> edges = null)
         {
             _lock.EnterWriteLock();
 
@@ -77,7 +78,7 @@ namespace LinqInfer.Maths.Graphs
             {
                 var data = await GetNodeData(label, true);
 
-                data.Edges = edges ?? new Dictionary<string, double>();
+                data.Edges = edges ?? data.Edges ?? new Dictionary<string, double>();
                 data.Modified = DateTime.UtcNow;
 
                 var fileInfo = GetNodeFile(data.Id);
@@ -93,13 +94,16 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        public Task<IQueryable<string>> FindVertices(Expression<Func<string, bool>> predicate)
+        public Task<IQueryable<string>> FindVerticesAsync(Expression<Func<string, bool>> predicate)
         {
             return Task<IQueryable<string>>.Factory.StartNew(() =>
             {
                 var exp = predicate.Compile();
 
-                _lock.TryEnterReadLock(500);
+                if (!_lock.TryEnterReadLock(LockTimeoutMs))
+                {
+                    throw new TimeoutException();
+                }
 
                 try
                 {
@@ -112,14 +116,17 @@ namespace LinqInfer.Maths.Graphs
             });
         }
 
-        public Task<long> GetVerticeCount()
+        public Task<long> GetVerticeCountAsync()
         {
             return Task<long>.Factory.StartNew(() => _storageDir.GetFiles("*" + _dataFileExt).LongCount());
         }
 
-        public async Task<IDictionary<string, double>> ResolveVertexEdges(string label)
+        public async Task<IDictionary<string, double>> GetVertexEdgesAsync(string label)
         {
-            _lock.TryEnterReadLock(500);
+            if (!_lock.TryEnterReadLock(LockTimeoutMs))
+            {
+                throw new TimeoutException();
+            }
 
             try
             {
@@ -133,11 +140,14 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        public Task<bool> VertexExists(string label)
+        public Task<bool> VertexExistsAsync(string label)
         {
             return Task<bool>.Factory.StartNew(() =>
             {
-                _lock.TryEnterReadLock(500);
+                if (!_lock.TryEnterReadLock(LockTimeoutMs))
+                {
+                    throw new TimeoutException();
+                }
 
                 try
                 {
@@ -148,6 +158,47 @@ namespace LinqInfer.Maths.Graphs
                     _lock.ExitReadLock();
                 }
             });
+        }
+
+        public async Task<IDictionary<string, object>> GetVertexAttributesAsync(string label)
+        {
+            _lock.TryEnterReadLock(500);
+
+            try
+            {
+                var data = await GetNodeData(label, true);
+
+                return data.Attributes;
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public async Task<bool> UpdateVertexAttributesAsync(string label, IDictionary<string, object> attributes)
+        {
+            if (attributes == null) throw new ArgumentNullException(nameof(attributes));
+
+            _lock.EnterWriteLock();
+
+            try
+            {
+                var data = await GetNodeData(label, false);
+
+                data.Attributes = attributes;
+                data.Modified = DateTime.UtcNow;
+
+                var fileInfo = GetNodeFile(data.Id);
+
+                await WriteJsonFile(fileInfo, data);
+
+                return true;
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         private FileInfo GetNodeFile(string fileId)
@@ -226,6 +277,7 @@ namespace LinqInfer.Maths.Graphs
             public GraphNodeData()
             {
                 Created = DateTime.UtcNow;
+                Attributes = new Dictionary<string, object>();
             }
 
             public string Id { get; set; }
@@ -234,6 +286,7 @@ namespace LinqInfer.Maths.Graphs
             public string Label { get; set; }
 
             public IDictionary<string, double> Edges { get; set; }
+            public IDictionary<string, object> Attributes { get; set; }
         }
     }
 }

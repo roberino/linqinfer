@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +12,10 @@ namespace LinqInfer.Maths.Graphs
         private readonly ReaderWriterLockSlim _lock;
         private readonly WeightedGraph<T, C> _owner;
         private readonly IDictionary<T, C> _workingEdges;
+        private readonly ConstrainableDictionary<string, object> _workingAttributes;
 
+        private bool _attribsLoaded;
+        private bool _attribsDirty;
         private bool _loaded;
         private bool _isDirty;
 
@@ -22,11 +26,57 @@ namespace LinqInfer.Maths.Graphs
             _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             _isDirty = isNew;
             _loaded = isNew;
+            _attribsLoaded = isNew;
+
+            _workingAttributes = new ConstrainableDictionary<string, object>();
+
+            if (_attribsLoaded)
+            {
+                _workingAttributes.AddContraint(v =>
+                {
+                    _attribsDirty = true;
+                    return true;
+                });
+            }
 
             Label = label;
         }
 
         public T Label { get; private set; }
+
+        public async Task<IDictionary<string, object>> GetAttributesAsync()
+        {
+            if (_attribsLoaded)
+            {
+                return _workingAttributes;
+            }
+
+            _lock.EnterReadLock();
+
+            try
+            {
+                var attributes = await _owner.Storage.GetVertexAttributesAsync(Label);
+
+                foreach(var nv in attributes)
+                {
+                    _workingAttributes.Add(nv);
+                }
+
+                _workingAttributes.AddContraint(v =>
+                {
+                    _attribsDirty = true;
+                    return true;
+                });
+
+                _attribsLoaded = true;
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+
+            return _workingAttributes;
+        }
 
         public async Task<IEnumerable<WeightedPair<WeightedGraphNode<T, C>, C>>> GetEdgesAsync()
         {
@@ -38,7 +88,7 @@ namespace LinqInfer.Maths.Graphs
                 {
                     if (!_loaded)
                     {
-                        var edges = await _owner.Storage.ResolveVertexEdges(Label);
+                        var edges = await _owner.Storage.GetVertexEdgesAsync(Label);
 
                         foreach (var edge in edges)
                         {
@@ -145,11 +195,11 @@ namespace LinqInfer.Maths.Graphs
             return vertex;
         }
 
-        public async Task<WeightedGraphNode<T, C>> ConnectToAsync(T label, C weight)
+        public async Task<WeightedGraphNode<T, C>> ConnectToAsync(WeightedGraphNode<T, C> node, C weight)
         {
             await GetEdgesAsync();
 
-            var vertex = await _owner.FindOrCreateVertexAsync(label, false);
+            var vertex = node;
 
             try
             {
@@ -164,9 +214,16 @@ namespace LinqInfer.Maths.Graphs
                 _lock.ExitWriteLock();
             }
 
-            _owner.OnModify(label);
+            _owner.OnModify(vertex.Label);
 
             return vertex;
+        }
+
+        public async Task<WeightedGraphNode<T, C>> ConnectToAsync(T label, C weight)
+        {
+            var vertex = await _owner.FindOrCreateVertexAsync(label, false);
+
+            return await ConnectToAsync(vertex, weight);
         }
 
         public override string ToString()
@@ -186,15 +243,22 @@ namespace LinqInfer.Maths.Graphs
 
         internal async Task SaveAsync()
         {
-            if (!_isDirty) return;
+            if (!_isDirty && !_attribsDirty) return;
 
             _lock.EnterWriteLock();
 
             try
             {
-                await _owner.Storage.CreateOrUpdateVertex(Label, _workingEdges.ToDictionary(e => e.Key, e => e.Value));
+                await _owner.Storage.CreateOrUpdateVertexAsync(Label, _workingEdges.ToDictionary(e => e.Key, e => e.Value));
 
-                _isDirty = false;                
+                _isDirty = false;
+
+                if (_attribsDirty)
+                {
+                    await _owner.Storage.UpdateVertexAttributesAsync(Label, _workingAttributes);
+                }
+
+                _attribsDirty = false;
             }
             finally
             {

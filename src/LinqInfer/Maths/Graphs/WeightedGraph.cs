@@ -1,7 +1,10 @@
 ﻿using LinqInfer.Data;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LinqInfer.Maths.Graphs
 {
@@ -27,6 +30,11 @@ namespace LinqInfer.Maths.Graphs
 
         public event EventHandler<EventArgsOf<T>> Modified;
 
+        public Task<XDocument> ExportAsGefxAsync()
+        {
+            return new GefxFormatter().FormatAsync(this);
+        }
+
         public OptimalPathSearch<T, C> OptimalPathSearch
         {
             get
@@ -39,7 +47,7 @@ namespace LinqInfer.Maths.Graphs
         {
             get
             {
-                return Storage.GetVerticeCount().Result;
+                return Storage.GetVerticeCountAsync().Result;
             }
         }
 
@@ -53,7 +61,19 @@ namespace LinqInfer.Maths.Graphs
 
         public async Task<bool> DeleteAsync()
         {
-            return await Storage.DeleteAllData();
+            return await Storage.DeleteAllDataAsync();
+        }
+
+        public async Task<IEnumerable<WeightedGraphNode<T, C>>> FindAllVertexesAsync(Expression<Func<T, bool>> predicate = null)
+        {
+            var items = new List<WeightedGraphNode<T, C>>();
+
+            foreach (var vertexLabel in await Storage.FindVerticesAsync(predicate ?? (_ => true)))
+            {
+                items.Add(await FindVertexAsync(vertexLabel, false));
+            }
+
+            return items;
         }
  
         public Task<WeightedGraphNode<T, C>> FindVertexAsync(T label)
@@ -87,7 +107,7 @@ namespace LinqInfer.Maths.Graphs
 
             if (!_workingData.TryGetValue(label, out vertex))
             {
-                if (!validateIntegrity || await Storage.VertexExists(label))
+                if (!validateIntegrity || await Storage.VertexExistsAsync(label))
                 {
                     vertex = new WeightedGraphNode<T, C>(this, label);
                 }
@@ -104,7 +124,7 @@ namespace LinqInfer.Maths.Graphs
 
             if (!_workingData.TryGetValue(label, out vertex))
             {
-                if (!(await Storage.VertexExists(label)))
+                if (!(await Storage.VertexExistsAsync(label)))
                 {
                     vertex = new WeightedGraphNode<T, C>(this, label, true);
 

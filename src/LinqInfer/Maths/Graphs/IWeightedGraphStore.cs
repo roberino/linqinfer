@@ -10,11 +10,13 @@ namespace LinqInfer.Maths.Graphs
         where T : IEquatable<T>
         where C : IComparable<C>
     {
-        Task<bool> DeleteAllData();
-        Task<bool> CreateOrUpdateVertex(T label, IDictionary<T, C> edges = null);
-        Task<IQueryable<T>> FindVertices(Expression<Func<T, bool>> predicate);
-        Task<long> GetVerticeCount();
-        Task<IDictionary<T, C>> ResolveVertexEdges(T label);
-        Task<bool> VertexExists(T label);
+        Task<bool> DeleteAllDataAsync();
+        Task<bool> CreateOrUpdateVertexAsync(T label, IDictionary<T, C> edges = null);
+        Task<IQueryable<T>> FindVerticesAsync(Expression<Func<T, bool>> predicate);
+        Task<long> GetVerticeCountAsync();
+        Task<IDictionary<T, C>> GetVertexEdgesAsync(T label);
+        Task<IDictionary<string, object>> GetVertexAttributesAsync(T label);
+        Task<bool> UpdateVertexAttributesAsync(T label, IDictionary<string, object> attributes);
+        Task<bool> VertexExistsAsync(T label);
     }
 }
