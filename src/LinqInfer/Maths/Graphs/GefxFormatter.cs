@@ -9,6 +9,7 @@ namespace LinqInfer.Maths.Graphs
     internal class GefxFormatter
     {
         public const string GFXNamespace = "http://www.gexf.net/1.2draft";
+        public const string GFXVisualisationNamespace = "http://www.gexf.net/1.1draft/viz";
         public const string XSINamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
         public async Task<XDocument> FormatAsync<T, C>(WeightedGraph<T, C> graph)
@@ -19,6 +20,9 @@ namespace LinqInfer.Maths.Graphs
             var graphNode = new XElement(XName.Get("graph", GFXNamespace), new XAttribute("mode", "static"), new XAttribute("defaultedgetype", "directed")); // <graph mode="static" defaultedgetype="directed">
             var nodes = new XElement(XName.Get("nodes", GFXNamespace));
             var edges = new XElement(XName.Get("edges", GFXNamespace));
+
+            doc.Root.SetAttributeValue(XNamespace.Xmlns + "viz", GFXVisualisationNamespace);
+            doc.Root.SetAttributeValue(XNamespace.Xmlns + "xsi", XSINamespace);
 
             doc.Root.Add(graphNode);
 
@@ -43,9 +47,11 @@ namespace LinqInfer.Maths.Graphs
 
                 if (attribs.Any())
                 {
+                    bool hasPlainAttribs = false;
+
                     var attrsNode = new XElement(XName.Get("attvalues", GFXNamespace));
 
-                    foreach (var attr in attribs)
+                    foreach (var attr in attribs.Where(ak => !ak.Key.StartsWith("viz:")))
                     {
                         Tuple<TypeCode, int> ameta;
 
@@ -58,9 +64,37 @@ namespace LinqInfer.Maths.Graphs
                             new XElement(XName.Get("attvalues", GFXNamespace),
                             new XAttribute("for", ameta.Item2),
                             new XAttribute("value", attr.Value)));
+
+                        hasPlainAttribs = true;
                     }
 
-                    node.Add(attrsNode);
+                    if (hasPlainAttribs) node.Add(attrsNode);
+
+                    foreach (var visualProp in attribs.Where(ak => ak.Key.StartsWith("viz:"))
+                        .Select(ax => new
+                        {
+                            parts = ax.Key.Split(':').SelectMany(p => p.Split('.')).ToList(),
+                            val = ax.Value
+                        })
+                        .Select(ax => new
+                        {
+                            ns = ax.parts[0],
+                            name = ax.parts[1],
+                            path = ax.parts.Count > 2 ? ax.parts[2] : ax.parts[1],
+                            val = ax.val
+                        })
+                        .GroupBy(ax => ax.name)
+                    )
+                    {
+                        var vnode = new XElement(XName.Get(visualProp.Key, GFXVisualisationNamespace));
+
+                        foreach (var g in visualProp)
+                        {
+                            vnode.SetAttributeValue(g.path, g.val);
+                        }
+
+                        node.Add(vnode);
+                    }
                 }
 
                 foreach (var edge in await vertex.GetEdgesAsync())

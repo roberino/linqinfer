@@ -1,4 +1,4 @@
-﻿<gexf xmlns="http://www.gexf.net/1.2draft">
+﻿<gexf xmlns:viz="http://www.gexf.net/1.1draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.gexf.net/1.2draft">
   <graph mode="static" defaultedgetype="directed">
     <attributes class="node">
       <attribute id="1" title="x" type="integer" />

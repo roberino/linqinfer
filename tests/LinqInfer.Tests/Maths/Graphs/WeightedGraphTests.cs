@@ -2,7 +2,9 @@
 using LinqInfer.Maths.Graphs;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Maths.Graphs
 {
@@ -31,6 +33,49 @@ namespace LinqInfer.Tests.Maths.Graphs
 
             Assert.That(attribs2["x"], Is.EqualTo(123));
             Assert.That(attribs3["x"], Is.EqualTo(123));
+        }
+
+        [Test]
+        public async Task ConnectToAsync_SetVisualPropsAndExport()
+        {
+            var graph = new WeightedGraph<string, Fraction>(new WeightedGraphInMemoryStore<string, Fraction>(), (x, y) => x + y);
+
+            var a = await graph.FindOrCreateVertexAsync("a");
+
+            var b = await a.ConnectToAsync("b", Fraction.Half);
+
+            await a.SetColourAsync(23, 28, 55);
+            await a.SetPositionAndSizeAsync(10, 14, 16);
+
+            await graph.SaveAsync();
+
+            var xml = await graph.ExportAsGefxAsync();
+
+            Console.WriteLine(xml);
+
+            var allNodes = xml.Root
+                .DescendantNodes()
+                .Where(n => n.NodeType == System.Xml.XmlNodeType.Element)
+                .Cast<XElement>().Where(n => n.Name.LocalName == "node");
+            
+            var nodea = allNodes.FirstOrDefault(n => n.Attribute("label").Value == "a");
+            var nodeb = allNodes.FirstOrDefault(n => n.Attribute("label").Value == "b");
+
+            var colour = nodea.Elements(XName.Get("color", GefxFormatter.GFXVisualisationNamespace)).FirstOrDefault();
+            var pos = nodea.Elements(XName.Get("position", GefxFormatter.GFXVisualisationNamespace)).FirstOrDefault();
+
+            Assert.That(colour, Is.Not.Null);
+            Assert.That(pos, Is.Not.Null);
+
+            Assert.That(colour.Attribute("r").Value, Is.EqualTo("23"));
+            Assert.That(colour.Attribute("g").Value, Is.EqualTo("28"));
+            Assert.That(colour.Attribute("b").Value, Is.EqualTo("55"));
+
+            Assert.That(pos.Attribute("x").Value, Is.EqualTo("10"));
+            Assert.That(pos.Attribute("y").Value, Is.EqualTo("14"));
+            Assert.That(pos.Attribute("z").Value, Is.EqualTo("16"));
+
+            Assert.That(nodeb.Elements().Where(e => e.Name.Namespace == GefxFormatter.GFXVisualisationNamespace).Any(), Is.False);
         }
 
         [Test]

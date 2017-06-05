@@ -1,8 +1,9 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
 using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Learning.Classification
 {
@@ -34,6 +35,31 @@ namespace LinqInfer.Tests.Learning.Classification
             network.PruneInputs(1);
 
             Assert.That(network.Parameters.InputVectorSize, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task ExportNetworkTopologyAsync()
+        {
+            var parameters = new NetworkParameters(new int[] { 2, 8, 4 });
+            var network = new MultilayerNetwork(parameters);
+
+            network.ForEachLayer(l =>
+            {
+                l.ForEachNeuron((n, i) =>
+                {
+                    n.Adjust((w, k) => w * 0.1);
+
+                    return 0d;
+                });
+
+                return 1;
+            });
+
+            var topology = await network.ExportNetworkTopologyAsync();
+
+            var xml = await topology.ExportAsGefxAsync();
+
+            Console.WriteLine(xml);
         }
 
         [Test]

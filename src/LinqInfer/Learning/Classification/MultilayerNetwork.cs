@@ -1,13 +1,15 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class MultilayerNetwork : ICloneableObject<MultilayerNetwork>, IBinaryPersistable, IExportableAsVectorDocument, IImportableAsVectorDocument, IHasNetworkTopology
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -65,6 +67,58 @@ namespace LinqInfer.Learning.Classification
             {
                 return _parameters;
             }
+        }
+
+        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(IWeightedGraphStore<string, double> store = null)
+        {
+            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
+
+            List<WeightedGraphNode<string, double>> previousVertexes = null;
+            List<WeightedGraphNode<string, double>> nextVertexes = new List<WeightedGraphNode<string, double>>();
+            List<INeuron> currentNeurons = new List<INeuron>();
+
+            int l = 0;
+
+            foreach (var layer in Layers.Reverse())
+            {
+                int i = 0;
+
+                currentNeurons.Clear();
+
+                layer.ForEachNeuron(n =>
+                {
+                    currentNeurons.Add(n);
+                    return 1;
+                })
+                .ToList();
+
+                foreach (var n in currentNeurons)
+                {
+                    var node = await graph.FindOrCreateVertexAsync("n" + l + "." + i++);
+
+                    if (previousVertexes != null)
+                    {
+                        int wi = 0;
+
+                        foreach (var w in n.Export().Skip(1))
+                        {
+                            await node.ConnectToAsync(previousVertexes[wi++], w);
+                        }
+                    }
+
+                    nextVertexes.Add(node);
+                }
+
+                previousVertexes = nextVertexes;
+
+                nextVertexes = new List<WeightedGraphNode<string, double>>();
+
+                l++;
+            }
+
+            await graph.SaveAsync();
+
+            return graph;
         }
 
         private void InitialiseLayers()
