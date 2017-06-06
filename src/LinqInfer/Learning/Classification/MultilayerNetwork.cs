@@ -87,9 +87,11 @@ namespace LinqInfer.Learning.Classification
 
             int l = 0;
 
+            var numLayers = Layers.Count();
             var mSize = Layers.Max(x => x.Size);
-            var unitW = width / Layers.Count();
+            var unitW = width / numLayers;
             var unitH = height / mSize;
+            var maxWeight = AllNeurons().Max(n => n.Export().Sum());
 
             foreach (var layer in Layers.Reverse())
             {
@@ -108,18 +110,26 @@ namespace LinqInfer.Learning.Classification
 
                 foreach (var n in currentNeurons)
                 {
-                    var node = await graph.FindOrCreateVertexAsync("n" + l + "." + i++);
+                    i++;
+
+                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + i;
+                    var node = await graph.FindOrCreateVertexAsync(name);
+                    var attribs = await node.GetAttributesAsync();
+                    
+                    var weights = n.Export();
+
+                    attribs["weights"] = weights.ToJson();
+
+                    var colour = (byte)(weights.Sum() / maxWeight * 255);
 
                     await node.SetPositionAndSizeAsync(width - unitW * l, unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
-                    await node.SetColourAsync(255, 0, 0);
+                    await node.SetColourAsync(colour, 0, 0);
 
                     if (previousVertexes != null)
                     {
-                        int wi = 0;
-
-                        foreach (var w in n.Export().Skip(1))
+                        foreach (var vertex in previousVertexes)
                         {
-                            await node.ConnectToAsync(previousVertexes[wi++], w);
+                            await node.ConnectToAsync(vertex, weights.Sum());
                         }
                     }
 
@@ -343,6 +353,22 @@ namespace LinqInfer.Learning.Classification
         public object Clone()
         {
             return Clone(true);
+        }
+
+        private IEnumerable<INeuron> AllNeurons()
+        {
+            foreach(var layer in Layers)
+            {
+                var neurons = new List<INeuron>();
+
+                layer.ForEachNeuron(n =>
+                {
+                    neurons.Add(n);
+                    return 1;
+                }).ToList();
+
+                foreach (var n in neurons) yield return n;
+            }
         }
     }
 }

@@ -79,6 +79,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Sigma\Data\example2.gexf" />
     <None Include="Sigma\Data\les-miserables.gexf" />
   </ItemGroup>
   <ItemGroup>

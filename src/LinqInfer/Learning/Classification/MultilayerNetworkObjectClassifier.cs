@@ -4,11 +4,13 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using LinqInfer.Maths.Graphs;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetworkObjectClassifier<TClass, TInput> : 
-        IDynamicClassifier<TClass, TInput>
+    internal class MultilayerNetworkObjectClassifier<TClass, TInput> :
+        INetworkClassifier<TClass, TInput>
         where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
@@ -141,6 +143,13 @@ namespace LinqInfer.Learning.Classification
             classifier.Statistics = Statistics.Clone(true);
 
             return classifier;
+        }
+
+        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(double width = 100, double height = 100, IWeightedGraphStore<string, double> store = null)
+        {
+            var graph = await _network.ExportNetworkTopologyAsync(width, height, store);
+            
+            return graph;
         }
 
         public object Clone()

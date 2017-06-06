@@ -488,7 +488,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
         /// <param name="featureExtractorFunc">A feature extracting function</param>
-        public static IDynamicClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+        public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, Func<TInput, double[]> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunc, vectorSize, true));

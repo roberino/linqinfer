@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Tests.Learning
@@ -23,7 +24,7 @@ namespace LinqInfer.Tests.Learning
 
         [Test]
         [Category("BuildOmit")] // TODO: System.ArgumentException Invalid or corrupted data on dotnet core linux?
-        public void LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
+        public async Task LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
         {
             using (var res = GetResource("net-X-O-I.xml"))
             {
@@ -37,6 +38,11 @@ namespace LinqInfer.Tests.Learning
                     .ToArray();
 
                 var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
+
+                var topology = await classifier.ExportNetworkTopologyAsync(600, 500);
+                var gefx = await topology.ExportAsGexfAsync();
+
+                gefx.Save(@"C:\stash\roberino\linqinfer\tests\LinqInfer.TestHarness\Sigma\Data\example1.gexf");
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 

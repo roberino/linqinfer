@@ -1,0 +1,171 @@
+﻿<gexf xmlns:viz="http://www.gexf.net/1.1draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.gexf.net/1.2draft">
+  <graph mode="static" defaultedgetype="directed">
+    <attributes class="node">
+      <attribute id="1" title="weights" type="string" />
+    </attributes>
+    <nodes>
+      <node id="1" label="Output 2">
+        <attvalues>
+          <attvalues for="1" value="[0,0.459522377445994,-0.182273447913982,0.104286389401402,0.206100357750557,0.445964269451664,-0.0332094801328997,0.248631221554122,-0.271047272782398]" />
+        </attvalues>
+        <viz:position x="100" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="2" label="N 6">
+        <attvalues>
+          <attvalues for="1" value="[0,-0.672742307344448,-0.690156626079291]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="75" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="157" g="0" b="0" a="255" />
+      </node>
+      <node id="3" label="N 8">
+        <attvalues>
+          <attvalues for="1" value="[0,0.278017955964872,0.209427478127592]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="100" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="127" g="0" b="0" a="255" />
+      </node>
+      <node id="4" label="N 3">
+        <attvalues>
+          <attvalues for="1" value="[0,0.58587607179911,-0.486468345061751]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="37.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="25" g="0" b="0" a="255" />
+      </node>
+      <node id="5" label="Output 1">
+        <attvalues>
+          <attvalues for="1" value="[0,-0.00422548036192016,-0.465700056699267,0.246460412493472,-0.0660215174987288,0.49201864585779,0.568531886720382,0.361890050516983,-0.392109219920489]" />
+        </attvalues>
+        <viz:position x="100" y="37.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="193" g="0" b="0" a="255" />
+      </node>
+      <node id="6" label="N 5">
+        <attvalues>
+          <attvalues for="1" value="[0,-0.242848784554308,-0.67105370000985]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="18" g="0" b="0" a="255" />
+      </node>
+      <node id="7" label="Input 1">
+        <attvalues>
+          <attvalues for="1" value="[0,0.670797631673021,-0.172112915210552]" />
+        </attvalues>
+        <viz:position x="33.333333333333329" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="130" g="0" b="0" a="255" />
+      </node>
+      <node id="8" label="Output 4">
+        <attvalues>
+          <attvalues for="1" value="[0,0.411232419035966,0.36125926146179,0.163141957805573,0.648120575019469,-0.279401678523518,-0.515152130925326,-0.422986594004896,0.416517543744003]" />
+        </attvalues>
+        <viz:position x="100" y="75" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="204" g="0" b="0" a="255" />
+      </node>
+      <node id="9" label="N 2">
+        <attvalues>
+          <attvalues for="1" value="[0,-0.697812025813438,0.340884841864693]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="25" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="163" g="0" b="0" a="255" />
+      </node>
+      <node id="10" label="Input 2">
+        <attvalues>
+          <attvalues for="1" value="[0,0.676780651690138,-0.444104617333713]" />
+        </attvalues>
+        <viz:position x="33.333333333333329" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="60" g="0" b="0" a="255" />
+      </node>
+      <node id="11" label="Output 3">
+        <attvalues>
+          <attvalues for="1" value="[0,0.203926811783752,0.13480152944295,-0.037802944504633,-0.490248725812532,0.274078028012841,0.0456652817905593,-0.324443863314727,0.516023999875804]" />
+        </attvalues>
+        <viz:position x="100" y="62.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="83" g="0" b="0" a="255" />
+      </node>
+      <node id="12" label="N 7">
+        <attvalues>
+          <attvalues for="1" value="[0,0.13934676369295,0.461093211534778]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="87.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="156" g="0" b="0" a="255" />
+      </node>
+      <node id="13" label="N 4">
+        <attvalues>
+          <attvalues for="1" value="[0,0.541012744260164,0.233554624903534]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="50" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="201" g="0" b="0" a="255" />
+      </node>
+      <node id="14" label="N 1">
+        <attvalues>
+          <attvalues for="1" value="[0,-0.0351666555057517,-0.290880323929868]" />
+        </attvalues>
+        <viz:position x="66.666666666666657" y="12.5" z="0" />
+        <viz:size value="6.25" />
+        <viz:color r="171" g="0" b="0" a="255" />
+      </node>
+    </nodes>
+    <edges>
+      <edge id="1" source="2" target="5" weight="-1.362898933423738" />
+      <edge id="2" source="2" target="1" weight="-1.362898933423738" />
+      <edge id="3" source="2" target="11" weight="-1.362898933423738" />
+      <edge id="4" source="2" target="8" weight="-1.362898933423738" />
+      <edge id="5" source="3" target="5" weight="0.48744543409246366" />
+      <edge id="6" source="3" target="1" weight="0.48744543409246366" />
+      <edge id="7" source="3" target="11" weight="0.48744543409246366" />
+      <edge id="8" source="3" target="8" weight="0.48744543409246366" />
+      <edge id="9" source="4" target="5" weight="0.099407726737359536" />
+      <edge id="10" source="4" target="1" weight="0.099407726737359536" />
+      <edge id="11" source="4" target="11" weight="0.099407726737359536" />
+      <edge id="12" source="4" target="8" weight="0.099407726737359536" />
+      <edge id="13" source="6" target="5" weight="-0.913902484564158" />
+      <edge id="14" source="6" target="1" weight="-0.913902484564158" />
+      <edge id="15" source="6" target="11" weight="-0.913902484564158" />
+      <edge id="16" source="6" target="8" weight="-0.913902484564158" />
+      <edge id="17" source="7" target="14" weight="0.49868471646246904" />
+      <edge id="18" source="7" target="9" weight="0.49868471646246904" />
+      <edge id="19" source="7" target="4" weight="0.49868471646246904" />
+      <edge id="20" source="7" target="13" weight="0.49868471646246904" />
+      <edge id="21" source="7" target="6" weight="0.49868471646246904" />
+      <edge id="22" source="7" target="2" weight="0.49868471646246904" />
+      <edge id="23" source="7" target="12" weight="0.49868471646246904" />
+      <edge id="24" source="7" target="3" weight="0.49868471646246904" />
+      <edge id="25" source="9" target="5" weight="-0.35692718394874567" />
+      <edge id="26" source="9" target="1" weight="-0.35692718394874567" />
+      <edge id="27" source="9" target="11" weight="-0.35692718394874567" />
+      <edge id="28" source="9" target="8" weight="-0.35692718394874567" />
+      <edge id="29" source="10" target="14" weight="0.23267603435642503" />
+      <edge id="30" source="10" target="9" weight="0.23267603435642503" />
+      <edge id="31" source="10" target="4" weight="0.23267603435642503" />
+      <edge id="32" source="10" target="13" weight="0.23267603435642503" />
+      <edge id="33" source="10" target="6" weight="0.23267603435642503" />
+      <edge id="34" source="10" target="2" weight="0.23267603435642503" />
+      <edge id="35" source="10" target="12" weight="0.23267603435642503" />
+      <edge id="36" source="10" target="3" weight="0.23267603435642503" />
+      <edge id="37" source="12" target="5" weight="0.60043997522772841" />
+      <edge id="38" source="12" target="1" weight="0.60043997522772841" />
+      <edge id="39" source="12" target="11" weight="0.60043997522772841" />
+      <edge id="40" source="12" target="8" weight="0.60043997522772841" />
+      <edge id="41" source="13" target="5" weight="0.77456736916369784" />
+      <edge id="42" source="13" target="1" weight="0.77456736916369784" />
+      <edge id="43" source="13" target="11" weight="0.77456736916369784" />
+      <edge id="44" source="13" target="8" weight="0.77456736916369784" />
+      <edge id="45" source="14" target="5" weight="-0.32604697943561967" />
+      <edge id="46" source="14" target="1" weight="-0.32604697943561967" />
+      <edge id="47" source="14" target="11" weight="-0.32604697943561967" />
+      <edge id="48" source="14" target="8" weight="-0.32604697943561967" />
+    </edges>
+  </graph>
+</gexf>
