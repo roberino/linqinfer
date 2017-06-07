@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using LinqInfer.Maths.Graphs;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Maths.Graphs
 {
     public interface IHasNetworkTopology
     {

@@ -67,7 +67,7 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
-        public void ToSofm_WithAnInitialRadius()
+        public async Task ToSofm_WithAnInitialRadius()
         {
             var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
             var pipeline = data.CreatePipeline();
@@ -77,6 +77,10 @@ namespace LinqInfer.Tests.Learning
             {
                 Console.WriteLine("{0} - {1}", m.Key, m.Count());
             }
+
+            var xml = await (await map.ExportNetworkTopologyAsync()).ExportAsGexfAsync();
+
+            Console.Write(xml);
         }
 
         [Test]

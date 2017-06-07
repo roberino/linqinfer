@@ -61,8 +61,8 @@ namespace LinqInfer.Maths.Graphs
                         }
 
                         attrsNode.Add(
-                            new XElement(XName.Get("attvalues", GEXFNamespace),
-                            new XAttribute("for", ameta.Item2),
+                            new XElement(XName.Get("attvalue", GEXFNamespace),
+                            new XAttribute("for", "a" + ameta.Item2),
                             new XAttribute("value", attr.Value)));
 
                         hasPlainAttribs = true;
@@ -112,7 +112,7 @@ namespace LinqInfer.Maths.Graphs
                 foreach(var kv in attribLookup)
                 {
                     attrLabelsNode.Add(new XElement(XName.Get("attribute", GEXFNamespace),
-                        new XAttribute("id", kv.Value.Item2),
+                        new XAttribute("id", "a" + kv.Value.Item2),
                         new XAttribute("title", kv.Key),
                         new XAttribute("type", TranslateType(kv.Value.Item1))));
                 }

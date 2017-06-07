@@ -63,6 +63,14 @@ See more documentation on [Neural Networks](docs/neural-networks.md)
 The Maths namespace consists of some basic numerical utilities including vector manipulation classes 
 and fractions which can sometimes offer a nicer way of working with probabilities.
 
+#### Maths.Graphs
+
+The Maths.Graphs namespace contains useful objects and functions for creating graphical representations of structures. 
+
+Graphs can be exported into [GEFX](https://gephi.org/gexf/format/schema.html).
+
+Check out [Sigmajs](http://sigmajs.org/) and [Gephi](https://gephi.org/) for visualising graphs.
+
 #### Maths.Probability 
 
 This is a collection of functions and probability "objects" to help solve simple probability problems.
