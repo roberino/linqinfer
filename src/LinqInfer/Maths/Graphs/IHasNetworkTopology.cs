@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using LinqInfer.Maths.Graphs;
 
 namespace LinqInfer.Maths.Graphs
 {

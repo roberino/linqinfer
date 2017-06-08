@@ -16,15 +16,20 @@ namespace LinqInfer.Maths.Graphs
             where T : IEquatable<T>
             where C : IComparable<C>
         {
-            var doc = new XDocument(new XElement(XName.Get("gexf", GEXFNamespace)));
-            var graphNode = new XElement(XName.Get("graph", GEXFNamespace), new XAttribute("mode", "static"), new XAttribute("defaultedgetype", "directed")); // <graph mode="static" defaultedgetype="directed">
-            var nodes = new XElement(XName.Get("nodes", GEXFNamespace));
-            var edges = new XElement(XName.Get("edges", GEXFNamespace));
+            var doc = new XDocument(GefxElement("gexf"));
+            var graphNode = GefxElement("graph", new XAttribute("mode", "static"), new XAttribute("defaultedgetype", "directed")); // <graph mode="static" defaultedgetype="directed">
+            var nodes = GefxElement("nodes");
+            var edges = GefxElement("edges");
+            var meta = GefxElement("meta",
+                new XAttribute("lastmodifieddate", DateTime.UtcNow),
+                GefxElement("creator", "LinqInfer"));
 
             doc.Root.SetAttributeValue(XNamespace.Xmlns + "viz", GEXFVisualisationNamespace);
             doc.Root.SetAttributeValue(XNamespace.Xmlns + "xsi", XSINamespace);
 
             doc.Root.Add(graphNode);
+
+            graphNode.Add(meta);
 
             var allEdges = new List<Tuple<int, C, T>>();
             var idLookup = new Dictionary<T, int>();
@@ -140,6 +145,16 @@ namespace LinqInfer.Maths.Graphs
             graphNode.Add(edges);
 
             return doc;
+        }
+
+        private XElement GefxElement(string name)
+        {
+            return new XElement(XName.Get(name, GEXFNamespace));
+        }
+
+        private XElement GefxElement(string name, params object[] content)
+        {
+            return new XElement(XName.Get(name, GEXFNamespace), content);
         }
 
         private string TranslateType(TypeCode typeCode)

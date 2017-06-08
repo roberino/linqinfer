@@ -55,8 +55,6 @@ namespace LinqInfer.Tests
                     Console.WriteLine();
                     Console.WriteLine();
                 }
-
-                mk.ExportAsXml().Save(@"C:\stash\mk.xml");
             }
         }
 

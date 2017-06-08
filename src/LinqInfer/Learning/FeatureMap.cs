@@ -46,16 +46,16 @@ namespace LinqInfer.Learning
 
             double unitW = width / _nodes.Count();
             double unitH = height / 2;
-            double maxRadius = Math.Max(_nodes.Max(n => n.CurrentRadius.GetValueOrDefault(0)), 1);
+            double maxRadius = _nodes.Max(n => n.CurrentRadius.GetValueOrDefault(0));
 
             int i = 1;
 
             foreach (var node in _nodes)
             {
-                var x0 = unitW + i;
+                var x0 = unitW * i - 1 + unitW / 2;
                 var y0 = unitH;
 
-                var radius = node.CurrentRadius.GetValueOrDefault(1) / maxRadius * unitW / 2;
+                var radius = maxRadius == 0 ? unitW / 2 : node.CurrentRadius.GetValueOrDefault(1) / maxRadius * unitW / 2;
 
                 var vertex = await graph.FindOrCreateVertexAsync("N " + i++);
 
@@ -79,8 +79,12 @@ namespace LinqInfer.Learning
 
                     var memberVertex = await vertex.ConnectToAsync(GetLabelForMember(item.Key, i, m++), item.Value);
 
+                    var memberAttribs = await memberVertex.GetAttributesAsync();
+
+                    memberAttribs["count"] = item.Value;
+
                     await memberVertex.SetPositionAndSizeAsync(x + x0, y + y0, 0, unitW / 4);
-                    await vertex.SetColourAsync(0, 0, 0);
+                    await memberVertex.SetColourAsync(0, 0, 0);
                 }
             }
 

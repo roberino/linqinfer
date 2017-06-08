@@ -139,6 +139,8 @@
     <Compile Include="Learning\Classification\ClassifiedObject.cs" />
     <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
     <Compile Include="Learning\Classification\IDynamicClassifier.cs" />
+    <Compile Include="Maths\Geometry\Point2D.cs" />
+    <Compile Include="Maths\Geometry\Rectangle.cs" />
     <Compile Include="Maths\Graphs\IHasNetworkTopology.cs" />
     <Compile Include="Learning\Classification\INetworkClassifier.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />

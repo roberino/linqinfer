@@ -7,86 +7,96 @@
     </attributes>
     <nodes>
       <node id="1" label="3.6">
-        <viz:position x="24.982819629231564" y="58.2542592402838" z="0" />
+        <viz:position x="82.333333333333343" y="60.515955772676548" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
       <node id="2" label="N 3">
         <attvalues>
-          <attvalue for="a1" value="0.2511886453967595" />
-          <attvalue for="a2" value="0.10000000149011612" />
-          <attvalue for="a3" value="[0.855122772685179,0.855122772685179]" />
-        </attvalues>
-        <viz:position x="36.333333333333336" y="50" z="0" />
-        <viz:size value="16.666666666666668" />
-        <viz:color r="0" g="0" b="0" a="255" />
-      </node>
-      <node id="3" label="3.3">
-        <viz:position x="41.077435084706394" y="38.072249809185216" z="0" />
-        <viz:size value="8.3333333333333339" />
-      </node>
-      <node id="4" label="3.5">
-        <viz:position x="22.426453856320293" y="47.054088984631633" z="0" />
-        <viz:size value="8.3333333333333339" />
-      </node>
-      <node id="5" label="N 2">
-        <attvalues>
           <attvalue for="a1" value="0.7943282359079229" />
           <attvalue for="a2" value="0.10000000149011612" />
-          <attvalue for="a3" value="[0.5,0.5]" />
+          <attvalue for="a3" value="[0.899999976158142,0.899999976158142]" />
         </attvalues>
-        <viz:position x="35.333333333333336" y="50" z="0" />
+        <viz:position x="115.66666666666667" y="50" z="0" />
         <viz:size value="16.666666666666668" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="3" label="4.3">
+        <viz:position x="115.66666666666667" y="66.666666666666671" z="0" />
+        <viz:size value="8.3333333333333339" />
         <viz:color r="0" g="0" b="0" a="255" />
       </node>
-      <node id="6" label="4.2">
-        <viz:position x="36.333333333333336" y="54.186477423279328" z="0" />
+      <node id="4" label="3.3">
+        <viz:position x="82.333333333333343" y="39.484044227323452" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
-      <node id="7" label="3.2">
-        <viz:position x="48.240212810346378" y="47.054088984631626" z="0" />
+      <node id="5" label="3.5">
+        <viz:position x="73.226248489121843" y="55.257977886338274" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
-      <node id="8" label="3.7">
-        <viz:position x="35.333333333333336" y="63.238803931798714" z="0" />
+      <node id="6" label="N 2">
+        <attvalues>
+          <attvalue for="a1" value="0.50118723586775393" />
+          <attvalue for="a2" value="0.10000000149011612" />
+          <attvalue for="a3" value="[0.544877203472963,0.544877203472963]" />
+        </attvalues>
+        <viz:position x="82.333333333333343" y="50" z="0" />
+        <viz:size value="16.666666666666668" />
+        <viz:color r="255" g="0" b="0" a="255" />
+      </node>
+      <node id="7" label="4.2">
+        <viz:position x="101.23290993692604" y="41.666666666666657" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
+      </node>
+      <node id="8" label="3.2">
+        <viz:position x="91.440418177544842" y="44.742022113661733" z="0" />
+        <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
       <node id="9" label="3.4">
-        <viz:position x="29.589231581960284" y="38.072249809185209" z="0" />
+        <viz:position x="73.226248489121843" y="44.742022113661719" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
       <node id="10" label="N 1">
         <attvalues>
           <attvalue for="a1" value="0.31622776837291838" />
           <attvalue for="a2" value="0.10000000149011612" />
-          <attvalue for="a3" value="[0.144877206506804,0.144877206506804]" />
+          <attvalue for="a3" value="[0.100000001490116,0.100000001490116]" />
         </attvalues>
-        <viz:position x="34.333333333333336" y="50" z="0" />
+        <viz:position x="49" y="50" z="0" />
         <viz:size value="16.666666666666668" />
-        <viz:color r="0" g="0" b="0" a="255" />
+        <viz:color r="255" g="0" b="0" a="255" />
       </node>
       <node id="11" label="4.1">
-        <viz:position x="36.333333333333336" y="45.813522576720672" z="0" />
+        <viz:position x="130.10042339640731" y="41.666666666666671" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
       <node id="12" label="3.1">
-        <viz:position x="45.683847037435108" y="58.2542592402838" z="0" />
+        <viz:position x="91.440418177544842" y="55.257977886338274" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
       <node id="13" label="2.1">
-        <viz:position x="34.333333333333336" y="55.270462806215306" z="0" />
+        <viz:position x="49" y="56.635119548773346" z="0" />
         <viz:size value="8.3333333333333339" />
+        <viz:color r="0" g="0" b="0" a="255" />
       </node>
     </nodes>
     <edges>
       <edge id="1" source="2" target="11" weight="1" />
-      <edge id="2" source="2" target="6" weight="1" />
-      <edge id="3" source="5" target="12" weight="1" />
-      <edge id="4" source="5" target="7" weight="1" />
-      <edge id="5" source="5" target="3" weight="1" />
-      <edge id="6" source="5" target="9" weight="1" />
-      <edge id="7" source="5" target="4" weight="1" />
-      <edge id="8" source="5" target="1" weight="1" />
-      <edge id="9" source="5" target="8" weight="1" />
+      <edge id="2" source="2" target="7" weight="1" />
+      <edge id="3" source="2" target="3" weight="1" />
+      <edge id="4" source="6" target="12" weight="1" />
+      <edge id="5" source="6" target="8" weight="1" />
+      <edge id="6" source="6" target="4" weight="1" />
+      <edge id="7" source="6" target="9" weight="1" />
+      <edge id="8" source="6" target="5" weight="1" />
+      <edge id="9" source="6" target="1" weight="1" />
       <edge id="10" source="10" target="13" weight="1" />
     </edges>
   </graph>

@@ -33,6 +33,11 @@ namespace LinqInfer.Data.Remoting
             return _filter(context);
         }
 
+        public bool IsMatch(IOwinContext context)
+        {
+            return CanMap(context.RequestUri, context.Request.Header.Verb);
+        }
+
         public bool CanMap(Uri uri, Verb verb = Verb.Default)
         {
             IDictionary<string, string> p;
@@ -91,6 +96,8 @@ namespace LinqInfer.Data.Remoting
                 }
                 else
                 {
+                    if (string.IsNullOrEmpty(part)) break;
+
                     throw new ArgumentException(part);
                 }
 

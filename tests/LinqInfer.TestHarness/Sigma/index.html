@@ -43,7 +43,7 @@
             });
 
             sigma.parsers.gexf(
-                'Data/example2.gexf',
+                'http://localhost:8082/graphs/sofm/random/',
                 {
                     container: 'sigma-container'
                 },
@@ -67,7 +67,13 @@
                     // edges that have both extremities colored.
                     s.bind('clickNode', function (e) {
 
-                        alert(JSON.stringify(e.data));
+                        // console.log(JSON.stringify(e.data));
+
+                        var attribs = e.data.node.attributes;
+
+                        for (var key in attribs) {
+                            console.log(key + " : " + attribs[key]);
+                        }
 
                         var nodeId = e.data.node.id,
                             toKeep = s.graph.neighbors(nodeId);

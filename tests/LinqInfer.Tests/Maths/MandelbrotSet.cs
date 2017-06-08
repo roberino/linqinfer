@@ -72,8 +72,6 @@ namespace LinqInfer.Tests.Maths
             var data = script.Element("vectorData");
 
             data.ReplaceWith(new XText(htmlString.ToString()));
-
-            doc.Save(@"c:\stash\canvas.html");
         }
 
         private void Print(string msg, params object[] args)

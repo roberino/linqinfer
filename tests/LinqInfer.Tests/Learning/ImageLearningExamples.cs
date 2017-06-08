@@ -42,8 +42,6 @@ namespace LinqInfer.Tests.Learning
                 var topology = await classifier.ExportNetworkTopologyAsync(600, 500);
                 var gefx = await topology.ExportAsGexfAsync();
 
-                gefx.Save(@"C:\stash\roberino\linqinfer\tests\LinqInfer.TestHarness\Sigma\Data\example1.gexf");
-
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 
                 Assert.That(result1.First().ClassType, Is.EqualTo('I'));
