@@ -36,6 +36,33 @@ namespace LinqInfer.Tests.Maths.Graphs
         }
 
         [Test]
+        public async Task SetAttributes_Save_SetAttributes_StoresAttribAsExpected()
+        {
+            var storage = new WeightedGraphInMemoryStore<string, int>();
+            var graph = new WeightedGraph<string, int>(storage, (x, y) => x + y);
+
+            var root = await graph.FindOrCreateVertexAsync("a");
+
+            var attribs = await root.GetAttributesAsync();
+
+            attribs["x"] = 123;
+
+            await graph.SaveAsync();
+
+            var rootRef2 = await graph.FindOrCreateVertexAsync("a");
+
+            var attribs2 = await rootRef2.GetAttributesAsync();
+            
+            attribs2["x"] = 1234;
+
+            await graph.SaveAsync();
+
+            var attribs3 = await storage.GetVertexAttributesAsync("a");
+
+            Assert.That(attribs3["x"], Is.EqualTo(1234));
+        }
+
+        [Test]
         public async Task ConnectToAsync_SetVisualPropsAndExport()
         {
             var graph = new WeightedGraph<string, Fraction>(new WeightedGraphInMemoryStore<string, Fraction>(), (x, y) => x + y);
@@ -120,6 +147,9 @@ namespace LinqInfer.Tests.Maths.Graphs
             var xml = await graph.ExportAsGexfAsync();
 
             var xml2 = GetResourceAsXml("gexf.xml");
+
+            xml.Root.Elements().First().Elements().First().RemoveAttributes(); // remove meta for comparison
+            xml2.Root.Elements().First().Elements().First().RemoveAttributes();
 
             Console.WriteLine(xml);
 

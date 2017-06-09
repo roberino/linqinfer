@@ -331,7 +331,7 @@
     <Compile Include="Utility\DictionarySerialiser.cs" />
     <Compile Include="Utility\DynamicComparer.cs" />
     <Compile Include="Utility\DynamicEqualityComparer.cs" />
-    <Compile Include="Utility\GenericTypeConvertor.cs" />
+    <Compile Include="Utility\GenericTypeConverter.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\TypeExtensions.cs" />
   </ItemGroup>

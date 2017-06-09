@@ -35,6 +35,7 @@ namespace LinqInfer.Maths.Graphs
                 _workingAttributes.AddContraint(v =>
                 {
                     _attribsDirty = true;
+                    _owner.RegisterChange(this);
                     return true;
                 });
             }
@@ -65,6 +66,7 @@ namespace LinqInfer.Maths.Graphs
                 _workingAttributes.AddContraint(v =>
                 {
                     _attribsDirty = true;
+                    _owner.RegisterChange(this);
                     return true;
                 });
 
@@ -183,6 +185,8 @@ namespace LinqInfer.Maths.Graphs
 
                 _workingEdges[label] = weight;
 
+                _owner.RegisterChange(this);
+
                 _isDirty = true;
             }
             finally
@@ -206,6 +210,8 @@ namespace LinqInfer.Maths.Graphs
                 _lock.EnterWriteLock();
 
                 _workingEdges[vertex.Label] = weight;
+
+                _owner.RegisterChange(this);
 
                 _isDirty = true;
             }

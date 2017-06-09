@@ -3,15 +3,15 @@ using System.Xml;
 
 namespace LinqInfer.Utility
 {
-    internal class GenericTypeConvertor<T>
+    internal class GenericTypeConverter<T>
     {
         private readonly Func<string, T> _convertFromString;
         private readonly Func<T, string> _convertToString;
         private readonly TypeCode _typeCode;
 
-        public GenericTypeConvertor()
+        public GenericTypeConverter()
         {
-            var typeInf = typeof(T).GetTypeInf();
+            var typeInf = typeof(T);
 
             _typeCode = Type.GetTypeCode(typeInf);
             _convertToString = v => v.ToString().ToLower();
