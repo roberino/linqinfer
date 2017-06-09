@@ -4,7 +4,7 @@
 
 Nuget Package: https://www.nuget.org/packages/LinqInfer/
 
-## A lightweight and slightly experimental inference library for C# / LINQ
+## A lightweight inference library for C# / LINQ
 
 This library reflects my interest over the years in Bayesian probability, 
 probabilistic reasoning, classification and other means of inference.
@@ -21,6 +21,8 @@ for reducing the dimensionality of the input data, such as principle component a
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
+
+![SOFM graph](docs/sofm_graph.png)
 
 #### Learning
 
