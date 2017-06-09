@@ -69,10 +69,13 @@ namespace LinqInfer.TestHarness
 
         private static async Task<WeightedGraph<string, double>> GenerateGraph(IOwinContext context, Rectangle rect)
         {
-            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
+            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(5)).ToList().AsQueryable();
             var pipeline = data.CreatePipeline();
             var map = await pipeline.ToSofm(3, 0.2f, 0.1f).ExecuteAsync();
-            var graph = await map.ExportNetworkTopologyAsync(rect.Width, rect.Height);
+
+            map.ExportMode = FeatureMap<ColumnVector1D>.GraphExportMode.Spatial3D;
+
+            var graph = await map.ExportNetworkTopologyAsync(new Point3D() { X = rect.Width, Y = rect.Y });
 
             return graph;
         }

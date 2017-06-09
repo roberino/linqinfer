@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Geometry;
 using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
@@ -75,8 +76,8 @@ namespace LinqInfer.Learning.Classification
         }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            double width = 100,
-            double height = 100,
+            Point3D? bounds = null,
+            Point3D origin = default(Point3D),
             IWeightedGraphStore<string, double> store = null)
         {
             var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
@@ -87,6 +88,10 @@ namespace LinqInfer.Learning.Classification
 
             int l = 0;
 
+            if (!bounds.HasValue) bounds = new Point3D() { X = 100, Y = 100 };
+
+            var width = bounds.Value.X;
+            var height = bounds.Value.Y;
             var numLayers = Layers.Count();
             var mSize = Layers.Max(x => x.Size);
             var unitW = width / numLayers;
@@ -122,7 +127,7 @@ namespace LinqInfer.Learning.Classification
 
                     var colour = (byte)(weights.Sum() / maxWeight * 255);
 
-                    await node.SetPositionAndSizeAsync(width - unitW * l, unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
+                    await node.SetPositionAndSizeAsync(origin.X + width - unitW * l, origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
                     await node.SetColourAsync(colour, 0, 0);
 
                     if (previousVertexes != null)

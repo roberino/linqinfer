@@ -78,9 +78,9 @@ namespace LinqInfer.Learning.MicroServices
 
         public static IOwinApplication CreateNetworkTopologyExportService(this IOwinApplication application, IHasNetworkTopology network, string routePath)
         {
-            return CreateGraphExportService(application, (c,d) =>
+            return CreateGraphExportService(application, (c, d) =>
             {
-                return network.ExportNetworkTopologyAsync(d.Width, d.Height);
+                return network.ExportNetworkTopologyAsync(new Point3D() { X = d.Width, Y = d.Height });
             }, routePath);
         }
 

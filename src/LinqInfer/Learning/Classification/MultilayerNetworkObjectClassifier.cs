@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using LinqInfer.Maths.Graphs;
 using System.Threading.Tasks;
+using LinqInfer.Maths.Geometry;
 
 namespace LinqInfer.Learning.Classification
 {
@@ -145,10 +146,13 @@ namespace LinqInfer.Learning.Classification
             return classifier;
         }
 
-        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(double width = 100, double height = 100, IWeightedGraphStore<string, double> store = null)
+        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
+            Point3D? bounds = null,
+            Point3D origin = default(Point3D),
+            IWeightedGraphStore<string, double> store = null)
         {
-            var graph = await _network.ExportNetworkTopologyAsync(width, height, store);
-            
+            var graph = await _network.ExportNetworkTopologyAsync(bounds, origin, store);
+
             return graph;
         }
 

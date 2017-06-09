@@ -2,11 +2,13 @@
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths.Geometry;
 using LinqInfer.Utility;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using draw = System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
@@ -39,8 +41,10 @@ namespace LinqInfer.Tests.Learning
 
                 var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
 
-                var topology = await classifier.ExportNetworkTopologyAsync(600, 500);
-                var gefx = await topology.ExportAsGexfAsync();
+                var topology = await classifier.ExportNetworkTopologyAsync(new Point3D() { X = 600, Y = 500 });
+                var gexf = await topology.ExportAsGexfAsync();
+
+                Console.Write(gexf);
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 
@@ -276,7 +280,7 @@ namespace LinqInfer.Tests.Learning
 
         private double[] BitmapToDoubleArray(Bitmap bmp)
         {
-            var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
+            var data = bmp.LockBits(new draw.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
 
             try
             {
@@ -331,7 +335,7 @@ namespace LinqInfer.Tests.Learning
 
         private byte[] BitmapToBytes(Bitmap bmp)
         {
-            var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
+            var data = bmp.LockBits(new draw.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
 
             try
             {

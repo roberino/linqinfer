@@ -108,6 +108,11 @@ namespace LinqInfer.Learning
             return _featureExtractor.ExtractColumnVector(value).Distance(Weights);
         }
 
+        internal ColumnVector1D CalculateDifferenceVector(T value)
+        {
+            return Weights - _featureExtractor.ExtractColumnVector(value);
+        }
+
         internal double CalculateDifference(ObjectVector<T> dataItem)
         {
             if (IsMember(dataItem.Value)) return -1;
