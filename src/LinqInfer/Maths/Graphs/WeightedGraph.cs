@@ -66,11 +66,19 @@ namespace LinqInfer.Maths.Graphs
 
         public async Task<IEnumerable<WeightedGraphNode<T, C>>> FindAllVertexesAsync(Expression<Func<T, bool>> predicate = null)
         {
-            var items = new List<WeightedGraphNode<T, C>>();
+            var items = new HashSet<WeightedGraphNode<T, C>>();
 
             foreach (var vertexLabel in await Storage.FindVerticesAsync(predicate ?? (_ => true)))
             {
                 items.Add(await FindVertexAsync(vertexLabel, false));
+            }
+
+            foreach (var vertex in _workingData.Values)
+            {
+                if (!items.Contains(vertex))
+                {
+                    items.Add(vertex);
+                }
             }
 
             return items;

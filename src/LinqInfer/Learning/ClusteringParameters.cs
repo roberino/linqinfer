@@ -1,0 +1,105 @@
+﻿using LinqInfer.Maths;
+using LinqInfer.Maths.Graphs;
+using System;
+
+namespace LinqInfer.Learning
+{
+    /// <summary>
+    /// Used to specify the parameters of a self-organising map (clusting algorithm)
+    /// </summary>
+    public sealed class ClusteringParameters
+    {
+        public ClusteringParameters()
+        {
+            LearningRateDecayFunction = InitialRadius.HasValue ? new Func<float, int, int, double>((r, i, t) => r * Math.Exp(-((double)i / t))) : (r, i, t) => r;
+            WeightInitialiser = x => Functions.RandomVector(NumberOfOutputNodes, 0.1, 0.9);
+            NeighbourhoodRadiusCalculator = CurrentNeighbourhoodRadius;
+            ExportColourPalette = new ColourPalette();
+
+            ExportColourPalette.AddColour(new Colour()
+            {
+                R = 255,
+                A = 255
+            });
+
+            ExportColourPalette.AddColour(new Colour()
+            {
+                G = 255,
+                A = 255
+            });
+
+            ExportColourPalette.AddColour(new Colour()
+            {
+                B = 255,
+                A = 255
+            });
+        }
+
+        /// <summary>
+        /// The number of output nodes
+        /// </summary>
+        public int NumberOfOutputNodes { get; set; } = 10;
+
+        /// <summary>
+        /// The number of training interations
+        /// </summary>
+        public int TrainingEpochs { get; set; } = 1000;
+
+        /// <summary>
+        /// The initial radius of each uninitialised output node
+        /// </summary>
+        public double? InitialRadius { get; set; }
+
+        /// <summary>
+        /// The initial learning rate
+        /// </summary>
+        public float InitialLearningRate { get; set; } = 0.2f;
+
+        /// <summary>
+        /// A function by which the learning rate will be adjusted (typically reduced)
+        /// </summary>
+        public Func<float, int, int, double> LearningRateDecayFunction { get; set; }
+
+        /// <summary>
+        /// A function which will initialise each node with a set of weights.
+        /// The function takes a node index as a parameter.
+        /// </summary>
+        public Func<int, ColumnVector1D> WeightInitialiser { get; set; }
+
+        /// <summary>
+        /// A time based function which calculates the radius of a matched node (BMU), the function
+        /// taking the initial radius, epoch index (t) and total epochs
+        /// </summary>
+        public Func<double, int, int, double> NeighbourhoodRadiusCalculator { get; set; }
+        
+        /// <summary>
+        /// A colour palette used to colour nodes
+        /// </summary>
+        public ColourPalette ExportColourPalette { get; set; }
+
+        /// <summary>
+        /// Specifies how the map will be exported into a graph
+        /// </summary>
+        public GraphExportMode ExportMode { get; set; }
+
+        public void Validate()
+        {
+            if (NumberOfOutputNodes <= 0) throw new ArgumentException("OutputNodes missing or invalid");
+            if (TrainingEpochs <= 0) throw new ArgumentException("TrainingEpochs missing or invalid");
+            if (InitialLearningRate <= 0) throw new ArgumentException("InitialLearningRate missing or invalid");
+            if (LearningRateDecayFunction == null) throw new ArgumentException("LearningRateDecayFunction missing");
+            if (WeightInitialiser == null) throw new ArgumentException("WeightInitialiser missing");
+            if (NeighbourhoodRadiusCalculator == null) throw new ArgumentException("LearningRateDecayFunction missing");
+            if (InitialRadius.HasValue && !(InitialRadius.Value > 0 && InitialRadius.Value < 1)) throw new ArgumentException("Invalid InitialRadius");
+        }
+
+        private double CurrentNeighbourhoodRadius(double initialRadius, int iteration, int numberOfIterations)
+        {
+            var r = initialRadius + 1;
+            var l = Math.Log(r);
+            var t = numberOfIterations / l;
+            var e = Math.Exp(-(double)iteration / t);
+            return r * e - 1;
+        }
+    }
+}

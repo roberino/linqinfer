@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using LinqInfer.Maths.Geometry;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning
 {
@@ -13,17 +14,20 @@ namespace LinqInfer.Learning
     {
         private readonly IEnumerable<ClusterNode<T>> _nodes;
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        private readonly ClusteringParameters _parameters;
 
-        internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IFloatingPointFeatureExtractor<T> featureExtractor, ClusteringParameters parameters)
         {
             _nodes = nodes;
             _featureExtractor = featureExtractor;
+            _parameters = parameters;
+
             Features = featureExtractor.FeatureMetadata;
         }
 
         public ClusterNode<T> CreateNewNode(T member)
         {
-            return new ClusterNode<T>(_featureExtractor, _featureExtractor.ExtractVector(member));
+            return new ClusterNode<T>(_featureExtractor, new ColumnVector1D(_featureExtractor.ExtractVector(member)), _parameters);
         }
 
         /// <summary>
@@ -41,7 +45,17 @@ namespace LinqInfer.Learning
             return _nodes.GetEnumerator();
         }
 
-        public GraphExportMode ExportMode { get; set; }
+        public GraphExportMode ExportMode
+        {
+            get
+            {
+                return _parameters.ExportMode;
+            }
+            set
+            {
+                _parameters.ExportMode = value;
+            }
+        }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
             Point3D? bounds = null,
@@ -63,10 +77,9 @@ namespace LinqInfer.Learning
 
             foreach (var node in _nodes)
             {
-                var x0 = unitW * i - 1 + unitW / 2;
-                var y0 = unitH;
-
                 var radius = maxRadius == 0 ? unitW / 2 : node.CurrentRadius.GetValueOrDefault(1) / maxRadius * unitW / 2;
+
+                var nodePos = GetNodePosition(origin, unitW, unitH, i, node);
 
                 var vertex = await graph.FindOrCreateVertexAsync("N " + i++);
 
@@ -76,13 +89,13 @@ namespace LinqInfer.Learning
                 attribs["initialRadius"] = node.InitialRadius;
                 attribs["weights"] = node.Weights.ToJson();
 
-                await vertex.SetPositionAndSizeAsync(x0, y0, 0, unitW / 2);
+                await vertex.SetPositionAndSizeAsync(nodePos.Item1.X, nodePos.Item1.Y, nodePos.Item1.Z, nodePos.Item2);
                 await vertex.SetColourAsync(255, 0, 0);
 
                 int m = 1;
                 var members = node.GetMembers();
 
-                var posCalc = GetPositionCalculator(origin, radius, node);
+                var posCalc = GetMemberPositionCalculator(origin, nodePos.Item1, radius, node);
 
                 foreach (var item in members)
                 {
@@ -93,30 +106,69 @@ namespace LinqInfer.Learning
                     memberAttribs["count"] = item.Value;
 
                     var pos = posCalc(m, item.Key, item.Value);
+                    var colour = _parameters.ExportColourPalette.GetColourByIndex(i);
 
-                    await memberVertex.SetPositionAndSizeAsync(pos.Item1.X + x0, pos.Item1.Y + y0, 0, unitW / 4 * pos.Item2);
-                    await memberVertex.SetColourAsync(0, 0, 0);
+                    await memberVertex.SetPositionAndSizeAsync(pos.Item1.X, pos.Item1.Y, pos.Item1.Z, unitW / 4 * pos.Item2);
+                    await memberVertex.SetColourAsync(colour);
                 }
             }
+
+            await FinalisePosition(graph, origin, bounds.Value);
 
             await graph.SaveAsync();
 
             return graph;
         }
 
-        public enum GraphExportMode
+        private async Task FinalisePosition(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
         {
-            Schematic,
-            Spatial1D,
-            Spatial3D
+            if (ExportMode == GraphExportMode.Spatial3D)
+            {
+                await graph.FitWithinRectangle(origin, bounds);
+            }
         }
 
-        private Func<int, T, int, Tuple<Point3D, double>> GetPositionCalculator(Point3D origin, double radius, ClusterNode<T> node)
+        private Tuple<Point3D, double> GetNodePosition(Point3D origin, double unitW, double unitH, int i, ClusterNode<T> node)
+        {
+            if (ExportMode == GraphExportMode.Spatial3D)
+            {
+                ColumnVector1D vect;
+
+                if (_featureExtractor.VectorSize > 3)
+                {
+                    var members = node.GetMembers();
+                    var pipe = members.Select(m => _featureExtractor.ExtractColumnVector(m.Key)).AsQueryable().CreatePipeline();
+                    var reduce = pipe.PrincipalComponentReduction(3);
+                    var fe = reduce.FeatureExtractor;
+
+                    vect = fe.ExtractColumnVector(node.Weights);
+                }
+                else
+                {
+                    vect = node.Weights;
+                }
+
+                return new Tuple<Point3D, double>(origin + new Point3D()
+                {
+                    X = vect[0],
+                    Y = vect.Size > 1 ? vect[1] : 0,
+                    Z = vect.Size > 2 ? vect[2] : 0
+                }, unitW);
+            }
+
+            return new Tuple<Point3D, double>(origin + new Point3D()
+            {
+                X = unitW * i - 1 + unitW / 2,
+                Y = unitH
+            }, unitW / 2);
+        }
+
+        private Func<int, T, int, Tuple<Point3D, double>> GetMemberPositionCalculator(Point3D origin, Point3D nodePos, double radius, ClusterNode<T> node)
         {
             var members = node.GetMembers();
             var count = members.Count;
 
-            if (ExportMode == GraphExportMode.Spatial1D)
+            if (ExportMode == GraphExportMode.RelativeSchematic)
             {
                 var dists = members.Select(n => new
                 {
@@ -136,7 +188,7 @@ namespace LinqInfer.Learning
                     var x = r * Math.Sin(angle);
                     var y = r * Math.Cos(angle);
 
-                    return new Tuple<Point3D, double>(origin + new Point3D()
+                    return new Tuple<Point3D, double>(origin + nodePos + new Point3D()
                     {
                         X = x,
                         Y = y
@@ -146,20 +198,32 @@ namespace LinqInfer.Learning
 
             if (ExportMode == GraphExportMode.Spatial3D)
             {
-                var pipe = members.Select(m => node.CalculateDifferenceVector(m.Key)).AsQueryable().CreatePipeline();
-                var reduce = pipe.PrincipalComponentReduction(3);
-                var fe = reduce.FeatureExtractor;
+                Func<T, ColumnVector1D> extractor;
+
                 var maxCount = (double)members.Max(m => m.Value);
+
+                if (_featureExtractor.VectorSize > 3)
+                {
+                    var pipe = members.Select(m => _featureExtractor.ExtractColumnVector(m.Key)).AsQueryable().CreatePipeline();
+                    var reduce = pipe.PrincipalComponentReduction(3);
+                    var fe = reduce.FeatureExtractor;
+
+                    extractor = v => fe.ExtractColumnVector(_featureExtractor.ExtractColumnVector(v));
+                }
+                else
+                {
+                    extractor = _featureExtractor.ExtractColumnVector;
+                }
 
                 return (i, m, c) =>
                 {
-                    var vect = fe.ExtractColumnVector(node.CalculateDifferenceVector(m));
+                    var vect = extractor(m);
 
                     return new Tuple<Point3D, double>(origin + new Point3D()
                     {
-                        X = vect[0] * radius,
-                        Y = vect[1] * radius,
-                        Z = vect[2] * radius
+                        X = vect[0],
+                        Y = vect.Size > 1 ? vect[1] : 0,
+                        Z = vect.Size > 2 ? vect[2] : 0
                     }, c / maxCount);
                 };
             }
@@ -170,7 +234,7 @@ namespace LinqInfer.Learning
                 var x = radius * Math.Sin(angle);
                 var y = radius * Math.Cos(angle);
 
-                return new Tuple<Point3D, double>(origin + new Point3D()
+                return new Tuple<Point3D, double>(origin + nodePos + new Point3D()
                 {
                     X = x,
                     Y = y

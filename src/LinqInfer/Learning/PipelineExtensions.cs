@@ -122,26 +122,6 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <param name="pipeline">A pipeline of feature data</param>
-        /// <param name="normalisingSample">A sample which will be used to normalise the data (can be null if the feature extractor supports it)</param>
-        /// <param name="outputNodeCount">The maximum number of output nodes</param>
-        /// <param name="normaliseData">True if the data should be normalised prior to mapping</param>
-        /// <param name="learningRate">The learning rate</param>
-        /// <returns></returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TInput normalisingSample, int outputNodeCount = 10, bool normaliseData = true, float learningRate = 0.5f) where TInput : class
-        {
-            return pipeline.ProcessWith((p, n) =>
-            {
-                var fm = new FeatureMapper<TInput>(p.FeatureExtractor, normalisingSample, outputNodeCount, learningRate);
-
-                return fm.Map(p.Data);
-            });
-        }
-
-        /// <summary>
         /// Extracts vector data as a matrix
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -188,7 +168,7 @@ namespace LinqInfer.Learning
 
         /// <summary>
         /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
-        /// If an initial node radius is supplied, a Kohonen SOFM implementation will be used, otherwise a simpler
+        /// If an initial node radius is supplied, a Kohonen SOM implementation will be used, otherwise a simpler
         /// k-means centroid calculation will be used.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -199,11 +179,35 @@ namespace LinqInfer.Learning
         /// which is used to calculate the influence a node has on neighbouring nodes when updating weights</param>
         /// <param name="initialiser">An initialisation function used to determine the initial value of a output nodes weights, given the output node index</param>
         /// <returns>An execution pipeline for creating a SOFM</returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null, int trainingEpochs = 1000) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var fm = new FeatureMapperV2<TInput>(outputNodeCount, learningRate, initialNodeRadius, initialiser);
+                var fm = new FeatureMapperV3<TInput>(outputNodeCount, learningRate, trainingEpochs, initialNodeRadius, initialiser);
+
+                pipeline.NormaliseData();
+
+                return fm.Map(p);
+            });
+        }
+
+        /// <summary>
+        /// Creates a self-organising feature map using the supplied feature data. Items will be clustered based on Euclidean distance.
+        /// If an initial node radius is supplied, a Kohonen SOM implementation will be used, otherwise a simpler
+        /// k-means centroid calculation will be used.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <param name="pipeline">A pipeline of feature data</param>
+        /// <param name="parameters">The parameters</param>
+        /// <returns></returns>
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, ClusteringParameters parameters)
+             where TInput : class
+        {
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var fm = new FeatureMapperV3<TInput>(parameters);
+
+                pipeline.NormaliseData();
 
                 return fm.Map(p);
             });

@@ -11,9 +11,8 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public void ToSofm_SimpleSample_ClassifiesAsExpected()
         {
-            var sample0 = new TestData.Pirate() { Gold = 1800, Age = 70, IsCaptain = true, Ships = 5 };
             var pirateSample = TestData.CreatePirates().ToList();
-            var featureMap = pirateSample.AsQueryable().CreatePipeline().ToSofm(sample0, 2).Execute().ToList();
+            var featureMap = pirateSample.AsQueryable().CreatePipeline().ToSofm(2).Execute().ToList();
 
             Assert.That(featureMap.Count(), Is.EqualTo(2));
 

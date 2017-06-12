@@ -68,6 +68,20 @@ namespace LinqInfer.Maths.Graphs
         /// <summary>
         /// Sets the colour of the node using RGB and alpha values
         /// </summary>
+        public static async Task SetColourAsync<T, C>(this WeightedGraphNode<T, C> vertex, Colour colour)
+            where T : IEquatable<T> where C : IComparable<C>
+        {
+            var attribs = await vertex.GetAttributesAsync();
+
+            attribs["viz:color.r"] = colour.R;
+            attribs["viz:color.g"] = colour.G;
+            attribs["viz:color.b"] = colour.B;
+            attribs["viz:color.a"] = colour.A;
+        }
+
+        /// <summary>
+        /// Sets the colour of the node using RGB and alpha values
+        /// </summary>
         public static async Task SetColourAsync<T, C>(this WeightedGraphNode<T, C> vertex, byte r, byte g, byte b, byte a = 255)
             where T : IEquatable<T> where C : IComparable<C>
         {
@@ -82,39 +96,37 @@ namespace LinqInfer.Maths.Graphs
         /// <summary>
         /// Scales all nodes within the graph
         /// </summary>
-        public static async Task Scale<T, C>(this WeightedGraph<T, C> graph, Point3D scaleFactor, double scale = 1)
+        public static async Task ScaleAsync<T, C>(this WeightedGraph<T, C> graph, Point3D scaleFactor, double scale = 1)
             where T : IEquatable<T> where C : IComparable<C>
         {
-            await Transform(graph, o => o * scaleFactor, s => s * scale);
+            await TransformAsync(graph, o => o * scaleFactor, s => s * scale);
         }
 
         /// <summary>
         /// Moves all nodes within the graph
         /// </summary>
-        public static async Task Move<T, C>(this WeightedGraph<T, C> graph, Point3D translation)
+        public static async Task MoveAsync<T, C>(this WeightedGraph<T, C> graph, Point3D translation)
             where T : IEquatable<T> where C : IComparable<C>
         {
-            await Transform(graph, o => o + translation, s => s);
+            await TransformAsync(graph, o => o + translation, s => s);
         }
 
         /// <summary>
         /// Transforms all nodes within the graph
         /// </summary>
-        public static async Task Transform<T, C>(this WeightedGraph<T, C> graph, Func<Point3D, Point3D> positionTransformation, Func<double, double> scaleTransformation)
+        public static async Task TransformAsync<T, C>(this WeightedGraph<T, C> graph, Func<Point3D, Point3D> positionTransformation, Func<double, double> scaleTransformation)
            where T : IEquatable<T> where C : IComparable<C>
         {
             foreach (var vertex in await graph.FindAllVertexesAsync())
             {
                 await AdjustPositionAndSizeAsync(vertex, positionTransformation, scaleTransformation);
             }
-
-            await graph.SaveAsync();
         }
 
         /// <summary>
         /// Gets the bounding co-ordinates in 3D space of the graph
         /// </summary>
-        public static async Task<Tuple<Point3D, Point3D>> GetBounds<T, C>(this WeightedGraph<T, C> graph)
+        public static async Task<Tuple<Point3D, Point3D>> GetBoundsAsync<T, C>(this WeightedGraph<T, C> graph)
           where T : IEquatable<T> where C : IComparable<C>
         {
             double xMax = 0;
@@ -124,17 +136,21 @@ namespace LinqInfer.Maths.Graphs
             double yMin = 0;
             double zMin = 0;
 
+            int i = 0;
+
             foreach (var vertex in await graph.FindAllVertexesAsync())
             {
                 var posAndSize = GetPositionAndSize(await vertex.GetAttributesAsync());
 
-                if (xMax < posAndSize.Item1.X) xMax = posAndSize.Item1.X;
-                if (yMax < posAndSize.Item1.Y) yMax = posAndSize.Item1.Y;
-                if (zMax < posAndSize.Item1.Z) zMax = posAndSize.Item1.Z;
+                if (xMax < posAndSize.Item1.X || i == 0) xMax = posAndSize.Item1.X;
+                if (yMax < posAndSize.Item1.Y || i == 0) yMax = posAndSize.Item1.Y;
+                if (zMax < posAndSize.Item1.Z || i == 0) zMax = posAndSize.Item1.Z;
 
-                if (xMin > posAndSize.Item1.X) xMin = posAndSize.Item1.X;
-                if (yMin > posAndSize.Item1.Y) yMin = posAndSize.Item1.Y;
-                if (zMin > posAndSize.Item1.Z) zMin = posAndSize.Item1.Z;
+                if (xMin > posAndSize.Item1.X || i == 0) xMin = posAndSize.Item1.X;
+                if (yMin > posAndSize.Item1.Y || i == 0) yMin = posAndSize.Item1.Y;
+                if (zMin > posAndSize.Item1.Z || i == 0) zMin = posAndSize.Item1.Z;
+
+                i++;
             }
 
             return new Tuple<Point3D, Point3D>(new Point3D()
@@ -151,12 +167,30 @@ namespace LinqInfer.Maths.Graphs
             });
         }
 
+        /// <summary>
+        /// Fits the graph within a specified boundary relative to an origin
+        /// </summary>
+        /// <returns></returns>
+        public static async Task FitWithinRectangle<T, C>(this WeightedGraph<T, C> graph, Point3D origin, Point3D bounds)
+          where T : IEquatable<T> where C : IComparable<C>
+        {
+            var currentBounds = await graph.GetBoundsAsync();
+            var currentScale = currentBounds.Item2 - currentBounds.Item1;
+            var newScale = bounds - origin;
+
+            await graph.TransformAsync(p =>
+            {
+                return origin + ((p - currentBounds.Item1) / currentScale) * newScale;
+
+            }, s => s);
+        }
+
         private static Tuple<Point3D, double> GetPositionAndSize(IDictionary<string, object> attribs)
         {
-            var x = GetValueOrDefault(attribs, "viz:position.x", 0);
-            var y = GetValueOrDefault(attribs, "viz:position.y", 0);
-            var z = GetValueOrDefault(attribs, "viz:position.z", 0);
-            var s = GetValueOrDefault(attribs, "viz:size.value", 0);
+            var x = GetValueOrDefault(attribs, "viz:position.x", 0d);
+            var y = GetValueOrDefault(attribs, "viz:position.y", 0d);
+            var z = GetValueOrDefault(attribs, "viz:position.z", 0d);
+            var s = GetValueOrDefault(attribs, "viz:size.value", 0d);
 
             var originalPos = new Point3D() { X = x, Y = y, Z = z };
 
@@ -169,7 +203,7 @@ namespace LinqInfer.Maths.Graphs
 
             if (!values.TryGetValue(key, out val)) return defaultValue;
 
-            if (val == null || !(val is T)) return defaultValue;
+            if (val == null) return defaultValue;
 
             return (T)val;
         }

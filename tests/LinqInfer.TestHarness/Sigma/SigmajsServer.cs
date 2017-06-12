@@ -37,6 +37,12 @@ namespace LinqInfer.TestHarness
                 .CreateGraphExportService(GenerateGraph, "/graphs/sofm/random")
                 .AllowOrigin(uiUrl);
 
+            serviceApp.AddErrorHandler((c, e) =>
+            {
+                c.Response.CreateTextResponse().WriteLine(e.Message);
+                return Task.FromResult(false);
+            });
+
             serviceApp.Start();
 
             Console.WriteLine("Listening at " + serviceUrl);
@@ -69,13 +75,14 @@ namespace LinqInfer.TestHarness
 
         private static async Task<WeightedGraph<string, double>> GenerateGraph(IOwinContext context, Rectangle rect)
         {
-            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(5)).ToList().AsQueryable();
+            var data = Enumerable.Range(1, 100).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
             var pipeline = data.CreatePipeline();
-            var map = await pipeline.ToSofm(3, 0.2f, 0.1f).ExecuteAsync();
+            
+            var map = await pipeline.ToSofm(6, 0.2f, 0.1f, null, 1500).ExecuteAsync();
 
-            map.ExportMode = FeatureMap<ColumnVector1D>.GraphExportMode.Spatial3D;
+            map.ExportMode = GraphExportMode.Spatial3D;
 
-            var graph = await map.ExportNetworkTopologyAsync(new Point3D() { X = rect.Width, Y = rect.Y });
+            var graph = await map.ExportNetworkTopologyAsync(new Point3D() { X = rect.Width, Y = rect.Height, Z = (rect.Width + rect.Height) / 2 });
 
             return graph;
         }

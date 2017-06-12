@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning
@@ -14,10 +13,9 @@ namespace LinqInfer.Learning
     /// </summary>
     public class ClusterNode<T> : IGrouping<double, T>
     {
+        private readonly ClusteringParameters _parameters;
         private readonly ConcurrentDictionary<T, int> _values;
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
-        private readonly float _initialLearningRate;
-        private readonly Func<float, int, int, double> _learningRateDecayFunction;
 
         /// <summary>
         /// Creates a new node.
@@ -27,17 +25,13 @@ namespace LinqInfer.Learning
         /// <param name="initialLearningRate">The initial learning rate</param>
         /// <param name="initialRadius">When set, this is used to determine the radius of the cluster node which is used to calculate the influence this node has on neighbouring nodes when updating weights.</param>
         /// <param name="learningRateDecayFunction">A function which take the initial rate, current iteration and number of iteration</param>
-        internal ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, double[] initialWeights, float initialLearningRate = 0.5f, float? initialRadius = null, Func<float, int, int, double> learningRateDecayFunction = null)
+        internal ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, ColumnVector1D initialWeights, ClusteringParameters parameters)
         {
-            Contract.Assert(initialWeights.Length > 0);
-            Contract.Assert(initialLearningRate > 0);
+            _parameters = parameters;
 
-            Weights = new ColumnVector1D(initialWeights);
-            InitialRadius = initialRadius;
+            Weights = initialWeights;
 
             _featureExtractor = featureExtractor;
-            _initialLearningRate = initialLearningRate;
-            _learningRateDecayFunction = initialRadius.HasValue ? (learningRateDecayFunction ?? ((r, i, t) => r * Math.Exp(-((double)i / t)))) : (learningRateDecayFunction ?? ((r, i, t) => r));
             _values = new ConcurrentDictionary<T, int>();
         }
 
@@ -56,7 +50,13 @@ namespace LinqInfer.Learning
         /// which is used to calculate the influence this node has on neighbouring nodes
         /// when updating weights.
         /// </summary>
-        internal double? InitialRadius { get; private set; }
+        internal double? InitialRadius
+        {
+            get
+            {
+                return _parameters.InitialRadius;
+            }
+        }
 
         internal double? CurrentRadius { get; private set; }
 
@@ -108,11 +108,6 @@ namespace LinqInfer.Learning
             return _featureExtractor.ExtractColumnVector(value).Distance(Weights);
         }
 
-        internal ColumnVector1D CalculateDifferenceVector(T value)
-        {
-            return Weights - _featureExtractor.ExtractColumnVector(value);
-        }
-
         internal double CalculateDifference(ObjectVector<T> dataItem)
         {
             if (IsMember(dataItem.Value)) return -1;
@@ -141,28 +136,29 @@ namespace LinqInfer.Learning
             }
         }
 
-        internal void AdjustForIteration(IEnumerable<ClusterNode<T>> otherNodes, ObjectVector<T> dataItem, int iteration, int numberOfIterations)
+        internal void AdjustForIteration(IEnumerable<ClusterNode<T>> otherNodes, ObjectVector<T> dataItem, int epoch, bool appendMember = true)
         {
-            AppendMember(dataItem, !InitialRadius.HasValue);
+            if (appendMember) AppendMember(dataItem, !InitialRadius.HasValue);
 
             if (InitialRadius.HasValue)
             {
-                var neighbourhoodRadius = CurrentNeighbourhoodRadius(iteration, numberOfIterations);
+                var cnr = _parameters.NeighbourhoodRadiusCalculator(InitialRadius.Value, epoch, _parameters.TrainingEpochs);
+                var neighbourhoodRadiusSq = cnr * cnr;
 
-                CurrentRadius = neighbourhoodRadius;
+                CurrentRadius = cnr;
 
                 var otherNodesAndDist = otherNodes.Select(o => new
                 {
-                    distance = o.Weights.Distance(Weights),
+                    distanceSq = Math.Pow(o.Weights.Distance(Weights), 2),
                     node = o
                 })
-                .Where(o => o.distance < neighbourhoodRadius);
+                .Where(o => o.distanceSq < neighbourhoodRadiusSq);
 
                 foreach (var neighbourhoodNode in otherNodesAndDist)
                 {
-                    var influence = Math.Exp(-((neighbourhoodNode.distance) / (2 * neighbourhoodRadius)));
+                    var influence = Math.Exp(-((neighbourhoodNode.distanceSq) / (2 * neighbourhoodRadiusSq)));
 
-                    neighbourhoodNode.node.AdjustFor(Weights, iteration, numberOfIterations, influence);
+                    neighbourhoodNode.node.AdjustFor(Weights, epoch, _parameters.TrainingEpochs, influence);
                 }
             }
         }
@@ -171,17 +167,10 @@ namespace LinqInfer.Learning
         {
             lock (_values)
             {
-                var l = _learningRateDecayFunction(_initialLearningRate, iteration, numberOfIterations);
+                var l = _parameters.LearningRateDecayFunction(_parameters.InitialLearningRate, iteration, numberOfIterations);
                 var r = l * influence;
                 Weights.Apply((w, i) => w + r * (vector[i] - w));
             }
-        }
-        
-        private double CurrentNeighbourhoodRadius(int iteration, int numberOfIterations)
-        {
-            var r = InitialRadius.Value;
-            var t = numberOfIterations / Math.Log(r);
-            return r * Math.Exp((-iteration) / t);
         }
 
         public IEnumerator<T> GetEnumerator()
