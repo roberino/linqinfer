@@ -77,6 +77,8 @@ namespace LinqInfer.Learning
 
             foreach (var node in _nodes)
             {
+                var colour = _parameters.ExportColourPalette.GetColourByIndex(i);
+
                 var radius = maxRadius == 0 ? unitW / 2 : node.CurrentRadius.GetValueOrDefault(1) / maxRadius * unitW / 2;
 
                 var nodePos = GetNodePosition(origin, unitW, unitH, i, node);
@@ -90,7 +92,7 @@ namespace LinqInfer.Learning
                 attribs["weights"] = node.Weights.ToJson();
 
                 await vertex.SetPositionAndSizeAsync(nodePos.Item1.X, nodePos.Item1.Y, nodePos.Item1.Z, nodePos.Item2);
-                await vertex.SetColourAsync(255, 0, 0);
+                await vertex.SetColourAsync(colour.AdjustLightness(0.5f));
 
                 int m = 1;
                 var members = node.GetMembers();
@@ -99,16 +101,15 @@ namespace LinqInfer.Learning
 
                 foreach (var item in members)
                 {
-                    var memberVertex = await vertex.ConnectToAsync(GetLabelForMember(item.Key, i, m++), item.Value);
+                    var memberVertex = await vertex.ConnectToAsync(_parameters.LabelFormatter(item.Key, i, m++), item.Value);
 
                     var memberAttribs = await memberVertex.GetAttributesAsync();
 
                     memberAttribs["count"] = item.Value;
 
                     var pos = posCalc(m, item.Key, item.Value);
-                    var colour = _parameters.ExportColourPalette.GetColourByIndex(i);
 
-                    await memberVertex.SetPositionAndSizeAsync(pos.Item1.X, pos.Item1.Y, pos.Item1.Z, unitW / 4 * pos.Item2);
+                    await memberVertex.SetPositionAndSizeAsync(pos.Item1.X, pos.Item1.Y, pos.Item1.Z, unitW * pos.Item2);
                     await memberVertex.SetColourAsync(colour);
                 }
             }
@@ -160,7 +161,7 @@ namespace LinqInfer.Learning
             {
                 X = unitW * i - 1 + unitW / 2,
                 Y = unitH
-            }, unitW / 2);
+            }, unitW);
         }
 
         private Func<int, T, int, Tuple<Point3D, double>> GetMemberPositionCalculator(Point3D origin, Point3D nodePos, double radius, ClusterNode<T> node)
@@ -240,16 +241,6 @@ namespace LinqInfer.Learning
                     Y = y
                 }, 1);
             };
-        }
-
-        private string GetLabelForMember(T member, int i, int j)
-        {
-            if (Type.GetTypeCode(typeof(T)) == TypeCode.Object)
-            {
-                return i + "." + j;
-            }
-
-            return member.ToString();
         }
     }
 }

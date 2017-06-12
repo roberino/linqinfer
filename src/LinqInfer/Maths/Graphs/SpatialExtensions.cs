@@ -48,10 +48,7 @@ namespace LinqInfer.Maths.Graphs
                 attribs["viz:size.value"] = size.Value;
             }
 
-            if (!string.IsNullOrEmpty(shape))
-            {
-                attribs["viz:shape.value"] = shape;
-            }
+            attribs["viz:shape.value"] = shape ?? "disc";
         }
 
         /// <summary>

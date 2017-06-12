@@ -16,23 +16,9 @@ namespace LinqInfer.Learning
             NeighbourhoodRadiusCalculator = CurrentNeighbourhoodRadius;
             ExportColourPalette = new ColourPalette();
 
-            ExportColourPalette.AddColour(new Colour()
-            {
-                R = 255,
-                A = 255
-            });
+            ExportColourPalette.Random = true;
 
-            ExportColourPalette.AddColour(new Colour()
-            {
-                G = 255,
-                A = 255
-            });
-
-            ExportColourPalette.AddColour(new Colour()
-            {
-                B = 255,
-                A = 255
-            });
+            LabelFormatter = GetLabelForMember;
         }
 
         /// <summary>
@@ -71,7 +57,12 @@ namespace LinqInfer.Learning
         /// taking the initial radius, epoch index (t) and total epochs
         /// </summary>
         public Func<double, int, int, double> NeighbourhoodRadiusCalculator { get; set; }
-        
+
+        /// <summary>
+        /// Used for generating a label for an object instance, node index and member index
+        /// </summary>
+        public Func<object, int, int, string> LabelFormatter { get; set; }
+
         /// <summary>
         /// A colour palette used to colour nodes
         /// </summary>
@@ -90,6 +81,7 @@ namespace LinqInfer.Learning
             if (LearningRateDecayFunction == null) throw new ArgumentException("LearningRateDecayFunction missing");
             if (WeightInitialiser == null) throw new ArgumentException("WeightInitialiser missing");
             if (NeighbourhoodRadiusCalculator == null) throw new ArgumentException("LearningRateDecayFunction missing");
+            if (LabelFormatter == null) throw new ArgumentException("LabelFormatter missing");
             if (InitialRadius.HasValue && !(InitialRadius.Value > 0 && InitialRadius.Value < 1)) throw new ArgumentException("Invalid InitialRadius");
         }
 
@@ -100,6 +92,18 @@ namespace LinqInfer.Learning
             var t = numberOfIterations / l;
             var e = Math.Exp(-(double)iteration / t);
             return r * e - 1;
+        }
+
+        private string GetLabelForMember(object member, int i, int j)
+        {
+            if (member == null) return string.Empty;
+
+            if (Type.GetTypeCode(member.GetType()) == TypeCode.Object)
+            {
+                return i + "." + j;
+            }
+
+            return member.ToString();
         }
     }
 }
