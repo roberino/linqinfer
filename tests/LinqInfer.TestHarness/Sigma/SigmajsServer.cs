@@ -78,11 +78,11 @@ namespace LinqInfer.TestHarness
             var data = Enumerable.Range(1, 100).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
             var pipeline = data.CreatePipeline();
             
-            var map = await pipeline.ToSofm(6, 0.2f, 0.1f, null, 1500).ExecuteAsync();
+            var map = await pipeline.ToSofm(6, 0.2f, 0.1f, 1500).ExecuteAsync();
 
             map.ExportMode = GraphExportMode.Spatial3D;
 
-            var graph = await map.ExportNetworkTopologyAsync(new Point3D() { X = rect.Width, Y = rect.Height, Z = (rect.Width + rect.Height) / 2 });
+            var graph = await map.ExportNetworkTopologyAsync(new VisualSettings(new Point3D() { X = rect.Width, Y = rect.Height, Z = (rect.Width + rect.Height) / 2 }));
 
             return graph;
         }

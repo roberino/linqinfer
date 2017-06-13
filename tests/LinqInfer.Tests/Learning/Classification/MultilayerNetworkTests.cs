@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace LinqInfer.Tests.Learning.Classification
 {
     [TestFixture]
-    public class MultilayerNetworkTests
+    public class MultilayerNetworkTests : TestFixtureBase
     {
         [Test]
         public void CreateNewInstance_IsCorrectlyInitialised()
@@ -59,7 +59,7 @@ namespace LinqInfer.Tests.Learning.Classification
 
             var xml = await topology.ExportAsGexfAsync();
 
-            Console.WriteLine(xml);
+            LogVerbose(xml.ToString());
         }
 
         [Test]

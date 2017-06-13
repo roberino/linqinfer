@@ -76,8 +76,7 @@ namespace LinqInfer.Learning.Classification
         }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            Point3D? bounds = null,
-            Point3D origin = default(Point3D),
+            VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null)
         {
             var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
@@ -86,12 +85,12 @@ namespace LinqInfer.Learning.Classification
             List<WeightedGraphNode<string, double>> nextVertexes = new List<WeightedGraphNode<string, double>>();
             List<INeuron> currentNeurons = new List<INeuron>();
 
+            var vs = visualSettings ?? new VisualSettings();
+
             int l = 0;
 
-            if (!bounds.HasValue) bounds = new Point3D() { X = 100, Y = 100 };
-
-            var width = bounds.Value.X;
-            var height = bounds.Value.Y;
+            var width = vs.Bounds.X;
+            var height = vs.Bounds.Y;
             var numLayers = Layers.Count();
             var mSize = Layers.Max(x => x.Size);
             var unitW = width / numLayers;
@@ -127,7 +126,7 @@ namespace LinqInfer.Learning.Classification
 
                     var colour = (byte)(weights.Sum() / maxWeight * 255);
 
-                    await node.SetPositionAndSizeAsync(origin.X + width - unitW * l, origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
+                    await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
                     await node.SetColourAsync(colour, 0, 0);
 
                     if (previousVertexes != null)

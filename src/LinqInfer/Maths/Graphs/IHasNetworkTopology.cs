@@ -1,5 +1,4 @@
-﻿using LinqInfer.Maths.Geometry;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace LinqInfer.Maths.Graphs
 {
@@ -12,13 +11,12 @@ namespace LinqInfer.Maths.Graphs
         /// Exports the topology of the network as a <see cref="WeightedGraph{T, C}"/>, containing 
         /// the component elements of the network.
         /// </summary>
-        /// <param name="bounds">The maximum spatial bounds of the graph</param>
-        /// <param name="origin">The point origin of the graph</param>
+        /// <param name="visualSettings">Specifies the visual settings (inc. origin, bounds and colour palette) which are used
+        /// when exporting the network into a graph.</param>
         /// <param name="store">An optional storage mechanism</param>
         /// <returns></returns>
         Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            Point3D? bounds = null,
-            Point3D origin = default(Point3D),
+            VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null);
     }
 }

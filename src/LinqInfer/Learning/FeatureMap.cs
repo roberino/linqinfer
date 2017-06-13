@@ -45,6 +45,9 @@ namespace LinqInfer.Learning
             return _nodes.GetEnumerator();
         }
 
+        /// <summary>
+        /// Sets the export mode
+        /// </summary>
         public GraphExportMode ExportMode
         {
             get
@@ -58,16 +61,14 @@ namespace LinqInfer.Learning
         }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            Point3D? bounds = null,
-            Point3D origin = default(Point3D),
+            VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null)
         {
             var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
 
-            if (!bounds.HasValue) bounds = new Point3D() { X = 100, Y = 100 };
-
-            var width = bounds.Value.X;
-            var height = bounds.Value.Y;
+            var vs = visualSettings ?? new VisualSettings();
+            var width = vs.Bounds.X;
+            var height = vs.Bounds.Y;
 
             double unitW = width / _nodes.Count();
             double unitH = height / 2;
@@ -77,13 +78,13 @@ namespace LinqInfer.Learning
 
             foreach (var node in _nodes)
             {
-                var colour = _parameters.ExportColourPalette.GetColourByIndex(i);
+                var colour = vs.Palette.GetColourByIndex(i);
 
                 var radius = maxRadius == 0 ? unitW / 2 : node.CurrentRadius.GetValueOrDefault(1) / maxRadius * unitW / 2;
 
-                var nodePos = GetNodePosition(origin, unitW, unitH, i, node);
+                var nodePos = GetNodePosition(vs.Origin, unitW, unitH, i, node);
 
-                var vertex = await graph.FindOrCreateVertexAsync("N " + i++);
+                var vertex = await graph.FindOrCreateVertexAsync("N " + i);
 
                 var attribs = await vertex.GetAttributesAsync();
 
@@ -97,7 +98,7 @@ namespace LinqInfer.Learning
                 int m = 1;
                 var members = node.GetMembers();
 
-                var posCalc = GetMemberPositionCalculator(origin, nodePos.Item1, radius, node);
+                var posCalc = GetMemberPositionCalculator(vs.Origin, nodePos.Item1, radius, node);
 
                 foreach (var item in members)
                 {
@@ -112,9 +113,11 @@ namespace LinqInfer.Learning
                     await memberVertex.SetPositionAndSizeAsync(pos.Item1.X, pos.Item1.Y, pos.Item1.Z, unitW * pos.Item2);
                     await memberVertex.SetColourAsync(colour);
                 }
+
+                i++;
             }
 
-            await FinalisePosition(graph, origin, bounds.Value);
+            await FinalisePosition(graph, vs.Origin, vs.Bounds);
 
             await graph.SaveAsync();
 

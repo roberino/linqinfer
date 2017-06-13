@@ -142,7 +142,6 @@
     <Compile Include="Learning\ClusteringParameters.cs" />
     <Compile Include="Learning\FeatureMapperV3.cs" />
     <Compile Include="Maths\Geometry\Point3D.cs" />
-    <Compile Include="Maths\Geometry\Point2D.cs" />
     <Compile Include="Maths\Geometry\Rectangle.cs" />
     <Compile Include="Maths\Graphs\Colour.cs" />
     <Compile Include="Maths\Graphs\ColourPalette.cs" />
@@ -183,6 +182,7 @@
     <Compile Include="Maths\Graphs\IWeightedGraphStore.cs" />
     <Compile Include="Maths\Graphs\OptimalPathSearch.cs" />
     <Compile Include="Maths\Graphs\SpatialExtensions.cs" />
+    <Compile Include="Maths\Graphs\VisualSettings.cs" />
     <Compile Include="Maths\Graphs\WeightedGraph.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphFactory.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphInMemoryStore.cs" />

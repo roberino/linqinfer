@@ -153,7 +153,7 @@ namespace LinqInfer.Tests.Maths.Graphs
 
             Console.WriteLine(xml);
 
-            Assert.That(xml.ToString(), Is.EqualTo(xml2.ToString()));
+            Assert.That(RemoveWhitespace(xml), Is.EqualTo(RemoveWhitespace(xml2)));
         }
     }
 }

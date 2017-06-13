@@ -41,10 +41,10 @@ namespace LinqInfer.Tests.Learning
 
                 var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
 
-                var topology = await classifier.ExportNetworkTopologyAsync(new Point3D() { X = 600, Y = 500 });
+                var topology = await classifier.ExportNetworkTopologyAsync(new LinqInfer.Maths.Graphs.VisualSettings(new Point3D() { X = 600, Y = 500 }));
                 var gexf = await topology.ExportAsGexfAsync();
 
-                Console.Write(gexf);
+                // Console.Write(gexf);
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 

@@ -147,11 +147,10 @@ namespace LinqInfer.Learning.Classification
         }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            Point3D? bounds = null,
-            Point3D origin = default(Point3D),
+            VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null)
         {
-            var graph = await _network.ExportNetworkTopologyAsync(bounds, origin, store);
+            var graph = await _network.ExportNetworkTopologyAsync(visualSettings, store);
 
             return graph;
         }

@@ -8,7 +8,7 @@ using System.Text;
 namespace LinqInfer.Tests.Probability
 {
     [TestFixture]
-    public class FunctionsTests
+    public class FunctionsTests : TestFixtureBase
     {
         [Ignore("Hangs when invoked with others?? Contract error? WTF??")]
         public void NormalRandomiser()
@@ -17,7 +17,7 @@ namespace LinqInfer.Tests.Probability
 
             foreach (var d in data.GroupBy(r => Math.Round(r, 0)).OrderBy(d => d.Key))
             {
-                Console.WriteLine("{0}\t{1}", d.Key, d.Count());
+                LogVerbose("{0}\t{1}", d.Key, d.Count());
             }
 
             Assert.That(data.Average(), Is.GreaterThan(75));
@@ -54,7 +54,7 @@ namespace LinqInfer.Tests.Probability
             foreach (var i in Enumerable.Range(1, 100))
             {
                 var k = 3.5;
-                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, (n, v) => Console.WriteLine("{0},{1}", n, v), double.IsInfinity);
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, (n, v) => LogVerbose("{0},{1}", n, v), double.IsInfinity);
             }
         }
 

@@ -12,13 +12,10 @@ namespace LinqInfer.Learning
         public ClusteringParameters()
         {
             LearningRateDecayFunction = InitialRadius.HasValue ? new Func<float, int, int, double>((r, i, t) => r * Math.Exp(-((double)i / t))) : (r, i, t) => r;
-            WeightInitialiser = x => Functions.RandomVector(NumberOfOutputNodes, 0.1, 0.9);
+            WeightInitialiser = (i, s) => Functions.RandomVector(s, 0.1, 0.9);
             NeighbourhoodRadiusCalculator = CurrentNeighbourhoodRadius;
-            ExportColourPalette = new ColourPalette();
-
-            ExportColourPalette.Random = true;
-
             LabelFormatter = GetLabelForMember;
+            ExportMode = GraphExportMode.Spatial3D;
         }
 
         /// <summary>
@@ -47,10 +44,10 @@ namespace LinqInfer.Learning
         public Func<float, int, int, double> LearningRateDecayFunction { get; set; }
 
         /// <summary>
-        /// A function which will initialise each node with a set of weights.
-        /// The function takes a node index as a parameter.
+        /// An initialisation function used to determine the initial value of a output node's weights.
+        /// The function takes a node index and the vector size as parameters (in that order).
         /// </summary>
-        public Func<int, ColumnVector1D> WeightInitialiser { get; set; }
+        public Func<int, int, ColumnVector1D> WeightInitialiser { get; set; }
 
         /// <summary>
         /// A time based function which calculates the radius of a matched node (BMU), the function
@@ -64,16 +61,11 @@ namespace LinqInfer.Learning
         public Func<object, int, int, string> LabelFormatter { get; set; }
 
         /// <summary>
-        /// A colour palette used to colour nodes
-        /// </summary>
-        public ColourPalette ExportColourPalette { get; set; }
-
-        /// <summary>
         /// Specifies how the map will be exported into a graph
         /// </summary>
         public GraphExportMode ExportMode { get; set; }
 
-        public void Validate()
+        internal void Validate()
         {
             if (NumberOfOutputNodes <= 0) throw new ArgumentException("OutputNodes missing or invalid");
             if (TrainingEpochs <= 0) throw new ArgumentException("TrainingEpochs missing or invalid");

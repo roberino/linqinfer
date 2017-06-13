@@ -7,6 +7,7 @@ using LinqInfer.Maths;
 using NUnit.Framework.Constraints;
 using System.Diagnostics;
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace LinqInfer.Tests
 {
@@ -62,6 +63,20 @@ namespace LinqInfer.Tests
                 httpHeaderStream.CopyTo(ms);
                 return ms.ToArray();
             }
+        }
+
+        protected string RemoveWhitespace(object value, string replaceWith = "_")
+        {
+            if (value == null) return null;
+
+            return Regex.Replace(value.ToString(), @"\s+", m => "_", RegexOptions.Multiline);
+        }
+
+        protected void LogVerbose(string format, params object[] args)
+        {
+#if DEBUG
+            Console.WriteLine(format, args);
+#endif
         }
     }
 }

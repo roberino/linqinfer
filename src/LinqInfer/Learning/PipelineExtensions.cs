@@ -177,13 +177,12 @@ namespace LinqInfer.Learning
         /// <param name="learningRate">The learning rate</param>
         /// <param name="initialNodeRadius">When supplied, this is used used to determine the radius of each cluster node 
         /// which is used to calculate the influence a node has on neighbouring nodes when updating weights</param>
-        /// <param name="initialiser">An initialisation function used to determine the initial value of a output nodes weights, given the output node index</param>
         /// <returns>An execution pipeline for creating a SOFM</returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, Func<int, ColumnVector1D> initialiser = null, int trainingEpochs = 1000) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, int trainingEpochs = 1000) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
-                var fm = new FeatureMapperV3<TInput>(outputNodeCount, learningRate, trainingEpochs, initialNodeRadius, initialiser);
+                var fm = new FeatureMapperV3<TInput>(outputNodeCount, learningRate, trainingEpochs, initialNodeRadius);
 
                 pipeline.NormaliseData();
 

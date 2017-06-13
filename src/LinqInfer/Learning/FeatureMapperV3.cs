@@ -1,7 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
 using LinqInfer.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +13,7 @@ namespace LinqInfer.Learning
         private const int BATCH_SIZE = 1000;
         private readonly ClusteringParameters _parameters;
 
-        public FeatureMapperV3(int outputNodeCount = 10, float learningRate = 0.5f, int trainingEpochs = 1000, float? radius = null, Func<int, ColumnVector1D> initialiser = null)
+        public FeatureMapperV3(int outputNodeCount = 10, float learningRate = 0.5f, int trainingEpochs = 1000, float? radius = null)
         {
             _parameters = new ClusteringParameters()
             {
@@ -24,8 +22,6 @@ namespace LinqInfer.Learning
                 NumberOfOutputNodes = outputNodeCount,
                 TrainingEpochs = trainingEpochs
             };
-
-            if (initialiser != null) _parameters.WeightInitialiser = initialiser;
 
             _parameters.Validate();
         }
@@ -72,7 +68,7 @@ namespace LinqInfer.Learning
                     Enumerable
                         .Range(0, _parameters.NumberOfOutputNodes)
                         .Select(n =>
-                            new ClusterNode<T>(pipeline.FeatureExtractor, _parameters.WeightInitialiser(n), _parameters)));
+                            new ClusterNode<T>(pipeline.FeatureExtractor, _parameters.WeightInitialiser(n, pipeline.FeatureExtractor.VectorSize), _parameters)));
         }
     }
 }

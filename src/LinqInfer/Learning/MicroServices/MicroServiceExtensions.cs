@@ -80,7 +80,7 @@ namespace LinqInfer.Learning.MicroServices
         {
             return CreateGraphExportService(application, (c, d) =>
             {
-                return network.ExportNetworkTopologyAsync(new Point3D() { X = d.Width, Y = d.Height });
+                return network.ExportNetworkTopologyAsync(new VisualSettings(new Point3D() { X = d.Width, Y = d.Height }));
             }, routePath);
         }
 
