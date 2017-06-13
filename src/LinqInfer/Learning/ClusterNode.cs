@@ -115,10 +115,9 @@ namespace LinqInfer.Learning
             return dataItem.Vector.Distance(Weights);
         }
 
-        internal void AppendMember(ObjectVector<T> dataItem, bool adjust = true)
+        internal void AppendMember(ObjectVector<T> dataItem)
         {
             IsInitialised = true;
-            bool isNew = false;
 
             if (_values.ContainsKey(dataItem.Value))
             {
@@ -126,19 +125,13 @@ namespace LinqInfer.Learning
             }
             else
             {
-                isNew = true;
                 _values[dataItem.Value] = 1;
-            }
-
-            if (isNew && adjust)
-            {
-                AdjustFor(dataItem.Vector);
             }
         }
 
         internal void AdjustForIteration(IEnumerable<ClusterNode<T>> otherNodes, ObjectVector<T> dataItem, int epoch, bool appendMember = true)
         {
-            if (appendMember) AppendMember(dataItem, !InitialRadius.HasValue);
+            if (appendMember) AppendMember(dataItem);
 
             if (InitialRadius.HasValue)
             {
@@ -158,16 +151,20 @@ namespace LinqInfer.Learning
                 {
                     var influence = Math.Exp(-((neighbourhoodNode.distanceSq) / (2 * neighbourhoodRadiusSq)));
 
-                    neighbourhoodNode.node.AdjustFor(Weights, epoch, _parameters.TrainingEpochs, influence);
+                    neighbourhoodNode.node.AdjustFor(Weights, epoch, influence);
                 }
+            }
+            else
+            {
+                AdjustFor(dataItem.Vector, epoch);
             }
         }
 
-        private void AdjustFor(ColumnVector1D vector, int iteration = 0, int numberOfIterations = 1, double influence = 1)
+        private void AdjustFor(ColumnVector1D vector, int iteration = 0, double influence = 1)
         {
             lock (_values)
             {
-                var l = _parameters.LearningRateDecayFunction(_parameters.InitialLearningRate, iteration, numberOfIterations);
+                var l = _parameters.LearningRateDecayFunction(_parameters.InitialLearningRate, iteration, _parameters.TrainingEpochs);
                 var r = l * influence;
                 Weights.Apply((w, i) => w + r * (vector[i] - w));
             }

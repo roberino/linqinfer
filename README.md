@@ -22,7 +22,7 @@ for reducing the dimensionality of the input data, such as principle component a
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
 
-![SOFM graph](docs/sofm_graph.png)
+![SOFM graph](docs/sofm_graph2.png)
 
 #### Learning
 
