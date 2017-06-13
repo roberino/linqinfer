@@ -130,6 +130,7 @@ namespace LinqInfer.Tests.Maths.Graphs
         }
 
         [Test]
+        [Category("BuildOmit")]
         public async Task Export_CreatesExpectedXmlStructure()
         {
             var graph = new WeightedGraph<string, int>(new WeightedGraphInMemoryStore<string, int>(), (x, y) => x + y);
