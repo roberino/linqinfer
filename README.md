@@ -69,7 +69,7 @@ and fractions which can sometimes offer a nicer way of working with probabilitie
 
 The Maths.Graphs namespace contains useful objects and functions for creating graphical representations of structures. 
 
-Graphs can be exported into [GEFX](https://gephi.org/gexf/format/schema.html).
+Graphs can be exported into [GEXF](https://gephi.org/gexf/format/schema.html).
 
 Check out [Sigmajs](http://sigmajs.org/) and [Gephi](https://gephi.org/) for visualising graphs.
 
