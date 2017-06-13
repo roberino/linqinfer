@@ -101,6 +101,8 @@ namespace LinqInfer.Learning.Classification
             {
                 int i = 0;
 
+                var colour = vs.Palette.GetColourByIndex(l);
+
                 currentNeurons.Clear();
 
                 layer.ForEachNeuron(n =>
@@ -116,7 +118,7 @@ namespace LinqInfer.Learning.Classification
                 {
                     i++;
 
-                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + i;
+                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + l + "." + i;
                     var node = await graph.FindOrCreateVertexAsync(name);
                     var attribs = await node.GetAttributesAsync();
                     
@@ -124,10 +126,10 @@ namespace LinqInfer.Learning.Classification
 
                     attribs["weights"] = weights.ToJson();
 
-                    var colour = (byte)(weights.Sum() / maxWeight * 255);
+                    var colourFactor = (float)(weights.Sum() / maxWeight);
 
                     await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
-                    await node.SetColourAsync(colour, 0, 0);
+                    await node.SetColourAsync(colour);
 
                     if (previousVertexes != null)
                     {

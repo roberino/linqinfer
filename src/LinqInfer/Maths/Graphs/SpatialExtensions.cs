@@ -73,7 +73,7 @@ namespace LinqInfer.Maths.Graphs
             attribs["viz:color.r"] = colour.R;
             attribs["viz:color.g"] = colour.G;
             attribs["viz:color.b"] = colour.B;
-            attribs["viz:color.a"] = colour.A;
+            attribs["viz:color.a"] = Math.Round(colour.A / 255f, 2);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace LinqInfer.Maths.Graphs
             attribs["viz:color.r"] = r;
             attribs["viz:color.g"] = g;
             attribs["viz:color.b"] = b;
-            attribs["viz:color.a"] = a;
+            attribs["viz:color.a"] = Math.Round(a / 255f, 2);
         }
 
         /// <summary>

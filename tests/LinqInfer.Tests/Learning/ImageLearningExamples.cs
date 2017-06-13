@@ -25,7 +25,7 @@ namespace LinqInfer.Tests.Learning
         private const int VectorWidth = 7;
 
         [Test]
-        [Category("BuildOmit")] // TODO: System.ArgumentException Invalid or corrupted data on dotnet core linux?
+        [Category("BuildOmit")] // TODO: System.ArgumentException Invalid or corrupted data on mono linux?
         public async Task LoadSerialisedNetworkFromXml_ClassifiesAsExpected()
         {
             using (var res = GetResource("net-X-O-I.xml"))
@@ -41,10 +41,12 @@ namespace LinqInfer.Tests.Learning
 
                 var classifier = doc.OpenAsMultilayerNetworkClassifier<Letter, char>(x => x.VectorData, VectorWidth * VectorWidth);
 
-                var topology = await classifier.ExportNetworkTopologyAsync(new LinqInfer.Maths.Graphs.VisualSettings(new Point3D() { X = 600, Y = 500 }));
+                var topology = await classifier.ExportNetworkTopologyAsync(new LinqInfer.Maths.Graphs.VisualSettings(new Point3D() { X = 800, Y = 800 }));
                 var gexf = await topology.ExportAsGexfAsync();
 
                 // Console.Write(gexf);
+
+                //gexf.Save(@"neural-network.gexf");
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 
@@ -85,7 +87,7 @@ namespace LinqInfer.Tests.Learning
 
             Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
 
-            var reduced = pipeline.PrincipalComponentReduction(15);
+            var reduced = pipeline.PrincipalComponentReduction(25);
 
             Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
 
@@ -126,9 +128,9 @@ namespace LinqInfer.Tests.Learning
                     Console.WriteLine("{0} = {1}", d.Key, d.Value.ToPercent());
             }
 
-            var data = ((IExportableAsVectorDocument)classifier).ToVectorDocument();
+            var data = classifier.ToVectorDocument();
 
-            // data.ExportAsXml().Save(@"..\linqinfer\tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
+            //data.ExportAsXml().Save(@"tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
 
             Console.WriteLine("{0} = {1}/{2} failed", testChars, failures, letters.Length);
         }
