@@ -71,6 +71,7 @@ namespace LinqInfer.Learning.Classification
 
             return Output = Activator == null ? sum : Activator(sum);
         }
+
         public void PruneWeights(params int[] indexes)
         {
             _weights = _weights.RemoveValuesAt(indexes);

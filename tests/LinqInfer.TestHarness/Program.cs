@@ -12,16 +12,7 @@ namespace LinqInfer.TestHarness
     {
         static void Main(string[] args)
         {
-            var trainer = new SemanicNetworkTrainer();
-            ConsoleKeyInfo key;
-
-            do
-            {
-                trainer.Run();
-
-                key = Console.ReadKey();
-
-            } while (key.Key != ConsoleKey.Escape);
+            SigmajsServer.Run();
         }
     }
 }

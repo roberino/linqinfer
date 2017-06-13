@@ -224,7 +224,7 @@ namespace LinqInfer.Maths.Probability
 
         public XDocument ExportAsXml()
         {
-            var ve = _valueExportFunc ?? new GenericTypeConvertor<T>().ConvertToString;
+            var ve = _valueExportFunc ?? new GenericTypeConverter<T>().ConvertToString;
             var doc = new XDocument(new XElement("chain", new XAttribute("order", _order)));
             var content = _root.ExportAsXml(ve).Root;
             doc.Root.Add(content);
@@ -233,7 +233,7 @@ namespace LinqInfer.Maths.Probability
 
         public BinaryVectorDocument ToVectorDocument()
         {
-            var ve = _valueExportFunc ?? new GenericTypeConvertor<T>().ConvertToString;
+            var ve = _valueExportFunc ?? new GenericTypeConverter<T>().ConvertToString;
 
             var doc = new BinaryVectorDocument();
 
@@ -246,7 +246,7 @@ namespace LinqInfer.Maths.Probability
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
-            var vi = _valueImportFunc ?? new GenericTypeConvertor<T>().ConvertFromString;
+            var vi = _valueImportFunc ?? new GenericTypeConverter<T>().ConvertFromString;
 
             if (!doc.Children.Any())
             {

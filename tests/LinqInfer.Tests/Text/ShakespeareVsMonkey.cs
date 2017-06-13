@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Genetics;
 using LinqInfer.Learning;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Graphs;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using LinqInfer.Utility;
@@ -8,6 +9,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Text
 {
@@ -15,6 +17,41 @@ namespace LinqInfer.Tests.Text
     public class ShakespeareVsMonkey : TestFixtureBase
     {
         private readonly EnglishDictionary _dict = new EnglishDictionary();
+
+        [Test]
+        public async Task ShakespeareToGraph()
+        {
+            using (var corpusStream = GetResource("shakespeare.txt"))
+            {
+                var shakespeare = new Corpus(corpusStream.Tokenise()).Blocks.Take(50).ToList();
+
+                var graph = new WeightedGraph<string, int>(new WeightedGraphInMemoryStore<string, int>(), (x, y) => x + y);
+
+                WeightedGraphNode<string, int> last;
+
+                foreach (var block in shakespeare)
+                {
+                    last = null;
+
+                    foreach (var token in block.Select(t => t.Text.ToLower()))
+                    {
+                        if (last == null)
+                            last = await graph.FindOrCreateVertexAsync(token);
+                        else
+                            last = await last.ConnectToOrModifyWeightAsync(token, 1, w => w + 1);
+                    }
+                }
+
+                await graph.SaveAsync();
+
+                var path = await graph.OptimalPathSearch.FindBestPathAsync("the", "love", (w1, w2) => w1 < w2 ? 1 : (w1 > w2 ? -1 : 0));
+
+                foreach(var p in path)
+                {
+                    Console.WriteLine("=> {0} [{1}]", p.Key, p.Value);
+                }
+            }
+        }
 
         [Test]
         public void ClassificationOfShakespearTextVsRandomGeneratedText()

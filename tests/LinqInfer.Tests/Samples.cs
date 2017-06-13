@@ -55,8 +55,6 @@ namespace LinqInfer.Tests
                     Console.WriteLine();
                     Console.WriteLine();
                 }
-
-                mk.ExportAsXml().Save(@"C:\stash\mk.xml");
             }
         }
 
@@ -109,7 +107,7 @@ namespace LinqInfer.Tests
                 depth = rnd.Next(max)
             }).AsQueryable();
 
-            var map = cubes.CreatePipeline().ToSofm(new { height = max, width = max, depth = max }, 10).Execute();
+            var map = cubes.CreatePipeline().ToSofm(10).Execute();
             
             foreach (var m in map)
             {

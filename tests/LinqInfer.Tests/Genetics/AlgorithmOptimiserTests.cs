@@ -6,7 +6,7 @@ using System.Linq;
 namespace LinqInfer.Tests.Genetics
 {
     [TestFixture]
-    public class AlgorithmOptimiserTests
+    public class AlgorithmOptimiserTests : TestFixtureBase
     {
         [Test]
         [Category("BuildOmit")]
@@ -26,7 +26,7 @@ namespace LinqInfer.Tests.Genetics
                 return r;
             }, 50);
 
-            Console.WriteLine("x={0},y={1}", x.OptimalValue, y.OptimalValue);
+            LogVerbose("x={0},y={1}", x.OptimalValue, y.OptimalValue);
 
             Assert.That(x.OptimalValue, Is.GreaterThan(90));
             Assert.That(y.OptimalValue, Is.LessThan(10));

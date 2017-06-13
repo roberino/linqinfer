@@ -1,0 +1,21 @@
+﻿<gexf xmlns:viz="http://www.gexf.net/1.1draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.gexf.net/1.2draft">
+  <graph mode="static" defaultedgetype="directed">
+    <meta lastmodifieddate="2017-06-09T08:35:03.9350515Z">
+      <creator>LinqInfer</creator>
+    </meta>
+    <attributes class="node">
+      <attribute id="a1" title="x" type="integer" />
+    </attributes>
+    <nodes>
+      <node id="1" label="b" />
+      <node id="2" label="a">
+        <attvalues>
+          <attvalue for="a1" value="123" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="1" source="2" target="1" weight="154" />
+    </edges>
+  </graph>
+</gexf>

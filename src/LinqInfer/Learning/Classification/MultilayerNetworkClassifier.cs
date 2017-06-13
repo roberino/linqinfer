@@ -1,10 +1,10 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using LinqInfer.Learning.Features;
+using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {

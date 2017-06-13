@@ -10,7 +10,7 @@ namespace LinqInfer.Learning.Classification
     internal class NetworkLayer : ILayer
     {
         private readonly IList<INeuron> _neurons;
-        
+
         private readonly Func<int, IList<INeuron>> _neuronsFactory;
 
         public NetworkLayer(int inputVectorSize, int neuronCount, ActivatorFunc activator, Func<int, INeuron> neuronFactory = null)

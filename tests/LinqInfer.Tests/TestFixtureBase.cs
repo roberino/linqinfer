@@ -6,6 +6,8 @@ using System.Linq;
 using LinqInfer.Maths;
 using NUnit.Framework.Constraints;
 using System.Diagnostics;
+using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace LinqInfer.Tests
 {
@@ -45,6 +47,14 @@ namespace LinqInfer.Tests
             return asm.GetManifestResourceStream(rname);
         }
 
+        public static XDocument GetResourceAsXml(string name)
+        {
+            using (var stream = GetResource(name))
+            {
+                return XDocument.Load(stream);
+            }
+        }
+
         public static byte[] GetResourceAsBytes(string name)
         {
             using (var httpHeaderStream = GetResource(name))
@@ -53,6 +63,20 @@ namespace LinqInfer.Tests
                 httpHeaderStream.CopyTo(ms);
                 return ms.ToArray();
             }
+        }
+
+        protected string RemoveWhitespace(object value, string replaceWith = "_")
+        {
+            if (value == null) return null;
+
+            return Regex.Replace(value.ToString(), @"\s+", m => "_", RegexOptions.Multiline);
+        }
+
+        protected void LogVerbose(string format, params object[] args)
+        {
+#if DEBUG
+            Console.WriteLine(format, args);
+#endif
         }
     }
 }

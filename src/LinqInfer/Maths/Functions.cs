@@ -11,6 +11,29 @@ namespace LinqInfer.Maths
         private static readonly Random _random = new Random();
 
         /// <summary>
+        /// Iterates a function, feeding the result of each invocation back into the function
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="initialValue">The starting value</param>
+        /// <param name="func">A function to iterate</param>
+        /// <param name="maxIterations">The maximum number iterations</param>
+        /// <param name="numberOfValuesToReturn">The number of output values to return</param>
+        /// <param name="plotter">An action called to plot the data</param>
+        /// <param name="haltingFunc">An optional function which will halt execution when a true value is returned</param>
+        /// <param name="includeHaltValueInResults">When true, the value which halts the iteration is included in the output</param>
+        /// <returns>Returns the most recent input values (ordered most recent to least recent)</returns>
+        public static T[] IterateFunction<T>(T initialValue,
+            Func<T, T> func,
+            int maxIterations = 100,
+            int numberOfValuesToReturn = 3,
+            Action<int, T> plotter = null,
+            Func<T, bool> haltingFunc = null,
+            bool includeHaltValueInResults = false)
+        {
+            return new FunctionIterator<T>(func).IterateFunction(initialValue, maxIterations, numberOfValuesToReturn, plotter, haltingFunc, includeHaltValueInResults).Outputs;
+        }
+
+        /// <summary>
         /// Randomly returns either A or B.
         /// </summary>
         public static T AorB<T>(T a, T b, double biasTowardA = 0.5)

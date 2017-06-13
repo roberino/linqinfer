@@ -3,11 +3,12 @@ using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace LinqInfer.Tests.Probability
 {
     [TestFixture]
-    public class FunctionsTests
+    public class FunctionsTests : TestFixtureBase
     {
         [Ignore("Hangs when invoked with others?? Contract error? WTF??")]
         public void NormalRandomiser()
@@ -16,13 +17,67 @@ namespace LinqInfer.Tests.Probability
 
             foreach (var d in data.GroupBy(r => Math.Round(r, 0)).OrderBy(d => d.Key))
             {
-                Console.WriteLine("{0}\t{1}", d.Key, d.Count());
+                LogVerbose("{0}\t{1}", d.Key, d.Count());
             }
 
             Assert.That(data.Average(), Is.GreaterThan(75));
             Assert.That(data.Average(), Is.LessThan(81));
         }
 
+        [Test]
+        public void IterateFunction_Defaults()
+        {
+            foreach (var i in Enumerable.Range(1, 10))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 10d, x => k * x * (1 - x));
+
+                Console.WriteLine(y[0]);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_WithHaltingFunc()
+        {
+            foreach (var i in Enumerable.Range(1, 100))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, null, double.IsInfinity);
+
+                Console.WriteLine(y[0]);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_Plot()
+        {
+            foreach (var i in Enumerable.Range(1, 100))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, (n, v) => LogVerbose("{0},{1}", n, v), double.IsInfinity);
+            }
+        }
+
+        [Test]
+        public void IterateFunction_PlotToHtml()
+        {
+            var htmlString = new StringBuilder();
+
+            var htmlFormatter = new Action<double, double>((i, x) =>
+            {
+                htmlString.AppendLine($"ctx.lineTo({i * 5}, {x * 800});");
+            });
+
+            foreach (var i in Enumerable.Range(1, 300))
+            {
+                var k = 3.5;
+                var y = Functions.IterateFunction(i / 100d, x => k * x * (1 - x), 100, 5, null, double.IsInfinity);
+
+                htmlFormatter(i, y.First());
+            }
+
+            Console.Write(htmlString);
+        }
 
         [TestCase(0, 1)]
         [TestCase(1, 1)]

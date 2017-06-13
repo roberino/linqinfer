@@ -315,6 +315,20 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the values as a JSON array
+        /// </summary>
+        /// <returns>A JSON string</returns>
+        public string ToJson()
+        {
+            using (var writer = new StringWriter())
+            {
+                WriteJson(writer);
+
+                return writer.ToString();
+            }
+        }
+
+        /// <summary>
         /// Returns the values as a comma separated string of values
         /// </summary>
         /// <param name="precision">The numeric precision of each member</param>

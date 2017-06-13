@@ -87,11 +87,11 @@ namespace LinqInfer.Learning.Features
 
         private double[] Transform(double[] input)
         {
-            var nextInput = new Vector(input);
+            var nextInput = new ColumnVector1D(input);
 
             foreach(var tx in _transformations)
             {
-                nextInput = tx.Apply(nextInput);
+                nextInput = new ColumnVector1D(tx.Apply(nextInput));
             }
 
             return nextInput.GetUnderlyingArray();
@@ -100,11 +100,11 @@ namespace LinqInfer.Learning.Features
         public ColumnVector1D ExtractColumnVector(TInput obj)
         {
             var bnv = _baseFeatureExtractor.ExtractVector(obj);
-            var nextInput = new Vector(bnv);
+            var nextInput = new ColumnVector1D(bnv);
 
             foreach (var tx in _transformations)
             {
-                nextInput = tx.Apply(nextInput);
+                nextInput = new ColumnVector1D(tx.Apply(nextInput));
             }
 
             return new ColumnVector1D(nextInput);

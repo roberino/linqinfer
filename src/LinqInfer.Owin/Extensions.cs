@@ -14,10 +14,12 @@ namespace LinqInfer.Owin
         {
             ValidateHttpUri(baseEndpoint);
 
-            return new OwinApplicationHost(baseEndpoint, (u, a) => WebApp.Start(new StartOptions(u.ToString())
-            {
-                ServerFactory = "Microsoft.Owin.Host.HttpListener"
-            }, a), bufferResponse);
+            //return new OwinApplicationHost(baseEndpoint, (u, a) => WebApp.Start(new StartOptions(u.ToString())
+            //{
+            //    ServerFactory = "Microsoft.Owin.Host.HttpListener"
+            //}, a), bufferResponse);
+
+            return new OwinApplicationHost(baseEndpoint, (u, a) => WebApp.Start(u.ToString(), a), bufferResponse);
         }
 
         public static IAppBuilder Run(this IAppBuilder appBuilder, IOwinApiBuilder apiBuilder)
