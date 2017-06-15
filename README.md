@@ -67,7 +67,7 @@ and fractions which can sometimes offer a nicer way of working with probabilitie
 
 #### Maths.Graphs
 
-The Maths.Graphs namespace contains useful objects and functions for creating graphical representations of structures. 
+The Maths.Graphs namespace contains useful objects and functions for creating graphical representations of structures.
 
 Graphs can be exported into [GEXF](https://gephi.org/gexf/format/schema.html).
 
