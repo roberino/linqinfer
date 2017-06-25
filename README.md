@@ -11,7 +11,7 @@ probabilistic reasoning, classification and other means of inference.
 
 It is an attempt to create a useful library which uses a fluent and LINQ-like approach to this type of problem solving.
 
-### Basic library layout
+### Basic library layout 
 
 #### Features and Feature Pipelines
 
