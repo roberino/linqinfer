@@ -23,7 +23,9 @@ namespace LinqInfer.Tests
 
             sw.Stop();
 
+#if !NET_STD
             Console.WriteLine("Invoke {0} took {1}", name ?? test.Method.Name, sw.Elapsed);
+#endif
 
             return sw.Elapsed;
         }
@@ -39,9 +41,18 @@ namespace LinqInfer.Tests
             return Is.InRange(expected - maxErr, expected + maxErr);
         }
 
+        public static Assembly GetAssembly()
+        {
+            #if NET_STD
+                return System.Reflection.Assembly.GetEntryAssembly();
+            #else
+                return Assembly.GetExecutingAssembly();
+            #endif
+        }
+
         public static Stream GetResource(string name)
         {
-            var asm = Assembly.GetExecutingAssembly();
+            var asm = GetAssembly();
             var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
 
             return asm.GetManifestResourceStream(rname);
