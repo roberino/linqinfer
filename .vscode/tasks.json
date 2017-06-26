@@ -1,15 +1,24 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    "command": "${workspaceRoot}/build-dotnet.sh",
-    "isShellCommand": true,
-    "echoCommand": true,
-    "args": [],    
     "tasks": [
         {
+            "command": "${workspaceRoot}/build-dotnet.sh",
+            "isShellCommand": true,
+            "echoCommand": true,
             "taskName": "build",
             "args": [],
             "isBuildCommand": true,
+            "suppressTaskName": true,
+            "showOutput": "always" 
+        },
+        {            
+            "command": "${workspaceRoot}/test-dotnet.sh",
+            "isShellCommand": true,
+            "echoCommand": true,
+            "taskName": "test",
+            "args": [],
+            "isTestCommand": true,
             "suppressTaskName": true,
             "showOutput": "always" 
         }
