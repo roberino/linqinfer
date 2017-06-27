@@ -141,6 +141,7 @@
     <Compile Include="Learning\Classification\IDynamicClassifier.cs" />
     <Compile Include="Learning\ClusteringParameters.cs" />
     <Compile Include="Learning\FeatureMapperV3.cs" />
+    <Compile Include="Learning\Features\FeatureMapVectorExtractor.cs" />
     <Compile Include="Maths\Geometry\Point3D.cs" />
     <Compile Include="Maths\Geometry\Rectangle.cs" />
     <Compile Include="Maths\Graphs\Colour.cs" />

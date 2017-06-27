@@ -106,6 +106,7 @@
     <Compile Include="Maths\MatrixTests.cs" />
     <Compile Include="Maths\MonteCarloSimulationTests.cs" />
     <Compile Include="Maths\RandomTests.cs" />
+    <Compile Include="Maths\SerialisableVectorTransformationTests.cs" />
     <Compile Include="TestFixtureBase.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyserTests.cs" />
     <Compile Include="Text\EnglishDictionaryTests.cs" />

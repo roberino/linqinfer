@@ -7,36 +7,59 @@ namespace LinqInfer.Maths
 {
     public sealed class SerialisableVectorTransformation : IExportableAsVectorDocument, IImportableAsVectorDocument, IVectorTransformation
     {
-        private readonly Matrix _multiplier;
+        private readonly Matrix _transformer;
         private Vector _transposer;
 
-        public SerialisableVectorTransformation(Matrix multiplier, Vector transposer = null)
+        public SerialisableVectorTransformation(Matrix transformer, Vector transposer = null)
         {
-            Contract.Ensures(multiplier != null);
+            Contract.Ensures(transformer != null);
 
             Type = TransformType.Multiply;
 
-            _multiplier = multiplier;
+            _transformer = transformer;
             _transposer = transposer;
+        }
+
+        public SerialisableVectorTransformation(Matrix transformer, TransformType type)
+        {
+            Contract.Ensures(transformer != null);
+
+            Type = type;
+
+            _transformer = transformer;
         }
 
         public Vector Apply(Vector vector)
         {
             if (vector == null) return null;
 
-            if (_transposer != null)
+            if (Type == TransformType.Multiply)
             {
-                if (vector is ColumnVector1D)
+                if (_transposer != null)
                 {
-                    return _multiplier * new ColumnVector1D((vector - _transposer));
+                    if (vector is ColumnVector1D)
+                    {
+                        return _transformer * new ColumnVector1D((vector - _transposer));
+                    }
+                    else
+                    {
+                        return _transformer * (vector - _transposer);
+                    }
                 }
-                else
-                {
-                    return _multiplier * (vector - _transposer);
-                }
+
+                return _transformer * vector;
             }
 
-            return _multiplier * vector;
+            if (Type == TransformType.EuclideanDistance)
+            {
+                var vect = (_transposer != null) ? new ColumnVector1D(vector - _transposer) : new ColumnVector1D(vector);
+
+                var diff = _transformer.Select(v => vect.Distance(new ColumnVector1D(v))).ToArray();
+
+                return vector is ColumnVector1D ? new ColumnVector1D(vect) : new Vector(vect);
+            }
+
+            return vector;
         }
 
         public TransformType Type { get; set; }
@@ -45,7 +68,7 @@ namespace LinqInfer.Maths
         {
             get
             {
-                return _multiplier.Width;
+                return _transformer.Width;
             }
         }
 
@@ -53,7 +76,7 @@ namespace LinqInfer.Maths
         {
             get
             {
-                return _multiplier.Height;
+                return _transformer.Height;
             }
         }
 
@@ -61,7 +84,7 @@ namespace LinqInfer.Maths
         {
             Type = (TransformType)Enum.Parse(typeof(TransformType), doc.Properties["Type"]);
 
-            _multiplier.FromVectorDocument(doc.Children.First());
+            _transformer.FromVectorDocument(doc.Children.First());
 
             if (doc.Children.Count > 1)
             {
@@ -75,7 +98,7 @@ namespace LinqInfer.Maths
 
             doc.Properties["Type"] = Type.ToString();
 
-            doc.Children.Add(_multiplier.ToVectorDocument());
+            doc.Children.Add(_transformer.ToVectorDocument());
 
             if (_transposer != null)
             {
@@ -91,7 +114,15 @@ namespace LinqInfer.Maths
 
         public enum TransformType
         {
-            Multiply
+            /// <summary>
+            /// Multiplies the vector by the transforming matrix, returning a new vector
+            /// </summary>
+            Multiply,
+
+            /// <summary>
+            /// Calculates the Euclidean distance between each row of the transforming matrix, returning a new vector
+            /// </summary>
+            EuclideanDistance
         }
     }
 }

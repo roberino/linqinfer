@@ -46,7 +46,7 @@ namespace LinqInfer.Tests.Learning
 
                 // Console.Write(gexf);
 
-                //gexf.Save(@"neural-network.gexf");
+                gexf.Save(@"c:\git\neural-network.gexf");
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 

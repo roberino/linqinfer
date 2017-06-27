@@ -30,6 +30,16 @@ namespace LinqInfer.Learning
             return new ClusterNode<T>(_featureExtractor, new ColumnVector1D(_featureExtractor.ExtractVector(member)), _parameters);
         }
 
+        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor()
+        {
+            return new FeatureMapVectorExtractor<T>(this);
+        }
+
+        public Matrix ExportClusterWeights()
+        {
+            return new Matrix(_nodes.Select(n => n.Weights));
+        }
+
         /// <summary>
         /// Returns the features that where used by the mappper
         /// </summary>
@@ -122,6 +132,14 @@ namespace LinqInfer.Learning
             await graph.SaveAsync();
 
             return graph;
+        }
+
+        internal IFloatingPointFeatureExtractor<T> FeatureExtractor
+        {
+            get
+            {
+                return _featureExtractor;
+            }
         }
 
         private async Task FinalisePosition(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
