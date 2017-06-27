@@ -80,6 +80,15 @@ namespace LinqInfer.Maths
             }
         }
 
+        public static SerialisableVectorTransformation LoadFromDocument(BinaryVectorDocument doc)
+        {
+            var transform = new SerialisableVectorTransformation(Matrix.IdentityMatrix(1));
+
+            transform.FromVectorDocument(doc);
+
+            return transform;
+        }
+
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
             Type = (TransformType)Enum.Parse(typeof(TransformType), doc.Properties["Type"]);

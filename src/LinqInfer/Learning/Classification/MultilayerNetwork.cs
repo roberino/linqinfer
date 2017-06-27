@@ -123,10 +123,11 @@ namespace LinqInfer.Learning.Classification
                     var attribs = await node.GetAttributesAsync();
                     
                     var weights = n.Export();
+                    var wsum = Math.Abs(weights.Sum());
 
                     attribs["weights"] = weights.ToJson();
 
-                    var colourFactor = (float)(weights.Sum() / maxWeight);
+                    var colourFactor = (float)(wsum / maxWeight);
 
                     await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
                     await node.SetColourAsync(colour);
@@ -135,7 +136,7 @@ namespace LinqInfer.Learning.Classification
                     {
                         foreach (var vertex in previousVertexes)
                         {
-                            await node.ConnectToAsync(vertex, weights.Sum());
+                            await node.ConnectToAsync(vertex, wsum);
                         }
                     }
 
