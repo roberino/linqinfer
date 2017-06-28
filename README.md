@@ -73,7 +73,7 @@ Check out [Sigmajs](http://sigmajs.org/) and [Gephi](https://gephi.org/) for vis
 
 ![SOFM graph](docs/sofm_graph2.png)
 
-![Neural network graph](docs/neural-network.png)
+![Neural network graph](docs/neural-network-sm.png)
 
 #### Maths.Probability 
 
