@@ -1,7 +1,9 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Maths.Graphs;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -38,6 +40,57 @@ namespace LinqInfer.Text.Analysis
             {
                 return _tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.Symbol);
             }
+        }
+
+        public async Task<WeightedGraph<string, int>> ExportWordGraph(string word, int maxFollowingConnections = 1, IWeightedGraphStore<string, int> store = null)
+        {
+            var graph = new WeightedGraph<string, int>(store ?? new WeightedGraphInMemoryStore<string, int>(), (x, y) => x + y);
+
+            foreach (var block in Blocks)
+            {
+                int i = -1;
+                IToken last = null;
+                WeightedGraphNode<string, int> currentNode = null;
+
+                foreach (var token in block.Where(t => t.Type == TokenType.Word))
+                {
+                    if (i > -1)
+                    {
+                        currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
+
+                        i++;
+
+                        if (i == maxFollowingConnections)
+                        {
+                            i = -1;
+                            currentNode = null;
+                        }
+                    }
+                    else
+                    {
+                        if (string.Equals(token.Text, word, System.StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            i = 0;
+
+                            if (last != null)
+                            {
+                                currentNode = await graph.FindOrCreateVertexAsync(last.Text.ToLower());
+                                currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
+                            }
+                            else
+                            {
+                                currentNode = await graph.FindOrCreateVertexAsync(token.Text.ToLower());
+                            }
+                        }
+                    }
+
+                    last = token;
+                }
+            }
+
+            await graph.SaveAsync();
+
+            return graph;
         }
 
         public IEnumerable<IEnumerable<IToken>> Blocks

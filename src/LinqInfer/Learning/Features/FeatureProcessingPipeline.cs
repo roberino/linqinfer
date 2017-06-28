@@ -143,6 +143,34 @@ namespace LinqInfer.Learning.Features
         }
 
         /// <summary>
+        /// Using a kohonen self organising map, reduces the dimensionality of the feature set
+        /// </summary>
+        /// <param name="numberOfDimensions">The (max) number of features to retain</param>
+        /// <param name="sampleSize">The size of the sample to use for analysis</param>
+        /// <param name="parameters">The parameters used to affect the clustering process</param>
+        /// <returns>The feature processing pipeline with the transform applied</returns>
+        public FeatureProcessingPipeline<T> KohonenSOMFeatureReduction(int numberOfDimensions, int sampleSize = 100, ClusteringParameters parameters = null)
+        {
+            if (parameters == null) parameters = new ClusteringParameters()
+            {
+                InitialRadius = 0.5,
+                InitialLearningRate = 0.1f
+            };
+
+            parameters.NumberOfOutputNodes = numberOfDimensions;
+
+            var mapper = new FeatureMapperV3<T>(parameters);
+
+            NormaliseData();
+
+            var map = mapper.Map(Limit(sampleSize));
+
+            var transform = new SerialisableVectorTransformation(map.ExportClusterWeights(), SerialisableVectorTransformation.TransformType.EuclideanDistance);
+
+            return PreprocessWith(transform);
+        }
+
+        /// <summary>
         /// Preprocesses the data with the supplied transformation
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
@@ -168,6 +196,11 @@ namespace LinqInfer.Learning.Features
             PreprocessWith(new DelegateVectorTransformation(_featureExtractor.VectorSize, transformFunction));
 
             return this;
+        }
+
+        internal FeatureProcessingPipeline<T> Limit(int numberOfSamples)
+        {
+            return new FeatureProcessingPipeline<T>(_data.Take(numberOfSamples), FeatureExtractor);
         }
 
         internal void OutputResults(IBinaryPersistable result, string name)

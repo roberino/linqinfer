@@ -1,0 +1,287 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<gexf xmlns:viz="http://www.gexf.net/1.1draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.gexf.net/1.2draft">
+  <graph mode="static" defaultedgetype="directed">
+    <meta lastmodifieddate="2017-06-28T10:51:11.0242697Z">
+      <creator>LinqInfer</creator>
+    </meta>
+    <nodes>
+      <node id="1" label="thy" />
+      <node id="2" label="deadly" />
+      <node id="3" label="any" />
+      <node id="4" label="from" />
+      <node id="5" label="shall" />
+      <node id="6" label="may" />
+      <node id="7" label="yourself" />
+      <node id="8" label="did" />
+      <node id="9" label="unto" />
+      <node id="10" label="but" />
+      <node id="11" label="aufidius" />
+      <node id="12" label="will" />
+      <node id="13" label="old" />
+      <node id="14" label="you" />
+      <node id="15" label="dower" />
+      <node id="16" label="true" />
+      <node id="17" label="man" />
+      <node id="18" label="as" />
+      <node id="19" label="with" />
+      <node id="20" label="them" />
+      <node id="21" label="us" />
+      <node id="22" label="hell" />
+      <node id="23" label="doth" />
+      <node id="24" label="when" />
+      <node id="25" label="pass" />
+      <node id="26" label="faith" />
+      <node id="27" label="sour" />
+      <node id="28" label="mankind" />
+      <node id="29" label="ll" />
+      <node id="30" label="grudging" />
+      <node id="31" label="do" />
+      <node id="32" label="your" />
+      <node id="33" label="settled" />
+      <node id="34" label="traitors" />
+      <node id="35" label="to" />
+      <node id="36" label="so" />
+      <node id="37" label="alike" />
+      <node id="38" label="all" />
+      <node id="39" label="despise" />
+      <node id="40" label="plebeians" />
+      <node id="41" label="his" />
+      <node id="42" label="bred" />
+      <node id="43" label="yo" />
+      <node id="44" label="than" />
+      <node id="45" label="me" />
+      <node id="46" label="cannot" />
+      <node id="47" label="he" />
+      <node id="48" label="we" />
+      <node id="49" label="the" />
+      <node id="50" label="our" />
+      <node id="51" label="thine" />
+      <node id="52" label="damned" />
+      <node id="53" label="between" />
+      <node id="54" label="one" />
+      <node id="55" label="turns" />
+      <node id="56" label="thee" />
+      <node id="57" label="weight" />
+      <node id="58" label="misbegotten" />
+      <node id="59" label="sharp" />
+      <node id="60" label="young" />
+      <node id="61" label="upon" />
+      <node id="62" label="barren" />
+      <node id="63" label="shameful" />
+      <node id="64" label="stormy" />
+      <node id="65" label="sleeps" />
+      <node id="66" label="only" />
+      <node id="67" label="hail" />
+      <node id="68" label="not" />
+      <node id="69" label="at" />
+      <node id="70" label="d" />
+      <node id="71" label="dost" />
+      <node id="72" label="a" />
+      <node id="73" label="cried" />
+      <node id="74" label="o" />
+      <node id="75" label="drinking" />
+      <node id="76" label="it" />
+      <node id="77" label="men" />
+      <node id="78" label="i" />
+      <node id="79" label="loving" />
+      <node id="80" label="s" />
+      <node id="81" label="since" />
+      <node id="82" label="tyrannous" />
+      <node id="83" label="drawn" />
+      <node id="84" label="didst" />
+      <node id="85" label="wherein" />
+      <node id="86" label="what" />
+      <node id="87" label="that" />
+      <node id="88" label="inveterate" />
+      <node id="89" label="of" />
+      <node id="90" label="if" />
+      <node id="91" label="hate" />
+      <node id="92" label="too" />
+      <node id="93" label="swell" />
+      <node id="94" label="ingratitude" />
+      <node id="95" label="for" />
+      <node id="96" label="by" />
+      <node id="97" label="loosing" />
+      <node id="98" label="ay" />
+      <node id="99" label="nor" />
+      <node id="100" label="my" />
+      <node id="101" label="therefore" />
+      <node id="102" label="and" />
+      <node id="103" label="envy" />
+      <node id="104" label="myself" />
+      <node id="105" label="her" />
+      <node id="106" label="or" />
+      <node id="107" label="they" />
+      <node id="108" label="now" />
+      <node id="109" label="encounter" />
+      <node id="110" label="again" />
+      <node id="111" label="him" />
+      <node id="112" label="lesser" />
+      <node id="113" label="counsels" />
+      <node id="114" label="thou" />
+      <node id="115" label="brother" />
+      <node id="116" label="rather" />
+      <node id="117" label="in" />
+      <node id="118" label="welcome" />
+      <node id="119" label="come" />
+      <node id="120" label="extremest" />
+      <node id="121" label="place" />
+      <node id="122" label="their" />
+      <node id="123" label="rome" />
+      <node id="124" label="should" />
+      <node id="125" label="commons" />
+    </nodes>
+    <edges>
+      <edge id="1" source="1" target="91" weight="1" />
+      <edge id="2" source="2" target="91" weight="1" />
+      <edge id="3" source="3" target="91" weight="1" />
+      <edge id="4" source="5" target="91" weight="1" />
+      <edge id="5" source="7" target="91" weight="1" />
+      <edge id="6" source="8" target="91" weight="1" />
+      <edge id="7" source="10" target="91" weight="1" />
+      <edge id="8" source="12" target="91" weight="1" />
+      <edge id="9" source="13" target="91" weight="1" />
+      <edge id="10" source="14" target="91" weight="1" />
+      <edge id="11" source="16" target="91" weight="1" />
+      <edge id="12" source="17" target="91" weight="1" />
+      <edge id="13" source="19" target="91" weight="1" />
+      <edge id="14" source="21" target="91" weight="1" />
+      <edge id="15" source="23" target="91" weight="1" />
+      <edge id="16" source="26" target="91" weight="1" />
+      <edge id="17" source="29" target="91" weight="1" />
+      <edge id="18" source="30" target="91" weight="1" />
+      <edge id="19" source="31" target="91" weight="1" />
+      <edge id="20" source="32" target="91" weight="1" />
+      <edge id="21" source="33" target="91" weight="1" />
+      <edge id="22" source="34" target="91" weight="1" />
+      <edge id="23" source="35" target="91" weight="1" />
+      <edge id="24" source="40" target="91" weight="1" />
+      <edge id="25" source="41" target="91" weight="1" />
+      <edge id="26" source="42" target="91" weight="1" />
+      <edge id="27" source="44" target="91" weight="1" />
+      <edge id="28" source="45" target="91" weight="1" />
+      <edge id="29" source="46" target="91" weight="1" />
+      <edge id="30" source="48" target="91" weight="1" />
+      <edge id="31" source="49" target="91" weight="1" />
+      <edge id="32" source="50" target="91" weight="1" />
+      <edge id="33" source="52" target="91" weight="1" />
+      <edge id="34" source="57" target="91" weight="1" />
+      <edge id="35" source="58" target="91" weight="1" />
+      <edge id="36" source="62" target="91" weight="1" />
+      <edge id="37" source="63" target="91" weight="1" />
+      <edge id="38" source="64" target="91" weight="1" />
+      <edge id="39" source="66" target="91" weight="1" />
+      <edge id="40" source="68" target="91" weight="1" />
+      <edge id="41" source="70" target="91" weight="1" />
+      <edge id="42" source="71" target="91" weight="1" />
+      <edge id="43" source="72" target="91" weight="1" />
+      <edge id="44" source="73" target="91" weight="1" />
+      <edge id="45" source="75" target="91" weight="1" />
+      <edge id="46" source="77" target="91" weight="1" />
+      <edge id="47" source="78" target="91" weight="1" />
+      <edge id="48" source="79" target="91" weight="1" />
+      <edge id="49" source="80" target="91" weight="1" />
+      <edge id="50" source="82" target="91" weight="1" />
+      <edge id="51" source="84" target="91" weight="1" />
+      <edge id="52" source="86" target="91" weight="1" />
+      <edge id="53" source="87" target="91" weight="1" />
+      <edge id="54" source="88" target="91" weight="1" />
+      <edge id="55" source="89" target="91" weight="1" />
+      <edge id="56" source="91" target="49" weight="1" />
+      <edge id="57" source="91" target="45" weight="1" />
+      <edge id="58" source="91" target="78" weight="1" />
+      <edge id="59" source="91" target="105" weight="1" />
+      <edge id="60" source="91" target="91" weight="1" />
+      <edge id="61" source="91" target="56" weight="1" />
+      <edge id="62" source="91" target="102" weight="1" />
+      <edge id="63" source="91" target="109" weight="1" />
+      <edge id="64" source="91" target="97" weight="1" />
+      <edge id="65" source="91" target="35" weight="1" />
+      <edge id="66" source="91" target="24" weight="1" />
+      <edge id="67" source="91" target="65" weight="1" />
+      <edge id="68" source="91" target="111" weight="1" />
+      <edge id="69" source="91" target="68" weight="1" />
+      <edge id="70" source="91" target="103" weight="1" />
+      <edge id="71" source="91" target="20" weight="1" />
+      <edge id="72" source="91" target="14" weight="1" />
+      <edge id="73" source="91" target="72" weight="1" />
+      <edge id="74" source="91" target="95" weight="1" />
+      <edge id="75" source="91" target="113" weight="1" />
+      <edge id="76" source="91" target="69" weight="1" />
+      <edge id="77" source="91" target="27" weight="1" />
+      <edge id="78" source="91" target="76" weight="1" />
+      <edge id="79" source="91" target="12" weight="1" />
+      <edge id="80" source="91" target="9" weight="1" />
+      <edge id="81" source="91" target="89" weight="1" />
+      <edge id="82" source="91" target="98" weight="1" />
+      <edge id="83" source="91" target="60" weight="1" />
+      <edge id="84" source="91" target="94" weight="1" />
+      <edge id="85" source="91" target="43" weight="1" />
+      <edge id="86" source="91" target="21" weight="1" />
+      <edge id="87" source="91" target="86" weight="1" />
+      <edge id="88" source="91" target="61" weight="1" />
+      <edge id="89" source="91" target="59" weight="1" />
+      <edge id="90" source="91" target="18" weight="1" />
+      <edge id="91" source="91" target="118" weight="1" />
+      <edge id="92" source="91" target="119" weight="1" />
+      <edge id="93" source="91" target="36" weight="1" />
+      <edge id="94" source="91" target="81" weight="1" />
+      <edge id="95" source="91" target="99" weight="1" />
+      <edge id="96" source="91" target="85" weight="1" />
+      <edge id="97" source="91" target="110" weight="1" />
+      <edge id="98" source="91" target="55" weight="1" />
+      <edge id="99" source="91" target="19" weight="1" />
+      <edge id="100" source="91" target="117" weight="1" />
+      <edge id="101" source="91" target="53" weight="1" />
+      <edge id="102" source="91" target="106" weight="1" />
+      <edge id="103" source="91" target="104" weight="1" />
+      <edge id="104" source="91" target="87" weight="1" />
+      <edge id="105" source="91" target="50" weight="1" />
+      <edge id="106" source="91" target="11" weight="1" />
+      <edge id="107" source="91" target="37" weight="1" />
+      <edge id="108" source="91" target="51" weight="1" />
+      <edge id="109" source="91" target="47" weight="1" />
+      <edge id="110" source="91" target="83" weight="1" />
+      <edge id="111" source="91" target="54" weight="1" />
+      <edge id="112" source="91" target="123" weight="1" />
+      <edge id="113" source="91" target="15" weight="1" />
+      <edge id="114" source="91" target="101" weight="1" />
+      <edge id="115" source="91" target="67" weight="1" />
+      <edge id="116" source="91" target="39" weight="1" />
+      <edge id="117" source="91" target="93" weight="1" />
+      <edge id="118" source="91" target="10" weight="1" />
+      <edge id="119" source="91" target="22" weight="1" />
+      <edge id="120" source="91" target="90" weight="1" />
+      <edge id="121" source="91" target="74" weight="1" />
+      <edge id="122" source="91" target="92" weight="1" />
+      <edge id="123" source="91" target="44" weight="1" />
+      <edge id="124" source="91" target="80" weight="1" />
+      <edge id="125" source="91" target="116" weight="1" />
+      <edge id="126" source="91" target="6" weight="1" />
+      <edge id="127" source="91" target="28" weight="1" />
+      <edge id="128" source="91" target="4" weight="1" />
+      <edge id="129" source="91" target="77" weight="1" />
+      <edge id="130" source="91" target="38" weight="1" />
+      <edge id="131" source="91" target="25" weight="1" />
+      <edge id="132" source="91" target="107" weight="1" />
+      <edge id="133" source="95" target="91" weight="1" />
+      <edge id="134" source="96" target="91" weight="1" />
+      <edge id="135" source="99" target="91" weight="1" />
+      <edge id="136" source="100" target="91" weight="1" />
+      <edge id="137" source="102" target="91" weight="1" />
+      <edge id="138" source="106" target="91" weight="1" />
+      <edge id="139" source="107" target="91" weight="1" />
+      <edge id="140" source="108" target="91" weight="1" />
+      <edge id="141" source="112" target="91" weight="1" />
+      <edge id="142" source="114" target="91" weight="1" />
+      <edge id="143" source="115" target="91" weight="1" />
+      <edge id="144" source="116" target="91" weight="1" />
+      <edge id="145" source="117" target="91" weight="1" />
+      <edge id="146" source="120" target="91" weight="1" />
+      <edge id="147" source="121" target="91" weight="1" />
+      <edge id="148" source="122" target="91" weight="1" />
+      <edge id="149" source="124" target="91" weight="1" />
+      <edge id="150" source="125" target="91" weight="1" />
+    </edges>
+  </graph>
+</gexf>

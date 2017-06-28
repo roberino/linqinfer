@@ -46,7 +46,7 @@ namespace LinqInfer.Tests.Learning
 
                 // Console.Write(gexf);
 
-                gexf.Save(@"c:\git\neural-network.gexf");
+                // gexf.Save(@"c:\git\neural-network.gexf");
 
                 var result1 = classifier.Classify(testSet1[3].ObjectInstance);
 
@@ -54,7 +54,85 @@ namespace LinqInfer.Tests.Learning
                 Assert.That(result1.First().Score, IsAround(0.9, 0.1d));
             }
         }
-        
+
+        [TestCase("X,O,I")]
+        public void TrainNetwork_UsingCharacterBitmaps_KohonenSOMFeatureReduction(string testChars)
+        {
+            var letters = testChars.Split(',').Select(c => c[0]).ToArray();
+
+            var randomTrainingSet = FontFamily
+                .Families
+                .Where(f => f.IsStyleAvailable(FontStyle.Regular) && f != FontFamily.GenericSansSerif && f != FontFamily.GenericSerif)
+                .RandomOrder()
+                .Take(25)
+                .SelectMany(f => letters.Select(c => ToCharObj(c, f, "training")))
+                .RandomOrder()
+                .ToList()
+                .AsQueryable();
+
+            var testSet1 = letters
+                .Select(c => ToCharObj(c, FontFamily.GenericSerif, "testing"))
+                .RandomOrder()
+                .Select(l => l.ClassifyAs(l.Character))
+                .ToArray();
+
+            var testSet2 = letters
+                .Select(c => ToCharObj(c, FontFamily.GenericSansSerif, "testing"))
+                .RandomOrder()
+                .Select(l => l.ClassifyAs(l.Character))
+                .ToArray();
+
+            var pipeline = randomTrainingSet
+                .CreatePipeline(m => m.VectorData, VectorWidth * VectorWidth);
+
+            Console.WriteLine($"Initial vector size {pipeline.FeatureExtractor.VectorSize}");
+
+            var reduced = pipeline.KohonenSOMFeatureReduction(15);
+
+            Console.WriteLine($"Transformed vector size {pipeline.FeatureExtractor.VectorSize}");
+
+            int i = 0;
+
+            var fitnessFunction = MultilayerNetworkFitnessFunctions.ClassificationAccuracyFunction(testSet1);
+
+            var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.Character, 0.35f, fitnessFunction)
+                .ExecuteUntil(c =>
+                {
+                    i++;
+
+                    var score = MultilayerNetworkFitnessFunctions.ClassificationAccuracyPercentage(c, testSet1);
+
+                    return i > 50 || score == 1;
+                });
+
+            Console.WriteLine($"Iterations: {i}");
+
+            int failures = 0;
+
+            foreach (var m in testSet2)
+            {
+                Console.WriteLine("Classifying {0}", m.Classification);
+
+                var results = classifier.Classify(m.ObjectInstance).ToList();
+
+                if (results.First().ClassType != m.Classification)
+                {
+                    failures++;
+                }
+
+                var distOfOther = results.ToDistribution();
+
+                foreach (var d in distOfOther)
+                    Console.WriteLine("{0} = {1}", d.Key, d.Value.ToPercent());
+            }
+
+            var data = classifier.ToVectorDocument();
+
+            //data.ExportAsXml().Save(@"tests\LinqInfer.Tests\Learning\net-" + testChars.Replace(',', '-') + ".xml");
+
+            Console.WriteLine("{0} = {1}/{2} failed", testChars, failures, letters.Length);
+        }
+
         [TestCase("X,O,I")]
         public void TrainNetwork_UsingCharacterBitmaps_PCATransform(string testChars)
         {
@@ -85,11 +163,11 @@ namespace LinqInfer.Tests.Learning
             var pipeline = randomTrainingSet
                 .CreatePipeline(m => m.VectorData, VectorWidth * VectorWidth);
 
-            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
+            Console.WriteLine($"Initial vector size {pipeline.FeatureExtractor.VectorSize}");
 
             var reduced = pipeline.PrincipalComponentReduction(25);
 
-            Console.WriteLine(pipeline.FeatureExtractor.VectorSize);
+            Console.WriteLine($"Transformed vector size {pipeline.FeatureExtractor.VectorSize}");
 
             int i = 0;
 

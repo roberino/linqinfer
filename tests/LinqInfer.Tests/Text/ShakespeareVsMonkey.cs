@@ -18,6 +18,22 @@ namespace LinqInfer.Tests.Text
     {
         private readonly EnglishDictionary _dict = new EnglishDictionary();
 
+
+        [Test]
+        public async Task ShakespeareToGraph1()
+        {
+            using (var corpusStream = GetResource("shakespeare.txt"))
+            {
+                var shakespeare = new Corpus(corpusStream.Tokenise());
+
+                var graph = await shakespeare.ExportWordGraph("hate");
+
+                var gexf = await graph.ExportAsGexfAsync();
+
+                gexf.Save(@"C:\git\shakespeare2.gexf");
+            }
+        }
+
         [Test]
         public async Task ShakespeareToGraph()
         {
