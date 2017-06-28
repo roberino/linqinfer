@@ -4,7 +4,7 @@
     <Description>A lightweight, linq-friendly inference library for .NET</Description>
     <AssemblyTitle>LinqInfer</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
-    <VersionPrefix>3.8.0</VersionPrefix>
+    <VersionPrefix>3.8.1</VersionPrefix>
     <Authors>R Eyres</Authors>
     <TargetFrameworks>netstandard1.6;net45;net461</TargetFrameworks>
     <AssemblyName>LinqInfer</AssemblyName>

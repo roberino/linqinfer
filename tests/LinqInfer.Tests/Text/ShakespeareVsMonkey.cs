@@ -30,7 +30,7 @@ namespace LinqInfer.Tests.Text
 
                 var gexf = await graph.ExportAsGexfAsync();
 
-                gexf.Save(@"C:\git\shakespeare2.gexf");
+                // gexf.Save(@"C:\git\shakespeare2.gexf");
             }
         }
 

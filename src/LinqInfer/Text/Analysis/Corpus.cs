@@ -68,7 +68,7 @@ namespace LinqInfer.Text.Analysis
                     }
                     else
                     {
-                        if (string.Equals(token.Text, word, System.StringComparison.InvariantCultureIgnoreCase))
+                        if (string.Equals(token.Text, word, System.StringComparison.OrdinalIgnoreCase))
                         {
                             i = 0;
 
