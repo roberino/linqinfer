@@ -59,7 +59,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocument.cs" />
@@ -218,14 +217,17 @@
     <Compile Include="Maths\Random.cs" />
     <Compile Include="Maths\Sequence.cs" />
     <Compile Include="Maths\TimeResolution.cs" />
-    <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
     <Compile Include="Text\Analysis\Triple.cs" />
     <Compile Include="Text\DocumentTermWeightingData.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
-    <Compile Include="Text\HttpTokenReader.cs" />
+    <Compile Include="Text\Http\HttpDocument.cs" />
+    <Compile Include="Data\Remoting\HttpBasicClient.cs" />
+    <Compile Include="Text\Http\HttpDocumentServices.cs" />
+    <Compile Include="Data\Remoting\IHttpClient.cs" />
+    <Compile Include="Text\Http\RelativeLink.cs" />
     <Compile Include="Text\IDocumentIndex.cs" />
     <Compile Include="Text\ISemanticSet.cs" />
     <Compile Include="Text\IToken.cs" />
@@ -342,7 +344,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\en_dict.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

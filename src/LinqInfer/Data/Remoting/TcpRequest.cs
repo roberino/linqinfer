@@ -5,6 +5,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
+    /// <summary>
+    /// Represents a TCP request. 
+    /// Originally developed to support multiple (e.g. custom) protocols, this
+    /// is primarily intended for HTTP.
+    /// </summary>
     public sealed class TcpRequest : IBinaryPersistable, ICloneableObject<TcpRequest>
     {
         internal TcpRequest(IRequestHeader header, Stream body)

@@ -2,6 +2,7 @@
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
+using LinqInfer.Text.Http;
 using LinqInfer.Text.VectorExtraction;
 using System;
 using System.Collections.Generic;
@@ -16,23 +17,9 @@ namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
-        internal static Task OpenAsHtmlTokenDocument(this Uri rootUri, Action<TokenisedTextDocument> onRecieved, int maxLinksToFollow = 0)
-        {
-            var reader = new HttpTokenReader()
-            {
-                 FollowLinks = maxLinksToFollow > 0
-            };
-
-            int counter = 0;
-
-            return reader.Read(rootUri, x =>
-            {
-                counter++;
-
-                onRecieved(new TokenisedTextDocument(x.Item1.ToString(), x.Item2));
-
-                return counter < maxLinksToFollow;
-            });
+        public static Task<HttpDocument> OpenAsHtmlTokenDocument(this Uri rootUri)
+        {            
+            return new HttpDocumentServices().GetDocument(rootUri);
         }
 
         /// <summary>
