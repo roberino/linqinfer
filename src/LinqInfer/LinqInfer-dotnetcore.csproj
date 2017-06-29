@@ -62,7 +62,9 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <Compile Remove="Learning\Classification\Remoting\*.cs;Data\Remoting\VectorTransferClient.cs;Data\Remoting\TransferHandle.cs" />
+    <Compile Remove="Learning\Classification\Remoting\*.cs;" />
+    <Compile Remove="Data\Remoting\VectorTransferClient.cs;" />
+    <Compile Remove="Data\Remoting\TransferHandle.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">

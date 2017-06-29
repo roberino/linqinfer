@@ -26,7 +26,7 @@ namespace LinqInfer.Tests.Text
 
         //[Ignore("Integration only")]
         [TestCase("https://en.wikipedia.org/wiki/Main_Page", "science")]
-        [TestCase("https://en.wikipedia.org/wiki/Main_Page", "math")]
+        [TestCase("https://en.wikipedia.org/wiki/Portal:Mathematics", "mathematics")]
         [TestCase("https://en.wikipedia.org/wiki/Main_Page", "people")]
         public async Task CreateCorpus_TestUrl_ReturnsCorpus(string url, string word)
         {
@@ -39,7 +39,7 @@ namespace LinqInfer.Tests.Text
 
                 var gexf = await graph.ExportAsGexfAsync();
 
-                gexf.Save($"c:\\git\\wiki-{word}.gexf");
+                // gexf.Save($"c:\\git\\wiki-{word}.gexf");
             }
         }
     }
