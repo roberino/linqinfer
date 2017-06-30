@@ -4,6 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Maths.Graphs;
 
 namespace LinqInfer.Tests.Text
 {
@@ -40,6 +41,29 @@ namespace LinqInfer.Tests.Text
                 var gexf = await graph.ExportAsGexfAsync();
 
                 // gexf.Save($"c:\\git\\wiki-{word}.gexf");
+            }
+        }
+
+        [TestCase("https://en.wikipedia.org/wiki/Portal:Mathematics", "mathematics;science;philosophy")]
+        public async Task CreateCorpus2_TestUrl_ReturnsCorpus(string url, string word)
+        {
+            using (var reader = new HttpDocumentServices())
+            {
+                var uri = new Uri(url);
+                var corpus = await reader.CreateCorpus(uri, null, 25);
+
+                var graph = await corpus.ExportWordGraph(t => word.Contains(t.Text.ToLower()));
+
+                var science = await graph.FindVertexAsync("science");
+                var mathematics = await graph.FindVertexAsync("mathematics");
+
+                var cosineSim = await science.VertexCosineSimilarityAsync(mathematics);
+
+                Console.WriteLine(cosineSim);
+
+                var gexf = await graph.ExportAsGexfAsync();
+
+                gexf.Save($"c:\\git\\wiki-multi.gexf");
             }
         }
     }

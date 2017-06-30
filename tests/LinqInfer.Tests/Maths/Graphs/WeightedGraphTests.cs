@@ -12,6 +12,34 @@ namespace LinqInfer.Tests.Maths.Graphs
     public class WeightedGraphTests : TestFixtureBase
     {
         [Test]
+        public async Task Merge_MergesVertexesAndEdgesAsExpected()
+        {
+            var storageA = new WeightedGraphInMemoryStore<byte, int>();
+            var storageB = new WeightedGraphInMemoryStore<byte, int>();
+
+            var graphA = new WeightedGraph<byte, int>(storageA, (x, y) => x + y);
+            var graphB = new WeightedGraph<byte, int>(storageB, (x, y) => x + y);
+
+            var a1 = await graphA.FindOrCreateVertexAsync(1);
+            var a2 = await a1.ConnectToAsync(2, 1);
+            var a3 = await graphA.FindOrCreateVertexAsync(3);
+
+            var b1 = await graphB.FindOrCreateVertexAsync(1);
+            var b5 = await graphB.FindOrCreateVertexAsync(5);
+
+            await b1.ConnectToAsync(2, 6);
+
+            await graphA.Merge(graphB, (x, y) => x + y);
+
+            var weight1 = await a1.GetWeightAsync(2);
+
+            var a5 = await graphA.FindVertexAsync(5);
+
+            Assert.That(weight1, Is.EqualTo(7));
+            Assert.That(a5.Owner, Is.EqualTo(graphA));
+        }
+
+        [Test]
         public async Task SetAttributes_StoresAttribAsExpected()
         {
             var storage = new WeightedGraphInMemoryStore<string, int>();

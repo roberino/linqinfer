@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths.Graphs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,15 +43,20 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        public async Task<WeightedGraph<string, int>> ExportWordGraph(string word, int maxFollowingConnections = 1, IWeightedGraphStore<string, int> store = null)
+        public Task<WeightedGraph<string, double>> ExportWordGraph(string word, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
         {
-            var graph = new WeightedGraph<string, int>(store ?? new WeightedGraphInMemoryStore<string, int>(), (x, y) => x + y);
+            return ExportWordGraph(t => string.Equals(t.Text, word, StringComparison.OrdinalIgnoreCase), maxFollowingConnections, store);
+        }
+
+        public async Task<WeightedGraph<string, double>> ExportWordGraph(Func<IToken, bool> targetTokenFunc, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
+        {
+            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
 
             foreach (var block in Blocks)
             {
                 int i = -1;
                 IToken last = null;
-                WeightedGraphNode<string, int> currentNode = null;
+                WeightedGraphNode<string, double> currentNode = null;
 
                 foreach (var token in block.Where(t => t.Type == TokenType.Word))
                 {
@@ -68,7 +74,7 @@ namespace LinqInfer.Text.Analysis
                     }
                     else
                     {
-                        if (string.Equals(token.Text, word, System.StringComparison.OrdinalIgnoreCase))
+                        if (targetTokenFunc(token))
                         {
                             i = 0;
 
