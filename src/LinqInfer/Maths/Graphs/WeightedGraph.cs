@@ -12,6 +12,7 @@ namespace LinqInfer.Maths.Graphs
     {
         private readonly Lazy<OptimalPathSearch<T, C>> _pathSearch;
         private readonly ConcurrentDictionary<T, WeightedGraphNode<T, C>> _workingData;
+        private readonly IDictionary<string, object> _cache;
         
         public WeightedGraph(IWeightedGraphStore<T, C> store, Func<C, C, C> weightAccumulator)
         {
@@ -26,10 +27,14 @@ namespace LinqInfer.Maths.Graphs
             })));
 
             _workingData = new ConcurrentDictionary<T, WeightedGraphNode<T, C>>();
+            _cache = new Dictionary<string, object>();
         }
 
         public event EventHandler<EventArgsOf<T>> Modified;
 
+        /// <summary>
+        /// Exports the graph as a GEXF XML document
+        /// </summary>
         public Task<XDocument> ExportAsGexfAsync()
         {
             return new GexfFormatter().FormatAsync(this);
@@ -59,11 +64,20 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Removes all data from a graph store
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> DeleteAsync()
         {
             return await Storage.DeleteAllDataAsync();
         }
 
+        /// <summary>
+        /// Finds all vertexes matching a predicate (or all if the predicate is null)
+        /// </summary>
+        /// <param name="predicate">A predicate which operates on the label</param>
+        /// <returns></returns>
         public async Task<IEnumerable<WeightedGraphNode<T, C>>> FindAllVertexesAsync(Expression<Func<T, bool>> predicate = null)
         {
             var items = new HashSet<WeightedGraphNode<T, C>>();
@@ -84,16 +98,35 @@ namespace LinqInfer.Maths.Graphs
             return items;
         }
  
+        /// <summary>
+        /// Finds a vertex by label
+        /// </summary>
+        /// <param name="label">The vertex label</param>
+        /// <returns>The vertex (as a task)</returns>
         public Task<WeightedGraphNode<T, C>> FindVertexAsync(T label)
         {
             return FindVertexAsync(label, true);
         }
 
+        /// <summary>
+        /// Finds a vertex by label or creates if it does not exist
+        /// </summary>
+        /// <param name="label">The vertex label</param>
+        /// <returns>The new or existing vertex (as a task)</returns>
+        public Task<WeightedGraphNode<T, C>> FindOrCreateVertexAsync(T label)
+        {
+            return FindOrCreateVertexAsync(label, true);
+        }
+
+        /// <summary>
+        /// Saves the graph structure to the storage backing
+        /// </summary>
+        /// <returns></returns>
         public async Task<int> SaveAsync()
         {
             int i = 0;
 
-            foreach(var item in _workingData.Values)
+            foreach (var item in _workingData.Values)
             {
                 await item.SaveAsync();
                 i++;
@@ -104,9 +137,25 @@ namespace LinqInfer.Maths.Graphs
             return i;
         }
 
-        public Task<WeightedGraphNode<T, C>> FindOrCreateVertexAsync(T label)
+        /// <summary>
+        /// Merges the other graph structure into this graph
+        /// </summary>
+        /// <param name="other">An other graph</param>
+        /// <param name="weightMergeFunction">A function to merge weight values e.g. (x, y) => x + y</param>
+        /// <returns>A task</returns>
+        public async Task Merge(WeightedGraph<T, C> other, Func<C, C, C> weightMergeFunction)
         {
-            return FindOrCreateVertexAsync(label, true);
+            foreach(var vertex in await other.FindAllVertexesAsync())
+            {
+                var match = await FindOrCreateVertexAsync(vertex.Label);
+
+                foreach(var edge in await vertex.GetEdgesAsync())
+                {
+                    await match.ConnectToOrModifyWeightAsync(edge.Value.Label, edge.Weight, x => weightMergeFunction(x, edge.Weight));
+                }
+            }
+
+            await SaveAsync();
         }
 
         internal async Task<WeightedGraphNode<T, C>> FindVertexAsync(T label, bool validateIntegrity)
@@ -125,6 +174,8 @@ namespace LinqInfer.Maths.Graphs
         }
 
         internal IWeightedGraphStore<T, C> Storage { get; private set; }
+
+        internal IDictionary<string, object> Cache { get { return _cache; } }
 
         internal async Task<WeightedGraphNode<T, C>> FindOrCreateVertexAsync(T label, bool fireEvent)
         {
@@ -160,6 +211,8 @@ namespace LinqInfer.Maths.Graphs
             {
                 _pathSearch.Value.ClearCache();
             }
+
+            _cache.Clear();
 
             Modified?.Invoke(this, new EventArgsOf<T>(label));
         }

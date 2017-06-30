@@ -149,6 +149,7 @@
     <Compile Include="Maths\Graphs\Colour.cs" />
     <Compile Include="Maths\Graphs\ColourPalette.cs" />
     <Compile Include="Maths\Graphs\GraphExportMode.cs" />
+    <Compile Include="Maths\Graphs\FloatingPointWeightedGraphExtensions.cs" />
     <Compile Include="Maths\Graphs\IHasNetworkTopology.cs" />
     <Compile Include="Learning\Classification\INetworkClassifier.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
@@ -187,7 +188,6 @@
     <Compile Include="Maths\Graphs\SpatialExtensions.cs" />
     <Compile Include="Maths\Graphs\VisualSettings.cs" />
     <Compile Include="Maths\Graphs\WeightedGraph.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphFactory.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphInMemoryStore.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphFileStore.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphNode.cs" />
@@ -207,6 +207,7 @@
     <Compile Include="Maths\DelegateVectorTransformation.cs" />
     <Compile Include="Maths\EigenvalueDecomposition.cs" />
     <Compile Include="Maths\IVectorTransformation.cs" />
+    <Compile Include="Maths\LabelledMatrix.cs" />
     <Compile Include="Maths\SerialisableVectorTransformation.cs" />
     <Compile Include="Maths\Vector.cs" />
     <Compile Include="Maths\DiscretizedSet.cs" />

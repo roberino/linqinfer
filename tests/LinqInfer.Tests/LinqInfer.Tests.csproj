@@ -96,6 +96,7 @@
     <Compile Include="Learning\ImageLearningExamples.cs" />
     <Compile Include="Learning\LinearSeparabilityExample.cs" />
     <Compile Include="Learning\PipelineExtensionsTests.cs" />
+    <Compile Include="Maths\Graphs\FloatingPointWeightedGraphExtensionsTests.cs" />
     <Compile Include="Maths\Graphs\SpatialExtensionTests.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphTests.cs" />
     <Compile Include="Maths\MandelbrotSet.cs" />

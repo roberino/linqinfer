@@ -247,6 +247,8 @@ namespace LinqInfer.Maths.Graphs
             return base.Equals(obj);
         }
 
+        internal WeightedGraph<T, C> Owner { get { return _owner; } }
+
         internal async Task SaveAsync()
         {
             if (!_isDirty && !_attribsDirty) return;
