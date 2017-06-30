@@ -87,6 +87,10 @@ namespace LinqInfer.Text.Analysis
                             {
                                 currentNode = await graph.FindOrCreateVertexAsync(token.Text.ToLower());
                             }
+
+                            var attribs = await currentNode.GetAttributesAsync();
+
+                            attribs["IsTarget"] = true;
                         }
                     }
 

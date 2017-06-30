@@ -8,10 +8,10 @@ using LinqInfer.Maths.Graphs;
 
 namespace LinqInfer.Tests.Text
 {
+    [Ignore("Integration only")]
     [TestFixture]
     public class HttpDocumentServicesTests
     {
-        //[Ignore("Integration only")]
         [TestCase("https://en.wikipedia.org/wiki/Main_Page")]
         public async Task GetDocument_TestUrl_ReturnsHttpDoc(string url)
         {
@@ -25,7 +25,6 @@ namespace LinqInfer.Tests.Text
             }
         }
 
-        //[Ignore("Integration only")]
         [TestCase("https://en.wikipedia.org/wiki/Main_Page", "science")]
         [TestCase("https://en.wikipedia.org/wiki/Portal:Mathematics", "mathematics")]
         [TestCase("https://en.wikipedia.org/wiki/Main_Page", "people")]

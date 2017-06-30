@@ -41,7 +41,7 @@ namespace LinqInfer.Maths.Graphs
             var av = adjacencyMatrix.Rows[a];
             var bv = adjacencyMatrix.Rows[b];
 
-            return new ColumnVector1D(av).CosineDistance(new ColumnVector1D(bv));
+            return 1 - new ColumnVector1D(av).CosineDistance(new ColumnVector1D(bv));
         }
 
         public static double VertexCosineSimilarity<T>(this LabelledMatrix<T> adjacencyMatrix, WeightedGraphNode<T, double> vertexA, WeightedGraphNode<T, double> vertexB)

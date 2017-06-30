@@ -147,7 +147,9 @@ namespace LinqInfer.Maths
 
             var denom = EuclideanLength * other.EuclideanLength;
 
-            return 1 - (dotp / EuclideanLength);
+            if (denom == 0) return 1;
+
+            return 1 - (dotp / denom);
         }
 
         /// <summary>

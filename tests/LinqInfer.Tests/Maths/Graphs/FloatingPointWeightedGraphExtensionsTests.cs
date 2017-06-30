@@ -50,10 +50,12 @@ namespace LinqInfer.Tests.Maths.Graphs
             await graph.SaveAsync();
 
             var cosineAB = await a.VertexCosineSimilarityAsync(b);
+            var cosineAC = await a.VertexCosineSimilarityAsync(c);
             var cosineDA = await d.VertexCosineSimilarityAsync(a);
 
-            Assert.That(cosineAB, Is.EqualTo(1));
-            Assert.That(cosineDA, IsAround(0.2929));
+            Assert.That(cosineAB, Is.EqualTo(0));
+            Assert.That(cosineAC, Is.EqualTo(1));
+            Assert.That(cosineDA, IsAround(0.7071));
         }
     }
 }
