@@ -4,7 +4,7 @@
     <Description>A lightweight, linq-friendly inference library for .NET</Description>
     <AssemblyTitle>LinqInfer</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
-    <VersionPrefix>3.8.0</VersionPrefix>
+    <VersionPrefix>3.8.1</VersionPrefix>
     <Authors>R Eyres</Authors>
     <TargetFrameworks>netstandard1.6;net45;net461</TargetFrameworks>
     <AssemblyName>LinqInfer</AssemblyName>
@@ -62,7 +62,9 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <Compile Remove="Learning\Classification\Remoting\*.cs;Data\Remoting\VectorTransferClient.cs;Data\Remoting\TransferHandle.cs" />
+    <Compile Remove="Learning\Classification\Remoting\*.cs;" />
+    <Compile Remove="Data\Remoting\VectorTransferClient.cs;" />
+    <Compile Remove="Data\Remoting\TransferHandle.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">

@@ -2,7 +2,7 @@
 <package>
 	<metadata> 
 		<id>$id$</id>
-		<version>3.8.0</version>
+		<version>3.8.1</version>
 		<title>LinqInfer</title>
 		<authors>R Eyres</authors>
 		<owners>R Eyres</owners>

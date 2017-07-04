@@ -49,9 +49,11 @@ namespace LinqInfer.Tests.Data.Remoting
                 return true;
             });
 
+#if !NET_STD
             await data
                 .CreatePipeline()
                 .SendTo(endpoint);
+#endif
 
             server.Stop();
 

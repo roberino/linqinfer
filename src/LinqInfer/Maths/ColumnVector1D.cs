@@ -141,6 +141,17 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 
+        public double CosineDistance(ColumnVector1D other)
+        {
+            var dotp = DotProduct(other);
+
+            var denom = EuclideanLength * other.EuclideanLength;
+
+            if (denom == 0) return 1;
+
+            return 1 - (dotp / denom);
+        }
+
         /// <summary>
         /// Returns the Euclidean length of the values.
         /// </summary>

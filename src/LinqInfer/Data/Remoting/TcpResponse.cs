@@ -5,6 +5,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
+    /// <summary>
+    /// Represents a response from a TCP request. 
+    /// Originally developed to support multiple (e.g. custom) protocols, this
+    /// is primarily intended for HTTP.
+    /// </summary>
     public class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
     {
         private readonly Stream _outputStream;

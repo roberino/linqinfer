@@ -55,11 +55,13 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Net.Http.4.3.2\lib\net46\System.Net.Http.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\BinaryVectorDocument.cs" />
@@ -141,11 +143,13 @@
     <Compile Include="Learning\Classification\IDynamicClassifier.cs" />
     <Compile Include="Learning\ClusteringParameters.cs" />
     <Compile Include="Learning\FeatureMapperV3.cs" />
+    <Compile Include="Learning\Features\FeatureMapVectorExtractor.cs" />
     <Compile Include="Maths\Geometry\Point3D.cs" />
     <Compile Include="Maths\Geometry\Rectangle.cs" />
     <Compile Include="Maths\Graphs\Colour.cs" />
     <Compile Include="Maths\Graphs\ColourPalette.cs" />
     <Compile Include="Maths\Graphs\GraphExportMode.cs" />
+    <Compile Include="Maths\Graphs\FloatingPointWeightedGraphExtensions.cs" />
     <Compile Include="Maths\Graphs\IHasNetworkTopology.cs" />
     <Compile Include="Learning\Classification\INetworkClassifier.cs" />
     <Compile Include="Learning\Classification\INeuralNetwork.cs" />
@@ -184,7 +188,6 @@
     <Compile Include="Maths\Graphs\SpatialExtensions.cs" />
     <Compile Include="Maths\Graphs\VisualSettings.cs" />
     <Compile Include="Maths\Graphs\WeightedGraph.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphFactory.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphInMemoryStore.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphFileStore.cs" />
     <Compile Include="Maths\Graphs\WeightedGraphNode.cs" />
@@ -204,6 +207,7 @@
     <Compile Include="Maths\DelegateVectorTransformation.cs" />
     <Compile Include="Maths\EigenvalueDecomposition.cs" />
     <Compile Include="Maths\IVectorTransformation.cs" />
+    <Compile Include="Maths\LabelledMatrix.cs" />
     <Compile Include="Maths\SerialisableVectorTransformation.cs" />
     <Compile Include="Maths\Vector.cs" />
     <Compile Include="Maths\DiscretizedSet.cs" />
@@ -217,14 +221,17 @@
     <Compile Include="Maths\Random.cs" />
     <Compile Include="Maths\Sequence.cs" />
     <Compile Include="Maths\TimeResolution.cs" />
-    <Compile Include="Text\Analysis\Cluster.cs" />
     <Compile Include="Text\Analysis\Corpus.cs" />
     <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
     <Compile Include="Text\Analysis\Triple.cs" />
     <Compile Include="Text\DocumentTermWeightingData.cs" />
     <Compile Include="Text\HtmlEntityMap.cs" />
     <Compile Include="Text\HtmlParser.cs" />
-    <Compile Include="Text\HttpTokenReader.cs" />
+    <Compile Include="Text\Http\HttpDocument.cs" />
+    <Compile Include="Data\Remoting\HttpBasicClient.cs" />
+    <Compile Include="Text\Http\HttpDocumentServices.cs" />
+    <Compile Include="Data\Remoting\IHttpClient.cs" />
+    <Compile Include="Text\Http\RelativeLink.cs" />
     <Compile Include="Text\IDocumentIndex.cs" />
     <Compile Include="Text\ISemanticSet.cs" />
     <Compile Include="Text\IToken.cs" />
@@ -341,7 +348,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\en_dict.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

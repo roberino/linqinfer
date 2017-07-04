@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Unit tests for LinqInfer</Description>
@@ -6,14 +6,15 @@
     <NeutralLanguage>en-GB</NeutralLanguage>
     <VersionPrefix>3.8.0</VersionPrefix>
     <Authors>R Eyres</Authors>
-    <TargetFrameworks>netcoreapp1.1.2;netstandard1.6;net45;net461</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.1.2;netstandard1.6;net461</TargetFrameworks>
     <AssemblyName>LinqInfer.Tests</AssemblyName>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
     <OutputType>Exe</OutputType>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">win</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">win7-x64</RuntimeIdentifiers>
     <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win7-x64</RuntimeIdentifiers>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -25,11 +26,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj">
-      <Name>LinqInfer</Name>
-    </ProjectReference>-->
+    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer-dotnetcore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="LinqInfer" Version="3.8.0" />
+    <PackageReference Include="NUnitLite" Version="3.7.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,7 +47,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
     <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="15.3.0-preview-20170618-03" />
-    <PackageReference Include="NUnitLite" Version="3.7.1" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.0.1" />
     <PackageReference Include="NUnit" Version="3.7.1" />
     <!--<DotNetCliToolReference Include="dotnet-test-nunit" Version="3.4.0-beta-3" />-->
     <PackageReference Include="System.Runtime" Version="4.3.0" />
@@ -61,26 +64,29 @@
     <PackageReference Include="System.Linq.Parallel" Version="4.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XDocument" Version="4.0.11" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
-    <Compile Remove="Data\Orm\DataMapperTests.cs" />
     <Compile Remove="Learning/Classification/Remoting/RemoteClassifierTrainingServerTests.cs" />
     <Compile Remove="Learning/ImageLearningExamples.cs" />
     <Compile Remove="Data/Remoting/*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="System.Net.Http" Version="4.1.1" />
-    <PackageReference Include="NUnit" Version="3.0.1" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+  <ItemGroup>
+    <Compile Remove="Data\Orm\DataMapperTests.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
     <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp1.1.2|AnyCPU'">
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">

@@ -22,8 +22,6 @@ for reducing the dimensionality of the input data, such as principle component a
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
 
-![SOFM graph](docs/sofm_graph2.png)
-
 #### Learning
 
 This is a collection of machine learning algorithms which are available through extention 
@@ -72,6 +70,10 @@ The Maths.Graphs namespace contains useful objects and functions for creating gr
 Graphs can be exported into [GEXF](https://gephi.org/gexf/format/schema.html).
 
 Check out [Sigmajs](http://sigmajs.org/) and [Gephi](https://gephi.org/) for visualising graphs.
+
+![SOFM graph](docs/sofm_graph2.png)
+
+![Neural network graph](docs/neural-network-sm.png)
 
 #### Maths.Probability 
 
