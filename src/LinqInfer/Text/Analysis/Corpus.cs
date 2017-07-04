@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal sealed class Corpus : IBinaryPersistable
+    public sealed class Corpus : IBinaryPersistable
     {
         private readonly IList<IToken> _tokens;
 

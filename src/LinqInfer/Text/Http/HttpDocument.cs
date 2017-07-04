@@ -10,9 +10,14 @@ namespace LinqInfer.Text.Http
             BaseUrl = url;
             Links = links;
             Headers = headers;
+            Metadata = new Dictionary<string, string>();
         }
 
+        public string Title { get; internal set; }
+
         public Uri BaseUrl { get; private set; }
+
+        public IDictionary<string, string> Metadata { get; private set; }
 
         public IDictionary<string, string[]> Headers { get; private set; }
 

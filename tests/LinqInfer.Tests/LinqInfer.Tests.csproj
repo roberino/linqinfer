@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\Orm\" />
+    <Folder Include="Text\Http\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Text\shakespeare.txt" />

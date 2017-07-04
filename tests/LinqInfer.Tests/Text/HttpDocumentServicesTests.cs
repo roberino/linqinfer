@@ -1,10 +1,10 @@
-﻿using LinqInfer.Text;
+﻿using LinqInfer.Maths.Graphs;
+using LinqInfer.Text;
 using LinqInfer.Text.Http;
 using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using LinqInfer.Maths.Graphs;
 
 namespace LinqInfer.Tests.Text
 {
@@ -62,7 +62,35 @@ namespace LinqInfer.Tests.Text
 
                 var gexf = await graph.ExportAsGexfAsync();
 
-                gexf.Save($"c:\\git\\wiki-multi.gexf");
+                // gexf.Save($"c:\\git\\wiki-multi.gexf");
+            }
+        }
+
+        [TestCase("https://en.wikipedia.org/wiki/Portal:Mathematics")]
+        public async Task Crawl(string url)
+        {
+            using (var reader = new HttpDocumentServices())
+            {
+                var uri = new Uri(url);
+                var index = new DocumentIndex();
+
+                foreach (var docs in reader.CrawlDocuments(new Uri(url), d =>
+                {
+                    return true;
+                }))
+                {
+                    foreach (var doc in await docs)
+                    {
+                        index.IndexDocument(doc);
+                    }
+                }
+
+                var terms = index.ExtractTerms();
+                
+                foreach(var term in terms.Words.OrderBy(w => w))
+                {
+                    Console.Write(term + ", ");
+                }
             }
         }
     }

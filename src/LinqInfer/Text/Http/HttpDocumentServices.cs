@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
 {
-    internal class HttpDocumentServices : IDisposable
+    public class HttpDocumentServices : IDisposable
     {
         private const int MaxVisited = 350;
 
@@ -68,7 +68,7 @@ namespace LinqInfer.Text.Http
             return corpus;
         }
 
-        public async Task<DocumentIndex> CreateIndex(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        public async Task<IDocumentIndex> CreateIndex(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
         {
             var index = new DocumentIndex(_tokeniser);
 
@@ -78,6 +78,40 @@ namespace LinqInfer.Text.Http
             }, documentFilter, maxDocs, targetElement);
 
             return index;
+        }
+
+        public IEnumerable<Task<IList<HttpDocument>>> CrawlDocuments(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        {
+            var pending = new Queue<IList<Uri>>();
+
+            pending.Enqueue(new[] { rootUri });
+            int count = 1;
+
+            var f = new Func<Task<IList<HttpDocument>>>(async () =>
+            {
+                var docs = new List<HttpDocument>();
+
+                foreach (var child in await FollowLinks(pending.Dequeue().Take(maxDocs - count), targetElement))
+                {
+                    if ((documentFilter?.Invoke(child)).GetValueOrDefault(true))
+                    {
+                        docs.Add(child);
+
+                        count++;
+
+                        pending.Enqueue(child.Links.Select(l => l.Url).Where(_linkFilter).ToList());
+                    }
+
+                    if (count >= maxDocs) break;
+                }
+
+                return docs;
+            });
+
+            while (count < maxDocs && pending.Any())
+            {
+                yield return f();
+            }
         }
 
         public async Task CrawlDocuments(Uri rootUri, Action<HttpDocument> documentAction, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
@@ -168,6 +202,10 @@ namespace LinqInfer.Text.Http
                             var parser = new HtmlParser();
 
                             var elements = parser.Parse(reader);
+
+                            var head = (elements.FirstOrDefault(e => e.NodeType == System.Xml.XmlNodeType.Element) as XElement)?.Elements(XName.Get("head"));
+                            var title = head?.Elements("title").FirstOrDefault();
+                            
                             var selected = targetElement != null ? elements.Where(e => e.NodeType == System.Xml.XmlNodeType.Element).Select(e => targetElement((XElement)e)) : elements;
 
                             {
@@ -182,6 +220,14 @@ namespace LinqInfer.Text.Http
                                         .ToList(),
                                     response.Header.Headers
                                         );
+
+                                if (head != null)
+                                {
+                                    if (title != null)
+                                    {
+                                        hdoc.Title = title.Value;
+                                    }
+                                }
 
                                 return hdoc;
                             }
