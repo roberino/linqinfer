@@ -47,9 +47,9 @@
         {
             return new Point3D()
             {
-                X = a.X / b.X,
-                Y = a.Y / b.Y,
-                Z = a.Z / b.Z
+                X = a.X == 0 ? 0 : a.X / b.X,
+                Y = a.Y == 0 ? 0 : a.Y / b.Y,
+                Z = a.Z == 0 ? 0 : a.Z / b.Z
             };
         }
     }
