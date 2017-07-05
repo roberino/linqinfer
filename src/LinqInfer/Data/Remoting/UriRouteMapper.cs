@@ -69,7 +69,14 @@ namespace LinqInfer.Data.Remoting
 
             var parameters = _parts.Where(p => p.Type != RoutePartType.Static).GroupBy(p => p.Name).ToDictionary(p => p.Key, p => string.Empty);
 
-            if (uri.PathAndQuery == "/" && parameters.Count == 0) return parameters; // Root
+            if (uri.PathAndQuery == "/") // Root
+            {
+                if (_parts.Count > 0)
+                {
+                    throw new ArgumentException();
+                }
+                return parameters;
+            }
 
             var uriBuilder = new UriBuilder(uri);
 

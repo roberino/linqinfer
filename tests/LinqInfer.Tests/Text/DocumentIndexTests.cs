@@ -133,7 +133,9 @@ namespace LinqInfer.Tests.Text
             Assert.That(xml.Root.Attribute("doc-count").Value, Is.EqualTo(docs.Count().ToString()));
             Assert.That(xml.Root.Elements().All(e => e.Name.LocalName == "term"));
 
+#if DEBUG
             xml.WriteTo(XmlWriter.Create(Console.Out, new XmlWriterSettings() { Indent = true }));
+#endif
         }
 
         [Test]

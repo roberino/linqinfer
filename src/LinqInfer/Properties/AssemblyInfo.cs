@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("LinqInfer")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,3 +29,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("LinqInfer.Tests")]
 [assembly: InternalsVisibleTo("LinqInfer.Storage.SQLite")]
 [assembly: InternalsVisibleTo("LinqInfer.Owin")]
+[assembly: InternalsVisibleTo("LinqInfer.AspNetCore")]
