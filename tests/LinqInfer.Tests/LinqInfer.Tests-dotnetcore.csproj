@@ -4,17 +4,16 @@
     <Description>Unit tests for LinqInfer</Description>
     <AssemblyTitle>LinqInfer.Tests</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
-    <VersionPrefix>3.8.1-pre</VersionPrefix>
+    <VersionPrefix>3.8.1</VersionPrefix>
     <Authors>R Eyres</Authors>
-    <TargetFrameworks>netcoreapp1.1.2;netstandard1.6;netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.1;netcoreapp2.0;netstandard1.6;net461</TargetFrameworks>
     <AssemblyName>LinqInfer.Tests</AssemblyName>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
     <OutputType>Exe</OutputType>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' Or '$(TargetFramework)' == 'netstandard2.0'">win7-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win7-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard2.0' ">2.0.0</NetStandardImplicitPackageVersion>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -44,7 +43,7 @@
     <EmbeddedResource Include="Data\Remoting\*.txt" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' Or '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <!--<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="15.3.0-preview-20170618-03" />-->
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="NUnit" Version="3.7.1" />
@@ -65,7 +64,7 @@
     <PackageReference Include="System.Xml.XDocument" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' Or '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="Learning/Classification/Remoting/RemoteClassifierTrainingServerTests.cs" />
     <Compile Remove="Learning/ImageLearningExamples.cs" />
     <Compile Remove="Data/Remoting/*.cs" />
@@ -75,7 +74,7 @@
     <Compile Remove="Data\Orm\DataMapperTests.cs" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' Or '$(TargetFramework)' == 'netstandard2.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
   </PropertyGroup>
 
