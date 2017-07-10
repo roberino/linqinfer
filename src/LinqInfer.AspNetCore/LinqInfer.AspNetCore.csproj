@@ -9,7 +9,7 @@
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
-    <Version>1.0.1-beta</Version>
+    <Version>1.0.2-beta</Version>
     <Description>AspNet Core adapters for LinqInfer</Description>
     <Copyright>Copyright © 2017</Copyright>
     <PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
