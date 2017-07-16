@@ -20,8 +20,10 @@ namespace LinqInfer.AspNetCore
                 var builder = new WebHostBuilder()
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .Configure(a)
-                    .UseUrls(u.ToString());
+                    .Configure(a);
+
+		if(u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
+		else builder.UseUrls(u.ToString());
 
                 var host = builder.Build();
 

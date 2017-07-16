@@ -1,0 +1,20 @@
+# Builds and runs tests
+
+FROM microsoft/dotnet:1.1.2-sdk
+
+# NOTE 2.0.0-preview2-sdk currently causes odd build errors
+
+WORKDIR /app
+
+ADD ./ /app
+
+EXPOSE 8083
+
+WORKDIR ./build
+RUN ./build-docker.sh
+
+WORKDIR ../
+
+# ENV VAR? ${LOCAL_IP_AND_PORT}
+
+CMD dotnet run -f netcoreapp1.1 -p ./tests/LinqInfer.AspNetCoreTestHarness/LinqInfer.AspNetCoreTestHarness.csproj -- http://0.0.0.0:8083/
