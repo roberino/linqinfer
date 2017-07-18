@@ -2,6 +2,7 @@
 using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Text;
 using System;
@@ -24,10 +25,11 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             apiBuilder.Bind("/text/index/{indexName}", Verb.Post).To("", CreateIndex);
             apiBuilder.Bind("/text/index/{indexName}", Verb.Put).To("", OverwriteIndex);
             apiBuilder.Bind("/text/index/{indexName}", Verb.Get).To("", GetIndex);
-            apiBuilder.Bind("/text/index/{indexName}/$features?maxVectorSize=256&filter=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
+            apiBuilder.Bind("/text/index/{indexName}/$features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
+            apiBuilder.Bind("/text/index/{indexName}/$classifiers/{classifierName}/$create", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
+            apiBuilder.Bind("/text/index/{indexName}/$classifiers/{classifierName}/$classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Post).To(new DocumentIndexRequest(), AddDocument);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Get).To(new DocumentIndexRequest(), GetDocument);
-            apiBuilder.Bind("/text/classify/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);            
         }
 
         private static async Task<IEnumerable<ColumnVector1D>> ExtractVectors(FeatureExtractRequest request)
@@ -58,11 +60,17 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
         {
             var index = await GetIndexInternal(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(Enumerable.Empty<string>().AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(request.IndexName).AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
 
-            var classifier = await pipeline.ToMultilayerNetworkClassifier(x => x).ExecuteAsync();
+            await request.Apply(pipeline);
 
-            var file = GetFile(request.ClassifierName);
+            var trainingSet = pipeline.AsTrainingSet(d => d.Attributes[request.ClassAttributeName].ToString());
+
+            var classifier = await trainingSet.ToMultilayerNetworkClassifier().ExecuteAsync();
+
+            var file = GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
+
+            if (file.Exists) file.Delete();
 
             using (var fs = file.OpenWrite())
             {
@@ -75,17 +83,50 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             return request;
         }
 
-        private static Task<ISemanticSet> CreateIndex(string indexName)
+        private static async Task<IEnumerable<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
+        {
+            var index = await GetIndexInternal(request.IndexName);
+
+            var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise(index.Tokeniser));
+
+            var fe = TextExtensions.CreateTextFeatureExtractor(index.ExtractKeyTerms(request.MaxVectorSize));
+
+            var file = GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
+
+            IDynamicClassifier<string, TokenisedTextDocument> classifier;
+
+            using (var fs = file.OpenRead())
+            {
+                var xml = XDocument.Load(fs);
+                var dataDoc = new BinaryVectorDocument(xml);
+
+                classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+            }
+
+            request.LastUpdated = DateTime.UtcNow;
+            request.Confirmed = true;
+
+            return classifier.Classify(doc);
+        }
+
+        private static Task<DocumentIndexViewModel> CreateIndex(string indexName)
         {
             return CreateIndex(indexName, false);
         }
 
-        private static Task<ISemanticSet> OverwriteIndex(string indexName)
+        private static Task<DocumentIndexViewModel> OverwriteIndex(string indexName)
         {
             return CreateIndex(indexName, true);
         }
 
-        private static Task<ISemanticSet> CreateIndex(string indexName, bool replace)
+        private static async Task<DocumentIndexViewModel> GetIndex(string indexName)
+        {
+            var index = await GetIndexInternal(indexName);
+
+            return new DocumentIndexViewModel(index, indexName);
+        }
+
+        private static Task<DocumentIndexViewModel> CreateIndex(string indexName, bool replace)
         {
             var file = GetFile(indexName);
 
@@ -98,7 +139,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
                 index.ExportAsXml().Save(fs);
             }
 
-            return Task.FromResult(index.ExtractTerms());
+            return Task.FromResult(new DocumentIndexViewModel(index, indexName));
         }
 
         private Task<TokenisedTextDocument> GetDocument(DocumentIndexRequest request)
@@ -115,11 +156,14 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
         private async Task<DocumentIndexRequest> AddDocument(DocumentIndexRequest request)
         {
             var indexFile = GetFile(request.IndexName);
+
+            if (!indexFile.Exists) throw new InvalidOperationException("Index missing: " + request.IndexName);
+
             var docFile = GetFile(request.IndexName, false, false, request.DocumentId + ".doc.xml");
 
             var index = await GetIndexInternal(request.IndexName);
 
-            var doc = new TokenisedTextDocument(request.DocumentId, request.Text.Tokenise());
+            var doc = new TokenisedTextDocument(request.DocumentId, request.Text.Tokenise(index.Tokeniser));
 
             if (request.Attributes != null)
             {
@@ -145,13 +189,6 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             request.Confirmed = true;
 
             return request;
-        }
-
-        private static async Task<ISemanticSet> GetIndex(string indexName)
-        {
-            var index = await GetIndexInternal(indexName);
-
-            return index.ExtractTerms();
         }
 
         private static Task<IDocumentIndex> GetIndexInternal(string indexName)

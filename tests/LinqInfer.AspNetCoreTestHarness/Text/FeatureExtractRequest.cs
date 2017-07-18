@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.AspNetCoreTestHarness.Text
 {
-    public class FeatureExtractRequest
+    public class FeatureExtractRequest : RequestBase
     {
         public string IndexName { get; set; }
 
-        public string Filter { get; set; }
+        public string Transform { get; set; }
 
         public int MaxVectorSize { get; set; }
 
@@ -16,7 +16,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
         {
             var parser = new FilterParser();
 
-            foreach(var op in parser.Parse(Filter))
+            foreach(var op in parser.Parse(Transform))
             {
                 switch (op.OperationName)
                 {

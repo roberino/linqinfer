@@ -1,9 +1,9 @@
 ﻿namespace LinqInfer.AspNetCoreTestHarness.Text
 {
-    public class ClassifierRequest : FeatureExtractRequest
+    public class ClassifyRequest : FeatureExtractRequest
     {
         public string ClassifierName { get; set; }
 
-        public string ClassAttributeName { get; set; }
+        public string Text { get; set; }
     }
 }

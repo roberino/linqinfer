@@ -39,6 +39,8 @@ namespace LinqInfer.Text
             _calculationMethod = weightCalculationMethod;
         }
 
+        public long DocumentCount { get { return _documentCount; } }
+
         /// <summary>
         /// Gets the tokeniser used for parsing text
         /// </summary>
@@ -59,6 +61,11 @@ namespace LinqInfer.Text
             {
                 return _frequencies.Keys;
             }
+        }
+
+        public IDictionary<string, long> GetTermFrequencies()
+        {
+            return _frequencies.ToDictionary(f => f.Key, f => f.Value.Count);
         }
 
         /// <summary>
