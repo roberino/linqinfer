@@ -26,7 +26,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             apiBuilder.Bind("/text/index/{indexName}/$features", Verb.Get).To("", ExtractVectors);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Post).To(new DocumentIndexRequest(), AddDocument);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Get).To(new DocumentIndexRequest(), GetDocument);
-            apiBuilder.Bind("/text/classify/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
+            apiBuilder.Bind("/text/classify/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);            
         }
 
         private static async Task<IEnumerable<ColumnVector1D>> ExtractVectors(string indexName)

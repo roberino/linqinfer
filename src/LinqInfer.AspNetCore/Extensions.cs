@@ -11,7 +11,7 @@ namespace LinqInfer.AspNetCore
 {
     public static class Extensions
     {
-        public static IOwinApplication CreateAspNetApplication(this Uri baseEndpoint, bool blockOnStart = true, bool bufferResponse = false)
+        public static IOwinApplication CreateAspNetApplication(this Uri baseEndpoint, Action<IWebHostBuilder> builderConfig = null, bool blockOnStart = true, bool bufferResponse = false)
         {
             ValidateHttpUri(baseEndpoint);
 
@@ -22,8 +22,10 @@ namespace LinqInfer.AspNetCore
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .Configure(a);
 
-		    if(u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
-		    else builder.UseUrls(u.ToString());
+                builderConfig?.Invoke(builder);
+
+                if (u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
+                else builder.UseUrls(u.ToString());
 
                 var host = builder.Build();
 
