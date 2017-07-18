@@ -35,7 +35,7 @@ namespace LinqInfer.AspNetCoreTestHarness
                     c.Response.CreateStatusResponse(500);
                 }
 
-                await sz.Serialise(new { error = e.GetType().Name, message = e.Message }, Encoding.UTF8, sz.SupportedMimeTypes.First(), c.Response.Content);
+                await sz.Serialise(new { error = e.GetType().Name, message = e.Message, stack = e.StackTrace }, Encoding.UTF8, sz.SupportedMimeTypes.First(), c.Response.Content);
                 
                 return true;
             });

@@ -22,18 +22,21 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             _serialiser = serialiser ?? new JsonObjectSerialiser();
 
             apiBuilder.Bind("/text/index/{indexName}", Verb.Post).To("", CreateIndex);
+            apiBuilder.Bind("/text/index/{indexName}", Verb.Put).To("", OverwriteIndex);
             apiBuilder.Bind("/text/index/{indexName}", Verb.Get).To("", GetIndex);
-            apiBuilder.Bind("/text/index/{indexName}/$features", Verb.Get).To("", ExtractVectors);
+            apiBuilder.Bind("/text/index/{indexName}/$features?maxVectorSize=256&filter=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Post).To(new DocumentIndexRequest(), AddDocument);
             apiBuilder.Bind("/text/index/{indexName}/{documentId}", Verb.Get).To(new DocumentIndexRequest(), GetDocument);
             apiBuilder.Bind("/text/classify/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);            
         }
 
-        private static async Task<IEnumerable<ColumnVector1D>> ExtractVectors(string indexName)
+        private static async Task<IEnumerable<ColumnVector1D>> ExtractVectors(FeatureExtractRequest request)
         {
-            var index = await GetIndexInternal(indexName);
+            var index = await GetIndexInternal(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(indexName).AsQueryable(), index.ExtractKeyTerms(256));
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(request.IndexName).AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+
+            await request.Apply(pipeline);
 
             return pipeline.ExtractVectors();
         }
@@ -74,7 +77,19 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
 
         private static Task<ISemanticSet> CreateIndex(string indexName)
         {
+            return CreateIndex(indexName, false);
+        }
+
+        private static Task<ISemanticSet> OverwriteIndex(string indexName)
+        {
+            return CreateIndex(indexName, true);
+        }
+
+        private static Task<ISemanticSet> CreateIndex(string indexName, bool replace)
+        {
             var file = GetFile(indexName);
+
+            if (file.Exists) throw new InvalidOperationException();
 
             var index = Enumerable.Empty<TokenisedTextDocument>().CreateIndex();
 
