@@ -8,6 +8,7 @@ using System.Linq;
 using LinqInfer.Maths.Geometry;
 using LinqInfer.Maths;
 using LinqInfer.Data.Remoting;
+using LinqInfer.AspNetCoreTestHarness.Text;
 
 namespace LinqInfer.AspNetCoreTestHarness
 {
@@ -15,10 +16,11 @@ namespace LinqInfer.AspNetCoreTestHarness
     {
         public static void Main(string[] args)
         {
-            var endpoint = new Uri(args.Length > 0 ? args[0] : "http://localhost:8083");
+            var endpoint = new Uri(args.Length > 0 ? args[0] : "http://0.0.0.0:8083");
             var api = endpoint.CreateHttpApi();
 
-            api.Bind("/{p}").To(1, p => Task.FromResult(p * 5));
+            new TextServices(api);
+
             api.CreateGraphExportService(GenerateGraph, "/graph");
 
             using (api)

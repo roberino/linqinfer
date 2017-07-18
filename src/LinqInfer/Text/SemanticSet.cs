@@ -63,7 +63,7 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns the last id
         /// </summary>
-        public int MaxId { get { return _words.Max(w => w.Value); } }
+        public int MaxId { get { return _words.Any() ? _words.Max(w => w.Value) : -1; } }
 
         /// <summary>
         /// Returns the count of the words in the set

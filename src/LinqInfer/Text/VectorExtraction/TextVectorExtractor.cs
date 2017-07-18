@@ -18,13 +18,13 @@ namespace LinqInfer.Text.VectorExtraction
         private int[] _normalisingFrequencies;
         private int _normalisingFrequencyDefault;
 
-        internal TextVectorExtractor()
+        internal TextVectorExtractor(bool normalise = true)
         {
             _words = new Dictionary<string, int>();
             _features = new List<IFeature>();
             _normalisingFrequencies = Enumerable.Range(1, VectorSize).Select(_ => 1).ToArray();
             _normalisingFrequencyDefault = 1000;
-            _normalise = true;
+            _normalise = normalise;
         }
 
         internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true) : this(words, Enumerable.Range(1, words.Count() + EXTENDED_FEATURE_COUNT).Select(_ => normalisingFrequency).ToArray(), normalise)
@@ -49,7 +49,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IFloatingPointFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
         {
-            return new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies);
+            return _normalise ? new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies) : new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys);
         }
 
         public int VectorSize
@@ -64,7 +64,7 @@ namespace LinqInfer.Text.VectorExtraction
         {
             get
             {
-                return true;
+                return _normalise;
             }
         }
 
@@ -103,7 +103,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         private int GetNormalisingFrequency(int index)
         {
-            return (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault;
+            return _normalise ? (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault : 1;
         }
 
         private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)

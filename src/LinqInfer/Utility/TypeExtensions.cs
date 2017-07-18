@@ -66,5 +66,110 @@ namespace LinqInfer.Utility
                 .GetConstructor(new Type[] { innerType })
                 .Invoke(new object[] { value });
         }
+
+        /// <summary>
+        /// Converts a string into a specific type
+        /// </summary>
+        /// <param name="value">The string value</param>
+        /// <param name="typeName">The type code name</param>
+        /// <returns>An object</returns>
+        public static object Parse(this string value, string typeName)
+        {
+            if (!Enum.TryParse(typeName, out TypeCode c)) return value;
+
+            return Convert.ChangeType(value, c.ToType());
+        }
+
+        /// <summary>
+        /// Returns the type code of a instance
+        /// </summary>
+        public static TypeCode GetTypeCode(this object objInstance)
+        {
+            if (objInstance == null) return TypeCode.Empty;
+
+            var type = objInstance.GetType();
+
+            return Type.GetTypeCode(type);
+        }
+
+        /// <summary>
+        /// Returns true if a type is a simple numeric, date or string type. Null values will return false.
+        /// </summary>
+        public static bool IsPrimativeOrString(this object objInstance)
+        {
+            if (objInstance == null) return false;
+
+            return IsPrimativeOrString(objInstance.GetType());
+        }
+
+        /// <summary>
+        /// Returns true if a type is a simple numeric, date or string type
+        /// </summary>
+        public static bool IsPrimativeOrString(this Type type)
+        {
+            return Type.GetTypeCode(type) != TypeCode.Object;
+        }
+
+        /// <summary>
+        /// Returns a type from a TypeCode
+        /// </summary>
+        public static Type ToType(this TypeCode typeCode)
+        {
+            switch (typeCode)
+            {
+                case TypeCode.Boolean:
+                    return typeof(bool);
+
+                case TypeCode.Byte:
+                    return typeof(byte);
+
+                case TypeCode.Char:
+                    return typeof(char);
+
+                case TypeCode.DateTime:
+                    return typeof(DateTime);
+
+                case TypeCode.Decimal:
+                    return typeof(decimal);
+
+                case TypeCode.Double:
+                    return typeof(double);
+
+                case TypeCode.Empty:
+                    return null;
+
+                case TypeCode.Int16:
+                    return typeof(short);
+
+                case TypeCode.Int32:
+                    return typeof(int);
+
+                case TypeCode.Int64:
+                    return typeof(long);
+
+                case TypeCode.Object:
+                    return typeof(object);
+
+                case TypeCode.SByte:
+                    return typeof(sbyte);
+
+                case TypeCode.Single:
+                    return typeof(Single);
+
+                case TypeCode.String:
+                    return typeof(string);
+
+                case TypeCode.UInt16:
+                    return typeof(UInt16);
+
+                case TypeCode.UInt32:
+                    return typeof(UInt32);
+
+                case TypeCode.UInt64:
+                    return typeof(UInt64);
+            }
+
+            return null;
+        }
     }
 }

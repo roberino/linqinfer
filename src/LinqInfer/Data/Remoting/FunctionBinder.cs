@@ -181,7 +181,7 @@ namespace LinqInfer.Data.Remoting
             {
                 prop = p,
                 index = i++,
-                val = ParamsToPrimative(p.PropertyType, context, p.Name)
+                val = ParamsToPrimative(p.PropertyType, context, p.Name, true)
             }).ToList();
 
             var missing = values.Where(v => !v.val.Item2).ToList();
@@ -252,7 +252,7 @@ namespace LinqInfer.Data.Remoting
             return (T)val.Item1;
         }
 
-        private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name)
+        private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name, bool ignoreCase = false)
         {
             object val;
 
@@ -262,6 +262,13 @@ namespace LinqInfer.Data.Remoting
             }
             else
             {
+                if (ignoreCase)
+                {
+                    var key = context.Keys.FirstOrDefault(k => k.Equals("route." + name, StringComparison.OrdinalIgnoreCase));
+
+                    if (key != null) return new Tuple<object, bool>(Convert.ChangeType(context[key], type), true);
+                }
+
                 var nblType = type.GetNullableTypeType();
 
                 return new Tuple<object, bool>(null, nblType != null);

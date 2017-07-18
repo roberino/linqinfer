@@ -22,8 +22,8 @@ namespace LinqInfer.AspNetCore
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .Configure(a);
 
-		if(u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
-		else builder.UseUrls(u.ToString());
+		    if(u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
+		    else builder.UseUrls(u.ToString());
 
                 var host = builder.Build();
 

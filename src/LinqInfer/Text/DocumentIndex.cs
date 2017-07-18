@@ -70,6 +70,36 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Returns a set of terms as a <see cref="ISemanticSet"/>
+        /// </summary>
+        public ISemanticSet ExtractKeyTerms(int maxNumberOfTerms)
+        {
+            Contract.Requires(maxNumberOfTerms > 0);
+
+            var docKeys = DocumentKeys.ToList();
+
+            var frequentWordsByKey = docKeys.SelectMany(k =>
+            {
+                var f = WordFrequenciesByDocumentKey(k).ToList();
+
+                return f
+                    .Select(x => new
+                    {
+                        data = x,
+                        freqScore = _calculationMethod(new[] { x }),
+                        nf = f.Max(t => (int)t.TermFrequency)
+                    });
+
+            })
+            .Distinct((x, y) => string.Equals(x.data.Term, y.data.Term), x => x.data.Term.GetHashCode())
+            .OrderByDescending(t => t.freqScore)
+            .Take(maxNumberOfTerms)
+            .ToList();
+
+            return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.data.Term)));
+        }
+
+        /// <summary>
         /// Returns an enumeration of <see cref="DocumentTermWeightingData"/> for a given document key
         /// </summary>
         internal IEnumerable<DocumentTermWeightingData> WordFrequenciesByDocumentKey(string docKey)
