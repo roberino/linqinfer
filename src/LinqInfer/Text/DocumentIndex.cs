@@ -65,7 +65,7 @@ namespace LinqInfer.Text
 
         public IDictionary<string, long> GetTermFrequencies()
         {
-            return _frequencies.ToDictionary(f => f.Key, f => f.Value.Count);
+            return _frequencies.ToDictionary(f => f.Key, f => (long)f.Value.DocFrequencies.Sum(d => d.Value));
         }
 
         /// <summary>
