@@ -23,14 +23,15 @@ namespace LinqInfer.Data.Remoting
         Get = 2,
 
         /// <summary>
-        /// Updates a resource (equiv to POST)
-        /// </summary>
-        Update = 4,
-
-        /// <summary>
         /// Posts data
         /// </summary>
         Post = 4,
+
+        [Obsolete]
+        /// <summary>
+        /// Updates a resource (currently equiv to POST but will be removed in future releases)
+        /// </summary>
+        Update = 4,
 
         /// <summary>
         /// Deletes a resource
@@ -42,6 +43,11 @@ namespace LinqInfer.Data.Remoting
         /// </summary>
         Options = 16,
 
-        All = Create | Update | Get | Delete | Options
+        /// <summary>
+        /// Updates part of a resource
+        /// </summary>
+        Patch = 32,
+
+        All = Create | Update | Get | Delete | Options | Patch
     }
 }

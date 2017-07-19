@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace LinqInfer.AspNetCoreTestHarness.Text
 {
@@ -9,6 +10,8 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
         public string IndexName { get; set; }
 
         public string Text { get; set; }
+
+        public Uri SourceUrl { get; set; }
 
         public IDictionary<string, object> Attributes { get; set; }
     }
