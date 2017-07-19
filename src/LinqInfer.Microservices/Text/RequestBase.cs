@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqInfer.AspNetCoreTestHarness.Text
+namespace LinqInfer.Microservices.Text
 {
     public class RequestBase
     {

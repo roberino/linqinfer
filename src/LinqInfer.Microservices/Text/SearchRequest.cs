@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.AspNetCoreTestHarness.Text
+﻿namespace LinqInfer.Microservices.Text
 {
     public class SearchRequest
     {

@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Text;
 using System.Collections.Generic;
 
-namespace LinqInfer.AspNetCoreTestHarness.Text
+namespace LinqInfer.Microservices.Text
 {
     public class DocumentIndexViewModel
     {

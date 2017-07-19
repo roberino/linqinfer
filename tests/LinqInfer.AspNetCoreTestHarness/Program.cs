@@ -1,5 +1,5 @@
-﻿using LinqInfer.AspNetCore;
-using LinqInfer.AspNetCoreTestHarness.Text;
+﻿using LinqInfer.Microservices;
+using LinqInfer.Microservices.Text;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.MicroServices;
@@ -22,7 +22,7 @@ namespace LinqInfer.AspNetCoreTestHarness
             var api = endpoint.CreateHttpApi();
             var sz = new JsonObjectSerialiser();
 
-            new TextServices(api);
+            new TextServices().Register(api);
 
             api.AddErrorHandler(async (c, e) =>
             {

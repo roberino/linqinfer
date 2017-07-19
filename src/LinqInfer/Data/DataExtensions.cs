@@ -8,6 +8,12 @@ namespace LinqInfer.Data
 {
     public static class DataExtensions
     {
+        public static XmlBlob<T> ToBinaryPersistable<T>(T instance)
+            where T : IXmlExportable, IXmlImportable
+        {
+            return new XmlBlob<T>(instance);
+        }
+
         public static string ToClob(this IBinaryPersistable blob, bool prefixWithTypeName = true)
         {
             using (var ms = new MemoryStream())

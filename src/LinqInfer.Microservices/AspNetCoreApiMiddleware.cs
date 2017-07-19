@@ -3,7 +3,7 @@ using LinqInfer.Data.Remoting;
 using Microsoft.AspNetCore.Builder;
 using System;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     internal class AspNetCoreApiMiddleware : HttpApiBuilder, IOwinApiBuilder
     {

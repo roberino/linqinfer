@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace LinqInfer.AspNetCoreTestHarness.Text
+namespace LinqInfer.Microservices.Text
 {
     public class FilterParser
     {

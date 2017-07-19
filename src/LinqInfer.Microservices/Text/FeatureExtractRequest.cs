@@ -2,7 +2,7 @@
 using LinqInfer.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCoreTestHarness.Text
+namespace LinqInfer.Microservices.Text
 {
     public class FeatureExtractRequest : RequestBase
     {

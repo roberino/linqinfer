@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public class JsonObjectSerialiser : IObjectSerialiser
     {

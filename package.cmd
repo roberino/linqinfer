@@ -6,8 +6,8 @@ dotnet pack "src\LinqInfer\LinqInfer-dotnetcore.csproj" --output ..\..\artifacts
 
 rem build aspnet core lib
 
-dotnet restore "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj"
-dotnet build "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj"
-dotnet pack "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj" --output ..\..\artifacts
+dotnet restore "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj"
+dotnet build "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj"
+dotnet pack "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj" --output ..\..\artifacts
 
 PAUSE

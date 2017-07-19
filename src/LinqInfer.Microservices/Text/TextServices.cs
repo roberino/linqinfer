@@ -1,5 +1,4 @@
-﻿using LinqInfer.AspNetCore;
-using LinqInfer.Data;
+﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
@@ -14,16 +13,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace LinqInfer.AspNetCoreTestHarness.Text
+namespace LinqInfer.Microservices.Text
 {
     public class TextServices
     {
-        private readonly IObjectSerialiser _serialiser;
-
-        public TextServices(IHttpApiBuilder apiBuilder, IObjectSerialiser serialiser = null)
+        public void Register(IHttpApiBuilder apiBuilder)
         {
-            _serialiser = serialiser ?? new JsonObjectSerialiser();
-
             apiBuilder.Bind("/text/indexes/{indexName}").ToMany(b =>
             {
                 b.UsingMethod(Verb.Post).To("", CreateIndex);
@@ -48,7 +43,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             });
         }
 
-        private static async Task<IEnumerable<ColumnVector1D>> ExtractVectors(FeatureExtractRequest request)
+        private async Task<IEnumerable<ColumnVector1D>> ExtractVectors(FeatureExtractRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
@@ -59,7 +54,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             return pipeline.ExtractVectors();
         }
 
-        private static async Task<FeatureMap<TokenisedTextDocument>> GetSofm(FeatureExtractRequest request)
+        private async Task<FeatureMap<TokenisedTextDocument>> GetSofm(FeatureExtractRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
@@ -70,9 +65,9 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             return pipeline.ToSofm().Execute();
         }
 
-        private static IEnumerable<TokenisedTextDocument> GetAllDocuments(string indexName)
+        private IEnumerable<TokenisedTextDocument> GetAllDocuments(string indexName)
         {
-            var indexDir = GetFile(indexName, false).Directory;
+            var indexDir = GetFile(indexName, false).Directory;            
 
             foreach (var file in indexDir.GetFiles("*.doc.xml"))
             {
@@ -83,7 +78,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             }
         }
 
-        private static async Task<ClassifierRequest> CreateClassifier(ClassifierRequest request)
+        private async Task<ClassifierRequest> CreateClassifier(ClassifierRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
@@ -110,7 +105,7 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             return request;
         }
 
-        private static async Task<IEnumerable<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
+        private async Task<IEnumerable<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
@@ -136,37 +131,38 @@ namespace LinqInfer.AspNetCoreTestHarness.Text
             return classifier.Classify(doc);
         }
 
-        private static Task<DocumentIndexViewModel> CreateIndex(string indexName)
+        private Task<DocumentIndexViewModel> CreateIndex(string indexName)
         {
             return CreateIndex(indexName, false);
         }
 
-        private static Task<DocumentIndexViewModel> OverwriteIndex(string indexName)
+        private Task<DocumentIndexViewModel> OverwriteIndex(string indexName)
         {
             return CreateIndex(indexName, true);
         }
 
-        private static async Task<DocumentIndexViewModel> GetIndex(string indexName)
+        private async Task<DocumentIndexViewModel> GetIndex(string indexName)
         {
             var index = await GetIndexInternal(indexName);
 
             return new DocumentIndexViewModel(index, indexName);
         }
-        private static async Task<IEnumerable<SearchResult>> Search(SearchRequest request)
+
+        private async Task<IEnumerable<SearchResult>> Search(SearchRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
             return index.Search(request.Q);
         }
 
-        private static async Task<ISemanticSet> GetKeyTerms(string indexName)
+        private async Task<ISemanticSet> GetKeyTerms(string indexName)
         {
             var index = await GetIndexInternal(indexName);
 
             return index.ExtractKeyTerms(25);
         }
 
-        private static Task<DocumentIndexViewModel> CreateIndex(string indexName, bool replace)
+        private Task<DocumentIndexViewModel> CreateIndex(string indexName, bool replace)
         {
             var file = GetFile(indexName);
 
