@@ -3,6 +3,7 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
+using LinqInfer.Microservices.Resources;
 using LinqInfer.Text;
 using LinqInfer.Text.Http;
 using System;
@@ -17,6 +18,18 @@ namespace LinqInfer.Microservices.Text
 {
     public class TextServices
     {
+        private readonly IVirtualFileStore _storage;
+
+        public TextServices(IVirtualFileStore storage)
+        {
+            _storage = storage;
+        }
+
+        public TextServices(DirectoryInfo dataDir = null)
+        {
+            _storage = new FileStorage(dataDir ?? new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "App_Data")));
+        }
+
         public void Register(IHttpApiBuilder apiBuilder)
         {
             apiBuilder.Bind("/text/indexes/{indexName}").ToMany(b =>
@@ -26,15 +39,17 @@ namespace LinqInfer.Microservices.Text
                 b.UsingMethod(Verb.Get).To("", GetIndex);
             });
 
-            apiBuilder.Bind("/text/indexes/{indexName}/$keyTerms", Verb.Get).To("", GetKeyTerms);
-            apiBuilder.Bind("/text/indexes/{indexName}/$search?q=a", Verb.Get).To(new SearchRequest(), Search);
+            apiBuilder.Bind("/text/indexes/{indexName}/keyTerms", Verb.Get).To("", GetKeyTerms);
+            apiBuilder.Bind("/text/indexes/{indexName}/search?q=a", Verb.Get).To(new SearchRequest(), Search);
 
-            apiBuilder.Bind("/text/indexes/{indexName}/$features/$map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);
-            apiBuilder.Bind("/text/indexes/{indexName}/$features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
-            apiBuilder.Bind("/text/indexes/{indexName}/$classifiers/{classifierName}/$create", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
-            apiBuilder.Bind("/text/indexes/{indexName}/$classifiers/{classifierName}/$classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
+            apiBuilder.Bind("/text/indexes/{indexName}/features/map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);
+            apiBuilder.Bind("/text/indexes/{indexName}/features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
+            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/$create", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
+            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/$classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
 
-            apiBuilder.Bind("/text/indexes/{indexName}/{documentId}").ToMany(b =>
+            apiBuilder.Bind("/text/indexes/{indexName}/documents", Verb.Get).To("", ListDocuments);
+
+            apiBuilder.Bind("/text/indexes/{indexName}/documents/{documentId}").ToMany(b =>
             {
                 b.UsingMethod(Verb.Post).To(new DocumentIndexRequest(), AddDocument);
                 b.UsingMethod(Verb.Put).To(new DocumentIndexRequest(), UpdateDocument);
@@ -46,43 +61,66 @@ namespace LinqInfer.Microservices.Text
         private async Task<IEnumerable<ColumnVector1D>> ExtractVectors(FeatureExtractRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
+            var docs = await GetAllDocuments(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(request.IndexName).AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
 
             await request.Apply(pipeline);
-
+            
             return pipeline.ExtractVectors();
         }
 
         private async Task<FeatureMap<TokenisedTextDocument>> GetSofm(FeatureExtractRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
+            var docs = await GetAllDocuments(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(request.IndexName).AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
 
             await request.Apply(pipeline);
 
             return pipeline.ToSofm().Execute();
         }
 
-        private IEnumerable<TokenisedTextDocument> GetAllDocuments(string indexName)
+        private async Task<IList<TokenisedTextDocument>> GetAllDocuments(string indexName, int maxDocs = 1000)
         {
-            var indexDir = GetFile(indexName, false).Directory;            
+            var files = await GetDocumentFiles(indexName);
 
-            foreach (var file in indexDir.GetFiles("*.doc.xml"))
+            int i = 0;
+
+            var list = new List<TokenisedTextDocument>();
+
+            foreach (var file in files)
             {
-                using (var fs = file.OpenRead())
+                using (var fs = await file.ReadData())
                 {
-                    yield return TokenisedTextDocument.FromXmlStream(fs);
+                    list.Add(TokenisedTextDocument.FromXmlStream(fs));
                 }
+
+                if (maxDocs == i++) break;
             }
+
+            return list;
+        }
+
+        private async Task<List<IVirtualFile>> GetDocumentFiles(string indexName)
+        {
+            return (await _storage.GetContainer(indexName).ListFiles()).Where(f => f.Name.EndsWith(".doc.xml")).ToList();
+        }
+
+        private async Task<ResourceList<string>> ListDocuments(string indexName)
+        {
+            var files = await GetDocumentFiles(indexName);
+
+            return files.Select(f => $"/text/indexes/{indexName}/documents/{f.Name.Substring(0, f.Name.Length - 8)}").ToResourceList();
         }
 
         private async Task<ClassifierRequest> CreateClassifier(ClassifierRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
+            var docs = await GetAllDocuments(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(GetAllDocuments(request.IndexName).AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
 
             await request.Apply(pipeline);
 
@@ -90,11 +128,11 @@ namespace LinqInfer.Microservices.Text
 
             var classifier = await trainingSet.ToMultilayerNetworkClassifier().ExecuteAsync();
 
-            var file = GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
+            var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
 
-            if (file.Exists) file.Delete();
+            if (file.Exists) await file.Delete();
 
-            using (var fs = file.OpenWrite())
+            using (var fs = file.GetWriteStream())
             {
                 classifier.ToVectorDocument().ExportAsXml().Save(fs);
             }
@@ -105,7 +143,7 @@ namespace LinqInfer.Microservices.Text
             return request;
         }
 
-        private async Task<IEnumerable<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
+        private async Task<ResourceList<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
@@ -113,80 +151,96 @@ namespace LinqInfer.Microservices.Text
 
             var fe = TextExtensions.CreateTextFeatureExtractor(index.ExtractKeyTerms(request.MaxVectorSize));
 
-            var file = GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
-
             IDynamicClassifier<string, TokenisedTextDocument> classifier;
 
-            using (var fs = file.OpenRead())
+            using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
             {
-                var xml = XDocument.Load(fs);
-                var dataDoc = new BinaryVectorDocument(xml);
+                using (var fs = file.GetWriteStream())
+                {
+                    var xml = XDocument.Load(fs);
+                    var dataDoc = new BinaryVectorDocument(xml);
 
-                classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                    classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                }
+
+                await file.CommitWrites();
             }
 
             request.LastUpdated = DateTime.UtcNow;
             request.Confirmed = true;
 
-            return classifier.Classify(doc);
+            return classifier.Classify(doc).ToResourceList();
         }
 
-        private Task<DocumentIndexViewModel> CreateIndex(string indexName)
+        private Task<DocumentIndexView> CreateIndex(string indexName)
         {
             return CreateIndex(indexName, false);
         }
 
-        private Task<DocumentIndexViewModel> OverwriteIndex(string indexName)
+        private Task<DocumentIndexView> OverwriteIndex(string indexName)
         {
             return CreateIndex(indexName, true);
         }
 
-        private async Task<DocumentIndexViewModel> GetIndex(string indexName)
+        private async Task<DocumentIndexView> GetIndex(string indexName)
         {
             var index = await GetIndexInternal(indexName);
 
-            return new DocumentIndexViewModel(index, indexName);
+            var indexView = new DocumentIndexView(index, indexName);
+
+            indexView.Links["documents"] = $"/text/indexes/{indexName}/documents";
+
+            return indexView;
         }
 
-        private async Task<IEnumerable<SearchResult>> Search(SearchRequest request)
+        private async Task<ResourceList<SearchResult>> Search(SearchRequest request)
         {
             var index = await GetIndexInternal(request.IndexName);
 
-            return index.Search(request.Q);
+            return index.Search(request.Q).ToResourceList($"index=/text/indexes/{request.IndexName}");
         }
 
         private async Task<ISemanticSet> GetKeyTerms(string indexName)
         {
             var index = await GetIndexInternal(indexName);
 
-            return index.ExtractKeyTerms(25);
+            return index.ExtractKeyTerms(500);
         }
 
-        private Task<DocumentIndexViewModel> CreateIndex(string indexName, bool replace)
+        private async Task<DocumentIndexView> CreateIndex(string indexName, bool replace)
         {
-            var file = GetFile(indexName);
-
-            if (file.Exists) throw new InvalidOperationException();
-
-            var index = Enumerable.Empty<TokenisedTextDocument>().CreateIndex();
-
-            using (var fs = file.OpenWrite())
+            using (var file = await GetFile(indexName))
             {
-                index.ExportAsXml().Save(fs);
+
+                if (file.Exists) throw new InvalidOperationException();
+
+                var index = Enumerable.Empty<TokenisedTextDocument>().CreateIndex();
+
+                using (var fs = file.GetWriteStream())
+                {
+                    index.ExportAsXml().Save(fs);
+                }
+
+                await file.CommitWrites();
+
+                var indexView = new DocumentIndexView(index, indexName);
+
+                indexView.Links["documents"] = $"/text/indexes/{indexName}/documents";
+
+                return indexView;
             }
-
-            return Task.FromResult(new DocumentIndexViewModel(index, indexName));
         }
 
-        private Task<TokenisedTextDocument> GetDocument(DocumentIndexRequest request)
+        private async Task<TokenisedTextDocument> GetDocument(DocumentIndexRequest request)
         {
-            var docFile = GetFile(request.IndexName, false, false, request.DocumentId + ".doc.xml");
-
-            using (var fs = docFile.OpenRead())
+            using (var docFile = await GetFile(request.IndexName, false, false, request.DocumentId + ".doc.xml"))
             {
-                var tokenisedTextDoc = TokenisedTextDocument.FromXmlStream(fs);
+                using (var fs = await docFile.ReadData())
+                {
+                    var tokenisedTextDoc = TokenisedTextDocument.FromXmlStream(fs);
 
-                return Task.FromResult(tokenisedTextDoc);
+                    return tokenisedTextDoc;
+                }
             }
         }
 
@@ -207,13 +261,13 @@ namespace LinqInfer.Microservices.Text
 
         private async Task<DocumentIndexRequest> AddOrModifyDocument(DocumentIndexRequest request, Verb behaviour = Verb.Post)
         {
-            var indexFile = GetFile(request.IndexName);
+            var indexFile = await GetFile(request.IndexName);
 
             if (!indexFile.Exists) throw new InvalidOperationException("Index missing: " + request.IndexName);
 
             if (request.DocumentId == null || request.DocumentId == "-") request.DocumentId = Guid.NewGuid().ToString("N");
 
-            var docFile = GetFile(request.IndexName, false, false, request.DocumentId + ".doc.xml");
+            var docFile = await GetFile(request.IndexName, false, false, request.DocumentId + ".doc.xml");
 
             if (docFile.Exists)
             {
@@ -286,14 +340,21 @@ namespace LinqInfer.Microservices.Text
 
             index.IndexDocument(doc);
 
-            using(var fs = docFile.OpenWrite())
+            using(var fs = docFile.GetWriteStream())
             {
                 doc.ExportAsXml().Save(fs);
             }
 
-            using (var fs = indexFile.OpenWrite())
+            using (var fs = indexFile.GetWriteStream())
             {
                 index.ExportAsXml().Save(fs);
+            }
+
+            using (docFile)
+            using (indexFile)
+            {
+                await docFile.CommitWrites();
+                await indexFile.CommitWrites();
             }
 
             request.LastUpdated = DateTime.UtcNow;
@@ -302,25 +363,25 @@ namespace LinqInfer.Microservices.Text
             return request;
         }
 
-        private static Task<IDocumentIndex> GetIndexInternal(string indexName)
+        private async Task<IDocumentIndex> GetIndexInternal(string indexName)
         {
-            using (var fs = GetFile(indexName, false).OpenText())
+            using (var indexFile = await GetFile(indexName, false))
             {
-                var docIndexXml = XDocument.Load(fs);
-                var docIndex = docIndexXml.OpenAsIndex();
-                return Task.FromResult(docIndex);
+                using (var fs = await indexFile.ReadData())
+                {
+                    var docIndexXml = XDocument.Load(fs);
+                    var docIndex = docIndexXml.OpenAsIndex();
+                    return docIndex;
+                }
             }
         }
 
-        private static FileInfo GetFile(string storeName, bool createDir = true, bool isMetaFile = true, string name = "index.xml")
+        private async Task<IVirtualFile> GetFile(string storeName, bool createDir = true, bool isMetaFile = true, string name = "index.xml")
         {
             if (storeName.Any(c => !char.IsLetterOrDigit(c))) throw new ArgumentException(storeName);
+            if (name.Any(c => !char.IsLetterOrDigit(c) && c != '.' && c != '-' && c != '_')) throw new ArgumentException(name);
 
-            var cd = Directory.GetCurrentDirectory();
-
-            var file = new FileInfo(Path.Combine(cd, storeName + Path.DirectorySeparatorChar, (isMetaFile ? "_" : "") + name));
-
-            if (createDir && !file.Directory.Exists) file.Directory.Create();
+            var file = await _storage.GetContainer(storeName).GetFile((isMetaFile ? "_" : "") + name);
 
             return file;
         }

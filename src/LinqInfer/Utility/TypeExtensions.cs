@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -41,6 +42,22 @@ namespace LinqInfer.Utility
         }
 #endif
 
+        /// <summary>
+        /// Lists flags from an enum
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static  IEnumerable<Enum> GetFlags(this Enum input)
+        {
+            foreach (Enum value in Enum.GetValues(input.GetType()))
+            {
+                if (input.HasFlag(value)) yield return value;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if a type is an anonymous type
+        /// </summary>
         public static bool IsAnonymous<T>()
         {
             var type = GetTypeInf<T>();
@@ -49,6 +66,9 @@ namespace LinqInfer.Utility
                 && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
         }
 
+        /// <summary>
+        /// Gets the inner type of a nullable type
+        /// </summary>
         public static Type GetNullableTypeType(this Type type)
         {
             if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == nullableType)
@@ -58,6 +78,12 @@ namespace LinqInfer.Utility
             return null;
         }
 
+        /// <summary>
+        /// Makes a value into a specific nullable type
+        /// </summary>
+        /// <param name="innerType"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static object MakeNullableType(this Type innerType, object value)
         {
             return nullableType

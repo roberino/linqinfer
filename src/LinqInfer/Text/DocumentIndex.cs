@@ -82,7 +82,7 @@ namespace LinqInfer.Text
         public ISemanticSet ExtractKeyTerms(int maxNumberOfTerms)
         {
             Contract.Requires(maxNumberOfTerms > 0);
-
+            
             var docKeys = DocumentKeys.ToList();
 
             var frequentWordsByKey = docKeys.SelectMany(k =>
@@ -98,12 +98,17 @@ namespace LinqInfer.Text
                     });
 
             })
-            .Distinct((x, y) => string.Equals(x.data.Term, y.data.Term), x => x.data.Term.GetHashCode())
-            .OrderByDescending(t => t.freqScore)
+            .GroupBy(t => t.data.Term)
+            .Select(t => new
+            {
+                term = t.Key,
+                score = t.Aggregate(1d, (x, v) => x * (v.freqScore + 1))
+            })
+            .OrderByDescending(t => t.score)
             .Take(maxNumberOfTerms)
             .ToList();
 
-            return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.data.Term)));
+            return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.term)));
         }
 
         /// <summary>

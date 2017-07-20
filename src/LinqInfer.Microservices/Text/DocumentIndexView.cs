@@ -1,13 +1,14 @@
-﻿using LinqInfer.Text;
+﻿using LinqInfer.Microservices.Resources;
+using LinqInfer.Text;
 using System.Collections.Generic;
 
 namespace LinqInfer.Microservices.Text
 {
-    public class DocumentIndexViewModel
+    public class DocumentIndexView : ResourceHeader
     {
         private readonly IDocumentIndex _index;
 
-        public DocumentIndexViewModel(IDocumentIndex index, string indexName)
+        public DocumentIndexView(IDocumentIndex index, string indexName)
         {
             IndexName = indexName;
             _index = index;
