@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\LinqInfer.Microservices\LinqInfer.Microservices.csproj" />
     <ProjectReference Include="..\..\src\LinqInfer\LinqInfer-dotnetcore.csproj" />
   </ItemGroup>
 

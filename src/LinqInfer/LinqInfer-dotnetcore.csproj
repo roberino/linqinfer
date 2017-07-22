@@ -26,6 +26,7 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <Version>3.8.2</Version>
+    <RootNamespace>LinqInfer</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

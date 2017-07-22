@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public class HttpContextConverter
     {

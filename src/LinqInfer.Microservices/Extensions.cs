@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public static class Extensions
     {

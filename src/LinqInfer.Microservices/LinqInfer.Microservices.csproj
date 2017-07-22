@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>AspNet Core adapters for LinqInfer</Description>
+    <Description>AspNet Core adapters and microservices for LinqInfer</Description>
     <AssemblyTitle>LinqInfer.AspNetCore</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <VersionPrefix>1.0.2</VersionPrefix>
@@ -14,13 +14,15 @@
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <PackageTags>linqinfer;aspnet core;microservices</PackageTags>
-    <PackageId>LinqInfer.AspNetCore</PackageId>
+    <PackageId>LinqInfer.Microservices</PackageId>
+    <Authors>R Eyres</Authors>
+    <Company />
   </PropertyGroup>
-  <ItemGroup  Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="Microsoft.AspNetCore" Version="2.0.0-preview2-final" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0-preview2-final" />
   </ItemGroup>
-  <ItemGroup  Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="1.1.2" />
   </ItemGroup>

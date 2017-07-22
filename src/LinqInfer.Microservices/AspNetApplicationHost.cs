@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     internal class AspNetApplicationHost : IOwinApplication
     {
