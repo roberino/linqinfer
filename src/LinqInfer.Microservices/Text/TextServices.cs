@@ -39,7 +39,7 @@ namespace LinqInfer.Microservices.Text
                 b.UsingMethod(Verb.Get).To("", GetIndex);
             });
 
-            apiBuilder.Bind("/text/indexes/{indexName}/keyTerms", Verb.Get).To("", GetKeyTerms);
+            apiBuilder.Bind("/text/indexes/{indexName}/key-terms", Verb.Get).To("", GetKeyTerms);
             apiBuilder.Bind("/text/indexes/{indexName}/search?q=a", Verb.Get).To(new SearchRequest(), Search);
 
             apiBuilder.Bind("/text/indexes/{indexName}/features/map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);

@@ -58,9 +58,9 @@ namespace LinqInfer.Data
             }, _ => file.OpenWrite())
             {
                 Exists = file.Exists,
-                Created = file.CreationTimeUtc,
-                Modified = file.LastWriteTimeUtc,
-                Attributes = file.Attributes.GetFlags().ToDictionary(f => f.ToString(), _ => "true")
+                Created = !file.Exists ? DateTime.UtcNow : file.CreationTimeUtc,
+                Modified = !file.Exists ? DateTime.UtcNow : file.LastWriteTimeUtc,
+                Attributes = !file.Exists ? new Dictionary<string, string>() : file.Attributes.GetFlags().ToDictionary(f => f.ToString(), _ => "true")
             };
         }
 

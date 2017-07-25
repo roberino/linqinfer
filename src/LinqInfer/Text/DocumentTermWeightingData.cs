@@ -23,6 +23,18 @@ namespace LinqInfer.Text
             return score;
         }
 
+        public static double DefaultCalculationMethodNoAdjust(IList<DocumentTermWeightingData> weights)
+        {
+            var score = weights.Aggregate(1d, (t, x) =>
+            {
+                var idf = Math.Log(x.DocumentCount / (double)x.DocumentFrequency);
+
+                return t * idf * x.TermFrequency;
+            });
+
+            return score;
+        }
+
         public static double NormalisedCalculationMethod(IList<DocumentTermWeightingData> weights)
         {
             return weights.Aggregate(0d, (t, x) =>
