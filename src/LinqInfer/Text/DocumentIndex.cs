@@ -82,33 +82,47 @@ namespace LinqInfer.Text
         public ISemanticSet ExtractKeyTerms(int maxNumberOfTerms)
         {
             Contract.Requires(maxNumberOfTerms > 0);
-            
-            var docKeys = DocumentKeys.ToList();
 
-            var frequentWordsByKey = docKeys.SelectMany(k =>
+            var terms = _frequencies.Select(f => new DocumentTermWeightingData()
             {
-                var f = WordFrequenciesByDocumentKey(k).ToList();
-
-                return f
-                    .Select(x => new
-                    {
-                        data = x,
-                        freqScore = _calculationMethod(new[] { x }),
-                        nf = f.Max(t => (int)t.TermFrequency)
-                    });
-
+                DocumentCount = _documentCount,
+                DocumentFrequency = f.Value.Count,
+                Term = f.Key,
+                TermFrequency = f.Value.DocFrequencies.Sum(d => d.Value)
             })
-            .GroupBy(t => t.data.Term)
-            .Select(t => new
-            {
-                term = t.Key,
-                score = t.Aggregate(1d, (x, v) => x * (v.freqScore + 1))
-            })
+            .Select(f => new { data = f, term = f.Term, score = DocumentTermWeightingData.DefaultCalculationMethodNoAdjust(new[] { f }) })
             .OrderByDescending(t => t.score)
             .Take(maxNumberOfTerms)
             .ToList();
+            
+            return new SemanticSet(new HashSet<string>(terms.Select(w => w.term)));
 
-            return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.term)));
+            //var docKeys = DocumentKeys.ToList();
+
+            //var frequentWordsByKey = docKeys.SelectMany(k =>
+            //{
+            //    var f = WordFrequenciesByDocumentKey(k).ToList();
+
+            //    return f
+            //        .Select(x => new
+            //        {
+            //            data = x,
+            //            freqScore = _calculationMethod(new[] { x }),
+            //            nf = f.Max(t => (int)t.TermFrequency)
+            //        });
+
+            //})
+            //.GroupBy(t => t.data.Term)
+            //.Select(t => new
+            //{
+            //    term = t.Key,
+            //    score = t.Aggregate(1d, (x, v) => x * (v.freqScore + 1))
+            //})
+            //.OrderByDescending(t => t.score)
+            //.Take(maxNumberOfTerms)
+            //.ToList();
+
+            //return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.term)));
         }
 
         /// <summary>
