@@ -9,6 +9,11 @@ namespace LinqInfer.Data
     public interface IVirtualFileStore
     {
         /// <summary>
+        /// Deletes the storage container
+        /// </summary>
+        Task<bool> Delete();
+
+        /// <summary>
         /// Returns a new virtual file store for the given name
         /// </summary>
         IVirtualFileStore GetContainer(string name);

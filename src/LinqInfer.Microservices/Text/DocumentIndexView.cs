@@ -14,10 +14,12 @@ namespace LinqInfer.Microservices.Text
             _index = index;
         }
 
+        public bool Exists { get { return _index != null; } }
+
         public string IndexName { get; set; }
 
-        public long DocumentCount { get { return _index.DocumentCount; } }
+        public long DocumentCount { get { return _index == null ? 0 : _index.DocumentCount; } }
 
-        public IDictionary<string, long> Terms { get { return _index.GetTermFrequencies(); } }
+        public IDictionary<string, long> Terms { get { return _index == null ? new Dictionary<string, long>() : _index.GetTermFrequencies(); } }
     }
 }

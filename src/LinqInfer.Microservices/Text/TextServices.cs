@@ -37,6 +37,7 @@ namespace LinqInfer.Microservices.Text
                 b.UsingMethod(Verb.Post).To("", CreateIndex);
                 b.UsingMethod(Verb.Put).To("", OverwriteIndex);
                 b.UsingMethod(Verb.Get).To("", GetIndex);
+                b.UsingMethod(Verb.Delete).To("", DeleteIndex);
             });
 
             apiBuilder.Bind("/text/indexes/{indexName}/key-terms", Verb.Get).To("", GetKeyTerms);
@@ -170,6 +171,13 @@ namespace LinqInfer.Microservices.Text
             request.Confirmed = true;
 
             return classifier.Classify(doc).ToResourceList();
+        }
+
+        private async Task<DocumentIndexView> DeleteIndex(string indexName)
+        {
+            await GetStorageContainer(indexName).Delete();
+
+            return new DocumentIndexView(null, indexName);
         }
 
         private Task<DocumentIndexView> CreateIndex(string indexName)
@@ -378,12 +386,18 @@ namespace LinqInfer.Microservices.Text
 
         private async Task<IVirtualFile> GetFile(string storeName, bool createDir = true, bool isMetaFile = true, string name = "index.xml")
         {
-            if (storeName.Any(c => !char.IsLetterOrDigit(c))) throw new ArgumentException(storeName);
             if (name.Any(c => !char.IsLetterOrDigit(c) && c != '.' && c != '-' && c != '_')) throw new ArgumentException(name);
 
-            var file = await _storage.GetContainer(storeName).GetFile((isMetaFile ? "_" : "") + name);
+            var file = await GetStorageContainer(storeName).GetFile((isMetaFile ? "_" : "") + name);
 
             return file;
+        }
+
+        private IVirtualFileStore GetStorageContainer(string storeName)
+        {
+            if (storeName.Any(c => !char.IsLetterOrDigit(c))) throw new ArgumentException(storeName);
+
+            return _storage.GetContainer(storeName);
         }
     }
 }
