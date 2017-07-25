@@ -47,6 +47,8 @@ namespace LinqInfer.Data
         {
             return new VirtualFile(file.Name, _ => Task.FromResult((Stream)file.OpenRead()), async (n, s) =>
             {
+                if (!file.Directory.Exists) file.Directory.Create();
+
                 using (var fs = file.OpenWrite())
                 {
                     await s.CopyToAsync(fs);
@@ -55,7 +57,12 @@ namespace LinqInfer.Data
             {
                 file.Delete();
                 return Task.FromResult(true);
-            }, _ => file.OpenWrite())
+            }, _ =>
+            {
+                if (!file.Directory.Exists) file.Directory.Create();
+
+                return file.OpenWrite();
+            })
             {
                 Exists = file.Exists,
                 Created = !file.Exists ? DateTime.UtcNow : file.CreationTimeUtc,
