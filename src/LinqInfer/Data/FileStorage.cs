@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,16 @@ namespace LinqInfer.Data
         public FileStorage(DirectoryInfo storageDir)
         {
             _storageDir = storageDir;
+        }
+
+        public Task<bool> Delete()
+        {
+            if (_storageDir.Exists)
+            {
+                _storageDir.Delete(true);
+            }
+
+            return Task.FromResult(true);
         }
 
         public IVirtualFileStore GetContainer(string name)
