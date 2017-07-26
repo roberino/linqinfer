@@ -127,7 +127,7 @@ namespace LinqInfer.Microservices.Text
 
             var trainingSet = pipeline.AsTrainingSet(d => d.Attributes[request.ClassAttributeName].ToString());
 
-            var classifier = await trainingSet.ToMultilayerNetworkClassifier().ExecuteAsync();
+            var classifier = await trainingSet.ToMultilayerNetworkClassifier(request.ErrorTolerance.GetValueOrDefault(0.1f)).ExecuteAsync();
 
             var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
 
@@ -156,7 +156,7 @@ namespace LinqInfer.Microservices.Text
 
             using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
             {
-                using (var fs = file.GetWriteStream())
+                using (var fs = await file.ReadData())
                 {
                     var xml = XDocument.Load(fs);
                     var dataDoc = new BinaryVectorDocument(xml);
