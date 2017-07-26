@@ -1,3 +1,5 @@
+#!/bin/sh
+
 docker build -t linqinferweb -f Dockerfile.web .
 
 # docker stop <already-running-container>
