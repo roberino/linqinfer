@@ -161,29 +161,28 @@ namespace LinqInfer.Microservices.Text
         private async Task<ClassifierView> GetClassifier(ClassifyRequest request)
         {
             var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise());
-            
+
             IDynamicClassifier<string, TokenisedTextDocument> classifier;
+            ISemanticSet keyTerms;
 
             using (var fileTerms = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier-terms.xml"))
             {
-                ISemanticSet keyTerms;
-
                 using (var data = await fileTerms.ReadData())
                 {
                     keyTerms = SemanticSet.FromXmlStream(data);
                 }
+            }
 
-                var fe = TextExtensions.CreateTextFeatureExtractor(keyTerms);
+            var fe = TextExtensions.CreateTextFeatureExtractor(keyTerms);
 
-                using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+            using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+            {
+                using (var fs = await file.ReadData())
                 {
-                    using (var fs = await file.ReadData())
-                    {
-                        var xml = XDocument.Load(fs);
-                        var dataDoc = new BinaryVectorDocument(xml);
+                    var xml = XDocument.Load(fs);
+                    var dataDoc = new BinaryVectorDocument(xml);
 
-                        classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
-                    }
+                    classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
                 }
             }
 
@@ -223,6 +222,8 @@ namespace LinqInfer.Microservices.Text
                     }
 
                     results = classifier.Classify(doc).ToResourceList();
+
+                    await file.Delete();
 
                     using (var fs = file.GetWriteStream())
                     {
