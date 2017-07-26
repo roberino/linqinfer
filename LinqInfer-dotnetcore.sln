@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.AspNetCoreTestHar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Microservices", "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj", "{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Microservices.Tests", "tests\LinqInfer.Microservices.Tests\LinqInfer.Microservices.Tests.csproj", "{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

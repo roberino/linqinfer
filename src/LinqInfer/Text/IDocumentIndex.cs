@@ -46,13 +46,13 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        ISemanticSet ExtractTerms();
+        IImportableExportableSemanticSet ExtractTerms();
 
         /// <summary>
-        /// Returns a set of key terms based on their tf/idf
+        /// Returns a set of key terms (the default implementation returns words ordered descending by their tf/idf)
         /// </summary>
         /// <param name="maxNumberOfTerms">The max number of terms to return</param>
         /// <returns></returns>
-        ISemanticSet ExtractKeyTerms(int maxNumberOfTerms);
+        IImportableExportableSemanticSet ExtractKeyTerms(int maxNumberOfTerms);
     }
 }

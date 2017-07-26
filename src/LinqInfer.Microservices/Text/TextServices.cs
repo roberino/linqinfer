@@ -45,8 +45,9 @@ namespace LinqInfer.Microservices.Text
 
             apiBuilder.Bind("/text/indexes/{indexName}/features/map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);
             apiBuilder.Bind("/text/indexes/{indexName}/features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
-            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/$create", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
-            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/$classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
+            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
+            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}", Verb.Get).To(new ClassifyRequest(), GetClassifier);
+            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
 
             apiBuilder.Bind("/text/indexes/{indexName}/documents", Verb.Get).To("", ListDocuments);
 
@@ -121,56 +122,118 @@ namespace LinqInfer.Microservices.Text
             var index = await GetIndexInternal(request.IndexName);
             var docs = await GetAllDocuments(request.IndexName);
 
-            var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), index.ExtractKeyTerms(request.MaxVectorSize));
+            var keyTerms = index.ExtractKeyTerms(request.MaxVectorSize);
+            var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), keyTerms);
 
             await request.Apply(pipeline);
 
             var trainingSet = pipeline.AsTrainingSet(d => d.Attributes[request.ClassAttributeName].ToString());
 
-            var classifier = await trainingSet.ToMultilayerNetworkClassifier().ExecuteAsync();
+            var classifier = await trainingSet.ToMultilayerNetworkClassifier(request.ErrorTolerance.GetValueOrDefault(0.1f)).ExecuteAsync();
 
-            var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml");
-
-            if (file.Exists) await file.Delete();
-
-            using (var fs = file.GetWriteStream())
+            using (var mlnFile = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+            using (var termsFile = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier-terms.xml"))
             {
-                classifier.ToVectorDocument().ExportAsXml().Save(fs);
+                if (mlnFile.Exists) await mlnFile.Delete();
+                if (termsFile.Exists) await termsFile.Delete();
+
+                using (var fs = mlnFile.GetWriteStream())
+                {
+                    classifier.ToVectorDocument().ExportAsXml().Save(fs);
+                    await termsFile.CommitWrites();
+                }
+
+                using (var fs = termsFile.GetWriteStream())
+                {
+                    keyTerms.ExportAsXml().Save(fs);
+                    await termsFile.CommitWrites();
+                }
             }
 
+            request.Created = DateTime.UtcNow;
             request.LastUpdated = DateTime.UtcNow;
             request.Confirmed = true;
+            request.Links["classify"] = $"/text/indexes/{request.IndexName}/classifiers/{request.ClassifierName}/classify";
 
             return request;
         }
 
-        private async Task<ResourceList<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
+        private async Task<ClassifierView> GetClassifier(ClassifyRequest request)
         {
-            var index = await GetIndexInternal(request.IndexName);
-
-            var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise(index.Tokeniser));
-
-            var fe = TextExtensions.CreateTextFeatureExtractor(index.ExtractKeyTerms(request.MaxVectorSize));
-
+            var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise());
+            
             IDynamicClassifier<string, TokenisedTextDocument> classifier;
 
-            using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+            using (var fileTerms = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier-terms.xml"))
             {
-                using (var fs = file.GetWriteStream())
-                {
-                    var xml = XDocument.Load(fs);
-                    var dataDoc = new BinaryVectorDocument(xml);
+                ISemanticSet keyTerms;
 
-                    classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                using (var data = await fileTerms.ReadData())
+                {
+                    keyTerms = SemanticSet.FromXmlStream(data);
                 }
 
-                await file.CommitWrites();
+                var fe = TextExtensions.CreateTextFeatureExtractor(keyTerms);
+
+                using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+                {
+                    using (var fs = await file.ReadData())
+                    {
+                        var xml = XDocument.Load(fs);
+                        var dataDoc = new BinaryVectorDocument(xml);
+
+                        classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                    }
+                }
             }
 
-            request.LastUpdated = DateTime.UtcNow;
-            request.Confirmed = true;
+            var view = new ClassifierView(classifier);
 
-            return classifier.Classify(doc).ToResourceList();
+            view.Links["classify"] = $"/text/indexes/{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+
+            return view;
+        }
+
+        private async Task<ResourceList<ClassifyResult<string>>> ClassifyText(ClassifyRequest request)
+        {
+            var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise());
+
+            ResourceList<ClassifyResult<string>> results;
+            IDynamicClassifier<string, TokenisedTextDocument> classifier;
+
+            using (var fileTerms = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier-terms.xml"))
+            {
+                ISemanticSet keyTerms;
+
+                using (var data = await fileTerms.ReadData())
+                {
+                    keyTerms = SemanticSet.FromXmlStream(data);
+                }
+
+                var fe = TextExtensions.CreateTextFeatureExtractor(keyTerms);
+
+                using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
+                {
+                    using (var fs = await file.ReadData())
+                    {
+                        var xml = XDocument.Load(fs);
+                        var dataDoc = new BinaryVectorDocument(xml);
+
+                        classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                    }
+
+                    results = classifier.Classify(doc).ToResourceList();
+
+                    using (var fs = file.GetWriteStream())
+                    {
+                        classifier.ToVectorDocument().ExportAsXml().Save(fs);
+
+                        await file.CommitWrites();
+                    }
+                }
+            }
+
+            return results;
         }
 
         private async Task<DocumentIndexView> DeleteIndex(string indexName)

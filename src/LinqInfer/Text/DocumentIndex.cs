@@ -71,7 +71,7 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        public ISemanticSet ExtractTerms()
+        public IImportableExportableSemanticSet ExtractTerms()
         {
             return new SemanticSet(new HashSet<string>(_frequencies.Keys));
         }
@@ -79,7 +79,7 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        public ISemanticSet ExtractKeyTerms(int maxNumberOfTerms)
+        public IImportableExportableSemanticSet ExtractKeyTerms(int maxNumberOfTerms)
         {
             Contract.Requires(maxNumberOfTerms > 0);
 
@@ -96,33 +96,6 @@ namespace LinqInfer.Text
             .ToList();
             
             return new SemanticSet(new HashSet<string>(terms.Select(w => w.term)));
-
-            //var docKeys = DocumentKeys.ToList();
-
-            //var frequentWordsByKey = docKeys.SelectMany(k =>
-            //{
-            //    var f = WordFrequenciesByDocumentKey(k).ToList();
-
-            //    return f
-            //        .Select(x => new
-            //        {
-            //            data = x,
-            //            freqScore = _calculationMethod(new[] { x }),
-            //            nf = f.Max(t => (int)t.TermFrequency)
-            //        });
-
-            //})
-            //.GroupBy(t => t.data.Term)
-            //.Select(t => new
-            //{
-            //    term = t.Key,
-            //    score = t.Aggregate(1d, (x, v) => x * (v.freqScore + 1))
-            //})
-            //.OrderByDescending(t => t.score)
-            //.Take(maxNumberOfTerms)
-            //.ToList();
-
-            //return new SemanticSet(new HashSet<string>(frequentWordsByKey.Select(w => w.term)));
         }
 
         /// <summary>
