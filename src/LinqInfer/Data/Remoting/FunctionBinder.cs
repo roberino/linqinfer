@@ -191,7 +191,7 @@ namespace LinqInfer.Data.Remoting
                 throw new ArgumentException("Parameter(s) not found: " + string.Join(",", missing.Select(m => m.prop.Name)));
             }
 
-            if (!instanceFromBody && !properties.All(p => p.CanWrite))
+            if (!instanceFromBody && properties.All(p => !p.CanWrite))
             {
                 if (missing.Count == values.Count) return instance;
 
