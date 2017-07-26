@@ -238,6 +238,7 @@
     <Compile Include="Data\Remoting\IHttpClient.cs" />
     <Compile Include="Text\Http\RelativeLink.cs" />
     <Compile Include="Text\IDocumentIndex.cs" />
+    <Compile Include="Text\IImportableExportableSemanticSet.cs" />
     <Compile Include="Text\ISemanticSet.cs" />
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />
