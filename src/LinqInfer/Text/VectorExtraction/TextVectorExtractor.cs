@@ -103,7 +103,9 @@ namespace LinqInfer.Text.VectorExtraction
 
         private int GetNormalisingFrequency(int index)
         {
-            return _normalise ? (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault : 1;
+            var x = _normalise ? (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault : 1;
+
+            return x == 0 ? 1 : x;
         }
 
         private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
