@@ -65,11 +65,13 @@ namespace LinqInfer.Data.Remoting
                 case "PUT":
                     return Verb.Create;
                 case "POST":
-                    return Verb.Update;
+                    return Verb.Post;
                 case "DELETE":
                     return Verb.Delete;
                 case "OPTIONS":
                     return Verb.Options;
+                case "PATCH":
+                    return Verb.Patch;
                 default:
                     return Verb.Default;
             }
@@ -81,7 +83,7 @@ namespace LinqInfer.Data.Remoting
             {
                 case Verb.Create:
                     return "PUT";
-                case Verb.Update:
+                case Verb.Post:
                     return "POST";
                 case Verb.Default:
                     return "GET";

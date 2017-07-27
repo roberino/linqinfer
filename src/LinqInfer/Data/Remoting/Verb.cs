@@ -7,8 +7,9 @@ namespace LinqInfer.Data.Remoting
     {
         Default = 0,
 
+        [Obsolete]
         /// <summary>
-        /// Creates a new resource (equiv to PUT)
+        /// Creates a new resource (currently equiv to PUT but will be removed in future releases)
         /// </summary>
         Create = 1,
 

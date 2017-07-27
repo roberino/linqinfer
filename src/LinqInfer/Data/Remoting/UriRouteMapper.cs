@@ -66,8 +66,6 @@ namespace LinqInfer.Data.Remoting
 
         internal IDictionary<string, string> Parse(Uri uri)
         {
-            int i = 0;
-
             var parameters = _parts.Where(p => p.Type != RoutePartType.Static).GroupBy(p => p.Name).ToDictionary(p => p.Key, p => string.Empty);
 
             if (uri.PathAndQuery == "/") // Root
