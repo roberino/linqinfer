@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +13,8 @@ namespace LinqInfer.Text.VectorExtraction
         private const int EXTENDED_FEATURE_COUNT = 4;
         private readonly IList<IFeature> _features;
         private readonly IDictionary<string, int> _words;
-        private readonly bool _normalise;
+
+        private bool _normalise;
         private int[] _normalisingFrequencies;
         private int _normalisingFrequencyDefault;
 
@@ -64,7 +64,7 @@ namespace LinqInfer.Text.VectorExtraction
         {
             get
             {
-                return _normalise;
+                return true;
             }
         }
 
@@ -143,7 +143,10 @@ namespace LinqInfer.Text.VectorExtraction
 
         public double[] NormaliseUsing(IEnumerable<IEnumerable<IToken>> samples)
         {
-            return Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
+            _normalisingFrequencies = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(ExtractVectorDenormal(s)))).Select(v => (int)v).ToArray();
+            _normalise = true;
+
+            return _normalisingFrequencies.Select(d => (double)d).ToArray(); // Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
         }
 
         public void Save(Stream output)

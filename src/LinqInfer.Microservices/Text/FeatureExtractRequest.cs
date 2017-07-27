@@ -28,6 +28,9 @@ namespace LinqInfer.Microservices.Text
                     case "map":
                         pipeline.KohonenSOMFeatureReduction(int.Parse(op.Parameters[0]), int.Parse(op.Parameters[1]));
                         break;
+                    case "norm":
+                        pipeline.NormaliseData();
+                        break;
                     case "none":
                         break;
                     default:

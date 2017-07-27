@@ -9,6 +9,57 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Zips together two enumerables, returning when the end of both have been reached. If one enumerable contains less items
+        /// than the other then the default value is returned. E.g.
+        /// [1,2,3].ZipAll([1,2], (x,y) => [x,y]) = [[1,1],[2,2],[3,0]]
+        /// OR using references:
+        /// ["1","2","3"].ZipAll(["1","2"], (x,y) => [x,y]) = [["1","1"],["2","2"],["3",null]]
+        /// </summary>
+        public static IEnumerable<O> ZipAll<T1, T2, O>(this IEnumerable<T1> items1, IEnumerable<T2> items2, Func<T1, T2, O> resultSelector)
+        {
+            var e1 = items1.GetEnumerator();
+            var e2 = items2.GetEnumerator();
+            var e1cont = true;
+            var e2cont = true;
+
+            T1 item1;
+            T2 item2;
+
+            try
+            {
+                while (e1cont || e2cont)
+                {
+                    if (e1cont)
+                    {
+                        e1cont = e1.MoveNext();
+                        item1 = e1cont ? e1.Current : default(T1);
+                    }
+                    else
+                    {
+                        item1 = default(T1);
+                    }
+
+                    if (e2cont)
+                    {
+                        e2cont = e2.MoveNext();
+                        item2 = e2cont ? e2.Current : default(T2);
+                    }
+                    else
+                    {
+                        item2 = default(T2);
+                    }
+
+                    if (e1cont || e2cont) yield return resultSelector(item1, item2);
+                }
+            }
+            finally
+            {
+                e1.Dispose();
+                e2.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Returns a distinct list of items using the comparison functions
         /// </summary>
         /// <typeparam name="T">The type of item</typeparam>

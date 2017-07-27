@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -80,35 +81,32 @@ namespace LinqInfer.Data.Remoting
 
             var uriBuilder = new UriBuilder(uri);
 
-            var path = uriBuilder.Path.Split('/');
+            var path = uriBuilder.Path.Split('/').Skip(1);
 
-            foreach (var part in path.Skip(1))
+            foreach (var item in _parts.Where(p => 
+                p.Type == RoutePartType.PathParameter ||
+                p.Type == RoutePartType.Static ||
+                p.Type == RoutePartType.WildCard).ZipAll(path, (r, p) => new { route = r, path = p }))
             {
-                if (i < _parts.Count)
+                if (item.path == null) throw new ArgumentException("Missing " + item.route.Name);
+                if (item.route == null && item.path.Length > 0) throw new ArgumentException(item.path);
+                if (item.route == null) break;
+
+                var part = item.path;
+                var partType = item.route;
+
+                switch (partType.Type)
                 {
-                    var partType = _parts[i];
-
-                    switch (partType.Type)
-                    {
-                        case RoutePartType.Static:
-                            if (partType.Name != part) throw new ArgumentException(part);
-                            break;
-                        case RoutePartType.PathParameter:
-                            parameters[partType.Name] = part;
-                            break;
-                        case RoutePartType.WildCard:
-                            parameters[part] = part;
-                            break;
-                    }
+                    case RoutePartType.Static:
+                        if (partType.Name != part) throw new ArgumentException(part);
+                        break;
+                    case RoutePartType.PathParameter:
+                        parameters[partType.Name] = part;
+                        break;
+                    case RoutePartType.WildCard:
+                        parameters[part] = part;
+                        break;
                 }
-                else
-                {
-                    if (string.IsNullOrEmpty(part)) break;
-
-                    throw new ArgumentException(part);
-                }
-
-                i++;
             }
 
             if (uriBuilder.Query.Length > 1)
@@ -122,10 +120,10 @@ namespace LinqInfer.Data.Remoting
 
                     if (_parts.Any(p => p.Type == RoutePartType.QueryParameter && string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase)))
                     {
-                        parameters[key] = kv.Length > 1 ? kv[1] : string.Empty;
+                        parameters[key] = kv.Length > 1 ? Uri.UnescapeDataString(kv[1]) : string.Empty;
                     }
 
-                    parameters["query." + key] = kv.Length > 1 ? kv[1] : string.Empty;
+                    parameters["query." + key] = kv.Length > 1 ? Uri.UnescapeDataString(kv[1]) : string.Empty;
                 }
             }
 

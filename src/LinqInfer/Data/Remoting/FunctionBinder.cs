@@ -202,7 +202,14 @@ namespace LinqInfer.Data.Remoting
                     conarg[prop.index] = prop.prop.GetValue(instance);
                 }
 
-                instance = (T)Activator.CreateInstance(type, conarg);
+                try
+                {
+                    instance = (T)Activator.CreateInstance(type, conarg);
+                }
+                catch (MissingMethodException)
+                {
+                    throw new ArithmeticException("Can't find suitable constructor for " + type.Name);
+                }
             }
             else
             {
