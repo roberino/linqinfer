@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinqInfer.AspNetCoreTestHarness
 {
@@ -22,8 +23,10 @@ namespace LinqInfer.AspNetCoreTestHarness
             var api = endpoint.CreateHttpApi();
             var sz = new JsonObjectSerialiser();
 
-            new TextServices().Register(api);
+            api.UseTextServices();
 
+            var cache = new MemoryCache(new MemoryCacheOptions());
+            
             api.AddErrorHandler(async (c, e) =>
             {
                 if (e is FileNotFoundException)

@@ -16,23 +16,26 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Microservices.Text
 {
-    public class TextServices
+    internal class TextServices
     {
+        private const string _baseApiRoute = "/text/indexes/";
         private readonly IVirtualFileStore _storage;
+        private readonly ICache _cache;
 
-        public TextServices(IVirtualFileStore storage)
+        public TextServices(IVirtualFileStore storage, ICache cache = null)
         {
+            _cache = cache ?? new DefaultCache();
             _storage = storage;
         }
 
-        public TextServices(DirectoryInfo dataDir = null)
+        public TextServices(DirectoryInfo dataDir = null, ICache cache = null)
+            : this(new FileStorage(dataDir ?? new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "App_Data"))), cache)
         {
-            _storage = new FileStorage(dataDir ?? new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "App_Data")));
         }
 
         public void Register(IHttpApiBuilder apiBuilder)
         {
-            apiBuilder.Bind("/text/indexes/{indexName}").ToMany(b =>
+            apiBuilder.Bind(_baseApiRoute + "{indexName}").ToMany(b =>
             {
                 b.UsingMethod(Verb.Post).To("", CreateIndex);
                 b.UsingMethod(Verb.Put).To("", OverwriteIndex);
@@ -40,18 +43,18 @@ namespace LinqInfer.Microservices.Text
                 b.UsingMethod(Verb.Delete).To("", DeleteIndex);
             });
 
-            apiBuilder.Bind("/text/indexes/{indexName}/key-terms", Verb.Get).To("", GetKeyTerms);
-            apiBuilder.Bind("/text/indexes/{indexName}/search?q=a", Verb.Get).To(new SearchRequest(), Search);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/key-terms", Verb.Get).To("", GetKeyTerms);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/search?q=a", Verb.Get).To(new SearchRequest(), Search);
 
-            apiBuilder.Bind("/text/indexes/{indexName}/features/map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);
-            apiBuilder.Bind("/text/indexes/{indexName}/features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
-            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
-            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}", Verb.Get).To(new ClassifyRequest(), GetClassifier);
-            apiBuilder.Bind("/text/indexes/{indexName}/classifiers/{classifierName}/classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/features/map?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), GetSofm);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/features?maxVectorSize=256&transform=x", Verb.Get).To(new FeatureExtractRequest(), ExtractVectors);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/classifiers/{classifierName}", Verb.Post).To(new ClassifierRequest(), CreateClassifier);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/classifiers/{classifierName}", Verb.Get).To(new ClassifyRequest(), GetClassifier);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/classifiers/{classifierName}/classify", Verb.Post).To(new ClassifyRequest(), ClassifyText);
 
-            apiBuilder.Bind("/text/indexes/{indexName}/documents", Verb.Get).To("", ListDocuments);
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/documents", Verb.Get).To("", ListDocuments);
 
-            apiBuilder.Bind("/text/indexes/{indexName}/documents/{documentId}").ToMany(b =>
+            apiBuilder.Bind(_baseApiRoute + "{indexName}/documents/{documentId}").ToMany(b =>
             {
                 b.UsingMethod(Verb.Post).To(new DocumentIndexRequest(), AddDocument);
                 b.UsingMethod(Verb.Put).To(new DocumentIndexRequest(), UpdateDocument);
@@ -114,7 +117,7 @@ namespace LinqInfer.Microservices.Text
         {
             var files = await GetDocumentFiles(indexName);
 
-            return files.Select(f => $"/text/indexes/{indexName}/documents/{f.Name.Substring(0, f.Name.Length - 8)}").ToResourceList();
+            return files.Select(f => $"{_baseApiRoute}{indexName}/documents/{f.Name.Substring(0, f.Name.Length - 8)}").ToResourceList();
         }
 
         private async Task<ClassifierRequest> CreateClassifier(ClassifierRequest request)
@@ -122,7 +125,7 @@ namespace LinqInfer.Microservices.Text
             var index = await GetIndexInternal(request.IndexName);
             var docs = await GetAllDocuments(request.IndexName);
 
-            var keyTerms = index.ExtractKeyTerms(request.MaxVectorSize);
+            var keyTerms = request.KeyTerms == null ? index.ExtractKeyTerms(request.MaxVectorSize) : new SemanticSet(new HashSet<string>(request.KeyTerms));
             var pipeline = TextExtensions.CreateTextFeaturePipeline(docs.AsQueryable(), keyTerms);
 
             await request.Apply(pipeline);
@@ -150,10 +153,14 @@ namespace LinqInfer.Microservices.Text
                 }
             }
 
+            var link = $"{_baseApiRoute}{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+
             request.Created = DateTime.UtcNow;
             request.LastUpdated = DateTime.UtcNow;
             request.Confirmed = true;
-            request.Links["classify"] = $"/text/indexes/{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+            request.Links["classify"] = link;
+
+            _cache.Set(link, classifier);
 
             return request;
         }
@@ -188,7 +195,11 @@ namespace LinqInfer.Microservices.Text
 
             var view = new ClassifierView(classifier);
 
-            view.Links["classify"] = $"/text/indexes/{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+            var link = $"{_baseApiRoute}{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+
+            view.Links["classify"] = link;
+
+            _cache.Set(link, classifier);
 
             return view;
         }
@@ -197,8 +208,10 @@ namespace LinqInfer.Microservices.Text
         {
             var doc = new TokenisedTextDocument(Guid.NewGuid().ToString(), request.Text.Tokenise());
 
+            var link = $"{_baseApiRoute}{request.IndexName}/classifiers/{request.ClassifierName}/classify";
+
             ResourceList<ClassifyResult<string>> results;
-            IDynamicClassifier<string, TokenisedTextDocument> classifier;
+            IDynamicClassifier<string, TokenisedTextDocument> classifier = _cache.Get<IDynamicClassifier<string, TokenisedTextDocument>>(link);
 
             using (var fileTerms = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier-terms.xml"))
             {
@@ -213,12 +226,17 @@ namespace LinqInfer.Microservices.Text
 
                 using (var file = await GetFile(request.IndexName, false, false, request.ClassifierName + ".classifier.xml"))
                 {
-                    using (var fs = await file.ReadData())
+                    if (classifier == null)
                     {
-                        var xml = XDocument.Load(fs);
-                        var dataDoc = new BinaryVectorDocument(xml);
+                        using (var fs = await file.ReadData())
+                        {
+                            var xml = XDocument.Load(fs);
+                            var dataDoc = new BinaryVectorDocument(xml);
 
-                        classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                            classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
+                        }
+
+                        _cache.Set(link, classifier);
                     }
 
                     results = classifier.Classify(doc).ToResourceList();
@@ -260,7 +278,7 @@ namespace LinqInfer.Microservices.Text
 
             var indexView = new DocumentIndexView(index, indexName);
 
-            indexView.Links["documents"] = $"/text/indexes/{indexName}/documents";
+            indexView.Links["documents"] = $"{_baseApiRoute}{indexName}/documents";
 
             return indexView;
         }
@@ -269,7 +287,7 @@ namespace LinqInfer.Microservices.Text
         {
             var index = await GetIndexInternal(request.IndexName);
 
-            return index.Search(request.Q).ToResourceList($"index=/text/indexes/{request.IndexName}");
+            return index.Search(request.Q).ToResourceList($"index={_baseApiRoute}{request.IndexName}");
         }
 
         private async Task<ISemanticSet> GetKeyTerms(string indexName)
@@ -283,7 +301,6 @@ namespace LinqInfer.Microservices.Text
         {
             using (var file = await GetFile(indexName))
             {
-
                 if (file.Exists) throw new InvalidOperationException();
 
                 var index = Enumerable.Empty<TokenisedTextDocument>().CreateIndex();
@@ -297,7 +314,7 @@ namespace LinqInfer.Microservices.Text
 
                 var indexView = new DocumentIndexView(index, indexName);
 
-                indexView.Links["documents"] = $"/text/indexes/{indexName}/documents";
+                indexView.Links["documents"] = $"{_baseApiRoute}{indexName}/documents";
 
                 return indexView;
             }

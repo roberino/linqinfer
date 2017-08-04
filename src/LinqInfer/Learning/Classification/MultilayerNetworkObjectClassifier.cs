@@ -1,12 +1,11 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using LinqInfer.Maths.Graphs;
 using System.Threading.Tasks;
-using LinqInfer.Maths.Geometry;
 
 namespace LinqInfer.Learning.Classification
 {

@@ -1,4 +1,5 @@
-﻿using LinqInfer.Data.Remoting;
+﻿using LinqInfer.Data;
+using LinqInfer.Data.Remoting;
 using Microsoft.AspNetCore.Builder;
 using System;
 using System.IO;
@@ -13,9 +14,17 @@ namespace LinqInfer.Microservices.Text
 
             return aspNetCoreBuilder;
         }
-        public static IHttpApiBuilder UseTextServices(this IHttpApiBuilder apiBuilder, DirectoryInfo dataDir = null)
+
+        public static IHttpApiBuilder UseTextServices(this IHttpApiBuilder apiBuilder, DirectoryInfo dataDir = null, ICache cache = null)
         {
-            new TextServices(dataDir).Register(apiBuilder);
+            new TextServices(dataDir, cache).Register(apiBuilder);
+
+            return apiBuilder;
+        }
+
+        public static IHttpApiBuilder UseTextServices(this IHttpApiBuilder apiBuilder, IVirtualFileStore storage, ICache cache = null)
+        {
+            new TextServices(storage, cache).Register(apiBuilder);
 
             return apiBuilder;
         }

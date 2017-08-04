@@ -14,6 +14,8 @@ namespace LinqInfer.Microservices.Text
 
         public int MaxVectorSize { get; set; }
 
+        public string[] KeyTerms { get; set; }
+
         public Task<FeatureProcessingPipeline<TokenisedTextDocument>> Apply(FeatureProcessingPipeline<TokenisedTextDocument> pipeline)
         {
             var parser = new FilterParser();
