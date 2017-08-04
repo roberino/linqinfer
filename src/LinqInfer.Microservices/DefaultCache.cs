@@ -16,6 +16,8 @@ namespace LinqInfer.Microservices
 
             if (_cacheItemLifespan.TotalMilliseconds <= 10) throw new ArgumentOutOfRangeException();
 
+            _cacheStore = new ConcurrentDictionary<object, CacheEntry>();
+
             var time = new Timer(x =>
             {
                 RemoveStaleData();
