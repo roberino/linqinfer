@@ -1,11 +1,13 @@
 ﻿using LinqInfer.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public class JsonObjectSerialiser : IObjectSerialiser
     {
@@ -31,6 +33,11 @@ namespace LinqInfer.AspNetCore
 
         public Task<T> Deserialise<T>(Stream input, Encoding encoding, string mimeType)
         {
+            if (!SupportedMimeTypes.Contains(mimeType))
+            {
+                throw new ArgumentException(mimeType);
+            }
+
             var reader = new StreamReader(input, encoding);
             var obj = _serialiser.Deserialize<T>(new JsonTextReader(reader));
             return Task.FromResult(obj);
@@ -38,6 +45,11 @@ namespace LinqInfer.AspNetCore
 
         public async Task Serialise<T>(T obj, Encoding encoding, string mimeType, Stream output)
         {
+            if (!SupportedMimeTypes.Contains(mimeType))
+            {
+                throw new ArgumentException(mimeType);
+            }
+
             using (var writer = new StreamWriter(output, encoding, 1024, true))
             {
                 _serialiser.Serialize(writer, obj, typeof(T));

@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,17 +13,18 @@ namespace LinqInfer.Text.VectorExtraction
         private const int EXTENDED_FEATURE_COUNT = 4;
         private readonly IList<IFeature> _features;
         private readonly IDictionary<string, int> _words;
-        private readonly bool _normalise;
+
+        private bool _normalise;
         private int[] _normalisingFrequencies;
         private int _normalisingFrequencyDefault;
 
-        internal TextVectorExtractor()
+        internal TextVectorExtractor(bool normalise = true)
         {
             _words = new Dictionary<string, int>();
             _features = new List<IFeature>();
             _normalisingFrequencies = Enumerable.Range(1, VectorSize).Select(_ => 1).ToArray();
             _normalisingFrequencyDefault = 1000;
-            _normalise = true;
+            _normalise = normalise;
         }
 
         internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true) : this(words, Enumerable.Range(1, words.Count() + EXTENDED_FEATURE_COUNT).Select(_ => normalisingFrequency).ToArray(), normalise)
@@ -49,7 +49,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IFloatingPointFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
         {
-            return new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies);
+            return _normalise ? new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies) : new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys);
         }
 
         public int VectorSize
@@ -103,7 +103,9 @@ namespace LinqInfer.Text.VectorExtraction
 
         private int GetNormalisingFrequency(int index)
         {
-            return (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault;
+            var x = _normalise ? (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault : 1;
+
+            return x == 0 ? 1 : x;
         }
 
         private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
@@ -143,7 +145,10 @@ namespace LinqInfer.Text.VectorExtraction
 
         public double[] NormaliseUsing(IEnumerable<IEnumerable<IToken>> samples)
         {
-            return Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
+            _normalisingFrequencies = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(ExtractVectorDenormal(s)))).Select(v => (int)v).ToArray();
+            _normalise = true;
+
+            return _normalisingFrequencies.Select(d => (double)d).ToArray(); // Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
         }
 
         public void Save(Stream output)

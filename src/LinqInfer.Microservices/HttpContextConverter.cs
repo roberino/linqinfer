@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public class HttpContextConverter
     {
@@ -83,7 +83,7 @@ namespace LinqInfer.AspNetCore
             {
                 get
                 {
-                    var uriStr = _owinContext.Request.Scheme + "://" + _owinContext.Request.Host + _owinContext.Request.Path + (_owinContext.Request.QueryString.HasValue ? "?" + _owinContext.Request.QueryString.Value : "");
+                    var uriStr = _owinContext.Request.Scheme + "://" + _owinContext.Request.Host + _owinContext.Request.Path + (_owinContext.Request.QueryString.HasValue ? _owinContext.Request.QueryString.Value : "");
 
                     return new Uri(uriStr);
                 }

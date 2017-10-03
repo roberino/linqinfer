@@ -10,9 +10,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.0.0-preview2-final" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\LinqInfer.Microservices\LinqInfer.Microservices.csproj" />
     <ProjectReference Include="..\..\src\LinqInfer\LinqInfer-dotnetcore.csproj" />
   </ItemGroup>
 

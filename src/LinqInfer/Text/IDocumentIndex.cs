@@ -6,6 +6,16 @@ namespace LinqInfer.Text
     public interface IDocumentIndex : IBinaryPersistable, IXmlExportable, IXmlImportable
     {
         /// <summary>
+        /// Returns the document count
+        /// </summary>
+        long DocumentCount { get; }
+
+        /// <summary>
+        /// Gets the tokeniser used to index new untokenised documents
+        /// </summary>
+        ITokeniser Tokeniser { get; }
+
+        /// <summary>
         /// Indexes a single <see cref="TokenisedTextDocument"/> 
         /// </summary>
         void IndexDocument(TokenisedTextDocument document);
@@ -29,8 +39,20 @@ namespace LinqInfer.Text
         IDictionary<string, IList<DocumentTermWeightingData>> GetQueryWeightingData(string query);
 
         /// <summary>
+        /// Returns a set of terms and total frequencies for each across all documents
+        /// </summary>
+        IDictionary<string, long> GetTermFrequencies();
+
+        /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        ISemanticSet ExtractTerms();
+        IImportableExportableSemanticSet ExtractTerms();
+
+        /// <summary>
+        /// Returns a set of key terms (the default implementation returns words ordered descending by their tf/idf)
+        /// </summary>
+        /// <param name="maxNumberOfTerms">The max number of terms to return</param>
+        /// <returns></returns>
+        IImportableExportableSemanticSet ExtractKeyTerms(int maxNumberOfTerms);
     }
 }

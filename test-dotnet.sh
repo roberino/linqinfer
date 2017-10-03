@@ -1,0 +1,1 @@
+dotnet test tests/LinqInfer.Microservices.Tests/LinqInfer.Microservices.Tests.csproj

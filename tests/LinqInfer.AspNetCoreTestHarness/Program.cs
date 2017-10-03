@@ -1,13 +1,17 @@
-﻿using LinqInfer.AspNetCore;
-using System;
-using LinqInfer.Learning.MicroServices;
-using LinqInfer.Learning;
-using System.Threading.Tasks;
-using LinqInfer.Maths.Graphs;
-using System.Linq;
-using LinqInfer.Maths.Geometry;
-using LinqInfer.Maths;
+﻿using LinqInfer.Microservices;
+using LinqInfer.Microservices.Text;
 using LinqInfer.Data.Remoting;
+using LinqInfer.Learning;
+using LinqInfer.Learning.MicroServices;
+using LinqInfer.Maths;
+using LinqInfer.Maths.Geometry;
+using LinqInfer.Maths.Graphs;
+using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinqInfer.AspNetCoreTestHarness
 {
@@ -15,10 +19,30 @@ namespace LinqInfer.AspNetCoreTestHarness
     {
         public static void Main(string[] args)
         {
-            var endpoint = new Uri(args.Length > 0 ? args[0] : "http://localhost:8083");
+            var endpoint = new Uri(args.Length > 0 ? args[0] : "http://0.0.0.0:8083");
             var api = endpoint.CreateHttpApi();
+            var sz = new JsonObjectSerialiser();
 
-            api.Bind("/{p}").To(1, p => Task.FromResult(p * 5));
+            api.UseTextServices();
+
+            var cache = new MemoryCache(new MemoryCacheOptions());
+            
+            api.AddErrorHandler(async (c, e) =>
+            {
+                if (e is FileNotFoundException)
+                {
+                    c.Response.CreateStatusResponse(404);
+                }
+                else
+                {
+                    c.Response.CreateStatusResponse(500);
+                }
+
+                await sz.Serialise(new { error = e.GetType().Name, message = e.Message, stack = e.StackTrace }, Encoding.UTF8, sz.SupportedMimeTypes.First(), c.Response.Content);
+                
+                return true;
+            });
+
             api.CreateGraphExportService(GenerateGraph, "/graph");
 
             using (api)

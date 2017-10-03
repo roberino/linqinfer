@@ -178,7 +178,7 @@ namespace LinqInfer.Learning.Features
                 }
             }
 
-            if (data.PropertyOrDefault("HasTransformation", false))
+            if (hasTr)
             {
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_filter ?? _featureExtractor);
 

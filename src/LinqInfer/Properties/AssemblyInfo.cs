@@ -29,4 +29,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("LinqInfer.Tests")]
 [assembly: InternalsVisibleTo("LinqInfer.Storage.SQLite")]
 [assembly: InternalsVisibleTo("LinqInfer.Owin")]
-[assembly: InternalsVisibleTo("LinqInfer.AspNetCore")]
+[assembly: InternalsVisibleTo("LinqInfer.Microservices")]

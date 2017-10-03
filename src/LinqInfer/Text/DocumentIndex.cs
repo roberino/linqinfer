@@ -39,6 +39,8 @@ namespace LinqInfer.Text
             _calculationMethod = weightCalculationMethod;
         }
 
+        public long DocumentCount { get { return _documentCount; } }
+
         /// <summary>
         /// Gets the tokeniser used for parsing text
         /// </summary>
@@ -61,12 +63,39 @@ namespace LinqInfer.Text
             }
         }
 
+        public IDictionary<string, long> GetTermFrequencies()
+        {
+            return _frequencies.ToDictionary(f => f.Key, f => (long)f.Value.DocFrequencies.Sum(d => d.Value));
+        }
+
         /// <summary>
         /// Returns a set of terms as a <see cref="ISemanticSet"/>
         /// </summary>
-        public ISemanticSet ExtractTerms()
+        public IImportableExportableSemanticSet ExtractTerms()
         {
             return new SemanticSet(new HashSet<string>(_frequencies.Keys));
+        }
+
+        /// <summary>
+        /// Returns a set of terms as a <see cref="ISemanticSet"/>
+        /// </summary>
+        public IImportableExportableSemanticSet ExtractKeyTerms(int maxNumberOfTerms)
+        {
+            Contract.Requires(maxNumberOfTerms > 0);
+
+            var terms = _frequencies.Select(f => new DocumentTermWeightingData()
+            {
+                DocumentCount = _documentCount,
+                DocumentFrequency = f.Value.Count,
+                Term = f.Key,
+                TermFrequency = f.Value.DocFrequencies.Sum(d => d.Value)
+            })
+            .Select(f => new { data = f, term = f.Term, score = DocumentTermWeightingData.DefaultCalculationMethodNoAdjust(new[] { f }) })
+            .OrderByDescending(t => t.score)
+            .Take(maxNumberOfTerms)
+            .ToList();
+            
+            return new SemanticSet(new HashSet<string>(terms.Select(w => w.term)));
         }
 
         /// <summary>

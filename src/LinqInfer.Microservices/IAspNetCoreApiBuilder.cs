@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Data.Remoting;
 using Microsoft.AspNetCore.Builder;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public interface IOwinApiBuilder : IHttpApiBuilder
     {

@@ -4,15 +4,14 @@
     <Description>Unit tests for LinqInfer</Description>
     <AssemblyTitle>LinqInfer.Tests</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
-    <VersionPrefix>3.8.0</VersionPrefix>
+    <VersionPrefix>3.8.1</VersionPrefix>
     <Authors>R Eyres</Authors>
-    <TargetFrameworks>netcoreapp1.1.2;netstandard1.6;net461</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.1;netcoreapp2.0;netstandard1.6;net461</TargetFrameworks>
     <AssemblyName>LinqInfer.Tests</AssemblyName>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
     <OutputType>Exe</OutputType>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">win7-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win7-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -30,8 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-    <PackageReference Include="LinqInfer" Version="3.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NUnitLite" Version="3.7.1" />
   </ItemGroup>
 
@@ -45,29 +43,28 @@
     <EmbeddedResource Include="Data\Remoting\*.txt" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="15.3.0-preview-20170618-03" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.0.1" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
+    <!--<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="15.3.0-preview-20170618-03" />-->
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="NUnit" Version="3.7.1" />
-    <!--<DotNetCliToolReference Include="dotnet-test-nunit" Version="3.4.0-beta-3" />-->
     <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
-    <PackageReference Include="System.Dynamic.Runtime" Version="4.0.11" />
-    <PackageReference Include="System.Diagnostics.Contracts" Version="4.0.1" />
-    <PackageReference Include="System.ComponentModel.Primitives" Version="4.1.0" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Contracts" Version="4.3.0" />
+    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Thread" Version="4.0.0" />
-    <PackageReference Include="System.Security.Claims" Version="4.0.1" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.0.0" />
-    <PackageReference Include="System.Diagnostics.Process" Version="4.1.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="System.Security.Claims" Version="4.3.0" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Linq.Parallel" Version="4.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.0" />
-    <PackageReference Include="System.Xml.XDocument" Version="4.0.11" />
+    <PackageReference Include="System.Xml.XDocument" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="Learning/Classification/Remoting/RemoteClassifierTrainingServerTests.cs" />
     <Compile Remove="Learning/ImageLearningExamples.cs" />
     <Compile Remove="Data/Remoting/*.cs" />
@@ -77,12 +74,8 @@
     <Compile Remove="Data\Orm\DataMapperTests.cs" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1.2' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp1.1.2|AnyCPU'">
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -91,7 +84,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <PackageReference Include="System.Net.Http" Version="4.1.1" />
-    <PackageReference Include="NUnit" Version="3.0.1" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System" />

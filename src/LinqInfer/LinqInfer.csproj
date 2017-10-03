@@ -69,6 +69,7 @@
     <Compile Include="Data\DeflateCompression.cs" />
     <Compile Include="Data\EventArgsOf.cs" />
     <Compile Include="Data\FileBlobStore.cs" />
+    <Compile Include="Data\FileStorage.cs" />
     <Compile Include="Data\IBinaryPersistable.cs" />
     <Compile Include="Data\IBlobStore.cs" />
     <Compile Include="Data\ICloneableObject.cs" />
@@ -80,6 +81,8 @@
     <Compile Include="Data\InMemoryBlobStore.cs" />
     <Compile Include="Data\IObjectSerialiser.cs" />
     <Compile Include="Data\IPortableObjectFactory.cs" />
+    <Compile Include="Data\IVirtualFile.cs" />
+    <Compile Include="Data\IVirtualFileStore.cs" />
     <Compile Include="Data\IXmlExportable.cs" />
     <Compile Include="Data\IXmlImportable.cs" />
     <Compile Include="Data\ObjectBlobber.cs" />
@@ -129,6 +132,8 @@
     <Compile Include="Data\Remoting\VectorTransferServer.cs" />
     <Compile Include="Data\Remoting\Verb.cs" />
     <Compile Include="Data\Sampling\ISampleStore.cs" />
+    <Compile Include="Data\VirtualFile.cs" />
+    <Compile Include="Data\XmlBlob.cs" />
     <Compile Include="Genetics\AlgorithmOptimiser.cs" />
     <Compile Include="Genetics\GeneticExtensions.cs" />
     <Compile Include="Genetics\IChromosome.cs" />
@@ -233,6 +238,7 @@
     <Compile Include="Data\Remoting\IHttpClient.cs" />
     <Compile Include="Text\Http\RelativeLink.cs" />
     <Compile Include="Text\IDocumentIndex.cs" />
+    <Compile Include="Text\IImportableExportableSemanticSet.cs" />
     <Compile Include="Text\ISemanticSet.cs" />
     <Compile Include="Text\IToken.cs" />
     <Compile Include="Text\ITokeniser.cs" />

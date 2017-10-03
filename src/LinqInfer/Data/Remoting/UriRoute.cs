@@ -5,6 +5,8 @@ namespace LinqInfer.Data.Remoting
 {
     internal class UriRoute : IUriRoute
     {
+	private bool _bindToAnyHost;
+
         public UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All, Func<IOwinContext, bool> filter = null)
         {
             Contract.Assert(baseUri != null);
@@ -31,7 +33,7 @@ namespace LinqInfer.Data.Remoting
             Mapper = new UriRouteMapper(this, filter);
         }
 
-        public bool BindToAnyHost { get; set; }
+        public bool BindToAnyHost { get { return _bindToAnyHost || BaseUri.Host == "0.0.0.0"; } set { _bindToAnyHost = value; } }
 
         public IUriRouteMapper Mapper { get; private set; }
 

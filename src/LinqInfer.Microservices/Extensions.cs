@@ -7,11 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LinqInfer.AspNetCore
+namespace LinqInfer.Microservices
 {
     public static class Extensions
     {
-        public static IOwinApplication CreateAspNetApplication(this Uri baseEndpoint, bool blockOnStart = true, bool bufferResponse = false)
+        public static IOwinApplication CreateAspNetApplication(this Uri baseEndpoint, Action<IWebHostBuilder> builderConfig = null, bool blockOnStart = true, bool bufferResponse = false)
         {
             ValidateHttpUri(baseEndpoint);
 
@@ -20,8 +20,12 @@ namespace LinqInfer.AspNetCore
                 var builder = new WebHostBuilder()
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .Configure(a)
-                    .UseUrls(u.ToString());
+                    .Configure(a);
+
+                builderConfig?.Invoke(builder);
+
+                if (u.Host == "0.0.0.0") builder.UseUrls("http://*:" + u.Port);
+                else builder.UseUrls(u.ToString());
 
                 var host = builder.Build();
 

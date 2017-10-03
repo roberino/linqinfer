@@ -7,6 +7,8 @@ namespace LinqInfer.Text
     {
         public IEnumerable<IToken> Tokenise(string corpus)
         {
+            if (corpus == null) yield break;
+
             var currentToken = new StringBuilder(16);
 
             var lastToken = new Token(null, -1);

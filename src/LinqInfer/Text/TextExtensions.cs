@@ -82,6 +82,43 @@ namespace LinqInfer.Text
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.
         /// </summary>
+        public static FeatureProcessingPipeline<TokenisedTextDocument> CreateTextFeaturePipeline(this IQueryable<TokenisedTextDocument> documents, ISemanticSet keyTerms)
+        {
+            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+
+            return new FeatureProcessingPipeline<TokenisedTextDocument>(documents, ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens));
+        }
+
+        /// <summary>
+        /// Creates a feature extractor which extracts sematic vectors
+        /// based on term frequency.
+        /// </summary>
+        public static IFloatingPointFeatureExtractor<TokenisedTextDocument> CreateTextFeatureExtractor(this ISemanticSet keyTerms, ITokeniser tokeniser = null)
+        {
+            if (tokeniser == null) tokeniser = new Tokeniser();
+
+            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+
+            return ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens);
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// based on term frequency.
+        /// </summary>
+        public static FeatureProcessingPipeline<string> CreateTextFeaturePipeline(this IQueryable<string> data, ISemanticSet keyTerms, ITokeniser tokeniser = null)
+        {
+            if (tokeniser == null) tokeniser = new Tokeniser();
+
+            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+
+            return new FeatureProcessingPipeline<string>(data, ve.CreateObjectTextVectoriser<string>(s => tokeniser.Tokenise(s)));
+        }
+
+        /// <summary>
+        /// Creates a feature processing pipeline which extracts sematic vectors
+        /// based on term frequency.
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data">The data</param>
         /// <param name="identityFunc">A function which determines how the data will be indexed</param>
