@@ -9,6 +9,22 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Iterates over an enumeration of values and applies a function returning the results of the function
+        /// </summary>
+        public static IList<O> ForEach<I, O>(this IEnumerable<I> values, Func<I, O> func)
+        {
+            var len = values is IList<I> ? ((IList<I>)values).Count : 16;
+            var results = new List<O>(len);
+
+            foreach (var v in values)
+            {
+                results.Add(func(v));
+            }
+
+            return results;
+        }
+
+        /// <summary>
         /// Zips together two enumerables, returning when the end of both have been reached. If one enumerable contains less items
         /// than the other then the default value is returned. E.g.
         /// [1,2,3].ZipAll([1,2], (x,y) => [x,y]) = [[1,1],[2,2],[3,0]]

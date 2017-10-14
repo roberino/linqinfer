@@ -470,6 +470,11 @@ namespace LinqInfer.Maths
             return new Fraction(-y.Numerator, y.Denominator);
         }
 
+        public static implicit operator double(Fraction x)
+        {
+            return x.Value;
+        }
+
         internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
         {
             if (x.IsZero || y.IsZero) return Zero;

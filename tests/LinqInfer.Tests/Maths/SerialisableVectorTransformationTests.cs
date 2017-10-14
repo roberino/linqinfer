@@ -10,7 +10,7 @@ namespace LinqInfer.Tests.Maths
         [Test]
         public void Transform_Export_ThenImport_CompareTwoInstanceBehaveTheSame()
         {
-            var transform = new SerialisableVectorTransformation(new Matrix(new[] { new[] { 1d, 3d, 5d }, new[] { 11d, 23d, 99d } }), SerialisableVectorTransformation.TransformType.EuclideanDistance);
+            var transform = new SerialisableVectorTransformation(new Matrix(new[] { new[] { 1d, 3d, 5d }, new[] { 11d, 23d, 99d } }));
 
             var vector = ColumnVector1D.Create(7, 6, 5);
 

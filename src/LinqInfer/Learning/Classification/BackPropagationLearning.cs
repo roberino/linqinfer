@@ -85,7 +85,6 @@ namespace LinqInfer.Learning.Classification
                         var err = lastLayer.ForEachNeuron((nk, k) =>
                         {
                             return lastError[k] * nk[i];
-                            //return nk.Calculate(w => w * lastError[k]).Sum();
                         });
 
                         return err.Sum() * _network.Parameters.Activator.Derivative(n.Output);
@@ -118,13 +117,13 @@ namespace LinqInfer.Learning.Classification
                         return ExecuteUpdateRule(w, error, prevOutput);
                     });
 
-                    return n.Bias;
+                    return 0;
                 });
 
                 previousLayer = layer;
 
                 return update;
-            }, false).ToArray();
+            }, false);
         }
 
         protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)

@@ -361,6 +361,42 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied training data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A training set</param>
+        /// <param name="learningRate">The learning rate (rate of neuron weight adjustment when training)</param>
+        /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
+        /// <returns>An executable object which produces a classifier</returns>
+        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToSoftmaxClassifier<TInput, TClass>(
+            this ITrainingSet<TInput, TClass> trainingSet,
+            double learningRate = 0.1d) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
+            var pipeline = trainingSet.FeaturePipeline;
+            var inputSize = pipeline.VectorSize;
+            var outputSize = trainingPipline.OutputMapper.VectorSize;
+
+            var parameters = NetworkParameters.Softmax(new[] { inputSize, inputSize * outputSize, outputSize });
+
+            parameters.LearningRate = learningRate;
+
+            parameters.Validate();
+
+            var strategy = new StaticParametersMultilayerTrainingStrategy<TClass, TInput>(parameters);
+
+            return pipeline.ProcessWith((p, n) =>
+            {
+                var result = trainingPipline.TrainUsing(strategy).Result;
+
+                if (n != null) pipeline.OutputResults(result, n);
+
+                return result;
+            });
+        }
+
+        /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>

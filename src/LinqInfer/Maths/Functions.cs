@@ -245,6 +245,16 @@ namespace LinqInfer.Maths
             throw new ArgumentException();
         }
 
+        public static ColumnVector1D MeanOfEachDimension(this IEnumerable<ColumnVector1D> values)
+        {
+            if (values.Any())
+            {
+                return new ColumnVector1D(Enumerable.Range(0, values.First().Size).Select(n => values.Select(v => v[n]).Mean()).ToArray());
+            }
+
+            throw new ArgumentException();
+        }
+
         public static ColumnVector1D MinOfEachDimension(this IEnumerable<ColumnVector1D> values)
         {
             if (values.Any())

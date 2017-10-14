@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
-using LinqInfer.Maths.Geometry;
 using LinqInfer.Maths.Graphs;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -195,18 +195,19 @@ namespace LinqInfer.Learning.Classification
         {
             if (!initd) InitialiseLayers();
 
-            return (reverse ? Layers.Reverse() : Layers).Select(l => func(l));
+            return (reverse ? Layers.Reverse() : Layers).ForEach(func);
         }
 
+        /// <summary>
+        /// Applys the network over an input vector
+        /// </summary>
         public ColumnVector1D Evaluate(ColumnVector1D input)
         {
             if (!initd) InitialiseLayers();
 
             var res = _rootLayer.Process(input);
 
-            // Debugger.Log("{0} => {1}", input.ToCsv(2), res.ToCsv(2));
-
-            return res;
+            return new ColumnVector1D(_parameters.OutputTransformation?.Apply(res) ?? res);
         }
 
         /// <summary>

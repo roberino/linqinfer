@@ -132,6 +132,14 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the exponential for each value as a new vector.
+        /// </summary>
+        public ColumnVector1D Exp()
+        {
+            return new ColumnVector1D(_values.Select(v => Math.Exp(v)).ToArray());
+        }
+
+        /// <summary>
         /// Normalises each element over the sum (default) or the length of all values.
         /// </summary>
         /// <returns>A new normalised vector</returns>
@@ -141,6 +149,9 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 
+        /// <summary>
+        /// Returns the Cosine Distance between this vector and another.
+        /// </summary>
         public double CosineDistance(ColumnVector1D other)
         {
             var dotp = DotProduct(other);
@@ -169,6 +180,14 @@ namespace LinqInfer.Maths
         public ColumnVector1D Sq()
         {
             return this * this;
+        }
+
+        /// <summary>
+        /// Returns a single column matrix
+        /// </summary>
+        public Matrix ToMatrix()
+        {
+            return new Matrix(_values.Select(v => new[] { v }));
         }
 
         /// <summary>

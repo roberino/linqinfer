@@ -75,21 +75,6 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        //public IEnumerable<string[]> Trigrams
-        //{
-        //    get
-        //    {
-        //        foreach (var term in _index.Terms)
-        //        {
-        //            var following = _markovChain.GetFrequencies(term);
-
-        //            foreach (var prior in _markovChain.GetPriorFrequencies(term))
-        //            {
-        //            }
-        //        }
-        //    }
-        //}
-
         private Matrix Analyse(IEnumerable<TokenisedTextDocument> samples)
         {
             foreach (var sample in samples) Append(sample);

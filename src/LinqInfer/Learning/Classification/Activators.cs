@@ -16,18 +16,25 @@ namespace LinqInfer.Learning.Classification
 
         public static ActivatorFunc Create(string name, double parameter)
         {
-#if NET_STD
-            var type = typeof(Activators)
-                    .GetTypeInfo();
-#else
-            var type = typeof(Activators);
-#endif
+            var type = typeof(Activators).GetTypeInfo();
 
             return (ActivatorFunc)type
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .Where(m => m.Name == name && m.GetParameters().Length == 1)
                 .FirstOrDefault()
                 .Invoke(null, new object[] { parameter });
+        }
+
+        public static ActivatorFunc None(double s = 1)
+        {
+            return new ActivatorFunc()
+            {
+                Name = "None",
+                Activator = x => s * x,
+                Derivative = x => 0,
+                Parameter = s,
+                Create = (p) => None(p)
+            };
         }
 
         public static ActivatorFunc Sigmoid(double alpha = 2)
@@ -49,7 +56,7 @@ namespace LinqInfer.Learning.Classification
             {
                 Name = "Tanh",
                 Activator = x => (Math.Pow(e, x) - Math.Pow(e, -x)) / (Math.Pow(e, x) + Math.Pow(e, -x)),
-                Derivative = null, // TODO
+                Derivative = x => 0, // TODO
                 Parameter = alpha,
                 Create = (p) => Sigmoid(p)
             };

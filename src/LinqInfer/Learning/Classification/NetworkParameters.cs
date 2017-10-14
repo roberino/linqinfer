@@ -52,6 +52,15 @@ namespace LinqInfer.Learning.Classification
             return new NetworkParameters(layerSizes, Activators.Sigmoid());
         }
 
+        public static NetworkParameters Softmax(params int[] layerSizes)
+        {
+            var parameters = new NetworkParameters(layerSizes, Activators.Sigmoid());
+
+            parameters.OutputTransformation = new Softmax(parameters.OutputVectorSize);
+
+            return parameters;
+        }
+
         /// <summary>
         /// Returns the input vector size
         /// </summary>
@@ -87,6 +96,10 @@ namespace LinqInfer.Learning.Classification
         /// </summary>
         public ActivatorFunc Activator { get; internal set; }
 
+        /// <summary>
+        /// Transforms the output
+        /// </summary>
+        public IVectorTransformation OutputTransformation { get; internal set; }
 
         /// <summary>
         /// Gets the Layer size including the input and output layers
@@ -179,6 +192,7 @@ namespace LinqInfer.Learning.Classification
             if (LayerSizes == null || LayerSizes.Length < 2) throw new ArgumentException("Missing or invalid layer sizes");
             if (InputVectorSize <= 0) throw new ArgumentException("Invalid input size");
             if (OutputVectorSize <= 0) throw new ArgumentException("Invalid output size");
+            if (OutputTransformation != null && OutputTransformation.InputSize != OutputVectorSize) throw new ArgumentException("Invalid output transformation input size");
         }
 
         public override string ToString()

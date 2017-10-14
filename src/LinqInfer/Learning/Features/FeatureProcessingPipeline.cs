@@ -62,40 +62,22 @@ namespace LinqInfer.Learning.Features
         /// Returns the size of the vector returned
         /// when vectors are extracted
         /// </summary>
-        public int VectorSize
-        {
-            get
-            {
-                return FeatureExtractor.VectorSize;
-            }
-        }
+        public int VectorSize => FeatureExtractor.VectorSize;
 
         /// <summary>
         /// Returns an enumeration of feature metadata
         /// </summary>
-        public IEnumerable<IFeature> FeatureMetadata
-        {
-            get
-            {
-                return FeatureExtractor.FeatureMetadata;
-            }
-        }
+        public IEnumerable<IFeature> FeatureMetadata => FeatureExtractor.FeatureMetadata;
 
         /// <summary>
         /// Exports the internal state (not the data) of the pipeline as a <see cref="BinaryVectorDocument"/>
         /// </summary>
-        public BinaryVectorDocument SaveState()
-        {
-            return _featureExtractor.ToVectorDocument();
-        }
+        public BinaryVectorDocument SaveState() => _featureExtractor.ToVectorDocument();
 
         /// <summary>
         /// Retores the state of the pipeline from a previously exported <see cref="BinaryVectorDocument"/>
         /// </summary>
-        public void RestoreState(BinaryVectorDocument data)
-        {
-            _featureExtractor.FromVectorDocument(data);
-        }
+        public void RestoreState(BinaryVectorDocument data) => _featureExtractor.FromVectorDocument(data);
 
         /// <summary>
         /// Filters features by property
@@ -120,6 +102,36 @@ namespace LinqInfer.Learning.Features
         public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             _featureExtractor.FilterFeatures(featureFilter);
+
+            return this;
+        }
+
+        public FeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
+        {
+            if (!range.HasValue) range = new Range(1, -1);
+
+            var max = ExtractVectors().MaxOfEachDimension() * range.Value.Size;
+
+            var scale = new VectorOperation(VectorOperationType.Divide, max);
+            var transpose = new VectorOperation(VectorOperationType.Subtract, Vector.UniformVector(max.Size, range.Value.Size / 2));
+
+            var transform = new SerialisableVectorTransformation(scale, transpose);
+
+            PreprocessWith(transform);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Centres the feature data by subtracting the mean from each dimension
+        /// </summary>
+        public FeatureProcessingPipeline<T> CentreFeatures()
+        {
+            var mean = ExtractVectors().MeanOfEachDimension();
+
+            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.Subtract, mean));
+
+            PreprocessWith(transform);
 
             return this;
         }
@@ -165,7 +177,7 @@ namespace LinqInfer.Learning.Features
 
             var map = mapper.Map(Limit(sampleSize));
 
-            var transform = new SerialisableVectorTransformation(map.ExportClusterWeights(), SerialisableVectorTransformation.TransformType.EuclideanDistance);
+            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.EuclideanDistance, map.ExportClusterWeights()));
 
             return PreprocessWith(transform);
         }

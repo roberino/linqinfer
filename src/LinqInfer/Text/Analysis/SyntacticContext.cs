@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Text.Analysis
 {
-    public sealed class WordContext
+    public sealed class SyntacticContext
     {
         public IToken[] ContextualWords { get; internal set; }
 

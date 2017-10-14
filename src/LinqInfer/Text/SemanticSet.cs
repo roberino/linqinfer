@@ -1,9 +1,4 @@
-﻿
-
-
-
-using LinqInfer.Data;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -178,6 +173,18 @@ namespace LinqInfer.Text
             var xmlDoc = XDocument.Load(xml);
             sset.ImportXml(xmlDoc);
             return sset;
+        }
+
+        public static implicit operator SemanticSet(string words)
+        {
+            var set = new HashSet<string>();
+
+            foreach(var word in new Tokeniser().Tokenise(words))
+            {
+                if (!set.Contains(word.Text.ToLowerInvariant())) set.Add(word.Text.ToLowerInvariant());
+            }
+
+            return new SemanticSet(set);
         }
     }
 }

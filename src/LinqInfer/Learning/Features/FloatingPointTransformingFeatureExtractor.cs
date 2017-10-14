@@ -135,9 +135,7 @@ namespace LinqInfer.Learning.Features
 
             foreach(var child in doc.Children)
             {
-                var tr = new SerialisableVectorTransformation(Matrix.IdentityMatrix(1));
-
-                tr.FromVectorDocument(child);
+                var tr = SerialisableVectorTransformation.LoadFromDocument(child);
 
                 _transformations.Add(tr);
             }

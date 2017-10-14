@@ -42,10 +42,21 @@ namespace LinqInfer.Maths
         /// Returns a vector where each element is 1
         /// </summary>
         /// <param name="size">The size of the vector</param>
-        /// <returns>A new <see cref="ColumnVector1D"/></returns>
+        /// <returns>A new <see cref="Vector"/></returns>
         public static Vector VectorOfOnes(int size)
         {
-            return new Vector(Enumerable.Range(0, size).Select(n => 1d).ToArray());
+            return UniformVector(size, 1d);
+        }
+
+        /// <summary>
+        /// Returns a vector where each element is a uniform value
+        /// </summary>
+        /// <param name="size">The size of the vector</param>
+        /// <param name="value">The value of each element</param>
+        /// <returns>A new <see cref="Vector"/></returns>
+        public static Vector UniformVector(int size, double value)
+        {
+            return new Vector(Enumerable.Range(0, size).Select(n => value).ToArray());
         }
 
         /// <summary>

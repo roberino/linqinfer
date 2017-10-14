@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -68,7 +69,7 @@ namespace LinqInfer.Learning.Classification
 
         public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func)
         {
-            return _neurons.Select(n => func(n));
+            return _neurons.ForEach(func);
         }
 
         public INetworkSignalFilter Successor { get; set; }
