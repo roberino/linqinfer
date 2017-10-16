@@ -1,8 +1,8 @@
 language: csharp
-solution: LinqInfer.sln
-install:
-  - nuget restore LinqInfer.sln
-  - nuget install NUnit.ConsoleRunner -Version 3.6.0 -OutputDirectory build
+dist: trusty
+sudo: required
+mono: none
+dotnet: 2.0.2
 script:
-  - xbuild /p:Configuration=Release LinqInfer.sln
-  - mono ./build/NUnit.ConsoleRunner.3.6.0/tools/nunit3-console.exe ./tests/LinqInfer.Tests/bin/Release/LinqInfer.Tests.dll  --where "cat != BuildOmit"
+  - dotnet restore LinqInfer.sln
+  - dotnet build LinqInfer.sln

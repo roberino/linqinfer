@@ -1,368 +1,84 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{57818C8E-99BA-405E-A5C5-6DE2E54883EA}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LinqInfer</RootNamespace>
+    <Description>A lightweight, linq-friendly inference library for .NET</Description>
+    <AssemblyTitle>LinqInfer</AssemblyTitle>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <Authors>R Eyres</Authors>
+    <TargetFrameworks>netstandard1.6;netstandard2.0;net45;net461</TargetFrameworks>
     <AssemblyName>LinqInfer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <PackageId>LinqInfer</PackageId>
+    <PackageTags>inference;linq;bayesian probability;reasoning;machine learning;text search;neural networks;markov chains</PackageTags>
+    <PackageProjectUrl>https://github.com/roberino/linqinfer</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <Version>3.9.1-beta</Version>
+    <RootNamespace>LinqInfer</RootNamespace>
+    <RootNamespace>LinqInfer</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Net45|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\Net4.5\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-Net45|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\Net4.5\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Net.Http.4.3.2\lib\net46\System.Net.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
+    <EmbeddedResource Include="Resources\*.txt" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Linq" Version="4.3.0" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Contracts" Version="4.3.0" />
+    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="System.Security.Claims" Version="4.3.0" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageReference Include="System.Linq.Parallel" Version="4.3.0" />
+    <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <PackageReference Include="System.Net.Http" Version="4.1.1" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Data\BinaryVectorDocument.cs" />
-    <Compile Include="Data\DataExtensions.cs" />
-    <Compile Include="Data\DeflateCompression.cs" />
-    <Compile Include="Data\EventArgsOf.cs" />
-    <Compile Include="Data\FileBlobStore.cs" />
-    <Compile Include="Data\FileStorage.cs" />
-    <Compile Include="Data\IBinaryPersistable.cs" />
-    <Compile Include="Data\IBlobStore.cs" />
-    <Compile Include="Data\ICloneableObject.cs" />
-    <Compile Include="Data\IEntity.cs" />
-    <Compile Include="Data\BlobStoreBase.cs" />
-    <Compile Include="Data\IImportableAsVectorDocument.cs" />
-    <Compile Include="Data\IExportableAsVectorDocument.cs" />
-    <Compile Include="Data\IJsonExportable.cs" />
-    <Compile Include="Data\InMemoryBlobStore.cs" />
-    <Compile Include="Data\IObjectSerialiser.cs" />
-    <Compile Include="Data\IPortableObjectFactory.cs" />
-    <Compile Include="Data\IVirtualFile.cs" />
-    <Compile Include="Data\IVirtualFileStore.cs" />
-    <Compile Include="Data\IXmlExportable.cs" />
-    <Compile Include="Data\IXmlImportable.cs" />
-    <Compile Include="Data\ObjectBlobber.cs" />
-    <Compile Include="Data\Remoting\AsyncSocketWriterReader.cs" />
-    <Compile Include="Data\Remoting\DataBatch.cs" />
-    <Compile Include="Data\Remoting\DeflateCompressionProvider.cs" />
-    <Compile Include="Data\Remoting\FunctionBinder.cs" />
-    <Compile Include="Data\Remoting\HttpApiBuilder.cs" />
-    <Compile Include="Data\Remoting\HttpApplicationHost.cs" />
-    <Compile Include="Data\Remoting\HttpException.cs" />
-    <Compile Include="Data\Remoting\HttpHeaderFormatter.cs" />
-    <Compile Include="Data\Remoting\ICompressionProvider.cs" />
-    <Compile Include="Data\Remoting\IHttpApiBuilder.cs" />
-    <Compile Include="Data\Remoting\IHttpApi.cs" />
-    <Compile Include="Data\Remoting\IHttpHeader.cs" />
-    <Compile Include="Data\Remoting\IOwinAppBuilder.cs" />
-    <Compile Include="Data\Remoting\IOwinApplication.cs" />
-    <Compile Include="Data\Remoting\IOwinContext.cs" />
-    <Compile Include="Data\Remoting\IRequestHeader.cs" />
-    <Compile Include="Data\Remoting\IResponseHeader.cs" />
-    <Compile Include="Data\Remoting\IServer.cs" />
-    <Compile Include="Data\Remoting\ITransferHandle.cs" />
-    <Compile Include="Data\Remoting\IUriRoute.cs" />
-    <Compile Include="Data\Remoting\IUriRoutingTemplate.cs" />
-    <Compile Include="Data\Remoting\IVectorTransferServer.cs" />
-    <Compile Include="Data\Remoting\OwinContext.cs" />
-    <Compile Include="Data\Remoting\OwinPipelineStage.cs" />
-    <Compile Include="Data\Remoting\PassThruCompressionProvider.cs" />
-    <Compile Include="Data\Remoting\HttpApi.cs" />
-    <Compile Include="Data\Remoting\RouteBinder.cs" />
-    <Compile Include="Data\Remoting\RoutingHandler.cs" />
-    <Compile Include="Data\Remoting\TcpRequest.cs" />
-    <Compile Include="Data\Remoting\TransportProtocol.cs" />
-    <Compile Include="Data\Remoting\RemotingExtensions.cs" />
-    <Compile Include="Data\Remoting\RoutingTable.cs" />
-    <Compile Include="Data\Remoting\ServerStatus.cs" />
-    <Compile Include="Data\Remoting\TcpReceiveContext.cs" />
-    <Compile Include="Data\Remoting\TcpRequestHeader.cs" />
-    <Compile Include="Data\Remoting\TcpResponse.cs" />
-    <Compile Include="Data\Remoting\TcpResponseHeader.cs" />
-    <Compile Include="Data\Remoting\TransferHandle.cs" />
-    <Compile Include="Data\Remoting\UriRoute.cs" />
-    <Compile Include="Data\Remoting\UriRouteMapper.cs" />
-    <Compile Include="Data\Remoting\Util.cs" />
-    <Compile Include="Data\Remoting\VectorTransferClient.cs" />
-    <Compile Include="Data\Remoting\HttpServer.cs" />
-    <Compile Include="Data\Remoting\VectorTransferServer.cs" />
-    <Compile Include="Data\Remoting\Verb.cs" />
-    <Compile Include="Data\Sampling\ISampleStore.cs" />
-    <Compile Include="Data\VirtualFile.cs" />
-    <Compile Include="Data\XmlBlob.cs" />
-    <Compile Include="Genetics\AlgorithmOptimiser.cs" />
-    <Compile Include="Genetics\GeneticExtensions.cs" />
-    <Compile Include="Genetics\IChromosome.cs" />
-    <Compile Include="Genetics\MutatableValueParameter.cs" />
-    <Compile Include="Genetics\MutatableCategoricalParameter.cs" />
-    <Compile Include="Genetics\MutatableIntegerParameter.cs" />
-    <Compile Include="Genetics\MutatableDoubleParameter.cs" />
-    <Compile Include="Genetics\MutatableParameter.cs" />
-    <Compile Include="Learning\Classification\CategoricalClassifier.cs" />
-    <Compile Include="Learning\Classification\ClassifiedObject.cs" />
-    <Compile Include="Learning\Classification\IClassifierTrainingContext.cs" />
-    <Compile Include="Learning\Classification\IDynamicClassifier.cs" />
-    <Compile Include="Learning\ClusteringParameters.cs" />
-    <Compile Include="Learning\FeatureMapperV3.cs" />
-    <Compile Include="Learning\Features\FeatureMapVectorExtractor.cs" />
-    <Compile Include="Maths\Geometry\Point3D.cs" />
-    <Compile Include="Maths\Geometry\Rectangle.cs" />
-    <Compile Include="Maths\Graphs\Colour.cs" />
-    <Compile Include="Maths\Graphs\ColourPalette.cs" />
-    <Compile Include="Maths\Graphs\GraphExportMode.cs" />
-    <Compile Include="Maths\Graphs\FloatingPointWeightedGraphExtensions.cs" />
-    <Compile Include="Maths\Graphs\IHasNetworkTopology.cs" />
-    <Compile Include="Learning\Classification\INetworkClassifier.cs" />
-    <Compile Include="Learning\Classification\INeuralNetwork.cs" />
-    <Compile Include="Learning\Classification\IPrunableObjectClassifier.cs" />
-    <Compile Include="Learning\Classification\IMultilayerNetworkTrainingStrategy.cs" />
-    <Compile Include="Learning\Classification\IRawClassifierTrainingContext.cs" />
-    <Compile Include="Learning\Classification\NetworkParameterFactory.cs" />
-    <Compile Include="Learning\Classification\ClassifierStats.cs" />
-    <Compile Include="Learning\Classification\Remoting\Extensions.cs" />
-    <Compile Include="Learning\Classification\Remoting\IRemoteClassifierTrainingClient.cs" />
-    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingClient.cs" />
-    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServer.cs" />
-    <Compile Include="Learning\Classification\StaticParametersMultilayerTrainingStrategy.cs" />
-    <Compile Include="Learning\Classification\MaximumFitnessMultilayerNetworkTrainingStrategy.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkFitnessFunctions.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkTrainingRunner.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkObjectClassifier.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkTrainingContextFactory.cs" />
-    <Compile Include="Learning\Classification\ObjectClassifier.cs" />
-    <Compile Include="Learning\Classification\IObjectClassifier.cs" />
-    <Compile Include="Learning\Features\ExecutionPipline.cs" />
-    <Compile Include="Learning\Features\FeatureAttribute.cs" />
-    <Compile Include="Learning\Features\FeatureProcessingPipeline.cs" />
-    <Compile Include="Learning\Features\FeatureTransformations.cs" />
-    <Compile Include="Learning\Features\FloatingPointFilteringFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\IFeatureDataSource.cs" />
-    <Compile Include="Learning\Features\IFeatureSpace.cs" />
-    <Compile Include="Learning\Features\IHasFeatureMetadata.cs" />
-    <Compile Include="Learning\Features\IFeatureProcessingPipeline.cs" />
-    <Compile Include="Learning\Features\IFeatureTransformBuilder.cs" />
-    <Compile Include="Learning\Features\MultiFunctionFeatureExtractor.cs" />
-    <Compile Include="Maths\FunctionIterator.cs" />
-    <Compile Include="Maths\Graphs\GexfFormatter.cs" />
-    <Compile Include="Maths\Graphs\IWeightedGraphStore.cs" />
-    <Compile Include="Maths\Graphs\OptimalPathSearch.cs" />
-    <Compile Include="Maths\Graphs\SpatialExtensions.cs" />
-    <Compile Include="Maths\Graphs\VisualSettings.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraph.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphInMemoryStore.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphFileStore.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphNode.cs" />
-    <Compile Include="Maths\Graphs\WeightedPair.cs" />
-    <Compile Include="Maths\IHasVectorTransformation.cs" />
-    <Compile Include="Learning\Features\ITrainingSet.cs" />
-    <Compile Include="Learning\Features\ObjectFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\OutputMapperFactory.cs" />
-    <Compile Include="Learning\Features\PrincipalComponentAnalysis.cs" />
-    <Compile Include="Learning\Features\PropertySelector.cs" />
-    <Compile Include="Learning\Features\SingularValueDecomposition.cs" />
-    <Compile Include="Learning\Features\TrainingSet.cs" />
-    <Compile Include="Learning\Features\FloatingPointTransformingFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\TransformingFeatureExtractor.cs" />
-    <Compile Include="Learning\MicroServices\MicroServiceExtensions.cs" />
-    <Compile Include="Learning\PipelineExtensions.cs" />
-    <Compile Include="Maths\DelegateVectorTransformation.cs" />
-    <Compile Include="Maths\EigenvalueDecomposition.cs" />
-    <Compile Include="Maths\IVectorTransformation.cs" />
-    <Compile Include="Maths\LabelledMatrix.cs" />
-    <Compile Include="Maths\SerialisableVectorTransformation.cs" />
-    <Compile Include="Maths\Vector.cs" />
-    <Compile Include="Maths\DiscretizedSet.cs" />
-    <Compile Include="Maths\FractionEventArgs.cs" />
-    <Compile Include="Maths\Matrix.cs" />
-    <Compile Include="Maths\Probability\HuffmanTree.cs" />
-    <Compile Include="Maths\Probability\ITransitionSimulator.cs" />
-    <Compile Include="Maths\Probability\IDiscreteMarkovChain.cs" />
-    <Compile Include="Maths\Probability\DiscreteMarkovChain.cs" />
-    <Compile Include="Maths\Probability\MonteCarloSimulation.cs" />
-    <Compile Include="Maths\Random.cs" />
-    <Compile Include="Maths\Sequence.cs" />
-    <Compile Include="Maths\TimeResolution.cs" />
-    <Compile Include="Text\Analysis\Corpus.cs" />
-    <Compile Include="Text\Analysis\CorpusAnalyser.cs" />
-    <Compile Include="Text\Analysis\Triple.cs" />
-    <Compile Include="Text\DocumentTermWeightingData.cs" />
-    <Compile Include="Text\HtmlEntityMap.cs" />
-    <Compile Include="Text\HtmlParser.cs" />
-    <Compile Include="Text\Http\HttpDocument.cs" />
-    <Compile Include="Data\Remoting\HttpBasicClient.cs" />
-    <Compile Include="Text\Http\HttpDocumentServices.cs" />
-    <Compile Include="Data\Remoting\IHttpClient.cs" />
-    <Compile Include="Text\Http\RelativeLink.cs" />
-    <Compile Include="Text\IDocumentIndex.cs" />
-    <Compile Include="Text\IImportableExportableSemanticSet.cs" />
-    <Compile Include="Text\ISemanticSet.cs" />
-    <Compile Include="Text\IToken.cs" />
-    <Compile Include="Text\ITokeniser.cs" />
-    <Compile Include="Text\DocumentIndex.cs" />
-    <Compile Include="Text\SearchResult.cs" />
-    <Compile Include="Text\SemanticSet.cs" />
-    <Compile Include="Text\StreamTokeniser.cs" />
-    <Compile Include="Text\TextEncoding.cs" />
-    <Compile Include="Text\TextUtility.cs" />
-    <Compile Include="Text\TokenisedTextDocument.cs" />
-    <Compile Include="Text\TextExtensions.cs" />
-    <Compile Include="Text\TextFuctions.cs" />
-    <Compile Include="Learning\FeatureMap.cs" />
-    <Compile Include="Learning\Features\DefaultConverter.cs" />
-    <Compile Include="Learning\Features\DelegatingFloatingPointFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\IFeature.cs" />
-    <Compile Include="Learning\Features\IFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\IFloatingPointFeatureExtractor.cs" />
-    <Compile Include="Learning\Features\ICategoricalOutputMapper.cs" />
-    <Compile Include="Learning\Features\IValueConverter.cs" />
-    <Compile Include="Learning\LearningExtensions.cs" />
-    <Compile Include="Text\EnglishDictionary.cs" />
-    <Compile Include="Learning\ClusterNode.cs" />
-    <Compile Include="Learning\Classification\ActivatorFunc.cs" />
-    <Compile Include="Learning\Classification\Activators.cs" />
-    <Compile Include="Learning\Classification\AssistedLearningAdapter.cs" />
-    <Compile Include="Learning\Classification\BackPropagationLearning.cs" />
-    <Compile Include="Learning\Classification\ClassificationPipeline.cs" />
-    <Compile Include="Learning\Classification\ClassifyResult.cs" />
-    <Compile Include="Learning\Classification\IAssistedLearning.cs" />
-    <Compile Include="Learning\Classification\IAssistedLearningProcessor.cs" />
-    <Compile Include="Learning\Classification\IByteClassifier.cs" />
-    <Compile Include="Learning\Classification\IClassifier.cs" />
-    <Compile Include="Learning\Classification\IFloatingPointClassifier.cs" />
-    <Compile Include="Learning\Classification\ILayer.cs" />
-    <Compile Include="Learning\Classification\INetworkSignalFilter.cs" />
-    <Compile Include="Learning\Classification\INeuron.cs" />
-    <Compile Include="Learning\Classification\INeuronGenerator.cs" />
-    <Compile Include="Learning\Classification\ITextClassifier.cs" />
-    <Compile Include="Learning\Classification\InputSampler.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkClassifier.cs" />
-    <Compile Include="Learning\Classification\NetworkLayer.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetwork.cs" />
-    <Compile Include="Learning\Classification\NetworkParameterCache.cs" />
-    <Compile Include="Learning\Classification\NetworkParameters.cs" />
-    <Compile Include="Learning\Classification\NeuronBase.cs" />
-    <Compile Include="Learning\Features\OutputMapper.cs" />
-    <Compile Include="Learning\Classification\NaiveBayesNormalClassifier.cs" />
-    <Compile Include="Learning\Features\ObjectFeatureExtractorFactory.cs" />
-    <Compile Include="Learning\Classification\XorNode.cs" />
-    <Compile Include="Learning\ObjectVector.cs" />
-    <Compile Include="Maths\ColumnVector1D.cs" />
-    <Compile Include="Maths\ColumnVector1DEventArgs.cs" />
-    <Compile Include="Maths\Probability\ContinuousSample.cs" />
-    <Compile Include="Maths\Probability\DistributionModel.cs" />
-    <Compile Include="Maths\Probability\Histogram.cs" />
-    <Compile Include="Maths\Probability\HypothesisBuilder.cs" />
-    <Compile Include="Maths\Probability\HypotheticalSubset.cs" />
-    <Compile Include="Maths\Probability\HypotheticalOutcome.cs" />
-    <Compile Include="Maths\Probability\Hypotheses.cs" />
-    <Compile Include="Maths\Probability\IHypothetical.cs" />
-    <Compile Include="Maths\Probability\IHypotheticalSubset.cs" />
-    <Compile Include="Maths\Probability\IHypotheticalOutcome.cs" />
-    <Compile Include="Maths\Probability\IDensityEstimationStrategy.cs" />
-    <Compile Include="Maths\Probability\KernelDensityEstimator.cs" />
-    <Compile Include="Maths\Probability\P.cs" />
-    <Compile Include="Maths\Fraction.cs" />
-    <Compile Include="Maths\Functions.cs" />
-    <Compile Include="Maths\Probability\HypoSet.cs" />
-    <Compile Include="Maths\Probability\IQueryableSample.cs" />
-    <Compile Include="Maths\It.cs" />
-    <Compile Include="Maths\Probability\QueryableSample.cs" />
-    <Compile Include="Maths\Probability\Sample.cs" />
-    <Compile Include="Maths\Probability\SampleBase.cs" />
-    <Compile Include="Maths\Probability\WeightedSample.cs" />
-    <Compile Include="Maths\Range.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Data\Sampling\DataItem.cs" />
-    <Compile Include="Data\Sampling\DataSample.cs" />
-    <Compile Include="Data\Sampling\DataSampleExtensions.cs" />
-    <Compile Include="Data\Sampling\DataSampleFeatureMap.cs" />
-    <Compile Include="Data\Sampling\DataSampleHeader.cs" />
-    <Compile Include="Data\Sampling\DataSampleMetadata.cs" />
-    <Compile Include="Data\Sampling\FieldDescriptor.cs" />
-    <Compile Include="Data\Sampling\FieldUsageType.cs" />
-    <Compile Include="Data\Sampling\IStorageObject.cs" />
-    <Compile Include="Data\IUriProvider.cs" />
-    <Compile Include="Data\Sampling\Parsers\CsvSampleParser.cs" />
-    <Compile Include="Data\Sampling\Parsers\ParserSettings.cs" />
-    <Compile Include="Data\Sampling\ResourceSet.cs" />
-    <Compile Include="Data\Sampling\SampleSummary.cs" />
-    <Compile Include="Data\Sampling\SerialisableDynamicObject.cs" />
-    <Compile Include="Data\Sampling\UriProvider.cs" />
-    <Compile Include="Text\TextMimeType.cs" />
-    <Compile Include="Text\Token.cs" />
-    <Compile Include="Text\Tokeniser.cs" />
-    <Compile Include="Text\TokenisingTextWriter.cs" />
-    <Compile Include="Text\TokenType.cs" />
-    <Compile Include="Text\RegexTokeniser.cs" />
-    <Compile Include="Text\VectorExtraction\ObjectTextExtractor.cs" />
-    <Compile Include="Text\VectorExtraction\ObjectTextVectorExtractor.cs" />
-    <Compile Include="Text\VectorExtraction\TextVectorExtractor.cs" />
-    <Compile Include="Utility\ConcurrentQueue.cs" />
-    <Compile Include="Utility\ConstrainableDictionary.cs" />
-    <Compile Include="Utility\DebugOutput.cs" />
-    <Compile Include="Utility\DictionarySerialiser.cs" />
-    <Compile Include="Utility\DynamicComparer.cs" />
-    <Compile Include="Utility\DynamicEqualityComparer.cs" />
-    <Compile Include="Utility\GenericTypeConverter.cs" />
-    <Compile Include="Utility\LinqExtensions.cs" />
-    <Compile Include="Utility\TypeExtensions.cs" />
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' ">
+    <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.6|AnyCPU'">
+    <LangVersion>7</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' ">
+    <Compile Remove="Learning\Classification\Remoting\*.cs;" />
+    <Compile Remove="Data\Remoting\VectorTransferClient.cs;" />
+    <Compile Remove="Data\Remoting\TransferHandle.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\en_dict.txt" />
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <PackageReference Include="System.Net.Http" Version="4.1.1" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

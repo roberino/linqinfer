@@ -30,7 +30,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LinqInfer\LinqInfer-dotnetcore.csproj" />
+    <ProjectReference Include="..\LinqInfer\LinqInfer.csproj" />
   </ItemGroup>
 
 </Project>

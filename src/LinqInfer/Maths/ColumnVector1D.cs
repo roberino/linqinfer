@@ -258,6 +258,11 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(v1._values.Select(x => x * y).ToArray());
         }
 
+        public static implicit operator ColumnVector1D(double[] values)
+        {
+            return new ColumnVector1D(values);
+        }
+
         public override string ToString()
         {
             return _values

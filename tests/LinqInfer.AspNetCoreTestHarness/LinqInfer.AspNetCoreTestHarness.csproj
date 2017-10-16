@@ -14,7 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\LinqInfer.Microservices\LinqInfer.Microservices.csproj" />
-    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer-dotnetcore.csproj" />
+    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj" />
   </ItemGroup>
 
 </Project>

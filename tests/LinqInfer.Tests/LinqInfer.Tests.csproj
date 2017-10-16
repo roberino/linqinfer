@@ -1,197 +1,48 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1B98A5E7-1FEC-4FDC-AEEC-0D354B10E092}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LinqInfer.Tests</RootNamespace>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyName>LinqInfer.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
+    <RootNamespace>LinqInfer.Tests</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Text\*.txt" />
+    <EmbeddedResource Include="Text\*.html" />
+    <EmbeddedResource Include="Maths\*.html" />
+    <EmbeddedResource Include="Maths\Graphs\*.xml" />
+    <EmbeddedResource Include="Learning\*.xml" />
+    <EmbeddedResource Include="Data\Storage\*.csv" />
+    <EmbeddedResource Include="Data\Remoting\*.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Learning/Classification/Remoting/RemoteClassifierTrainingServerTests.cs" />
+    <Compile Remove="Learning/ImageLearningExamples.cs" />
+    <Compile Remove="Data/Remoting/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\Orm\DataMapperTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0'">
+    <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.0.5813.39031, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NUnit.3.0.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Net.Http, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Net.Http.4.3.2\lib\net46\System.Net.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net461\System.Security.Cryptography.Algorithms.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Data\BinaryVectorDocumentTests.cs" />
-    <Compile Include="Data\Remoting\FunctionBinderTests.cs" />
-    <Compile Include="Data\Remoting\HttpApiTests.cs" />
-    <Compile Include="Data\Remoting\HttpApplicationHostTests.cs" />
-    <Compile Include="Data\Remoting\HttpServerTests.cs" />
-    <Compile Include="Data\Remoting\JsonSerialiser.cs" />
-    <Compile Include="Data\Remoting\MockSerialiser.cs" />
-    <Compile Include="Data\Remoting\RemotingExtensionsTests.cs" />
-    <Compile Include="Data\Remoting\TcpRequestHeaderTests.cs" />
-    <Compile Include="Data\Remoting\UriRouteParserTests.cs" />
-    <Compile Include="Data\Remoting\VectorTransferServerTests.cs" />
-    <Compile Include="Genetics\AlgorithmOptimiserTests.cs" />
-    <Compile Include="Learning\Classification\BackPropagationLearningTests.cs" />
-    <Compile Include="Learning\Classification\CategoricalClassifierTests.cs" />
-    <Compile Include="Learning\Classification\MultilayerNetworkTests.cs" />
-    <Compile Include="Learning\Classification\ClassifierStatsTests.cs" />
-    <Compile Include="Learning\Classification\Remoting\RemoteClassifierTrainingServerTests.cs" />
-    <Compile Include="Learning\Features\FeatureProcessingPiplineTests.cs" />
-    <Compile Include="Learning\Features\PrincipalComponentsAnalysisTests.cs" />
-    <Compile Include="Learning\Features\SingularValueDecompositionTests.cs" />
-    <Compile Include="Learning\Features\TransformingFeatureExtractorTests.cs" />
-    <Compile Include="Learning\ImageLearningExamples.cs" />
-    <Compile Include="Learning\LinearSeparabilityExample.cs" />
-    <Compile Include="Learning\PipelineExtensionsTests.cs" />
-    <Compile Include="Maths\Graphs\FloatingPointWeightedGraphExtensionsTests.cs" />
-    <Compile Include="Maths\Graphs\SpatialExtensionTests.cs" />
-    <Compile Include="Maths\Graphs\WeightedGraphTests.cs" />
-    <Compile Include="Maths\MandelbrotSet.cs" />
-    <Compile Include="Maths\MarkovChainTests.cs" />
-    <Compile Include="Maths\MatrixTests.cs" />
-    <Compile Include="Maths\MonteCarloSimulationTests.cs" />
-    <Compile Include="Maths\RandomTests.cs" />
-    <Compile Include="Maths\SerialisableVectorTransformationTests.cs" />
-    <Compile Include="TestFixtureBase.cs" />
-    <Compile Include="Text\Analysis\CorpusAnalyserTests.cs" />
-    <Compile Include="Text\EnglishDictionaryTests.cs" />
-    <Compile Include="Maths\ColumnVector1DTests.cs" />
-    <Compile Include="Maths\ContinuousSampleTests.cs" />
-    <Compile Include="Maths\DensityEstimationTests.cs" />
-    <Compile Include="Maths\FunctionsTests.cs" />
-    <Compile Include="Maths\HistogramTests.cs" />
-    <Compile Include="Maths\KernelDensityEstimatorTests.cs" />
-    <Compile Include="Samples.cs" />
-    <Compile Include="Data\Storage\Parsers\CsvParserTests.cs" />
-    <Compile Include="TestData.cs" />
-    <Compile Include="Learning\LearningExtensionsTests.cs" />
-    <Compile Include="Learning\Features\ObjectFeatureExtractorTests.cs" />
-    <Compile Include="Maths\FractionTests.cs" />
-    <Compile Include="Maths\HypoSetTests.cs" />
-    <Compile Include="Maths\ProbabilityExtensionsTests.cs" />
-    <Compile Include="Maths\SampleTests.cs" />
-    <Compile Include="Learning\Classification\NaiveBayesNormalClassifierTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Text\DocumentIndexTests.cs" />
-    <Compile Include="Text\HtmlEntityMapTests.cs" />
-    <Compile Include="Text\HtmlParserTests.cs" />
-    <Compile Include="Text\HttpDocumentServicesTests.cs" />
-    <Compile Include="Text\ShakespeareVsMonkey.cs" />
-    <Compile Include="Text\TestData.cs" />
-    <Compile Include="Text\TextExtensionsTests.cs" />
-    <Compile Include="Text\TextUtilityTests.cs" />
-    <Compile Include="Text\TokeniserTests.cs" />
-    <Compile Include="Text\TokenisingTextWriterTests.cs" />
-    <Compile Include="Text\VectorExtraction\VectorExtractorTests.cs" />
-    <Compile Include="Utility\ConstrainableDictionaryTests.cs" />
-    <Compile Include="Utility\DictionarySerialiserTests.cs" />
-    <Compile Include="Utility\LinqExtensionsTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\LinqInfer\LinqInfer.csproj">
-      <Project>{57818c8e-99ba-405e-a5c5-6de2e54883ea}</Project>
-      <Name>LinqInfer</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-    <EmbeddedResource Include="Data\Storage\example.csv" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Data\Orm\" />
-    <Folder Include="Text\Http\" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Text\shakespeare.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Data\Remoting\HttpHeaderExample.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Text\html_sample1.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Text\html_sample2.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Learning\net-X-O-I.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Maths\CanvasTemplate.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Maths\Graphs\gexf.xml" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\System.Data.SQLite.Core.1.0.101.0\build\net46\System.Data.SQLite.Core.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

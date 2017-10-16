@@ -73,7 +73,7 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             }
         }
 
-        [Fact]
+        //[Fact]
         public void LinearClassifier()
         {
             var corpus = TestData.GetShakespeareCorpus();
@@ -90,7 +90,7 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             {
                 foreach(var x in batch)
                 {
-                    var err = linClassifier.CalculateError(x.Item1, x.Item2);
+                    var err = linClassifier.Train(x.Item1, x.Item2);
                 }
             }
         }

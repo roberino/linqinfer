@@ -78,6 +78,21 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the vector size. This remains constant for the lifetime of the vector.
+        /// </summary>
+        public int Size => _values.Length;
+
+        /// <summary>
+        /// Returns the average of all values
+        /// </summary>
+        public double Mean => _values.Average();
+
+        /// <summary>
+        /// Returns the maximum of all values
+        /// </summary>
+        public double Max => _values.Max();
+
+        /// <summary>
         /// Returns a dictionary of indexes and values
         /// </summary>
         public IDictionary<int, double> IndexedValues
@@ -116,6 +131,14 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Shifts each value by substracting the provided value
+        /// </summary>
+        public Vector Shift(double value)
+        {
+            return new Vector(_values.Select(v => v - value).ToArray());
+        }
+
+        /// <summary>
         /// Returns the sum of all values.
         /// </summary>
         /// <returns>A double</returns>
@@ -144,17 +167,6 @@ namespace LinqInfer.Maths
         public float[] ToSingleArray()
         {
             return _values.Select(v => (float)v).ToArray();
-        }
-
-        /// <summary>
-        /// Returns the vector size. This remains constant for the lifetime of the vector.
-        /// </summary>
-        public int Size
-        {
-            get
-            {
-                return _values.Length;
-            }
         }
 
         /// <summary>
@@ -197,17 +209,6 @@ namespace LinqInfer.Maths
             }
 
             return total / (_values.Length - (isSampleData ? 1 : 0));
-        }
-
-        /// <summary>
-        /// Returns the average of all values
-        /// </summary>
-        public double Mean
-        {
-            get
-            {
-                return _values.Average();
-            }
         }
 
         public double DotProduct(Vector other)
