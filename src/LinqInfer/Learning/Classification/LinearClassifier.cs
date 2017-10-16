@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -25,10 +26,10 @@ namespace LinqInfer.Learning.Classification
             Contract.Ensures(learningRate > 0);
 
             _learningRate = learningRate;
-            _delta = new ColumnVector1D(Vector.UniformVector(_weights.Width, delta));
 
             _weights = new Matrix(Enumerable.Range(0, inputVectorSize).Select(n => Functions.RandomVector(outputVectorSize, -0.1, 0.1)));
             _bias = Functions.RandomVector(outputVectorSize);
+            _delta = new ColumnVector1D(Vector.UniformVector(_weights.Width, delta));
             _previousError = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
             _softmax = new Softmax(outputVectorSize);
         }
@@ -42,6 +43,25 @@ namespace LinqInfer.Learning.Classification
             var output = _weights * input + _bias;
 
             return _softmax.Calculate(output);
+        }
+
+        public double Train(IQueryable<Tuple<ColumnVector1D, ColumnVector1D>> trainingData)
+        {
+            int i = 0;
+            double error = 0;
+
+            foreach (var batch in trainingData.Chunk())
+            {
+                var err = batch.Select(b => CalculateError(b.Item1, b.Item2)).MeanOfEachDimension();
+
+                Update(err);
+
+                error += err.Sum();
+
+                i += batch.Count();
+            }
+
+            return error / i;
         }
 
         public double Train(ColumnVector1D input, ColumnVector1D output)

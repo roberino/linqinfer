@@ -17,6 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Tests", "tests\Li
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E-47AC-49B9-A991-E89ED5C863D5}"
 	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
 		build.cake = build.cake
 		build.cmd = build.cmd
 		build.sh = build.sh

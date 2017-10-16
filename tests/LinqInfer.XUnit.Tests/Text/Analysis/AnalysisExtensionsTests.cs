@@ -52,46 +52,41 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             }
         }
 
-        [Fact]
-        public async Task CreateContinuousBagOfWordsTrainingSet_SoftmaxExample()
-        {
-            var corpus = TestData.GetShakespeareCorpus();
-
-            var targetVocab = corpus.ExtractKeyTerms(500);
-
-            var trainingSet = corpus.CreateContinuousBagOfWordsTrainingSet(targetVocab, targetVocab, 500, 2);
-
-            var softmaxClassifier = trainingSet.ToSoftmaxClassifier();
-
-            var classifier = await softmaxClassifier.ExecuteAsync();
-
-            Assert.NotNull(classifier);
-
-            foreach (var result in classifier.Classify(new WordPair("man")).OrderBy(c => c.Score))
-            {
-                _output.WriteLine($"{result}");
-            }
-        }
-
         //[Fact]
+        //public async Task CreateContinuousBagOfWordsTrainingSet_SoftmaxExample()
+        //{
+        //    var corpus = TestData.GetShakespeareCorpus();
+
+        //    var targetVocab = corpus.ExtractKeyTerms(500);
+
+        //    var trainingSet = corpus.CreateContinuousBagOfWordsTrainingSet(targetVocab, targetVocab, 500, 2);
+
+        //    var softmaxClassifier = trainingSet.ToSoftmaxClassifier();
+
+        //    var classifier = await softmaxClassifier.ExecuteAsync();
+
+        //    Assert.NotNull(classifier);
+
+        //    foreach (var result in classifier.Classify(new WordPair("man")).OrderBy(c => c.Score))
+        //    {
+        //        _output.WriteLine($"{result}");
+        //    }
+        //}
+
+        [Fact]
         public void LinearClassifier()
         {
             var corpus = TestData.GetShakespeareCorpus();
 
-            var targetVocab = corpus.ExtractKeyTerms(5000);
+            var targetVocab = corpus.ExtractKeyTerms(50);
 
             var trainingSet = corpus.CreateContinuousBagOfWordsTrainingSet(targetVocab, targetVocab, 500, 2);
-
-            var matrix = new Matrix(Enumerable.Range(0, targetVocab.Count).Select(n => Functions.RandomVector(targetVocab.Count, -0.1, 0.1)));
-
+            
             var linClassifier = new LinearClassifier(trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize);
 
             foreach(var batch in trainingSet.ExtractInputOutputVectorBatches())
             {
-                foreach(var x in batch)
-                {
-                    var err = linClassifier.Train(x.Item1, x.Item2);
-                }
+                linClassifier.Train(batch.AsQueryable());
             }
         }
     }
