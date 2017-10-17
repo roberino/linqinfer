@@ -5,4 +5,4 @@ mono: none
 dotnet: 2.0.0
 script:
   - dotnet restore LinqInfer.sln
-  - dotnet build LinqInfer.sln
+  - dotnet build tests/LinqInfer.Tests/LinqInfer.Tests.csproj
