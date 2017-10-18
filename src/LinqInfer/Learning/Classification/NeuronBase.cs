@@ -60,14 +60,9 @@ namespace LinqInfer.Learning.Classification
             _weights.Apply(func);
         }
 
-        public virtual T Calculate<T>(Func<ColumnVector1D, T> func)
+        public virtual double Evaluate(IVector input)
         {
-            return func(_weights);
-        }
-
-        public virtual double Evaluate(ColumnVector1D input)
-        {
-            var sum = Bias + _weights.Zip(input, (w, m) => w * m).Sum();
+            var sum = Bias + input.DotProduct(_weights);
 
             return Output = Activator == null ? sum : Activator(sum);
         }

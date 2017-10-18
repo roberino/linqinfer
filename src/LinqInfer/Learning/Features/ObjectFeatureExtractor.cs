@@ -13,7 +13,7 @@ namespace LinqInfer.Learning.Features
 
         private ObjectFeatureExtractor(Type actualType)
         {
-            _innerExtractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<T>(actualType, true, null);
+            _innerExtractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<T>(actualType, null);
         }
 
         public IEnumerable<IFeature> FeatureMetadata
@@ -21,14 +21,6 @@ namespace LinqInfer.Learning.Features
             get
             {
                 return _innerExtractor.FeatureMetadata;
-            }
-        }
-
-        public bool IsNormalising
-        {
-            get
-            {
-                return _innerExtractor.IsNormalising;
             }
         }
 
@@ -45,6 +37,11 @@ namespace LinqInfer.Learning.Features
             return _innerExtractor.ExtractColumnVector(obj);
         }
 
+        public IVector ExtractIVector(T obj)
+        {
+            return ExtractColumnVector(obj);
+        }
+
         public double[] ExtractVector(T obj)
         {
             return _innerExtractor.ExtractVector(obj);
@@ -53,11 +50,6 @@ namespace LinqInfer.Learning.Features
         public void Load(Stream input)
         {
             _innerExtractor.Load(input);
-        }
-
-        public double[] NormaliseUsing(IEnumerable<T> samples)
-        {
-            return _innerExtractor.NormaliseUsing(samples);
         }
 
         public void Save(Stream output)

@@ -81,6 +81,16 @@ namespace LinqInfer.Learning.Features
             }
         }
 
+        public IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
+        {
+            var cf = _classf.Compile();
+
+            foreach (var batch in _pipeline.ExtractBatches(batchSize))
+            {
+                yield return batch.Select(b => new TrainingPair<IVector, IVector>(b.VirtualVector, _outputMapper.Value.ExtractIVector(cf(b.Value)))).ToList();
+            }
+        }
+
         public IEnumerable<IList<Tuple<ColumnVector1D, ColumnVector1D>>> ExtractInputOutputVectorBatches(int batchSize = 1000)
         {
             var cf = _classf.Compile();

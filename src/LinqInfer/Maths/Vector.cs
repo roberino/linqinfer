@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.IO;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Maths
 {
@@ -30,6 +31,8 @@ namespace LinqInfer.Maths
 
         public Vector(double[] values)
         {
+            ArgAssert.AssertNonNull(values, nameof(values));
+
             _values = values;
             Refresh();
         }
@@ -255,9 +258,16 @@ namespace LinqInfer.Maths
         {
             Contract.Requires(v1.Size == v2.Size);
 
-            int i = 0;
+            var newValues = new double[v1.Size];
+            var v1a = v1._values;
+            var v2a = v2._values;
 
-            return new Vector(v1._values.Select(x => x * v2._values[i++]).ToArray());
+            for (int i = 0; i < v1a.Length; i++)
+            {
+                newValues[i] = v1a[i] * v2a[i];
+            }
+
+            return new ColumnVector1D(newValues);
         }
 
         public static Vector operator /(Vector v1, Vector v2)

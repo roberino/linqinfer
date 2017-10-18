@@ -40,15 +40,15 @@ namespace LinqInfer.Learning.Features
 
         public Func<T, double[]> CreateFeatureExtractorFunc<T>(string setName = null) where T : class
         {
-            return CreateFeatureExtractor<T>(false, setName).ExtractVector;
+            return CreateFeatureExtractor<T>(setName).ExtractVector;
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(bool normaliseData = true, string setName = null) where T : class
+        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(string setName = null) where T : class
         {
-            return CreateFeatureExtractor<T>(typeof(T), normaliseData, setName);
+            return CreateFeatureExtractor<T>(typeof(T), setName);
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, bool normaliseData = true, string setName = null) where T : class
+        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, string setName = null) where T : class
         {
             int i = 0;
 
@@ -80,7 +80,6 @@ namespace LinqInfer.Learning.Features
             return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
                 featureProps.Select(c => x == null ? 1f : c.converter(x)).ToArray(),
                 featureProps.Count,
-                normaliseData,
                 featureProps.Select(f => new Feature()
                 {
                     Key = f.feature.property.Name.ToLower(),

@@ -34,8 +34,15 @@ namespace LinqInfer.Learning
         public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
         {
             var size = featureLabels == null ? vectorFunc(DefaultOf<T>()).Length : featureLabels.Length;
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, normaliseData, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
-            return new FeatureProcessingPipeline<T>(data, featureExtractor);
+            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
+            var pipeline = new FeatureProcessingPipeline<T>(data, featureExtractor);
+
+            if (normaliseData)
+            {
+                pipeline.NormaliseData();
+            }
+
+            return pipeline;
         }
 
         /// <summary>
@@ -50,7 +57,7 @@ namespace LinqInfer.Learning
                 throw new ArgumentException("No data found");
             }
 
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<Vector>(v => v.GetUnderlyingArray(), data.Vectors.First().Size, false);
+            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<Vector>(v => v.GetUnderlyingArray(), data.Vectors.First().Size);
 
             return new FeatureProcessingPipeline<Vector>(data.Vectors.AsQueryable(), featureExtractor);
         }
@@ -68,7 +75,7 @@ namespace LinqInfer.Learning
         {
             Contract.Assert(vectorSize > 0);
 
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, true, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
+            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
             return new FeatureProcessingPipeline<T>(data, featureExtractor);
         }
 

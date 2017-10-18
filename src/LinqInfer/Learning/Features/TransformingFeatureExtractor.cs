@@ -48,9 +48,7 @@ namespace LinqInfer.Learning.Features
         internal Func<IFeature, bool> FeatureFilter { get; private set; }
 
         internal Func<TVector[], TVector[]> Transformation { get { return _transformation; } }
-
-        public bool IsNormalising { get { return _baseFeatureExtractor.IsNormalising; } }
-
+        
         public IEnumerable<IFeature> FeatureMetadata
         {
             get
@@ -70,13 +68,6 @@ namespace LinqInfer.Learning.Features
         public int InputSize { get { return _selectedFeatures.Count; } }
 
         public int VectorSize { get { return _vectorSize; } }
-
-        public TVector[] NormaliseUsing(IEnumerable<TInput> samples)
-        {
-            var bnv = _baseFeatureExtractor.NormaliseUsing(samples);
-            
-            return FilterAndTransform(bnv);
-        }
 
         public TVector[] ExtractVector(TInput obj)
         {

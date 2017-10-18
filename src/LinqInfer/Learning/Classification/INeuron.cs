@@ -10,9 +10,8 @@ namespace LinqInfer.Learning.Classification
         double Bias { get; }
         double Output { get; }
         double this[int index] { get; }
-        T Calculate<T>(Func<ColumnVector1D, T> func);
         void Adjust(Func<double, int, double> func);
-        double Evaluate(ColumnVector1D input);
+        double Evaluate(IVector input);
         Func<double, double> Activator { get; set; }
         void PruneWeights(params int[] indexes);
         ColumnVector1D Export();

@@ -14,8 +14,6 @@ namespace LinqInfer.Tests.Learning.Features
             var fe = ext.CreateFeatureExtractor<FeatureObject>();
             var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, v => new double[] { v[0] * v[1] * v[2] });
 
-            tfe.NormaliseUsing(new FeatureObject[] { new FeatureObject() { x = 10, y = 10, z = 10 } });
-
             var trasnformedFeature = tfe.FeatureMetadata.Single();
 
             Assert.That(trasnformedFeature.DataType == System.TypeCode.Double);

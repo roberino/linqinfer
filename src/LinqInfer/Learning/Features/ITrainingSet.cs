@@ -15,5 +15,6 @@ namespace LinqInfer.Learning.Features
 
         IEnumerable<IList<ObjectVector<TClass>>> ExtractInputClassBatches(int batchSize = 1000);
         IEnumerable<IList<Tuple<ColumnVector1D, ColumnVector1D>>> ExtractInputOutputVectorBatches(int batchSize = 1000);
+        IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
     }
 }

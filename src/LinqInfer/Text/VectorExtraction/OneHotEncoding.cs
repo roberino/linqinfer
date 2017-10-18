@@ -24,8 +24,6 @@ namespace LinqInfer.Text.VectorExtraction
 
         public int VectorSize => _vocabulary.Count;
 
-        public bool IsNormalising => false;
-
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
         public ColumnVector1D ExtractColumnVector(T obj)
@@ -33,41 +31,39 @@ namespace LinqInfer.Text.VectorExtraction
             return ExtractColumnVector(_objectToStringTransform(obj));
         }
 
-        public double[] NormaliseUsing(IEnumerable<T> samples)
-        {
-            return NormaliseUsing(samples.Select(s => _objectToStringTransform(s)));
-        }
-
         public double[] ExtractVector(T obj)
         {
             return ExtractVector(_objectToStringTransform(obj));
         }
 
+        public IVector ExtractIVector(T obj)
+        {
+            return ExtractOneOfNVector(_objectToStringTransform(obj));
+        }
+
         public ColumnVector1D ExtractColumnVector(string token)
         {
-            return new ColumnVector1D(ExtractVector(token));
+            return ExtractOneOfNVector(token).ToColumnVector();
         }
 
         public double[] ExtractVector(string token)
         {
-            var vect = new double[_vocabulary.Count];
+            return ExtractOneOfNVector(token).ToColumnVector().GetUnderlyingArray();
+        }
 
+        public OneOfNVector ExtractOneOfNVector(string token)
+        {
             if (_vocabulary.TryGetValue(token, out int index))
             {
-                vect[index] = 1d;
+                return new OneOfNVector(VectorSize, index);
             }
 
-            return vect;
+            return new OneOfNVector(VectorSize);
         }
 
         public ColumnVector1D Encode(IToken token)
         {
             return ExtractColumnVector(token.Text.ToLowerInvariant());
-        }
-
-        public double[] NormaliseUsing(IEnumerable<string> samples)
-        {
-            return Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
         }
 
         public void Save(Stream output)

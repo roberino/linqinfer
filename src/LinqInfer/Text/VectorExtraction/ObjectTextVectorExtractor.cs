@@ -35,6 +35,11 @@ namespace LinqInfer.Text.VectorExtraction
             return ExtractColumnVector(_tokeniser(obj));
         }
 
+        public IVector ExtractIVector(T obj)
+        {
+            return ExtractIVector(_tokeniser(obj));
+        }
+
         public double[] ExtractVector(T obj)
         {
             return ExtractVector(_tokeniser(obj));

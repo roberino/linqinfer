@@ -23,8 +23,6 @@ namespace LinqInfer.Learning.Features
 
         public int VectorSize { get; private set; }
 
-        public bool IsNormalising => false;
-
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public ColumnVector1D ExtractColumnVector(T obj)
@@ -39,6 +37,11 @@ namespace LinqInfer.Learning.Features
             return ExtractColumnVector(obj).GetUnderlyingArray();
         }
 
+        public IVector ExtractIVector(T obj)
+        {
+            return ExtractColumnVector(obj);
+        }
+
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
             _weights = new Matrix(doc.Vectors);
@@ -50,11 +53,6 @@ namespace LinqInfer.Learning.Features
             var doc = new BinaryVectorDocument(input);
 
             FromVectorDocument(doc);
-        }
-
-        public double[] NormaliseUsing(IEnumerable<T> samples)
-        {
-            throw new NotSupportedException();
         }
 
         public void Save(Stream output)

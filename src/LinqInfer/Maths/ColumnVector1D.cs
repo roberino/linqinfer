@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
+    public class ColumnVector1D : Vector, IVector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
     {
         private Lazy<double> _euclideanLength;
 
@@ -25,6 +25,11 @@ namespace LinqInfer.Maths
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
         {
         }
+
+        /// <summary>
+        /// Returns true if all values are zero
+        /// </summary>
+        public bool IsZero => _values.All(x => x == 0d);
 
         /// <summary>
         /// Returns a 1 column matrix
@@ -140,6 +145,47 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the natural logarithm for each value as a new vector.
+        /// </summary>
+        /// <returns></returns>
+        public ColumnVector1D Log()
+        {
+            return new ColumnVector1D(_values.Select(v => Math.Log(v)).ToArray());
+        }
+
+        /// <summary>
+        /// Returns the values negated
+        /// </summary>
+        /// <returns></returns>
+        public ColumnVector1D Negate()
+        {
+            return new ColumnVector1D(_values.Select(v => -v).ToArray());
+        }
+
+        /// <summary>
+        /// Multiplies the vector by the matrix
+        /// </summary>
+        public ColumnVector1D Multiply(Matrix matrix)
+        {
+            return matrix * this;
+        }
+
+        public ColumnVector1D Multiply(IVector vector)
+        {
+            return vector.ToColumnVector() * this;
+        }
+
+        public double DotProduct(IVector vector)
+        {
+            return Multiply(vector).Sum();
+        }
+
+        public ColumnVector1D ToColumnVector()
+        {
+            return this;
+        }
+
+        /// <summary>
         /// Normalises each element over the sum (default) or the length of all values.
         /// </summary>
         /// <returns>A new normalised vector</returns>
@@ -225,18 +271,21 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator *(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            return new ColumnVector1D(((Vector)v1) * ((Vector)v2));
+        }
 
-            var newValues = new double[v1.Size];
-            var v1a = v1._values;
-            var v2a = v2._values;
+        public static Matrix operator *(ColumnVector1D v, Matrix m)
+        {
+            Contract.Requires(v.Size == m.Height);
 
-            for (int i = 0; i < v1a.Length; i++)
+            var rows = new List<Vector>();
+
+            for (var i = 0; i < m.Height; i++)
             {
-                newValues[i] = v1a[i] * v2a[i];
+                rows.Add(v * m.Rows[i]);
             }
 
-            return new ColumnVector1D(newValues);
+            return new Matrix(rows);
         }
 
         public static ColumnVector1D operator /(ColumnVector1D v1, ColumnVector1D v2)

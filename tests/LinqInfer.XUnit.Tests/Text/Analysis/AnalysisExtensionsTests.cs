@@ -1,11 +1,7 @@
-using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
-using LinqInfer.Maths;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,27 +48,6 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             }
         }
 
-        //[Fact]
-        //public async Task CreateContinuousBagOfWordsTrainingSet_SoftmaxExample()
-        //{
-        //    var corpus = TestData.GetShakespeareCorpus();
-
-        //    var targetVocab = corpus.ExtractKeyTerms(500);
-
-        //    var trainingSet = corpus.CreateContinuousBagOfWordsTrainingSet(targetVocab, targetVocab, 500, 2);
-
-        //    var softmaxClassifier = trainingSet.ToSoftmaxClassifier();
-
-        //    var classifier = await softmaxClassifier.ExecuteAsync();
-
-        //    Assert.NotNull(classifier);
-
-        //    foreach (var result in classifier.Classify(new WordPair("man")).OrderBy(c => c.Score))
-        //    {
-        //        _output.WriteLine($"{result}");
-        //    }
-        //}
-
         [Fact]
         public void LinearClassifier()
         {
@@ -84,9 +59,9 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             
             var linClassifier = new LinearClassifier(trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize);
 
-            foreach(var batch in trainingSet.ExtractInputOutputVectorBatches())
+            foreach(var batch in trainingSet.ExtractInputOutputIVectorBatches())
             {
-                linClassifier.Train(batch.AsQueryable());
+                linClassifier.Train(batch.Where(v => !v.Input.ToColumnVector().IsZero));
             }
         }
     }

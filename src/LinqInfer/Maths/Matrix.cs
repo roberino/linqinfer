@@ -94,7 +94,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
 
-        public IList<Vector> Rows { get; private set; }
+        public IList<Vector> Rows { get; }
 
         /// <summary>
         /// Returns the columns of the matrix as vectors
@@ -116,6 +116,18 @@ namespace LinqInfer.Maths
             {
                 yield return row[index];
             }
+        }
+
+        public double ColumnSum(int index)
+        {
+            double total = 0;
+
+            for(var i = 0; i < Height; i++)
+            {
+                total += Rows[i][index];
+            }
+
+            return total;
         }
 
         public double Variance(int x, bool isSampleData = true)
@@ -336,6 +348,22 @@ namespace LinqInfer.Maths
             }
 
             return new ColumnVector1D(data);
+        }
+
+        public ColumnVector1D Multiply(ColumnVector1D c)
+        {
+            // a, b * x     =   ax + by
+            // c, d   y         cx + dx
+
+            var result = new double[Height];
+
+            for (var i = 0; i < result.Length; i++)
+            {
+                var x = Rows[i] * c;
+                result[i] = x.Sum();
+            }
+
+            return new ColumnVector1D(result);
         }
 
         public static ColumnVector1D operator *(Matrix x, ColumnVector1D c)

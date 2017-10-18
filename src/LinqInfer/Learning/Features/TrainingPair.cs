@@ -4,15 +4,15 @@ namespace LinqInfer.Learning.Features
 {
     public struct TrainingPair<I, C>
     {
-        public TrainingPair(I input, C classification)
+        public TrainingPair(I input, C targetOutput)
         {
             Input = input;
-            Classification = classification;
+            TargetOutput = targetOutput;
         }
 
         public I Input { get; }
 
-        public C Classification { get; }
+        public C TargetOutput { get; }
 
         public static implicit operator TrainingPair<I, C>(KeyValuePair<I, C> kv)
         {

@@ -81,6 +81,11 @@ namespace LinqInfer.Text.VectorExtraction
             return new ColumnVector1D(ExtractVector(tokens));
         }
 
+        public IVector ExtractIVector(IEnumerable<IToken> tokens)
+        {
+            return ExtractColumnVector(tokens);
+        }
+
         public double[] ExtractVector(IEnumerable<IToken> tokens)
         {
             var vectorRaw = ExtractVectorDenormal(tokens);

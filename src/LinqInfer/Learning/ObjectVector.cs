@@ -6,18 +6,20 @@ namespace LinqInfer.Learning
     {
         public ObjectVector(T value, double[] attributes)
         {
-            Vector = new ColumnVector1D(attributes);
+            VirtualVector = new ColumnVector1D(attributes);
             Value = value;
         }
 
-        public ObjectVector(T value, ColumnVector1D attributes)
+        public ObjectVector(T value, IVector attributes)
         {
-            Vector = attributes;
+            VirtualVector = attributes;
             Value = value;
         }
 
-        public T Value { get; private set; }
+        public T Value { get; }
 
-        public ColumnVector1D Vector { get; private set; }
+        public IVector VirtualVector { get; }
+
+        public ColumnVector1D Vector => VirtualVector.ToColumnVector();
     }
 }

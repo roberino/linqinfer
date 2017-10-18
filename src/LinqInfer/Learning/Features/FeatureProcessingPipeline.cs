@@ -148,9 +148,7 @@ namespace LinqInfer.Learning.Features
             var pca = new PrincipalComponentAnalysis(this);
 
             var pp = pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
-
-            _featureExtractor.IsNormalising = false; // Assume that PCA expects the raw data and does it's own "normalisation"
-
+            
             return PreprocessWith(pp);
         }
 
@@ -265,10 +263,8 @@ namespace LinqInfer.Learning.Features
         {
             var fe = FeatureExtractor;
 
-            if (fe.IsNormalising && !_featureExtractor.NormalisationCompleted)
-            {
-                fe.NormaliseUsing(_data);
-            }
+            CentreFeatures();
+            ScaleFeatures();
 
             return this;
         }
@@ -302,7 +298,7 @@ namespace LinqInfer.Learning.Features
 
             foreach (var batch in _data.Chunk(batchSize))
             {
-                yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractColumnVector(b))).ToList();
+                yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractIVector(b))).ToList();
             }
         }
 

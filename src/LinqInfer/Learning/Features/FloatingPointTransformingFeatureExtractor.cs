@@ -22,8 +22,6 @@ namespace LinqInfer.Learning.Features
             if (transformation != null) _transformations.Add(transformation);
         }
 
-        public bool IsNormalising { get { return _baseFeatureExtractor.IsNormalising; } }
-
         public IEnumerable<IFeature> FeatureMetadata
         {
             get
@@ -59,13 +57,6 @@ namespace LinqInfer.Learning.Features
             {
                 throw new ArgumentException($"Invalid input size - {transformation.InputSize}");
             }
-        }
-
-        public double[] NormaliseUsing(IEnumerable<TInput> samples)
-        {
-            var bnv = _baseFeatureExtractor.NormaliseUsing(samples);
-            
-            return Transform(bnv);
         }
 
         public double[] ExtractVector(TInput obj)
@@ -108,6 +99,11 @@ namespace LinqInfer.Learning.Features
             }
 
             return new ColumnVector1D(nextInput);
+        }
+
+        public IVector ExtractIVector(TInput obj)
+        {
+            return ExtractColumnVector(obj);
         }
 
         public BinaryVectorDocument ToVectorDocument()

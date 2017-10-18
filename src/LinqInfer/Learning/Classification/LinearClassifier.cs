@@ -1,14 +1,14 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Text;
 
 namespace LinqInfer.Learning.Classification
 {
-    public class LinearClassifier
+    public sealed class LinearClassifier
     {
         private readonly Matrix _weights;
         private readonly ColumnVector1D _bias;
@@ -27,36 +27,54 @@ namespace LinqInfer.Learning.Classification
 
             _learningRate = learningRate;
 
-            _weights = new Matrix(Enumerable.Range(0, inputVectorSize).Select(n => Functions.RandomVector(outputVectorSize, -0.1, 0.1)));
+            _weights = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(inputVectorSize, -0.1, 0.1)));
             _bias = Functions.RandomVector(outputVectorSize);
             _delta = new ColumnVector1D(Vector.UniformVector(_weights.Width, delta));
             _previousError = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
             _softmax = new Softmax(outputVectorSize);
         }
 
-        public int InputVectorSize => _weights.Height;
+        public int InputVectorSize => _weights.Width;
 
-        public int OutputVectorSize => _weights.Width;
+        public int OutputVectorSize => _weights.Height;
 
-        public ColumnVector1D Evaluate(ColumnVector1D input)
+        public ColumnVector1D Evaluate(IVector input)
         {
-            var output = _weights * input + _bias;
+            var output = input.Multiply(_weights) + _bias;
 
             return _softmax.Calculate(output);
         }
 
-        public double Train(IQueryable<Tuple<ColumnVector1D, ColumnVector1D>> trainingData)
+        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData)
         {
             int i = 0;
             double error = 0;
 
-            foreach (var batch in trainingData.Chunk())
+            foreach (var batch in trainingData.AsQueryable().Chunk())
             {
-                var err = batch.Select(b => CalculateError(b.Item1, b.Item2)).MeanOfEachDimension();
+                var evaluation = batch.Select(b => new
+                {
+                    score = Evaluate(b.Input),
+                    targetOutput = b.TargetOutput
+                })
+                .Select(s => new
+                {
+                    score = s.score,
+                    targetOutput = s.targetOutput,
+                    cost = CalculateCost(s.score, s.targetOutput)
+                })
+                .Select(e => new
+                {
+                    score = e.score,
+                    targetOutput = e.targetOutput,
+                    error = e.cost.Item1,
+                    derivative = e.cost.Item2
+                })
+                .ToList();
 
-                Update(err);
+                Update(evaluation.Select(c => c.derivative).MeanOfEachDimension());
 
-                error += err.Sum();
+                error += evaluation.Select(c => c.error).MeanOfEachDimension().Sum();
 
                 i += batch.Count();
             }
@@ -64,24 +82,22 @@ namespace LinqInfer.Learning.Classification
             return error / i;
         }
 
-        public double Train(ColumnVector1D input, ColumnVector1D output)
-        {
-            var err = CalculateError(input, output);
-
-            Update(err);
-
-            return err.Sum();
-        }
-
-        private ColumnVector1D CalculateError(ColumnVector1D input, ColumnVector1D output)
+        public double Train(ColumnVector1D input, ColumnVector1D targetOutput)
         {
             var score = Evaluate(input);
+            var cost = CalculateCost(score, targetOutput);
 
-            var error = (input * (output - score));
+            Update(cost.Item2);
 
-            error.Apply(x => Math.Max(x, 0));
+            return cost.Item1.Sum();
+        }
 
-            return error;
+        private Tuple<ColumnVector1D, ColumnVector1D> CalculateCost(ColumnVector1D score, IVector targetOutput)
+        {
+            var error = targetOutput.Multiply(score.Log());
+            var derivative = (error * (targetOutput.ToColumnVector() - score));
+
+            return new Tuple<ColumnVector1D, ColumnVector1D>(error, derivative);
         }
 
         private void Update(ColumnVector1D error)
@@ -95,7 +111,7 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
+        private double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
         {
             return currentWeightValue + (_learningRate * (currentWeightValue * (error * previousLayerOutput)));
         }
