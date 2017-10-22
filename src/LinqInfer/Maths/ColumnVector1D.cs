@@ -187,6 +187,7 @@ namespace LinqInfer.Maths
 
         /// <summary>
         /// Normalises each element over the sum (default) or the length of all values.
+        /// When bySum=false, the vector returned is the unit vector.
         /// </summary>
         /// <returns>A new normalised vector</returns>
         public ColumnVector1D Normalise(bool bySum = true)

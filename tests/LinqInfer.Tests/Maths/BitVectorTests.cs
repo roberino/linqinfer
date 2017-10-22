@@ -75,5 +75,17 @@ namespace LinqInfer.Tests.Maths
 
             Assert.That(vect2.Size, Is.EqualTo(values.Length));
         }
+
+        [Test]
+        public void Equals_TwoStrucurallyEquivVectors_ReturnsTrue()
+        {
+            var values = Enumerable.Range(1, 20).Select(n => n % 3 == 0);
+            var vect1 = new BitVector(values.ToArray());
+            var vect2 = new BitVector(values.ToArray());
+
+            var result = vect1.Equals(vect2);
+
+            Assert.That(result, Is.True);
+        }
     }
 }

@@ -38,7 +38,7 @@ namespace LinqInfer.Utility
 
         public static void AssertNonNull<T>(T value, string name) where T : class
         {
-            if (value != null)
+            if (value == null)
             {
                 throw new ArgumentNullException(name);
             }

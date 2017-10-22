@@ -1,4 +1,6 @@
-﻿namespace LinqInfer.Maths
+﻿using System;
+
+namespace LinqInfer.Maths
 {
     /// <summary>
     /// Represents a vector.
@@ -6,7 +8,7 @@
     /// vector some of which are more efficient in
     /// specific scenarios
     /// </summary>
-    public interface IVector
+    public interface IVector : IEquatable<IVector>
     {
         /// <summary>
         /// Returns the size of the vector

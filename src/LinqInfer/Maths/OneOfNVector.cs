@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Utility;
+using System;
 using System.Linq;
 
 namespace LinqInfer.Maths
@@ -70,6 +71,31 @@ namespace LinqInfer.Maths
             }
 
             return 0d;
+        }
+
+        public override string ToString()
+        {
+            return ToColumnVector().ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return new Tuple<int, int>(Size, ActiveIndex.GetValueOrDefault(-1)).GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IVector);
+        }
+
+        public bool Equals(IVector other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Size != Size) return false;
+            if (other is OneOfNVector) return ((OneOfNVector)other).ActiveIndex == ActiveIndex;
+
+            return other.ToColumnVector().Equals(ToColumnVector());
         }
     }
 }

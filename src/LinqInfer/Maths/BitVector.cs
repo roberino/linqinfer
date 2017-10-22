@@ -173,5 +173,34 @@ namespace LinqInfer.Maths
 
             return data;
         }
+
+        public override string ToString()
+        {
+            return ToColumnVector().ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IVector);
+        }
+
+        public override int GetHashCode()
+        {
+            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_data);
+        }
+
+        public bool Equals(IVector other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Size != Size) return false;
+
+            if (other is BitVector)
+            {
+                return StructuralComparisons.StructuralEqualityComparer.Equals(_data, ((BitVector)other)._data);
+            }
+
+            return other.ToColumnVector().Equals(ToColumnVector());
+        }
     }
 }

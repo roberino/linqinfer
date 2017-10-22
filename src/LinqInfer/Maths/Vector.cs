@@ -13,7 +13,7 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IEquatable<Vector>, IJsonExportable
+    public class Vector : IEnumerable<double>, IEquatable<IVector>, IJsonExportable
     {
         protected readonly double[] _values;
 
@@ -410,7 +410,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns true if an other vector is structually equal to this vector
         /// </summary>
-        public bool Equals(Vector other)
+        public bool Equals(IVector other)
         {
             if (other == null) return false;
 
@@ -418,9 +418,12 @@ namespace LinqInfer.Maths
 
             if (Size != other.Size) return false;
 
-            int i = 0;
+            if (other is Vector)
+            {
+                return StructuralComparisons.StructuralEqualityComparer.Equals(_values, ((Vector)other)._values);
+            }
 
-            return _values.All(x => x == other._values[i++]);
+            return other.Equals((IVector)this);
         }
 
         internal double[] GetUnderlyingArray()
