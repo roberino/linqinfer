@@ -263,6 +263,32 @@ namespace LinqInfer.Maths
             }
 
             throw new ArgumentException();
+
+            //double min = double.MaxValue;
+
+            //return values.Aggregate((t, x) =>
+            //{
+            //    return (min > x) ? x : t; 
+            //});
+        }
+
+        public static ColumnVector1D Aggregate(this IEnumerable<ColumnVector1D> values, Func<double, double, double> func)
+        {
+            if (!values.Any()) throw new ArgumentException(nameof(values));
+
+            double[] result = new double[values.First().Size];
+
+            foreach (var value in values)
+            {
+                var x = value.GetUnderlyingArray();
+
+                for (var i = 0; i < x.Length; i++)
+                {
+                    result[i] = func(result[i], x[i]);
+                }
+            }
+
+            return new ColumnVector1D(result);
         }
 
         public static Fraction Mean(this IEnumerable<Fraction> items)

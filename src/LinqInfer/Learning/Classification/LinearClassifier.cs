@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Classification
         private readonly Softmax _softmax;
         private readonly double _learningRate;
         
-        public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double delta = 1)
+        public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.05f, double delta = 1)
         {
             Contract.Ensures(inputVectorSize > 0);
             Contract.Ensures(outputVectorSize > 0);
@@ -82,13 +82,15 @@ namespace LinqInfer.Learning.Classification
                     targetOutput = e.targetOutput,
                     error = e.cost.Item1,
                     derivative = e.cost.Item2,
-                    dW = e.cost.Item3
+                    db = e.cost.Item3
                 })
                 .ToList();
 
-                Update(evaluation.Select(c => c.derivative).MeanOfEachDimension(), evaluation.Average(c => c.dW));
+                var dW = evaluation.Select(c => c.derivative).MeanOfEachDimension().Negate();
 
-                error += evaluation.Select(c => c.error).Sum();
+                Update(dW, -evaluation.Average(c => c.db));
+
+                error += evaluation.Select(c => c.error).Average();
 
                 i += batch.Count();
             }
@@ -108,12 +110,12 @@ namespace LinqInfer.Learning.Classification
 
         private Tuple<double, ColumnVector1D, double> CalculateLossAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
         {
-            var error = -targetOutput.Multiply(score.Log()).Sum();
-            var grad = score - targetOutput.ToColumnVector();
+            var cost = -targetOutput.Multiply(score.Log()).Sum();
+            var grad = targetOutput.ToColumnVector() - score;
             var dW = input.Multiply(grad);
             var dB = grad.Sum();
 
-            return new Tuple<double, ColumnVector1D, double>(error, dW, dB);
+            return new Tuple<double, ColumnVector1D, double>(cost, dW, dB);
         }
 
         private void Update(ColumnVector1D dW, double dB)
