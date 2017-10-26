@@ -12,9 +12,9 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly Matrix _weights;
         private readonly ColumnVector1D _bias;
-        private readonly Func<ColumnVector1D> _lossFunction;
         private readonly ColumnVector1D _delta;
         private readonly Softmax _softmax;
+        private readonly double _weightDecay = 0.001;
         private readonly double _learningRate;
         
         public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.05f, double delta = 1)
@@ -25,8 +25,8 @@ namespace LinqInfer.Learning.Classification
 
             _learningRate = learningRate;
 
-            _weights = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(inputVectorSize, -0.1, 0.1)));
-            _bias = Functions.RandomVector(outputVectorSize);
+            _weights = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(inputVectorSize, -0.01, 0.01)));
+            _bias = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
             _delta = new ColumnVector1D(Vector.UniformVector(_weights.Width, delta));
             _softmax = new Softmax(outputVectorSize);
         }
@@ -74,19 +74,19 @@ namespace LinqInfer.Learning.Classification
                 {
                     score = s.score,
                     targetOutput = s.targetOutput,
-                    cost = CalculateLossAndDerivative(s.input, s.score, s.targetOutput)
+                    cost = CalculateCostAndDerivative(s.input, s.score, s.targetOutput)
                 })
                 .Select(e => new
                 {
                     score = e.score,
                     targetOutput = e.targetOutput,
-                    error = e.cost.Item1,
-                    derivative = e.cost.Item2,
-                    db = e.cost.Item3
+                    error = e.cost.Cost,
+                    derivative = e.cost.dW,
+                    db = e.cost.dB
                 })
                 .ToList();
 
-                var dW = evaluation.Select(c => c.derivative).MeanOfEachDimension().Negate();
+                var dW = evaluation.Select(c => c.derivative.ToColumnVector()).MeanOfEachDimension().Negate();
 
                 Update(dW, -evaluation.Average(c => c.db));
 
@@ -101,24 +101,43 @@ namespace LinqInfer.Learning.Classification
         public double Train(ColumnVector1D input, ColumnVector1D targetOutput)
         {
             var score = Evaluate(input);
-            var lossAndD = CalculateLossAndDerivative(input, score, targetOutput);
+            var lossAndD = CalculateCostAndDerivative(input, score, targetOutput);
 
-            Update(lossAndD.Item2, lossAndD.Item3);
+            Update(lossAndD.dW, lossAndD.dB);
 
-            return lossAndD.Item1;
+            return lossAndD.Cost + lossAndD.Decay;
         }
 
-        private Tuple<double, ColumnVector1D, double> CalculateLossAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
+        private LossAndDerivative CalculateCostAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
         {
-            var cost = -targetOutput.Multiply(score.Log()).Sum();
-            var grad = targetOutput.ToColumnVector() - score;
-            var dW = input.Multiply(grad);
+            var cost = -targetOutput.DotProduct(score.Log());
+
+            var decay = (_weightDecay / 2) * _weights.Sum(v => v.DotProduct(v));
+
+            var grad = score - targetOutput.ToColumnVector();
+            var dW = input.Multiply(grad).ToColumnVector();
             var dB = grad.Sum();
 
-            return new Tuple<double, ColumnVector1D, double>(cost, dW, dB);
+            if (_weightDecay != 1) dW.Apply(d => d * _weightDecay);
+
+            return new LossAndDerivative()
+            {
+                Cost = cost,
+                Decay = decay,
+                dW = dW,
+                dB = dB
+            };
         }
 
-        private void Update(ColumnVector1D dW, double dB)
+        private class LossAndDerivative
+        {
+            public double Cost;
+            public double Decay;
+            public IVector dW;
+            public double dB;
+        }
+
+        private void Update(IVector dW, double dB)
         {
             foreach (var row in _weights)
             {
@@ -133,7 +152,7 @@ namespace LinqInfer.Learning.Classification
 
         private double ExecuteUpdateRule(double currentWeightValue, double adjustment)
         {
-            return currentWeightValue - (_learningRate * adjustment);
+            return currentWeightValue + (-_learningRate * adjustment);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace LinqInfer.Text.Analysis
                    )
                    .Take(sampleSize);
 
-            var encoder = new OneHotEncoding<WordPair>(widerVocabulary, t => t.WordA);
+            var encoder = new OneHotTextEncoding<WordPair>(widerVocabulary, t => t.WordA);
 
             var pipeline = data.AsQueryable().CreatePipeline(encoder);
 

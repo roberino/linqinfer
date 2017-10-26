@@ -4,6 +4,11 @@ namespace LinqInfer.Utility
 {
     internal static class ArgAssert
     {
+        public static void AssertEquals<T>(T x, T y, string name) where T : struct
+        {
+            if (!x.Equals(y)) throw new ArgumentException(name);
+        }
+
         public static void Assert(Func<bool> assertion, string name)
         {
             if (assertion())

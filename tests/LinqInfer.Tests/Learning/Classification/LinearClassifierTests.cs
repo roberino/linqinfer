@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
@@ -7,13 +6,29 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LinqInfer.Tests.Learning.Classification
 {
     [TestFixture]
     public class LinearClassifierTests
     {
+        [Test]
+        public void Raw()
+        {
+            var x = new ColumnVector1D(new[] { 0.1, 0.5 });
+            var w0 = ColumnVector1D.Create(0.1, 0.2, 0.3);
+            var w1 = ColumnVector1D.Create(0.1, 0.2, 0.3);
+            var W = Matrix.Create(w0, w1);
+            var bias = ColumnVector1D.Create(0.01, 0.1, 0.1);
+
+            W = W.Rotate();
+
+            var z = x.Multiply(W);
+
+
+            z = z + bias;
+        }
+
         [Test]
         public void Train_RandomNormalDataset_ClassifiesAsExpected()
         {
@@ -25,9 +40,13 @@ namespace LinqInfer.Tests.Learning.Classification
 
             classifier.Train(trainingData, (n, e) =>
             {
-                lastErr = e;
                 nt = n;
-                return n > 100 || e > lastErr;
+
+                var halt = n > 100 || (n > 30 && e > lastErr);
+
+                lastErr = e;
+
+                return halt;
             });
 
             double totalDiff = 0;

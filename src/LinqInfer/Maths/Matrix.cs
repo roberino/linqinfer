@@ -251,6 +251,11 @@ namespace LinqInfer.Maths
             return new Matrix(data);
         }
 
+        public static Matrix Create(params Vector[] rows)
+        {
+            return new Matrix(rows);
+        }
+
         public static Matrix DiagonalMatrix(Vector values)
         {
             var a = values.GetUnderlyingArray();
@@ -366,12 +371,12 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(result);
         }
 
-        public static ColumnVector1D operator *(Matrix x, ColumnVector1D c)
+        public static ColumnVector1D operator *(Matrix m, ColumnVector1D c)
         {
-            // a, b * x     =   ax + by
-            // c, d   y         cx + dx
+            // | a, b | * x     =   ax + by
+            // | c, d |   y         cx + dx
 
-            return new ColumnVector1D(x.Rows.Select(v => (v * c).Sum()).ToArray());
+            return new ColumnVector1D(m.Rows.Select(r => (r * c).Sum()).ToArray());
         }
 
         public static Matrix operator *(Matrix m, double s)

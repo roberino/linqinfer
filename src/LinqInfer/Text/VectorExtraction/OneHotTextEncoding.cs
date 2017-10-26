@@ -9,20 +9,19 @@ using LinqInfer.Maths.Probability;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class OneHotEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
-        private readonly IDictionary<string, int> _vocabulary;
+        private readonly OneHotEncoding<string> _encoder;
         private readonly Func<T, string> _objectToStringTransform;
 
-        public OneHotEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
+        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
         {
-            int i = 0;
             _objectToStringTransform = objectToStringTransform;
-            _vocabulary = vocabulary.Words.ToDictionary(w => w.ToLowerInvariant(), _ => i++);
+            _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
             FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, DistributionModel.Categorical);
         }
 
-        public int VectorSize => _vocabulary.Count;
+        public int VectorSize => _encoder.VectorSize;
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
@@ -53,12 +52,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public OneOfNVector ExtractOneOfNVector(string token)
         {
-            if (_vocabulary.TryGetValue(token, out int index))
-            {
-                return new OneOfNVector(VectorSize, index);
-            }
-
-            return new OneOfNVector(VectorSize);
+            return _encoder.Encode(token);
         }
 
         public ColumnVector1D Encode(IToken token)
@@ -80,7 +74,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public BinaryVectorDocument ToVectorDocument()
         {
-            return new KeyValueDocument(_vocabulary.ToDictionary(k => k.Key, v => v.Value.ToString())).ToVectorDocument();
+            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ToVectorDocument();
         }
 
         public void FromVectorDocument(BinaryVectorDocument doc)
@@ -89,9 +83,9 @@ namespace LinqInfer.Text.VectorExtraction
 
             kvdoc.FromVectorDocument(doc);
 
-            foreach(var kv in kvdoc.Data)
+            foreach (var kv in kvdoc.Data)
             {
-                _vocabulary[kv.Key] = int.Parse(kv.Value);
+                _encoder.Lookup[kv.Key] = int.Parse(kv.Value);
             }
         }
     }

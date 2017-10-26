@@ -256,7 +256,7 @@ namespace LinqInfer.Maths
 
         public static Vector operator *(Vector v1, Vector v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
             var newValues = new double[v1.Size];
             var v1a = v1._values;

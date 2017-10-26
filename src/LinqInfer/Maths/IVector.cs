@@ -29,7 +29,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the given vector multiplied by this vector
         /// </summary>
-        ColumnVector1D Multiply(IVector vector);
+        IVector Multiply(IVector vector);
 
         /// <summary>
         /// Returns the dot product of this vector and another

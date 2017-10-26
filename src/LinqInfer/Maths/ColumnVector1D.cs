@@ -170,14 +170,14 @@ namespace LinqInfer.Maths
             return matrix * this;
         }
 
-        public ColumnVector1D Multiply(IVector vector)
+        public IVector Multiply(IVector vector)
         {
             return vector.ToColumnVector() * this;
         }
 
         public double DotProduct(IVector vector)
         {
-            return Multiply(vector).Sum();
+            return Multiply(vector).ToColumnVector().Sum();
         }
 
         public ColumnVector1D ToColumnVector()

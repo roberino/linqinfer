@@ -11,7 +11,7 @@ namespace LinqInfer.Maths
     {
         private readonly byte[] _data;
 
-        public BitVector(bool[] values)
+        public BitVector(params bool[] values)
         {
             ArgAssert.AssertNonNull(values, nameof(values));
 
@@ -41,14 +41,14 @@ namespace LinqInfer.Maths
             get
             {
                 var mask = (byte)(1 << (index % 8));
-                return (_data[index / 8] & mask);
+                return (_data[index / 8] & mask) == 0 ? 0 : 1;
             }
         }
 
         /// <summary>
         /// Retrieves a value by index
         /// </summary>
-        public bool ValueAt(int index) => this[index] > 0;
+        public bool ValueAt(int index) => this[index] != 0;
 
         public IEnumerator<bool> GetEnumerator()
         {
@@ -65,8 +65,10 @@ namespace LinqInfer.Maths
             return matrix * this;
         }
 
-        public ColumnVector1D Multiply(IVector vector)
+        public IVector Multiply(IVector vector)
         {
+            if (vector is BitVector) return (((BitVector)vector) * this);
+
             var result = new double[Size];
 
             for (int i = 0; i < result.Length; i++)
@@ -75,6 +77,20 @@ namespace LinqInfer.Maths
             }
 
             return new ColumnVector1D(result);
+        }
+
+        public static BitVector operator *(BitVector v1, BitVector v2)
+        {
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
+
+            var data = new byte[v1._data.Length];
+
+            for (int i = 0; i < v1._data.Length; i++)
+            {
+                data[i] = (byte)(v1._data[i] & v2._data[i]);
+            }
+
+            return new BitVector(data, v2.Size);
         }
 
         public double DotProduct(IVector vector)

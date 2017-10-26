@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Data
 {
     internal class KeyValueDocument : IExportableAsVectorDocument, IImportableAsVectorDocument
     {

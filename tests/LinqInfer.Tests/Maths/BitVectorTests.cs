@@ -28,6 +28,12 @@ namespace LinqInfer.Tests.Maths
             Assert.False(vect.ValueAt(2));
             Assert.True(vect.ValueAt(3));
             Assert.False(vect.ValueAt(4));
+
+            Assert.That(vect[0], Is.EqualTo(0));
+            Assert.That(vect[1], Is.EqualTo(1));
+            Assert.That(vect[2], Is.EqualTo(0));
+            Assert.That(vect[3], Is.EqualTo(1));
+            Assert.That(vect[4], Is.EqualTo(0));
         }
 
         [Test]
@@ -74,6 +80,26 @@ namespace LinqInfer.Tests.Maths
             var vect2 = BitVector.FromBase64(data);
 
             Assert.That(vect2.Size, Is.EqualTo(values.Length));
+        }
+
+        [Test]
+        public void Multiply_TwoBitVectors_ReturnsExpectedResult()
+        {
+            var vect1 = new BitVector(true, true, false, true, false, false, false, true, true);
+            var vect2 = new BitVector(false, true, false, true, false, true, false, false, true);
+
+            var result = vect1.Multiply(vect2) as BitVector;
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result[0], Is.EqualTo(0));
+            Assert.That(result[1], Is.EqualTo(1));
+            Assert.That(result[2], Is.EqualTo(0));
+            Assert.That(result[3], Is.EqualTo(1));
+            Assert.That(result[4], Is.EqualTo(0));
+            Assert.That(result[5], Is.EqualTo(0));
+            Assert.That(result[6], Is.EqualTo(0));
+            Assert.That(result[7], Is.EqualTo(0));
+            Assert.That(result[8], Is.EqualTo(1));
         }
 
         [Test]

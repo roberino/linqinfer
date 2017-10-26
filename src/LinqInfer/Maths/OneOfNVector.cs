@@ -1,10 +1,11 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System;
 using System.Linq;
 
 namespace LinqInfer.Maths
 {
-    public sealed class OneOfNVector : IVector
+    public sealed class OneOfNVector : IVector, ICloneableObject<OneOfNVector>
     {
         public OneOfNVector(int size, int? activeIndex = null)
         {
@@ -51,8 +52,11 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(result);
         }
 
-        public ColumnVector1D Multiply(IVector vector)
+        public IVector Multiply(IVector vector)
         {
+            if (vector is OneOfNVector) return ((OneOfNVector)vector) * this;
+            if (vector is BitVector) return ((BitVector)vector).Multiply(this);
+
             var result = new double[Size];
 
             if (ActiveIndex.HasValue)
@@ -61,6 +65,15 @@ namespace LinqInfer.Maths
             }
 
             return new ColumnVector1D(result);
+        }
+
+        public static IVector operator *(OneOfNVector vector1, OneOfNVector vector2)
+        {
+            ArgAssert.AssertEquals(vector1.Size, vector2.Size, nameof(vector1.Size));
+
+            if (vector1.ActiveIndex == vector2.ActiveIndex) return vector1.Clone(true);
+
+            return new OneOfNVector(vector1.Size);
         }
 
         public double DotProduct(IVector vector)
@@ -95,7 +108,14 @@ namespace LinqInfer.Maths
             if (other.Size != Size) return false;
             if (other is OneOfNVector) return ((OneOfNVector)other).ActiveIndex == ActiveIndex;
 
-            return other.ToColumnVector().Equals(ToColumnVector());
+            if (ActiveIndex.HasValue) return other[ActiveIndex.Value] == 1;
+
+            return other.ToColumnVector().IsZero;
+        }
+
+        public OneOfNVector Clone(bool deep)
+        {
+            return new OneOfNVector(Size, ActiveIndex);
         }
     }
 }
