@@ -172,7 +172,9 @@ namespace LinqInfer.Maths
 
         public IVector Multiply(IVector vector)
         {
-            return vector.ToColumnVector() * this;
+            if (vector is ColumnVector1D) return vector.ToColumnVector() * this;
+
+            return vector.Multiply(this);
         }
 
         public double DotProduct(IVector vector)
@@ -265,6 +267,19 @@ namespace LinqInfer.Maths
             for (int i = 0; i < v1a.Length; i++)
             {
                 newValues[i] = v1a[i] + v2a[i];
+            }
+
+            return new ColumnVector1D(newValues);
+        }
+
+        public static ColumnVector1D operator +(ColumnVector1D v, double s)
+        {
+            var newValues = new double[v.Size];
+            var va = v._values;
+
+            for (int i = 0; i < va.Length; i++)
+            {
+                newValues[i] = va[i] + s;
             }
 
             return new ColumnVector1D(newValues);

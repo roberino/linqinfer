@@ -373,10 +373,21 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator *(Matrix m, ColumnVector1D c)
         {
-            // | a, b | * x     =   ax + by
-            // | c, d |   y         cx + dx
+            // | a, b, c | * x     =   ax + by + cz
+            // | d, e, f |   y         dx + ey + fz
+            //               z
 
-            return new ColumnVector1D(m.Rows.Select(r => (r * c).Sum()).ToArray());
+            var result = new double[m.Height];
+            int i = 0;
+
+            foreach (var row in m.Rows)
+            {
+                result[i++] = c.DotProduct(row);
+            }
+
+            return new ColumnVector1D(result);
+
+            // return new ColumnVector1D(m.Rows.Select(r => (r * c).Sum()).ToArray());
         }
 
         public static Matrix operator *(Matrix m, double s)

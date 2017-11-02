@@ -13,20 +13,22 @@ namespace LinqInfer.Tests.Learning.Classification
     public class LinearClassifierTests
     {
         [Test]
-        public void Raw()
+        public void Train_Simple2DExample()
         {
-            var x = new ColumnVector1D(new[] { 0.1, 0.5 });
-            var w0 = ColumnVector1D.Create(0.1, 0.2, 0.3);
-            var w1 = ColumnVector1D.Create(0.1, 0.2, 0.3);
-            var W = Matrix.Create(w0, w1);
-            var bias = ColumnVector1D.Create(0.01, 0.1, 0.1);
+            var classifier = new LinearClassifier(2, 3);
 
-            W = W.Rotate();
+            var trainingData1 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.9, 0.7), new OneOfNVector(3, 0));
+            var trainingData2 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.1, 0.1), new OneOfNVector(3, 1));
+            var trainingData3 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(-0.99, -0.6), new OneOfNVector(3, 2));
 
-            var z = x.Multiply(W);
+            classifier.Train(new[] { trainingData1, trainingData2, trainingData3 }, (n, e) =>
+            {
+                return n > 500;
+            });
 
+            var result = classifier.Evaluate(ColumnVector1D.Create(0.2, 0.1));
 
-            z = z + bias;
+            Assert.That(result[1], Is.GreaterThan(result[0]));
         }
 
         [Test]
@@ -35,30 +37,36 @@ namespace LinqInfer.Tests.Learning.Classification
             var classifier = new LinearClassifier(2, 2);
             var trainingData = SetupData();
 
-            var lastErr = 0d;
+            var lastErr = new Queue<double>();
             var nt = 0;
 
             classifier.Train(trainingData, (n, e) =>
             {
                 nt = n;
 
-                var halt = n > 100 || (n > 30 && e > lastErr);
+                Console.WriteLine(e);
 
-                lastErr = e;
+                if (n > 20 && e > lastErr.Average()) return true;
 
-                return halt;
+                lastErr.Enqueue(e);
+
+                if (lastErr.Count > 5) lastErr.Dequeue();
+
+                return n > 300;
             });
+
+            Console.WriteLine(nt);
 
             double totalDiff = 0;
             int i = 0;
 
-            foreach(var test in SetupData())
+            foreach (var test in SetupData())
             {
                 var output = classifier.Evaluate(test.Input);
                 var diff = test.TargetOutput.ToColumnVector().CosineDistance(output);
 
-                Console.Write($"diff: {diff} exp: {test.TargetOutput} act: {output}");
-
+                Console.WriteLine($"diff: {diff} exp: {test.TargetOutput} act: {output}\n");
+                
                 totalDiff += diff;
                 i++;
             }
@@ -71,10 +79,10 @@ namespace LinqInfer.Tests.Learning.Classification
         private IEnumerable<TrainingPair<IVector, IVector>> SetupData()
         {
             var dataX0 = Functions.NormalRandomDataset(0.02, 0.1);
-            var dataY0 = Functions.NormalRandomDataset(0.01, 0.98);
+            var dataY0 = Functions.NormalRandomDataset(0.01, -0.5);
 
             var dataX1 = Functions.NormalRandomDataset(0.05, 0.78);
-            var dataY1 = Functions.NormalRandomDataset(0.015, 0.12);
+            var dataY1 = Functions.NormalRandomDataset(0.015, 0.9);
 
             var sample0 = dataX0.Zip(dataY0, (x, y) => new ColumnVector1D(new[] { x, y }));
             var output0 = new OneOfNVector(2, 0);

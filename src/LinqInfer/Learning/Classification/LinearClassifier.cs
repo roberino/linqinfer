@@ -12,22 +12,22 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly Matrix _weights;
         private readonly ColumnVector1D _bias;
-        private readonly ColumnVector1D _delta;
         private readonly Softmax _softmax;
         private readonly double _weightDecay = 0.001;
         private readonly double _learningRate;
         
-        public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.05f, double delta = 1)
+        public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
         {
             Contract.Ensures(inputVectorSize > 0);
             Contract.Ensures(outputVectorSize > 0);
             Contract.Ensures(learningRate > 0);
 
             _learningRate = learningRate;
+            _weightDecay = decay;
 
+            // W = n features * n classes
             _weights = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(inputVectorSize, -0.01, 0.01)));
             _bias = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
-            _delta = new ColumnVector1D(Vector.UniformVector(_weights.Width, delta));
             _softmax = new Softmax(outputVectorSize);
         }
 
@@ -37,7 +37,9 @@ namespace LinqInfer.Learning.Classification
 
         public ColumnVector1D Evaluate(IVector input)
         {
-            var output = input.Multiply(_weights) + _bias;
+            var output = input.Multiply(_weights);
+
+            var biasAdjusted = output + _bias;
 
             return _softmax.Calculate(output);
         }
@@ -60,7 +62,7 @@ namespace LinqInfer.Learning.Classification
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData)
         {
             int i = 0;
-            double error = 0;
+            ColumnVector1D error = new ColumnVector1D(Vector.UniformVector(OutputVectorSize, 0));
 
             foreach (var batch in trainingData.AsQueryable().Chunk())
             {
@@ -76,83 +78,79 @@ namespace LinqInfer.Learning.Classification
                     targetOutput = s.targetOutput,
                     cost = CalculateCostAndDerivative(s.input, s.score, s.targetOutput)
                 })
-                .Select(e => new
-                {
-                    score = e.score,
-                    targetOutput = e.targetOutput,
-                    error = e.cost.Cost,
-                    derivative = e.cost.dW,
-                    db = e.cost.dB
-                })
                 .ToList();
+                
+                var dW = Mean(evaluation.Select(c => c.cost.dW)).Transpose();
+                var dB = evaluation.Select(c => c.cost.dB).Average();
 
-                var dW = evaluation.Select(c => c.derivative.ToColumnVector()).MeanOfEachDimension().Negate();
+                var decay = (_weightDecay / 2) * _weights.Sum(v => v.DotProduct(v));
 
-                Update(dW, -evaluation.Average(c => c.db));
+                Update(dW, dB, decay);
 
-                error += evaluation.Select(c => c.error).Average();
+                error += evaluation.Select(c => c.cost.Cost.ToColumnVector()).MeanOfEachDimension() + decay;
 
                 i += batch.Count();
             }
 
-            return error / i;
+            return (error / i).EuclideanLength;
         }
 
-        public double Train(ColumnVector1D input, ColumnVector1D targetOutput)
+        private Matrix Mean(IEnumerable<Matrix> values)
         {
-            var score = Evaluate(input);
-            var lossAndD = CalculateCostAndDerivative(input, score, targetOutput);
+            var h = values.First().Height;
 
-            Update(lossAndD.dW, lossAndD.dB);
+            var rows = Enumerable.Range(0, h).Select(i => values.Select(m => new ColumnVector1D(m.Rows[i])).MeanOfEachDimension());
 
-            return lossAndD.Cost + lossAndD.Decay;
+            return new Matrix(rows);
         }
 
         private LossAndDerivative CalculateCostAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
         {
-            var cost = -targetOutput.DotProduct(score.Log());
+            var cost = targetOutput.Multiply(score.Log()).ToColumnVector();
 
-            var decay = (_weightDecay / 2) * _weights.Sum(v => v.DotProduct(v));
+            var grad = targetOutput.ToColumnVector() - score;
 
-            var grad = score - targetOutput.ToColumnVector();
-            var dW = input.Multiply(grad).ToColumnVector();
+            var dW = new Matrix(input.ToColumnVector().Select(x => grad * x));
+
             var dB = grad.Sum();
-
-            if (_weightDecay != 1) dW.Apply(d => d * _weightDecay);
 
             return new LossAndDerivative()
             {
                 Cost = cost,
-                Decay = decay,
+                Gradient = grad,
                 dW = dW,
                 dB = dB
             };
         }
 
-        private class LossAndDerivative
+        private void Update(Matrix dW, double dB, double decay)
         {
-            public double Cost;
-            public double Decay;
-            public IVector dW;
-            public double dB;
-        }
+            ArgAssert.AssertEquals(dW.Width, _weights.Width, nameof(dW.Width));
 
-        private void Update(IVector dW, double dB)
-        {
-            foreach (var row in _weights)
+            foreach (var row in _weights.Zip(dW, (w, u) => new { w = w, u = u }))
             {
-                row.Apply((w, i) =>
+                row.w.Apply((w, i) =>
                 {
-                    return ExecuteUpdateRule(w, dW[i]);
+                    return ExecuteUpdateRule(w, -row.u[i], decay);
                 });
             }
 
             _bias.Apply(w => ExecuteUpdateRule(w, dB));
         }
 
-        private double ExecuteUpdateRule(double currentWeightValue, double adjustment)
+        private double ExecuteUpdateRule(double currentWeightValue, double adjustment, double decay = 0)
         {
+            adjustment = adjustment + (adjustment * decay);
+
             return currentWeightValue + (-_learningRate * adjustment);
+        }
+
+        private class LossAndDerivative
+        {
+            public ColumnVector1D Gradient;
+            public IVector Cost;
+            public Matrix dW;
+            public double dB;
         }
     }
 }
