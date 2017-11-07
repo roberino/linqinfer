@@ -58,6 +58,6 @@ namespace LinqInfer.Learning.Classification
         /// <param name="outputVector">The desired output vector</param>
         /// <param name="sampleVector">The input vector</param>
         /// <returns>The error</returns>
-        double Train(ColumnVector1D outputVector, ColumnVector1D sampleVector);
+        double Train(IVector input, IVector output);
     }
 }

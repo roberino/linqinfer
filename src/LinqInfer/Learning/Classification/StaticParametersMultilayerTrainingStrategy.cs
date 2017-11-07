@@ -25,11 +25,11 @@ namespace LinqInfer.Learning.Classification
             return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(
                 () =>
                 {
-                    foreach (var batch in trainingSet.ExtractInputClassBatches())
+                    foreach (var batch in trainingSet.ExtractTrainingVectorBatches())
                     {
                         foreach (var value in batch.RandomOrder())
                         {
-                            context.Train(value.Value, value.Vector);
+                            context.Train(value.Input, value.TargetOutput);
 
                             if (context.AverageError.HasValue && context.AverageError < ErrorTolerance)
                             {

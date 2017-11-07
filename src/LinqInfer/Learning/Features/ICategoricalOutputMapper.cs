@@ -9,6 +9,6 @@ namespace LinqInfer.Learning.Features
     {
         IEnumerable<T> OutputClasses { get; }
         void Initialise(IEnumerable<T> outputs);
-        IEnumerable<ClassifyResult<T>> Map(ColumnVector1D output);
+        IEnumerable<ClassifyResult<T>> Map(IVector output);
     }
 }

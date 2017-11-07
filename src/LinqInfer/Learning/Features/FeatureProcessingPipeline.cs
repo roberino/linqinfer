@@ -70,6 +70,11 @@ namespace LinqInfer.Learning.Features
         public IEnumerable<IFeature> FeatureMetadata => FeatureExtractor.FeatureMetadata;
 
         /// <summary>
+        /// Returns the number of samples in the pipeline
+        /// </summary>
+        public int SampleCount => Data.Count();
+
+        /// <summary>
         /// Exports the internal state (not the data) of the pipeline as a <see cref="BinaryVectorDocument"/>
         /// </summary>
         public BinaryVectorDocument SaveState() => _featureExtractor.ToVectorDocument();
@@ -106,11 +111,11 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
-        public FeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
+        public IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
         {
             if (!range.HasValue) range = new Range(1, -1);
 
-            var max = ExtractVectors().MaxOfEachDimension() * range.Value.Size;
+            var max = ExtractColumnVectors().MaxOfEachDimension() * range.Value.Size;
 
             var scale = new VectorOperation(VectorOperationType.Divide, max);
             var transpose = new VectorOperation(VectorOperationType.Subtract, Vector.UniformVector(max.Size, range.Value.Size / 2));
@@ -125,9 +130,9 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Centres the feature data by subtracting the mean from each dimension
         /// </summary>
-        public FeatureProcessingPipeline<T> CentreFeatures()
+        public IFeatureProcessingPipeline<T> CentreFeatures()
         {
-            var mean = ExtractVectors().MeanOfEachDimension();
+            var mean = ExtractColumnVectors().MeanOfEachDimension();
 
             var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.Subtract, mean));
 
@@ -223,7 +228,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeatureProcessingPipeline<T>, string, TResult> processor)
+        public ExecutionPipline<TResult> ProcessWith<TResult>(Func<IFeatureProcessingPipeline<T>, string, TResult> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -233,7 +238,7 @@ namespace LinqInfer.Learning.Features
             }, (x, o) => true);
         }
 
-        internal ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<FeatureProcessingPipeline<T>, string, Task<TResult>> processor)
+        public ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<IFeatureProcessingPipeline<T>, string, Task<TResult>> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -264,7 +269,7 @@ namespace LinqInfer.Learning.Features
             var fe = FeatureExtractor;
 
             CentreFeatures();
-            ScaleFeatures();
+            ScaleFeatures(new Range(1, 0));
 
             return this;
         }
@@ -272,17 +277,15 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Extracts vectors from the dataset
         /// </summary>
-        public IEnumerable<ColumnVector1D> ExtractVectors()
+        public IEnumerable<IVector> ExtractVectors()
         {
             var fe = FeatureExtractor;
-
-            NormaliseData();
 
             foreach (var batch in _data.Chunk())
             {
                 foreach (var item in batch)
                 {
-                    yield return fe.ExtractColumnVector(item);
+                    yield return fe.ExtractIVector(item);
                 }
             }
         }
@@ -309,12 +312,17 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new BinaryVectorDocument();
 
-            foreach(var vec in (maxRows.HasValue ? ExtractVectors().Take(maxRows.Value) : ExtractVectors()))
+            foreach(var vec in (maxRows.HasValue ? ExtractColumnVectors().Take(maxRows.Value) : ExtractColumnVectors()))
             {
                 doc.Vectors.Add(vec);
             }
 
             return doc;
+        }
+
+        internal IEnumerable<ColumnVector1D> ExtractColumnVectors()
+        {
+            return ExtractVectors().Select(v => v.ToColumnVector());
         }
     }
 }

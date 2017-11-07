@@ -36,7 +36,7 @@ namespace LinqInfer.Learning
         {
             HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline);
 
-            var iterationsMax = pipeline.Data.Count() * _parameters.TrainingEpochs;
+            var iterationsMax = pipeline.SampleCount * _parameters.TrainingEpochs;
 
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {

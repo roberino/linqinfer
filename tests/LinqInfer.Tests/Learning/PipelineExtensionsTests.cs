@@ -26,8 +26,8 @@ namespace LinqInfer.Tests.Learning
 
             pipeline2.RestoreState(state);
 
-            var tranformedData1 = pipeline1.ExtractVectors().ToList();
-            var tranformedData2 = pipeline1.ExtractVectors().ToList();
+            var tranformedData1 = pipeline1.ExtractColumnVectors().ToList();
+            var tranformedData2 = pipeline1.ExtractColumnVectors().ToList();
 
             Assert.That(tranformedData1.Zip(tranformedData2, (d1, d2) => d1.Equals(d2)).All(x => x));
         }
@@ -47,8 +47,8 @@ namespace LinqInfer.Tests.Learning
 
             pipeline2.RestoreState(state);
             
-            var tranformedData1 = pipeline1.ExtractVectors().ToList();
-            var tranformedData2 = pipeline1.ExtractVectors().ToList();
+            var tranformedData1 = pipeline1.ExtractColumnVectors().ToList();
+            var tranformedData2 = pipeline1.ExtractColumnVectors().ToList();
 
             Assert.That(tranformedData1.Zip(tranformedData2, (d1, d2) => d1.Equals(d2)).All(x => x));
         }

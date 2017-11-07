@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Maths.Graphs;
 using LinqInfer.Text;
 using LinqInfer.Text.Http;
+using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
 using System.Linq;

@@ -59,7 +59,7 @@ namespace LinqInfer.XUnit.Tests.Text.Analysis
             
             var linClassifier = new LinearClassifier(trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize);
 
-            foreach(var batch in trainingSet.ExtractInputOutputIVectorBatches())
+            foreach(var batch in trainingSet.ExtractTrainingVectorBatches())
             {
                 linClassifier.Train(batch.Where(v => !v.Input.ToColumnVector().IsZero));
             }

@@ -5,7 +5,7 @@ namespace LinqInfer.Learning.Classification
 {
     public interface INetworkSignalFilter : ICloneableObject<INetworkSignalFilter>
     {
-        ColumnVector1D Process(ColumnVector1D input);
+        IVector Process(IVector input);
         INetworkSignalFilter Successor { get; set; }
     }
 }

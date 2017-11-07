@@ -19,7 +19,7 @@ namespace LinqInfer.Learning.Features
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="pipeline">A feature pipeline</param>
         /// <param name="threshold">A threshold between 0 and 1 (inclusive)</param>
-        public static void ReduceFeaturesByThreshold<T>(this IFeatureProcessingPipeline<T> pipeline, float threshold = 0.5f) where T : class
+        public static void ReduceFeaturesByThreshold<T>(this FeatureProcessingPipeline<T> pipeline, float threshold = 0.5f) where T : class
         {
             Contract.Assert(threshold >= 0 && threshold <= 1);
 

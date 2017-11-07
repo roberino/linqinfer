@@ -32,7 +32,7 @@ namespace LinqInfer.Tests.Learning
                 x = x,
                 y = y,
                 cls = "C0"
-            });
+            }).AsQueryable().CreatePipeline().AsTrainingSet(x => x.cls);
 
             var c1 = dataX1.Zip(dataY1, (x, y) => new
             {
@@ -48,8 +48,8 @@ namespace LinqInfer.Tests.Learning
             var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.cls).Execute();
 
             Console.Write("Classifier created");
-
-            var score = classifier.ClassificationAccuracyPercentage(ctest0, x => x.cls);
+           
+            var score = classifier.ClassificationAccuracyPercentage(ctest0);
 
             Console.WriteLine(score);
 

@@ -56,9 +56,16 @@ namespace LinqInfer.Tests.Learning.Features
                 }
             }
 
+            public int SampleCount => _data.Count;
+
             public IEnumerable<ColumnVector1D> ExtractVectors()
             {
                 return _data.Select(d => new ColumnVector1D(d));
+            }
+
+            IEnumerable<IVector> IFeatureDataSource.ExtractVectors()
+            {
+                return ExtractVectors();
             }
         }
     }

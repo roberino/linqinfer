@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Classification
     /// </summary>
     /// <typeparam name="TClass">The class type</typeparam>
     /// <typeparam name="TParameters">The parameters used to create the classifier</typeparam>
-    public interface IClassifierTrainingContext<TClass, TParameters> : IRawClassifierTrainingContext<TParameters>, IAssistedLearning<TClass, double>, ICloneableObject<IClassifierTrainingContext<TClass, TParameters>>
+    public interface IClassifierTrainingContext<TClass, TParameters> : IRawClassifierTrainingContext<TParameters>, ICloneableObject<IClassifierTrainingContext<TClass, TParameters>>
     {
         /// <summary>
         /// Gets the current classifier

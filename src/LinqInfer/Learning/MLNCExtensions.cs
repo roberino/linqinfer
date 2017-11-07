@@ -103,8 +103,6 @@ namespace LinqInfer.Learning
             {
                 var result = trainingPipline.TrainUsing(strategy).Result;
 
-                if (n != null) pipeline.OutputResults(result, n);
-
                 return result;
             });
         }
@@ -161,8 +159,6 @@ namespace LinqInfer.Learning
             {
                 var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
                 var result = await trainingPipline.TrainUsing(trainingStrategy);
-
-                if (n != null) p.OutputResults(result, n);
 
                 return result;
             });

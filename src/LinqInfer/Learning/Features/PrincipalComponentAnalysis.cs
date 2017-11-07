@@ -25,7 +25,7 @@ namespace LinqInfer.Learning.Features
         /// <returns>A <see cref="Tuple{T1, T2}"/> of values</returns>
         public Tuple<Vector, Matrix> GetEigenvalueDecomposition(int sampleSize = 100)
         {
-            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Take(sampleSize));
+            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Select(v => v.ToColumnVector()).Take(sampleSize));
 
             return GetEigenvalueDecomposition(matrix);
         }
@@ -54,7 +54,7 @@ namespace LinqInfer.Learning.Features
         /// <returns>A <see cref="IVectorTransformation"/></returns>
         public IVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
         {
-            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Take(sampleSize));
+            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Select(v => v.ToColumnVector()).Take(sampleSize));
             var mean = matrix.MeanVector;
             var eigenDecom = GetEigenvalueDecomposition(matrix);
 

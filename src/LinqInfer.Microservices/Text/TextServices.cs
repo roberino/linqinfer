@@ -72,7 +72,7 @@ namespace LinqInfer.Microservices.Text
 
             await request.Apply(pipeline);
             
-            return pipeline.ExtractVectors();
+            return pipeline.ExtractColumnVectors();
         }
 
         private async Task<FeatureMap<TokenisedTextDocument>> GetSofm(FeatureExtractRequest request)

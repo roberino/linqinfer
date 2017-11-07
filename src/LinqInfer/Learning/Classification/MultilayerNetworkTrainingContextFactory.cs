@@ -108,12 +108,7 @@ namespace LinqInfer.Learning.Classification
                 ((MultilayerNetworkClassifier<TClass>)Classifier).Network.PruneInputs(inputIndexes);
             }
 
-            public double Train(TClass sampleClass, double[] sample)
-            {
-                return Train(sampleClass, new ColumnVector1D(sample));
-            }
-
-            public double Train(ColumnVector1D outputVector, ColumnVector1D sampleVector)
+            public double Train(IVector outputVector, IVector sampleVector)
             {
                 if (!_error.HasValue) _error = 0;
 

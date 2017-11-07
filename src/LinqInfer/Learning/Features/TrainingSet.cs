@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Features
             _outputMapper = new Lazy<ICategoricalOutputMapper<TClass>>(() => new OutputMapperFactory<TInput, TClass>().Create(pipeline.Data, classf));
         }
 
-        public FeatureProcessingPipeline<TInput> FeaturePipeline
+        public IFeatureProcessingPipeline<TInput> FeaturePipeline
         {
             get
             {
@@ -71,33 +71,20 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public IEnumerable<IList<ObjectVector<TClass>>> ExtractInputClassBatches(int batchSize = 1000)
+        public IEnumerable<TrainingPair<TInput, TClass>> ExtractTrainingObjects()
         {
             var cf = _classf.Compile();
 
-            foreach (var batch in _pipeline.ExtractBatches(batchSize))
-            {
-                yield return batch.Select(b => new ObjectVector<TClass>(cf(b.Value), b.Vector)).ToList();
-            }
+            return _pipeline.Data.Select(d => new TrainingPair<TInput, TClass>(d, cf(d)));
         }
 
-        public IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
+        public IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractTrainingVectorBatches(int batchSize = 1000)
         {
             var cf = _classf.Compile();
 
             foreach (var batch in _pipeline.ExtractBatches(batchSize))
             {
                 yield return batch.Select(b => new TrainingPair<IVector, IVector>(b.VirtualVector, _outputMapper.Value.ExtractIVector(cf(b.Value)))).ToList();
-            }
-        }
-
-        public IEnumerable<IList<Tuple<ColumnVector1D, ColumnVector1D>>> ExtractInputOutputVectorBatches(int batchSize = 1000)
-        {
-            var cf = _classf.Compile();
-
-            foreach (var batch in _pipeline.ExtractBatches(batchSize))
-            {
-                yield return batch.Select(b => new Tuple<ColumnVector1D, ColumnVector1D>(b.Vector, _outputMapper.Value.ExtractColumnVector(cf(b.Value)))).ToList();
             }
         }
 

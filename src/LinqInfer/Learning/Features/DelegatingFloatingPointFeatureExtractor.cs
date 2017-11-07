@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Features
 {
     internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
-        private readonly Func<T, double[]> _vectorFunc;
+        private readonly Func<T, IVector> _vectorFunc;
 
         private readonly int _vectorSize;
 
@@ -18,11 +18,16 @@ namespace LinqInfer.Learning.Features
         {
         }
 
-        public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, IFeature[] metadata = null)
+        public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, IFeature[] metadata = null) :
+            this(x => new ColumnVector1D(vectorFunc(x)), vectorSize, metadata)
+        {
+        }
+
+        public DelegatingFloatingPointFeatureExtractor(Func<T, IVector> vectorFunc, int vectorSize, IFeature[] metadata = null)
         {
             _vectorFunc = vectorFunc;
             _vectorSize = vectorSize;
-            
+
             FeatureMetadata = metadata ?? Feature.CreateDefaults(_vectorSize);
 
             IndexLookup = FeatureMetadata.ToDictionary(k => k.Label, v => v.Index);
@@ -44,7 +49,7 @@ namespace LinqInfer.Learning.Features
 
         public double[] ExtractVector(T obj)
         {
-            return _vectorFunc(obj);
+            return ExtractColumnVector(obj).GetUnderlyingArray();
         }
 
         public void Save(Stream output)
@@ -63,12 +68,12 @@ namespace LinqInfer.Learning.Features
 
         public ColumnVector1D ExtractColumnVector(T obj)
         {
-            return ExtractVector(obj);
+            return _vectorFunc(obj).ToColumnVector();
         }
 
         public IVector ExtractIVector(T obj)
         {
-            return ExtractColumnVector(obj);
+            return _vectorFunc(obj);
         }
 
         public BinaryVectorDocument ToVectorDocument()

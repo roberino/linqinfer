@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using LinqInfer.Maths;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    public interface ITrainingSet<TInput, TClass>
+    public interface IAsyncTrainingSet<TInput, TClass>
         where TInput : class
         where TClass : IEquatable<TClass>
     {
@@ -13,7 +14,6 @@ namespace LinqInfer.Learning.Features
         IFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
         ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        IEnumerable<TrainingPair<TInput, TClass>> ExtractTrainingObjects();
-        IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractTrainingVectorBatches(int batchSize = 1000);
+        IEnumerable<Task<IList<TrainingPair<IVector, IVector>>>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
     }
 }

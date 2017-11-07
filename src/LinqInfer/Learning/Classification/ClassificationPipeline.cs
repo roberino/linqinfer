@@ -8,7 +8,8 @@ using System.Linq.Expressions;
 namespace LinqInfer.Learning.Classification
 {
     [DebuggerDisplay("Error:{Error}")]
-    internal class ClassificationPipeline<TClass, TInput, TVector> : ObjectClassifier<TClass, TInput, TVector> where TVector : struct
+    internal class ClassificationPipeline<TClass, TInput, TVector> 
+        : ObjectClassifier<TClass, TInput, TVector> where TVector : struct
     {
         private readonly IAssistedLearning<TClass, TVector> _learning;
 

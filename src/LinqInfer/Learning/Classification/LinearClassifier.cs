@@ -35,6 +35,8 @@ namespace LinqInfer.Learning.Classification
 
         public int OutputVectorSize => _weights.Height;
 
+        public Matrix Vectors => new Matrix(_weights.Transpose().Concat(new[] { _bias })).Transpose();
+
         public ColumnVector1D Evaluate(IVector input)
         {
             var output = input.Multiply(_weights);
@@ -42,6 +44,11 @@ namespace LinqInfer.Learning.Classification
             var biasAdjusted = output + _bias;
 
             return _softmax.Calculate(output);
+        }
+
+        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, double minError, int maxIterations = 10000)
+        {
+            return Train(trainingData, (n, e) => n >= maxIterations || e < minError);
         }
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, Func<int, double, bool> haltingFunction)
@@ -52,6 +59,9 @@ namespace LinqInfer.Learning.Classification
             do
             {
                 err = Train(trainingData);
+
+                DebugOutput.Log($"{i}: error={err}");
+
                 i++;
             }
             while (!haltingFunction(i, err));

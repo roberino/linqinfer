@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -28,16 +29,14 @@ namespace LinqInfer.Learning.Classification
             _learningRate = rateAdjustment(_learningRate);
         }
 
-        public double Train(IEnumerable<Tuple<ColumnVector1D, ColumnVector1D>> trainingSet, double errorThreshold = 0, Func<ColumnVector1D, ColumnVector1D> preprocessor = null)
+        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingSet, double errorThreshold = 0)
         {
-            var pp = preprocessor ?? Functions.CreateNormalisingFunction(trainingSet.Select(x => x.Item1));
-
             double errTotal = 0;
             double err = 0;
 
             foreach(var inputPair in trainingSet)
             {
-                errTotal += (err = Train(pp(inputPair.Item1), inputPair.Item2));
+                errTotal += (err = Train(inputPair.Input, inputPair.TargetOutput));
 
                 if (err < errorThreshold) break;
             }
@@ -45,7 +44,7 @@ namespace LinqInfer.Learning.Classification
             return errTotal;
         }
 
-        public double Train(ColumnVector1D inputVector, ColumnVector1D targetOutput)
+        public double Train(IVector inputVector, IVector targetOutput)
         {
             var output = _network.Evaluate(inputVector);
 
@@ -56,7 +55,7 @@ namespace LinqInfer.Learning.Classification
             return errors.Item2 / 2; // Math.Sqrt(errors.Item2);
         }
 
-        protected virtual Tuple<ColumnVector1D[], double> CalculateError(ColumnVector1D actualOutput, ColumnVector1D targetOutput)
+        protected virtual Tuple<ColumnVector1D[], double> CalculateError(IVector actualOutput, IVector targetOutput)
         {
             // network
             //    -- layers[]
@@ -66,7 +65,7 @@ namespace LinqInfer.Learning.Classification
             ILayer lastLayer = null;
             ColumnVector1D lastError = null;
             double error = 0;
-            
+
             var errors = _network.ForEachLayer((layer) =>
             {
                 if (lastError == null)
@@ -92,7 +91,7 @@ namespace LinqInfer.Learning.Classification
                 }
 
                 lastLayer = layer;
-                
+
                 return lastError;
             }).Reverse().ToArray();
 

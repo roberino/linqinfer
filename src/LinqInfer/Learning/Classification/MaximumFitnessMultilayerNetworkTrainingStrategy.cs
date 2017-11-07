@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using LinqInfer.Learning.Features;
+﻿using LinqInfer.Learning.Features;
 using LinqInfer.Utility;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
@@ -37,20 +36,28 @@ namespace LinqInfer.Learning.Classification
 
         public bool ParallelProcess { get; set; }
 
-        public IClassifierTrainingContext<TClass, NetworkParameters> Train(IFeatureProcessingPipeline<TInput> featureSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, Expression<Func<TInput, TClass>> classifyingExpression, ICategoricalOutputMapper<TClass> outputMapper)
+        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
+        {
+            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(() =>
+            {
+                return TrainInternal(trainingSet, trainingContextFactory);
+            });
+        }
+
+        private IClassifierTrainingContext<TClass, NetworkParameters> TrainInternal(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
         {
             var timer = new Stopwatch();
 
-            var pipelineFact = new PipelineFactory(trainingContextFactory, featureSet.FeatureExtractor.VectorSize, outputMapper.VectorSize, _currentLearningRate);
+            var featureSet = trainingSet.FeaturePipeline;
+            var pipelineFact = new PipelineFactory(trainingContextFactory, featureSet.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize, _currentLearningRate);
 
             var networks = Activators
                 .All()
                 .Where(a => a.Name.StartsWith("Sig"))
                 .SelectMany(a => pipelineFact.GeneratePipelines(a))
-                .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, outputMapper.VectorSize).Take(1).Select(trainingContextFactory))
+                .Concat(_paramCache.Get<TClass>(featureSet.VectorSize, trainingSet.OutputMapper.VectorSize).Take(1).Select(trainingContextFactory))
                 .ToList();
 
-            var classf = classifyingExpression.Compile();
             var nc = networks.Count;
             var onc = nc;
             var i = 0;
@@ -67,7 +74,7 @@ namespace LinqInfer.Learning.Classification
 
                         DebugOutput.Log("Reducing learning rate: " + _currentLearningRate);
 
-                        return Train(featureSet, trainingContextFactory, classifyingExpression, outputMapper);
+                        return TrainInternal(trainingSet, trainingContextFactory);
                     }
                     else
                     {
@@ -81,13 +88,14 @@ namespace LinqInfer.Learning.Classification
 
                 unconverged.AsParallel().ForAll(n => n.ResetError());
 
-                foreach (var batch in featureSet.ExtractBatches())
+                foreach (var batch in trainingSet.ExtractTrainingVectorBatches())
                 {
-                    unconverged.AsParallel().WithDegreeOfParallelism(ParallelProcess ? Environment.ProcessorCount : 1).ForAll(n =>
+                    unconverged.AsParallel()
+                        .WithDegreeOfParallelism(ParallelProcess ? Environment.ProcessorCount : 1).ForAll(n =>
                     {
                         foreach (var value in batch.RandomOrder())
                         {
-                            n.Train(classf(value.Value), value.Vector);
+                            n.Train(value.Input, value.TargetOutput);
                         }
 
                         n.IterationCounter++;
@@ -151,14 +159,6 @@ namespace LinqInfer.Learning.Classification
                     ||
                 (context.RateOfErrorChange.HasValue &&
                     context.RateOfErrorChange < _minRateOfChange);
-        }
-
-        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
-        {
-            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(() =>
-            {
-                return Train(trainingSet.FeaturePipeline, trainingContextFactory, trainingSet.ClassifyingExpression, trainingSet.OutputMapper);
-            });
         }
 
         private class PipelineFactory

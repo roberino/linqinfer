@@ -53,7 +53,7 @@ namespace LinqInfer.Text.Http
             _linkFilter = linkFilter;
         }
 
-        public async Task<Corpus> CreateCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        public async Task<ICorpus> CreateCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
         {
             var corpus = new Corpus();
 

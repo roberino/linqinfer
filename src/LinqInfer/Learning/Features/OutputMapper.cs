@@ -34,12 +34,12 @@ namespace LinqInfer.Learning.Features
             FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys);
         }
 
-        public virtual IEnumerable<ClassifyResult<T>> Map(ColumnVector1D output)
+        public virtual IEnumerable<ClassifyResult<T>> Map(IVector output)
         {
             int i = 0;
-            var indexes = output.Select(o => new { value = o, index = i++ }).ToArray().OrderByDescending(o => o.value);
+            var indexes = output.ToColumnVector().Select(o => new { value = o, index = i++ }).ToArray().OrderByDescending(o => o.value);
 
-            foreach(var o in indexes)
+            foreach (var o in indexes)
             {
                 if (o.value > 0)
                 {

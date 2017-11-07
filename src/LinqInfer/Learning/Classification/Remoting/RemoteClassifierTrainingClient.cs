@@ -123,13 +123,13 @@ namespace LinqInfer.Learning.Classification.Remoting
 
                 while (!hasConverged && i < 100)
                 {
-                    foreach (var batch in trainingSet.ExtractInputOutputVectorBatches())
+                    foreach (var batch in trainingSet.ExtractTrainingVectorBatches())
                     {
                         var doc = new BinaryVectorDocument();
 
                         foreach (var vectorPair in batch)
                         {
-                            doc.Vectors.Add(vectorPair.Item1.Concat(vectorPair.Item2));
+                            doc.Vectors.Add(vectorPair.Input.ToColumnVector().Concat(vectorPair.TargetOutput.ToColumnVector()));
                         }
 
                         doc.Properties["VectorSize"] = trainingSet.FeaturePipeline.VectorSize.ToString();

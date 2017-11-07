@@ -18,7 +18,6 @@ namespace LinqInfer.Tests.Learning.Features
             Assert.That(pipeline.FeatureExtractor, Is.Not.Null);
         }
 
-
         [Test]
         public void CreateInstance_ExtractVectors_ReturnsValidData()
         {
@@ -26,7 +25,7 @@ namespace LinqInfer.Tests.Learning.Features
 
             var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data);
 
-            var featureData = pipeline.ExtractVectors().ToList();
+            var featureData = pipeline.ExtractColumnVectors().ToList();
 
             Assert.That(featureData.Count, Is.EqualTo(data.Count()));
 
@@ -48,7 +47,6 @@ namespace LinqInfer.Tests.Learning.Features
             Assert.That(pipeline.FeatureExtractor.FeatureMetadata.Any(f => f.Label == "Gold"));
         }
 
-
         [Test]
         public void CreateInstance_FilterFeaturesAndPreprocess_ExtractVectors_ReturnsValidData()
         {
@@ -61,7 +59,7 @@ namespace LinqInfer.Tests.Learning.Features
                     return new double[] { m.Sum() * 7 };
                 });
 
-            var featureData = pipeline.ExtractVectors().ToList();
+            var featureData = pipeline.ExtractColumnVectors().ToList();
 
             Assert.That(featureData.Count, Is.EqualTo(data.Count()));
 

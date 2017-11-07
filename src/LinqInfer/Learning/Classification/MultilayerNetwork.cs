@@ -201,13 +201,15 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Applys the network over an input vector
         /// </summary>
-        public ColumnVector1D Evaluate(ColumnVector1D input)
+        public IVector Evaluate(IVector input)
         {
             if (!initd) InitialiseLayers();
 
             var res = _rootLayer.Process(input);
 
-            return new ColumnVector1D(_parameters.OutputTransformation?.Apply(res) ?? res);
+            if (_parameters.OutputTransformation == null) return res;
+
+            return new ColumnVector1D(_parameters.OutputTransformation.Apply(res.ToColumnVector()));
         }
 
         /// <summary>

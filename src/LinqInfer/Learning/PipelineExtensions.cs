@@ -3,7 +3,6 @@ using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -155,13 +154,13 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A feature pipeline</param>
         /// <param name="limit">The maximum amount of data</param>
         /// <returns>A <see cref="ExecutionPipline{Matrix}"/></returns>
-        public static ExecutionPipline<Matrix> ToMatrix<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int limit = 100) where TInput : class
+        public static ExecutionPipline<Matrix> ToMatrix<TInput>(this IFeatureProcessingPipeline<TInput> pipeline, int limit = 100) where TInput : class
         {
             Contract.Assert(limit > 0);
 
             return pipeline.ProcessWith((p, n) =>
             {
-                return new Matrix(p.ExtractVectors().Take(limit));
+                return new Matrix(p.ExtractVectors().Select(v => v.ToColumnVector()).Take(limit));
             });
         }
 
@@ -173,7 +172,7 @@ namespace LinqInfer.Learning
         /// <param name="writer">A text writer</param>
         /// <param name="label">An optional function which will label each row (as the first column)</param>
         /// <returns></returns>
-        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this FeatureProcessingPipeline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null, char delimitter = ',') where TInput : class
+        public static ExecutionPipline<TextWriter> ToCsv<TInput>(this IFeatureProcessingPipeline<TInput> pipeline, TextWriter writer, Func<TInput, string> label = null, char delimitter = ',') where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -205,7 +204,7 @@ namespace LinqInfer.Learning
         /// <param name="initialNodeRadius">When supplied, this is used used to determine the radius of each cluster node 
         /// which is used to calculate the influence a node has on neighbouring nodes when updating weights</param>
         /// <returns>An execution pipeline for creating a SOFM</returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, int trainingEpochs = 1000) where TInput : class
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this IFeatureProcessingPipeline<TInput> pipeline, int outputNodeCount = 10, float learningRate = 0.5f, float? initialNodeRadius = null, int trainingEpochs = 1000) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -226,7 +225,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="parameters">The parameters</param>
         /// <returns></returns>
-        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this FeatureProcessingPipeline<TInput> pipeline, ClusteringParameters parameters)
+        public static ExecutionPipline<FeatureMap<TInput>> ToSofm<TInput>(this IFeatureProcessingPipeline<TInput> pipeline, ClusteringParameters parameters)
              where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
@@ -247,7 +246,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this IFeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
             return pipeline.ProcessWith((p, n) =>
             {
@@ -256,7 +255,7 @@ namespace LinqInfer.Learning
 
                 p.NormaliseData();
 
-                classifierPipe.Train(p.Data, classf);
+                classifierPipe.Train(((FeatureProcessingPipeline<TInput>)p).Data, classf);
 
                 return (IObjectClassifier<TClass, TInput>)classifierPipe;
             });
@@ -281,45 +280,9 @@ namespace LinqInfer.Learning
 
                 p.NormaliseData();
 
-                classifierPipe.Train(pipeline.Data, trainingSet.ClassifyingExpression);
+                classifierPipe.Train(((FeatureProcessingPipeline<TInput>)p).Data, trainingSet.ClassifyingExpression);
 
                 return (IObjectClassifier<TClass, TInput>)classifierPipe;
-            });
-        }
-
-        /// <summary>
-        /// Creates a multi-layer neural network classifier, training the network using the supplied training data.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="trainingSet">A training set</param>
-        /// <param name="learningRate">The learning rate (rate of neuron weight adjustment when training)</param>
-        /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
-        /// <returns>An executable object which produces a classifier</returns>
-        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToSoftmaxClassifier<TInput, TClass>(
-            this ITrainingSet<TInput, TClass> trainingSet,
-            double learningRate = 0.1d) where TInput : class where TClass : IEquatable<TClass>
-        {
-            var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
-            var pipeline = trainingSet.FeaturePipeline;
-            var inputSize = pipeline.VectorSize;
-            var outputSize = trainingPipline.OutputMapper.VectorSize;
-
-            var parameters = NetworkParameters.Softmax(new[] { inputSize, inputSize * outputSize, outputSize });
-
-            parameters.LearningRate = learningRate;
-
-            parameters.Validate();
-
-            var strategy = new StaticParametersMultilayerTrainingStrategy<TClass, TInput>(parameters);
-
-            return pipeline.ProcessWith((p, n) =>
-            {
-                var result = trainingPipline.TrainUsing(strategy).Result;
-
-                if (n != null) pipeline.OutputResults(result, n);
-
-                return result;
             });
         }
 

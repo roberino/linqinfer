@@ -34,55 +34,24 @@ namespace LinqInfer.Learning.Classification
         }
 
         /// <summary>
-        /// Returns a score which represents how accurately a classifier evaluates a set of pre-classified test examples.
-        /// </summary>
-        public static double ClassificationAccuracyScore<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)
-        {
-            return ClassificationAccuranyScore(classifier.Classify, testData);
-        }
-
-        /// <summary>
-        /// Returns a fitness function which can score a training context based on how accurately a classifier evaluates a set of pre-classified test examples.
-        /// </summary>
-        public static Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> ClassificationAccuracyFunction<TInput, TClass>(params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)
-        {
-            return (f, c) =>
-            {
-                return ClassificationAccuranyScore(x => c.Classifier.Classify(f.ExtractVector(x)), testData);
-            };
-        }
-
-        /// <summary>
         /// Returns a percentage representing the number of items successfully classified by a classifier
         /// </summary>
         public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, ITrainingSet<TInput, TClass> trainingSet)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
-            var testSet = trainingSet.FeaturePipeline.Data.ClassifyUsing(trainingSet.ClassifyingExpression.Compile());
-
-            return ClassificationAccuracyPercentageInternal(classifier, testSet);
+            return ClassificationAccuracyPercentageInternal(classifier, trainingSet.ExtractTrainingObjects());
         }
 
         /// <summary>
         /// Returns a percentage representing the number of items successfully classified by a classifier
         /// </summary>
-        public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TInput> testData, Func<TInput, TClass> classf)
-        {
-            var testSet = testData.ClassifyUsing(classf);
-            
-            return ClassificationAccuracyPercentageInternal(classifier, testSet);
-        }
-
-        /// <summary>
-        /// Returns a percentage representing the number of items successfully classified by a classifier
-        /// </summary>
-        public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)
+        public static double ClassificationAccuracyPercentage<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, params TrainingPair<TInput, TClass>[] testData)
         {
             return ClassificationAccuracyPercentageInternal(classifier, testData);
         }
 
-        private static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>> testData)
+        private static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TrainingPair<TInput, TClass>> testData)
         {
             var count = 0;
 
@@ -90,38 +59,14 @@ namespace LinqInfer.Learning.Classification
 
             foreach (var item in testData)
             {
-                var classifyResults = classifier.Classify(item.ObjectInstance).ToList();
+                var classifyResults = classifier.Classify(item.Input).ToList();
 
                 var match = classifyResults.FirstOrDefault();
-                count += (match == null ? 0 : (match.ClassType.Equals(item.Classification) ? 1 : 0));
+
+                count += (match == null ? 0 : (match.ClassType.Equals(item.TargetOutput) ? 1 : 0));
             }
 
             return count / (double)testData.Count();
-        }
-
-        private static double ClassificationAccuranyScore<TInput, TClass>(this Func<TInput, IEnumerable<ClassifyResult<TClass>>> classifier, params ClassifiedObjectExtensions.ClassifiedObject<TInput, TClass>[] testData)
-        {
-            var cumulativeResult = 1d;
-
-            foreach (var item in testData)
-            {
-                var classifyResults = classifier(item.ObjectInstance).ToList();
-
-                if (classifyResults.Any())
-                {
-                    var match = classifyResults.FirstOrDefault(r => r.ClassType.Equals(item.Classification));
-                    var total = classifyResults.Sum(r => r.Score);
-                    var score = match == null ? 0 : match.Score;
-
-                    cumulativeResult *= (score / total);
-                }
-                else
-                {
-                    cumulativeResult = 0;
-                }
-            }
-
-            return cumulativeResult;
         }
     }
 }

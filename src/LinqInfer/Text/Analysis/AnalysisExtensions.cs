@@ -1,14 +1,13 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
-using System;
 using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
     public static class AnalysisExtensions
     {
-        public static IImportableExportableSemanticSet ExtractKeyTerms(this Corpus corpus, int maxNumberOfTerms = 256)
+        public static IImportableExportableSemanticSet ExtractKeyTerms(this ICorpus corpus, int maxNumberOfTerms = 256)
         {
             var index = new DocumentIndex();
             int i = 0;
@@ -20,14 +19,14 @@ namespace LinqInfer.Text.Analysis
             return index.ExtractKeyTerms(maxNumberOfTerms);
         }
 
-        public static ContinuousBagOfWords CreateContinuousBagOfWords(this Corpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int contextPadding = 2)
+        public static ContinuousBagOfWords CreateContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int contextPadding = 2)
         {
             var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary ?? targetVocabulary, contextPadding);
 
             return cbow;
         }
 
-        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsTrainingSet(this Corpus corpus, int targetVocabularySize = 256, int superVocabularyFactor = 4, int sampleSize = 1000, int contextPadding = 2)
+        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsTrainingSet(this ICorpus corpus, int targetVocabularySize = 256, int superVocabularyFactor = 4, int sampleSize = 1000, int contextPadding = 2)
         {
             var index = new DocumentIndex();
             int i = 0;
@@ -42,7 +41,7 @@ namespace LinqInfer.Text.Analysis
             return CreateContinuousBagOfWordsTrainingSet(corpus, targetVocab, keyTermsSuperset, sampleSize, contextPadding);
         }
 
-        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsTrainingSet(this Corpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary, int sampleSize = 1000, int contextPadding = 2)
+        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary, int sampleSize = 1000, int contextPadding = 2)
         {
             var cbow = CreateContinuousBagOfWords(corpus, targetVocabulary, widerVocabulary, contextPadding);
 
