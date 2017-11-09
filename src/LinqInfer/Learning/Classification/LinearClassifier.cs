@@ -8,13 +8,14 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class LinearClassifier
+    public sealed class LinearClassifier : IAssistedLearningProcessor
     {
         private readonly Matrix _weights;
         private readonly ColumnVector1D _bias;
         private readonly Softmax _softmax;
         private readonly double _weightDecay = 0.001;
-        private readonly double _learningRate;
+
+        private double _learningRate;
         
         public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
         {
@@ -44,6 +45,16 @@ namespace LinqInfer.Learning.Classification
             var biasAdjusted = output + _bias;
 
             return _softmax.Calculate(output);
+        }
+
+        public void AdjustLearningRate(Func<double, double> rateAdjustment)
+        {
+            _learningRate = rateAdjustment(_learningRate);
+        }
+
+        public double Train(IVector inputVector, IVector output)
+        {
+            return Train(new[] { new TrainingPair<IVector, IVector>(inputVector, output) }, (n, e) => false);
         }
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, double minError, int maxIterations = 10000)

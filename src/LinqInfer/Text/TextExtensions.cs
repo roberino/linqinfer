@@ -36,7 +36,7 @@ namespace LinqInfer.Text
             var t = tokeniser ?? new Tokeniser();
             var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<string>(t.Tokenise);
 
-            return MlncExtensions.OpenAsMultilayerNetworkClassifier<string, TClass>(docData, objFeatureExtractor);
+            return MlnExtensions.OpenAsMultilayerNetworkClassifier<string, TClass>(docData, objFeatureExtractor);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace LinqInfer.Text
             var tokeniser = new ObjectTextExtractor<TInput>(index.Tokeniser);
             var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<TInput>(tokeniser.CreateObjectTextTokeniser());
 
-            return MlncExtensions.OpenAsMultilayerNetworkClassifier<TInput, TClass>(docData, objFeatureExtractor);
+            return MlnExtensions.OpenAsMultilayerNetworkClassifier<TInput, TClass>(docData, objFeatureExtractor);
         }
 
         /// <summary>

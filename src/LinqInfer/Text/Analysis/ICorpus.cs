@@ -5,10 +5,10 @@ namespace LinqInfer.Text.Analysis
 {
     public interface ICorpus
     {
-        IEnumerable<Task<IList<IToken>>> ReadBlocksAsync();
+        IEnumerable<IToken> Words { get; }
 
         IEnumerable<IEnumerable<IToken>> Blocks { get; }
-        IEnumerable<IToken> Words { get; }
-        IEnumerable<IToken> WordsAndSymbols { get; }
+
+        IEnumerable<Task<IList<IToken>>> ReadBlocksAsync();
     }
 }

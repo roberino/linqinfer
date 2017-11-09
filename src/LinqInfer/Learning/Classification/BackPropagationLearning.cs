@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Classification
             _learningRate = network.Parameters.LearningRate;
             _momentum = momentum;
         }
-        
+
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
             _learningRate = rateAdjustment(_learningRate);
@@ -31,14 +31,20 @@ namespace LinqInfer.Learning.Classification
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingSet, double errorThreshold = 0)
         {
+            return Train(trainingSet, (n, e) => e < errorThreshold);
+        }
+
+        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, Func<int, double, bool> haltingFunction)
+        {
             double errTotal = 0;
             double err = 0;
+            int c = 0;
 
-            foreach(var inputPair in trainingSet)
+            foreach (var inputPair in trainingData)
             {
                 errTotal += (err = Train(inputPair.Input, inputPair.TargetOutput));
 
-                if (err < errorThreshold) break;
+                if (haltingFunction(c++, err)) break;
             }
 
             return errTotal;
@@ -111,7 +117,8 @@ namespace LinqInfer.Learning.Classification
                 {
                     var error = layerErrors[j];
 
-                    n.Adjust((w, k) => {
+                    n.Adjust((w, k) =>
+                    {
                         var prevOutput = previousLayer == null || k < 0 ? 1 : previousLayer[k].Output;
                         return ExecuteUpdateRule(w, error, prevOutput);
                     });
@@ -126,7 +133,7 @@ namespace LinqInfer.Learning.Classification
         }
 
         protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
-        {            
+        {
             return currentWeightValue + (_learningRate * ((_momentum * currentWeightValue) + ((1.0 - _momentum) * (error * previousLayerOutput))));
         }
     }

@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Data;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification
 {
@@ -15,10 +14,5 @@ namespace LinqInfer.Learning.Classification
         /// Gets the current classifier
         /// </summary>
         IFloatingPointClassifier<TClass> Classifier { get; }
-
-        /// <summary>
-        /// Trains the classifier, associating the class and sample vector.
-        /// </summary>
-        double Train(TClass item, ColumnVector1D sample);
     }
 }

@@ -53,43 +53,7 @@ namespace LinqInfer.Text.Analysis
         {
             get
             {
-                var currentBlock = new List<IToken>();
-                int spaceCount = 0;
-                int i = 0;
-                TokenType lastType = TokenType.Null;
-
-                foreach(var word in _tokens)
-                {
-                    if (word.Type == TokenType.Word || word.Type == TokenType.Number)
-                    {
-                        currentBlock.Add(new Token(word.Text, i++, TokenType.Word));
-                        spaceCount = 0;
-                    }
-                    else
-                    {
-                        if (word.Type == TokenType.SentenceEnd || spaceCount > 1 || ((lastType == TokenType.Word || lastType == TokenType.Number) && word.Type == TokenType.Symbol && (word.Text == ";" || word.Text == ",")))
-                        {
-                            if (currentBlock.Any())
-                            {
-                                yield return currentBlock.ToList();
-
-                                currentBlock.Clear();
-                            }
-                            spaceCount = 0;
-                        }
-                        else
-                        {
-                            if(word.Type == TokenType.Space)
-                            {
-                                spaceCount++;
-                            }
-                        }
-                    }
-
-                    lastType = word.Type;
-                }
-
-                if (currentBlock.Any()) yield return currentBlock.ToList();
+                return new BlockReader().ReadBlocks(_tokens);
             }
         }
 

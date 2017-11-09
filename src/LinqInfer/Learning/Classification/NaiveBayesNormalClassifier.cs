@@ -6,7 +6,11 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveBayesNormalClassifier<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, double>
+    internal class NaiveBayesNormalClassifier<T> : 
+        IByteClassifier<T>, 
+        IFloatingPointClassifier<T>, 
+        IAssistedLearning<T, byte>, 
+        IAssistedLearning<T, double>
     {
         private readonly Dictionary<T, List<InputAggregator>> netData;
         private readonly int vectorSize;

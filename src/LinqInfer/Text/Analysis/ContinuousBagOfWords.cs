@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -15,7 +16,7 @@ namespace LinqInfer.Text.Analysis
 
         internal ContinuousBagOfWords(IEnumerable<IToken> tokens, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int paddingSize = 1)
         {
-            Contract.Assert(paddingSize > 0);
+            ArgAssert.AssertGreaterThanZero(paddingSize, nameof(paddingSize));
 
             _tokens = tokens;
             _targetVocabulary = targetVocabulary;
@@ -25,15 +26,15 @@ namespace LinqInfer.Text.Analysis
 
         public IEnumerator<SyntacticContext> GetEnumerator()
         {
-            return Stream().GetEnumerator();
+            return Stream(_tokens).GetEnumerator();
         }
 
-        public IEnumerable<SyntacticContext> Stream()
+        private IEnumerable<SyntacticContext> Stream(IEnumerable<IToken> tokens)
         {
             var bufferSize = _padding * 2 + 1;
             var buffer = new IToken[bufferSize];
 
-            foreach (var token in _tokens)
+            foreach (var token in tokens)
             {
                 if (IsFull(buffer))
                 {

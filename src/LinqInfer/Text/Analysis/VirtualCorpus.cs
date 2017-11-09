@@ -1,0 +1,47 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace LinqInfer.Text.Analysis
+{
+    internal class VirtualCorpus : ICorpus
+    {
+        private readonly IEnumerable<Task<IList<IToken>>> _tokenEnumerator;
+
+        public VirtualCorpus(IEnumerable<Task<IList<IToken>>> tokenEnumerator)
+        {
+            _tokenEnumerator = tokenEnumerator ?? throw new ArgumentNullException(nameof(tokenEnumerator));
+        }
+
+        public IEnumerable<IToken> Words => Blocks.SelectMany(b => b.Where(t => t.Type == TokenType.Word));
+
+        public IEnumerable<IEnumerable<IToken>> Blocks => ReadBlocksAsync().Select(b => b.Result);
+
+        public IEnumerable<Task<IList<IToken>>> ReadBlocksAsync()
+        {
+            foreach (var batchTask in _tokenEnumerator)
+            {
+                var f = new Func<Task<IEnumerable<IEnumerable<IToken>>>>(async () =>
+                {
+                    var batchValues = await batchTask;
+
+                    return new BlockReader().ReadBlocks(batchValues);
+                });
+
+                var batch = f();
+
+                yield return batch
+                    .ContinueWith(x =>
+                    {
+                        return (IList<IToken>)(x.Result.FirstOrDefault() ?? new List<IToken>()).ToList();
+                    });
+
+                foreach (var item in batch.Result.Skip(1))
+                {
+                    yield return Task.FromResult<IList<IToken>>(item.ToList());
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LinqInfer.Utility;
+using System;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
@@ -15,7 +15,7 @@ namespace LinqInfer.Learning.Features
         /// Returns an enumeration of vector data in batches.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<Task<IList<ObjectVector<T>>>> ExtractBatches();
+        AsyncEnumerator<ObjectVector<T>> ExtractBatches();
 
         /// <summary>
         /// Processes the data using the supplied asyncronous function

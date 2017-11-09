@@ -1,5 +1,8 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using System;
+using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
@@ -59,5 +62,13 @@ namespace LinqInfer.Learning.Classification
         /// <param name="sampleVector">The input vector</param>
         /// <returns>The error</returns>
         double Train(IVector input, IVector output);
+
+        /// <summary>
+        /// Trains the classifier using a batch of data
+        /// </summary>
+        /// <param name="trainingData">A batch of training data</param>
+        /// <param name="haltingFunction">A function which returns true to halt the training</param>
+        /// <returns></returns>
+        double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, Func<int, double, bool> haltingFunction);
     }
 }

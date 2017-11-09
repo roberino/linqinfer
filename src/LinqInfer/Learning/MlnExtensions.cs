@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning
 {
-    public static class MlncExtensions
+    public static class MlnExtensions
     {
         /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.

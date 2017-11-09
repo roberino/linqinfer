@@ -57,5 +57,23 @@ namespace LinqInfer.Text.Analysis
 
             return pipeline.AsTrainingSet(t => t.WordB);
         }
+
+
+        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int sampleSize = 1000, int contextPadding = 2)
+        {
+            var cbow = CreateContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
+
+            var data = cbow.SelectMany(c =>
+                    c.ContextualWords
+                    .Select(w => new WordPair() { WordA = w.Text, WordB = c.TargetWord.Text })
+                   )
+                   .Take(sampleSize);
+
+            var encoder = new OneHotTextEncoding<WordPair>(targetVocabulary, t => t.WordA);
+
+            var pipeline = data.AsQueryable().CreatePipeline(encoder);
+
+            return pipeline.AsTrainingSet(t => t.WordB);
+        }
     }
 }

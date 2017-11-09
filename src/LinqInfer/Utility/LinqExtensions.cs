@@ -3,11 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        /// <summary>
+        /// Converts an enumeration of batch loading tasks
+        /// into an async enumerable object
+        /// </summary>
+        /// <typeparam name="T">The type of each item in a batch of data</typeparam>
+        /// <param name="batchLoader">An enumeration of tasks to load data</param>
+        public static AsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        {
+            return new AsyncEnumerator<T>(batchLoader);
+        }
+
         /// <summary>
         /// Iterates over an enumeration of values and applies a function returning the results of the function
         /// </summary>

@@ -53,6 +53,18 @@ namespace LinqInfer.Text.Http
             _linkFilter = linkFilter;
         }
 
+        public ICorpus CreateVirtualCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        {
+            return new VirtualCorpus(
+                CrawlDocuments(rootUri, documentFilter, maxDocs, targetElement)
+                .Select(async t =>
+                {
+                    var docs = await t;
+
+                    return (IList<IToken>)docs.SelectMany(d => d.Tokens).ToList();
+                }));
+        }
+
         public async Task<ICorpus> CreateCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
         {
             var corpus = new Corpus();

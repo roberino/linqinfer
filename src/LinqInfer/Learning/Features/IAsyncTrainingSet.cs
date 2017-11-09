@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
+using System;
 using System.Linq.Expressions;
-using LinqInfer.Maths;
-using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
@@ -11,9 +10,9 @@ namespace LinqInfer.Learning.Features
         where TClass : IEquatable<TClass>
     {
         Expression<Func<TInput, TClass>> ClassifyingExpression { get; }
-        IFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
+        IAsyncFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
         ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        IEnumerable<Task<IList<TrainingPair<IVector, IVector>>>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
+        AsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
     }
 }
