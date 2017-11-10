@@ -59,21 +59,17 @@ namespace LinqInfer.Text.Analysis
         }
 
 
-        public static ITrainingSet<WordPair, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int sampleSize = 1000, int contextPadding = 2)
+        public static IAsyncTrainingSet<WordPair, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int sampleSize = 1000, int contextPadding = 2)
         {
-            var cbow = CreateContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
-
-            var data = cbow.SelectMany(c =>
-                    c.ContextualWords
-                    .Select(w => new WordPair() { WordA = w.Text, WordB = c.TargetWord.Text })
-                   )
-                   .Take(sampleSize);
-
+            var cbow = new AsyncContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
+        
             var encoder = new OneHotTextEncoding<WordPair>(targetVocabulary, t => t.WordA);
 
-            var pipeline = data.AsQueryable().CreatePipeline(encoder);
+            var pipeline = new AsyncFeatureProcessingPipeline<WordPair>(cbow.StreamPairs(), encoder);
 
-            return pipeline.AsTrainingSet(t => t.WordB);
+            ICategoricalOutputMapper<string> mapper = null;
+
+            return pipeline.AsTrainingSet(t => t.WordB, mapper);
         }
     }
 }

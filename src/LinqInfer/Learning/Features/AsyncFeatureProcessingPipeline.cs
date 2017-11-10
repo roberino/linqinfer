@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,18 +10,17 @@ namespace LinqInfer.Learning.Features
         where T : class
     {
         private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
-        private readonly IEnumerable<Task<IList<T>>> _dataLoader;
+        private readonly IAsyncEnumerator<T> _dataLoader;
 
-        internal AsyncFeatureProcessingPipeline(IEnumerable<Task<IList<T>>> dataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
         {
-            _dataLoader = dataLoader ?? throw new ArgumentNullException(nameof(dataLoader));
+            _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
             _featureExtractor = featureExtractor ?? throw new ArgumentNullException(nameof(featureExtractor));
         }
 
-        public AsyncEnumerator<ObjectVector<T>> ExtractBatches()
+        public IAsyncEnumerator<ObjectVector<T>> ExtractBatches()
         {
             return _dataLoader
-                .AsAsyncEnumerator()
                 .TransformEachBatch(b => b
                         .Select(x => new ObjectVector<T>(x, _featureExtractor.ExtractIVector(x)))
                         .ToList());

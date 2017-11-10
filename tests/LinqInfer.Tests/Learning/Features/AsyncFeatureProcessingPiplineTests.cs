@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,11 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var fe = new DelegatingFloatingPointFeatureExtractor<string>(x => Vector.FromCsv(x).GetUnderlyingArray(), 2, new[] { "a", "b" });
 
-            var pipeline = new AsyncFeatureProcessingPipeline<string>(Loader(), fe);
+            var pipeline = new AsyncFeatureProcessingPipeline<string>(Loader().AsAsyncEnumerator(), fe);
 
             int n = 0;
 
-            foreach(var batch in pipeline.ExtractBatches())
+            foreach(var batch in pipeline.ExtractBatches().Items)
             {
                 var items = await batch;
 

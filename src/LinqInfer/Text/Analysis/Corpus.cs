@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -25,12 +26,9 @@ namespace LinqInfer.Text.Analysis
             _tokens.Add(token);
         }
 
-        public IEnumerable<Task<IList<IToken>>> ReadBlocksAsync()
+        public IAsyncEnumerator<IToken> ReadBlocksAsync()
         {
-            foreach (var block in Blocks)
-            {
-                yield return Task.FromResult((IList<IToken>)block.ToList());
-            }
+            return ReadBlocksAsyncInternal().AsAsyncEnumerator();
         }
 
         public IEnumerable<IToken> Words
@@ -88,6 +86,14 @@ namespace LinqInfer.Text.Analysis
 
                     writer.WriteLine(".");
                 }
+            }
+        }
+
+        private IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
+        {
+            foreach (var block in Blocks)
+            {
+                yield return Task.FromResult((IList<IToken>)block.ToList());
             }
         }
     }

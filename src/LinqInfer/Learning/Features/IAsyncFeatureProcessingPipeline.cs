@@ -15,7 +15,7 @@ namespace LinqInfer.Learning.Features
         /// Returns an enumeration of vector data in batches.
         /// </summary>
         /// <returns></returns>
-        AsyncEnumerator<ObjectVector<T>> ExtractBatches();
+        IAsyncEnumerator<ObjectVector<T>> ExtractBatches();
 
         /// <summary>
         /// Processes the data using the supplied asyncronous function

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Utility
 {
-    public class AsyncEnumerator<T>
+    public class AsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IEnumerable<Task<IList<T>>> _batchLoader;
 
@@ -16,20 +16,33 @@ namespace LinqInfer.Utility
 
         public IEnumerable<Task<IList<T>>> Items => _batchLoader;
 
-        public AsyncEnumerator<T2> TransformEachItem<T2>(Func<T, T2> transformer)
+        public IAsyncEnumerator<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
         {
             var tx = _batchLoader.Select(t =>
             {
                return t.ContinueWith<IList<T2>>(b =>
                {
-                   return b.Result.Select(transformer).ToList();
+                   return b.Result.SelectMany(transformer).ToList();
                });
             });
 
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public AsyncEnumerator<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
+        public IAsyncEnumerator<T2> TransformEachItem<T2>(Func<T, T2> transformer)
+        {
+            var tx = _batchLoader.Select(t =>
+            {
+                return t.ContinueWith<IList<T2>>(b =>
+                {
+                    return b.Result.Select(transformer).ToList();
+                });
+            });
+
+            return new AsyncEnumerator<T2>(tx);
+        }
+
+        public IAsyncEnumerator<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
         {
             var tx = _batchLoader.Select(t =>
             {
@@ -39,13 +52,15 @@ namespace LinqInfer.Utility
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public async Task<bool> ProcessUsing(Func<IList<T>, bool> processor)
+        public async Task<bool> ProcessUsing(Func<AsyncBatch<T>, bool> processor)
         {
+            int i = 0;
+
             foreach (var batchTask in _batchLoader)
             {
                 var items = await batchTask;
 
-                if (!processor(items)) return false;
+                if (!processor(new AsyncBatch<T>(items, i++))) return false;
             }
 
             return true;

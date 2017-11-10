@@ -13,6 +13,6 @@ namespace LinqInfer.Learning.Features
         IAsyncFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
         ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        AsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
+        IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000);
     }
 }

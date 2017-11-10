@@ -15,7 +15,7 @@ namespace LinqInfer.Utility
         /// </summary>
         /// <typeparam name="T">The type of each item in a batch of data</typeparam>
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
-        public static AsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
         {
             return new AsyncEnumerator<T>(batchLoader);
         }

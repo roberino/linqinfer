@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,9 +17,14 @@ namespace LinqInfer.Text.Analysis
 
         public IEnumerable<IToken> Words => Blocks.SelectMany(b => b.Where(t => t.Type == TokenType.Word));
 
-        public IEnumerable<IEnumerable<IToken>> Blocks => ReadBlocksAsync().Select(b => b.Result);
+        public IEnumerable<IEnumerable<IToken>> Blocks => ReadBlocksAsyncInternal().Select(b => b.Result);
 
-        public IEnumerable<Task<IList<IToken>>> ReadBlocksAsync()
+        public IAsyncEnumerator<IToken> ReadBlocksAsync()
+        {
+            return ReadBlocksAsyncInternal().AsAsyncEnumerator();
+        }
+
+        private IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
         {
             foreach (var batchTask in _tokenEnumerator)
             {

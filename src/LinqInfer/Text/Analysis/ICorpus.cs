@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using LinqInfer.Utility;
+using System.Collections.Generic;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -9,6 +9,6 @@ namespace LinqInfer.Text.Analysis
 
         IEnumerable<IEnumerable<IToken>> Blocks { get; }
 
-        IEnumerable<Task<IList<IToken>>> ReadBlocksAsync();
+        IAsyncEnumerator<IToken> ReadBlocksAsync();
     }
 }

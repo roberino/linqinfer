@@ -20,14 +20,26 @@ namespace LinqInfer.Text.Analysis
             _padding = paddingSize;
         }
 
-        public AsyncEnumerator<SyntacticContext> Stream()
+        public IAsyncEnumerator<SyntacticContext> StreamContext()
         {
             var asyncEnum = _corpus
                 .ReadBlocksAsync()
-                .AsAsyncEnumerator()
                 .TransformEachBatch(t => new ContinuousBagOfWords(t, _targetVocabulary, _widerVocabulary, _padding).ToList());
 
             return asyncEnum;
+        }
+
+        public IAsyncEnumerator<WordPair> StreamPairs()
+        {
+            return StreamContext().SplitEachItem(
+                c => c
+                    .ContextualWords
+                    .Select(w =>
+                    new WordPair()
+                    {
+                        WordA = w.Text,
+                        WordB = c.TargetWord.Text
+                    }));
         }
     }
 }

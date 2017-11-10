@@ -19,29 +19,25 @@ namespace LinqInfer.Learning.Classification
             IAsyncTrainingSet<TInput, TClass> trainingData,
             Func<int, double, bool> haltingFunction)
         {
-            int i = 0;
-
             bool halted = false;
 
             double lastError = 0;
 
-            foreach (var batchTask in trainingData.ExtractInputOutputIVectorBatches())
-            {
-                var batch = await batchTask;
-
-                _learningProcessor.Train(batch, (n, e) =>
+            await trainingData
+                .ExtractInputOutputIVectorBatches()
+                .ProcessUsing(b =>
                 {
-                    halted = haltingFunction(n * (i + 1), e);
+                    _learningProcessor.Train(b.Items, (n, e) =>
+                    {
+                        halted = haltingFunction(n * (b.BatchNumber + 1), e);
 
-                    lastError = e;
+                        lastError = e;
 
-                    return halted;
+                        return halted;
+                    });
+
+                    return !halted;
                 });
-
-                if (halted) break;
-
-                i++;
-            }
 
             return lastError;
         }

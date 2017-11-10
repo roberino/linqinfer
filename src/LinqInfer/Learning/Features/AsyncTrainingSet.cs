@@ -28,7 +28,7 @@ namespace LinqInfer.Learning.Features
 
         public ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        public AsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
+        public IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
         {
             var clsFunc = ClassifyingExpression.Compile();
 
