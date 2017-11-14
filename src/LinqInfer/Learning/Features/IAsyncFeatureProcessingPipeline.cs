@@ -12,6 +12,11 @@ namespace LinqInfer.Learning.Features
     public interface IAsyncFeatureProcessingPipeline<T> where T : class
     {
         /// <summary>
+        /// Returns the feature extractor
+        /// </summary>
+        IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
+
+        /// <summary>
         /// Returns an enumeration of vector data in batches.
         /// </summary>
         /// <returns></returns>

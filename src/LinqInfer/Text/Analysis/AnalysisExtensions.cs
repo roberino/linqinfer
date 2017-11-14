@@ -58,7 +58,6 @@ namespace LinqInfer.Text.Analysis
             return pipeline.AsTrainingSet(t => t.WordB);
         }
 
-
         public static IAsyncTrainingSet<WordPair, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int sampleSize = 1000, int contextPadding = 2)
         {
             var cbow = new AsyncContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
@@ -67,7 +66,9 @@ namespace LinqInfer.Text.Analysis
 
             var pipeline = new AsyncFeatureProcessingPipeline<WordPair>(cbow.StreamPairs(), encoder);
 
-            ICategoricalOutputMapper<string> mapper = null;
+            var omf = new OutputMapperFactory<WordPair, string>();
+
+            var mapper = omf.Create(targetVocabulary.Words);
 
             return pipeline.AsTrainingSet(t => t.WordB, mapper);
         }

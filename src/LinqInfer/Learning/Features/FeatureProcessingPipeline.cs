@@ -115,12 +115,16 @@ namespace LinqInfer.Learning.Features
         {
             if (!range.HasValue) range = new Range(1, -1);
 
-            var max = ExtractColumnVectors().MaxOfEachDimension() * range.Value.Size;
+            var minMax = ExtractColumnVectors().MinAnMaxOfEachDimension();
+            var adjustedMax = minMax.Item2 - minMax.Item1;
+            var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
+            var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
 
-            var scale = new VectorOperation(VectorOperationType.Divide, max);
-            var transpose = new VectorOperation(VectorOperationType.Subtract, Vector.UniformVector(max.Size, range.Value.Size / 2));
+            var minTranspose = new VectorOperation(VectorOperationType.Subtract, minMax.Item1);
+            var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
+            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
 
-            var transform = new SerialisableVectorTransformation(scale, transpose);
+            var transform = new SerialisableVectorTransformation(minTranspose, scale, rangeTranspose);
 
             PreprocessWith(transform);
 

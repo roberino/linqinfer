@@ -18,6 +18,8 @@ namespace LinqInfer.Learning.Features
             _featureExtractor = featureExtractor ?? throw new ArgumentNullException(nameof(featureExtractor));
         }
 
+        public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
+
         public IAsyncEnumerator<ObjectVector<T>> ExtractBatches()
         {
             return _dataLoader

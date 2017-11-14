@@ -14,11 +14,11 @@ namespace LinqInfer.Tests.Learning.Features
             var fe = ext.CreateFeatureExtractor<FeatureObject>();
             var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, v => new double[] { v[0] * v[1] * v[2] });
 
-            var trasnformedFeature = tfe.FeatureMetadata.Single();
+            var transformedFeature = tfe.FeatureMetadata.Single();
 
-            Assert.That(trasnformedFeature.DataType == System.TypeCode.Double);
-            Assert.That(trasnformedFeature.Index == 0);
-            Assert.That(trasnformedFeature.Label == "Transform 1");
+            Assert.That(transformedFeature.DataType == System.TypeCode.Double);
+            Assert.That(transformedFeature.Index == 0);
+            Assert.That(transformedFeature.Label == "Transform 1");
 
             var vector = tfe.ExtractVector(new FeatureObject()
             {
@@ -27,7 +27,7 @@ namespace LinqInfer.Tests.Learning.Features
                 z = 7
             });
 
-            Assert.That(vector.First(), Is.EqualTo((3d / 10d) * (5d / 10d) * (7d / 10d)));
+            Assert.That(vector.First(), Is.EqualTo(3d * 5d * 7d));
         }
 
         [Test]

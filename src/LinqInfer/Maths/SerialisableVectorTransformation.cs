@@ -14,7 +14,7 @@ namespace LinqInfer.Maths
             _operations = new List<VectorOperation>();
         }
 
-        public SerialisableVectorTransformation(Matrix transformer, Vector transposer = null)
+        public SerialisableVectorTransformation(Matrix transformer, Vector transposer = null) : this()
         {
             Contract.Ensures(transformer != null);
 

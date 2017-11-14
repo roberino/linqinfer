@@ -263,13 +263,30 @@ namespace LinqInfer.Maths
             }
 
             throw new ArgumentException();
+        }
 
-            //double min = double.MaxValue;
+        internal static Tuple<ColumnVector1D, ColumnVector1D> MinAnMaxOfEachDimension(this IEnumerable<ColumnVector1D> values)
+        {
+            ColumnVector1D min = null;
+            ColumnVector1D max = null;
 
-            //return values.Aggregate((t, x) =>
-            //{
-            //    return (min > x) ? x : t; 
-            //});
+            foreach (var val in values)
+            {
+                if (min == null)
+                {
+                    min = new ColumnVector1D(val.ToDoubleArray());
+                    max = new ColumnVector1D(val.ToDoubleArray());
+                }
+                else
+                {
+                    min.Apply((x, n) => x > val[n] ? val[n] : x);
+                    max.Apply((x, n) => x < val[n] ? val[n] : x);
+                }
+            }
+
+            if (min == null) throw new ArgumentException();
+
+            return new Tuple<ColumnVector1D, ColumnVector1D>(min, max);
         }
 
         public static ColumnVector1D Aggregate(this IEnumerable<ColumnVector1D> values, Func<double, double, double> func)

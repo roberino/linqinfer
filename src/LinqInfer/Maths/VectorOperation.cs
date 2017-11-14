@@ -36,7 +36,7 @@ namespace LinqInfer.Maths
 
         public int InputSize => _parameters.Any() ? _parameters.First().Size : 0;
 
-        public int OutputSize => _parameters.Any() ? _parameters.Count : 0;
+        public int OutputSize => Operation == VectorOperationType.EuclideanDistance ? _parameters.Count : (_parameters.Any() ? _parameters.First().Size : 0);
 
         public Vector Apply(Vector input)
         {

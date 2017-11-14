@@ -43,17 +43,18 @@ namespace LinqInfer.Tests
 
         public static Assembly GetAssembly()
         {
-            #if NET_STD
-                return System.Reflection.Assembly.GetEntryAssembly();
-            #else
-                return Assembly.GetExecutingAssembly();
-            #endif
+#if NET_STD
+            return typeof(TestFixtureBase).GetTypeInfo().Assembly;
+#else
+            return Assembly.GetExecutingAssembly();
+#endif
         }
 
         public static Stream GetResource(string name)
         {
             var asm = GetAssembly();
-            var rname = asm.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith(name));
+            var names = asm.GetManifestResourceNames();
+            var rname = names.FirstOrDefault(r => r.EndsWith(name));
 
             return asm.GetManifestResourceStream(rname);
         }

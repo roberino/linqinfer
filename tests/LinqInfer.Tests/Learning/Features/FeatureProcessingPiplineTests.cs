@@ -23,13 +23,17 @@ namespace LinqInfer.Tests.Learning.Features
         {
             var data = TestData.CreateQueryablePirates();
 
-            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data);
+            var minVal = data.Min(x => x.Age);
+            var maxVal = data.Max(x => x.Age);
+            var expectedVal = ((double)data.First().Age - minVal) / (maxVal - minVal);
 
-            var featureData = pipeline.ExtractColumnVectors().ToList();
+            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data).NormaliseData();
+
+            var featureData = pipeline.ExtractVectors().ToList();
 
             Assert.That(featureData.Count, Is.EqualTo(data.Count()));
 
-            Assert.That(featureData[0][0], Is.EqualTo((double)data.First().Age / data.Max(x => x.Age)));
+            Assert.That(featureData[0][0], Is.EqualTo(expectedVal));
         }
 
         [Test]
@@ -57,13 +61,14 @@ namespace LinqInfer.Tests.Learning.Features
                 .PreprocessWith(m =>
                 {
                     return new double[] { m.Sum() * 7 };
-                });
+                })
+                .NormaliseData();
 
-            var featureData = pipeline.ExtractColumnVectors().ToList();
+            var featureData = pipeline.ExtractVectors().ToList();
 
             Assert.That(featureData.Count, Is.EqualTo(data.Count()));
 
-            Assert.That(featureData[0].Single(), Is.EqualTo((double)data.First().Age / data.Max(x => x.Age) * 7));
+            Assert.That(featureData[0].ToColumnVector().Single(), Is.EqualTo((double)data.First().Age / data.Max(x => x.Age) * 7));
         }
     }
 }

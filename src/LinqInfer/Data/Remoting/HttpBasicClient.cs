@@ -9,9 +9,9 @@ namespace LinqInfer.Data.Remoting
     {
         private readonly HttpClient _client;
 
-        public HttpBasicClient()
+        public HttpBasicClient(HttpClient client = null)
         {
-            _client = new HttpClient();
+            _client = client ?? new HttpClient();
         }
 
         public void Dispose()

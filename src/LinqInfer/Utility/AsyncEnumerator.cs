@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Utility
 {
-    public class AsyncEnumerator<T> : IAsyncEnumerator<T>
+    internal class AsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IEnumerable<Task<IList<T>>> _batchLoader;
 
-        internal AsyncEnumerator(IEnumerable<Task<IList<T>>> batchLoader)
+        public AsyncEnumerator(IEnumerable<Task<IList<T>>> batchLoader)
         {
             _batchLoader = batchLoader ?? throw new ArgumentNullException(nameof(batchLoader));
         }

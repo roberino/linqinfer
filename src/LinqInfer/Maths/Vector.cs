@@ -404,7 +404,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public override bool Equals(object obj)
         {
-            return Equals(obj as ColumnVector1D);
+            return obj is Vector ? Equals(new ColumnVector1D((Vector)obj)) : Equals(obj as IVector);
         }
 
         /// <summary>
