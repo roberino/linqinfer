@@ -11,11 +11,9 @@
 
         public int OutputSize => InputSize;
 
-        public Vector Apply(Vector vector)
+        public IVector Apply(IVector vector)
         {
-            ColumnVector1D input = vector is ColumnVector1D ? (ColumnVector1D)vector : new ColumnVector1D(vector);
-
-            return Calculate(input);
+            return Calculate(vector.ToColumnVector());
         }
 
         // x => exp(x) / sum(exp(x))

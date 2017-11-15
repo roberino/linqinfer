@@ -88,7 +88,7 @@ namespace LinqInfer.Tests.Maths
             var vect1 = new BitVector(true, true, false, true, false, false, false, true, true);
             var vect2 = new BitVector(false, true, false, true, false, true, false, false, true);
 
-            var result = vect1.Multiply(vect2) as BitVector;
+            var result = vect1.MultiplyBy(vect2) as BitVector;
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result[0], Is.EqualTo(0));

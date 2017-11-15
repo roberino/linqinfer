@@ -13,7 +13,7 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IEquatable<IVector>, IJsonExportable
+    public class Vector : IEnumerable<double>, IVector, IJsonExportable
     {
         protected readonly double[] _values;
 
@@ -287,6 +287,33 @@ namespace LinqInfer.Maths
         public static Vector operator *(Vector v1, double y)
         {
             return new Vector(v1._values.Select(x => x * y).ToArray());
+        }
+
+
+
+        /// <summary>
+        /// Multiplies the vector by the matrix
+        /// </summary>
+        public IVector MultiplyBy(Matrix matrix)
+        {
+            return matrix * this;
+        }
+
+        public IVector MultiplyBy(IVector vector)
+        {
+            if (vector is ColumnVector1D) return vector.ToColumnVector() * this;
+
+            return vector.MultiplyBy(this);
+        }
+
+        public double DotProduct(IVector vector)
+        {
+            return MultiplyBy(vector).ToColumnVector().Sum();
+        }
+
+        public virtual ColumnVector1D ToColumnVector()
+        {
+            return this as ColumnVector1D ?? new ColumnVector1D(this);
         }
 
         public override string ToString()

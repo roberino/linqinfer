@@ -40,11 +40,11 @@ namespace LinqInfer.Learning.Classification
 
         public ColumnVector1D Evaluate(IVector input)
         {
-            var output = input.Multiply(_weights);
+            var output = input.MultiplyBy(_weights);
 
-            var biasAdjusted = output + _bias;
+            var biasAdjusted = output.ToColumnVector() + _bias;
 
-            return _softmax.Calculate(output);
+            return _softmax.Calculate(output.ToColumnVector());
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
@@ -127,7 +127,7 @@ namespace LinqInfer.Learning.Classification
 
         private LossAndDerivative CalculateCostAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
         {
-            var cost = targetOutput.Multiply(score.Log()).ToColumnVector();
+            var cost = targetOutput.MultiplyBy(score.Log()).ToColumnVector();
 
             var grad = targetOutput.ToColumnVector() - score;
 

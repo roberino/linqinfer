@@ -38,34 +38,20 @@ namespace LinqInfer.Maths
 
         public int OutputSize => Operation == VectorOperationType.EuclideanDistance ? _parameters.Count : (_parameters.Any() ? _parameters.First().Size : 0);
 
-        public Vector Apply(Vector input)
-        {
-            var result = ApplyInternal(input);
-
-            if (input is ColumnVector1D) return new ColumnVector1D(result);
-
-            return result;
-        }
-
-        private Vector ApplyInternal(Vector input)
+        public IVector Apply(IVector input)
         {
             switch (Operation)
             {
-                case VectorOperationType.Multiply:
-                    if (IsMultiRow)
-                    {
-                        return AsMatrix() * input;
-                    }
-                    else
-                    {
-                        return AsVector() * input;
-                    }
+                case VectorOperationType.MatrixMultiply:
+                    return AsMatrix() * input;
+                case VectorOperationType.VectorMultiply:
+                    return AsVector().MultiplyBy(input);
                 case VectorOperationType.Divide:
-                    return input / AsVector();
+                    return input.ToColumnVector() / AsVector();
                 case VectorOperationType.Subtract:
-                    return input - AsVector();
+                    return input.ToColumnVector() - AsVector();
                 case VectorOperationType.EuclideanDistance:
-                    var vect = new ColumnVector1D(input);
+                    var vect = input.ToColumnVector();
 
                     return new Vector(AsMatrix().Select(v => vect.Distance(new ColumnVector1D(v))).ToArray());
             }
@@ -96,7 +82,7 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        private bool IsMultiRow => _parameters.Count == 1;
+        private bool IsMultiRow => _parameters.Count > 1;
 
         private Vector AsVector() => _parameters[0];
 
@@ -107,7 +93,8 @@ namespace LinqInfer.Maths
     {
         EuclideanDistance,
         Subtract,
-        Multiply,
+        VectorMultiply,
+        MatrixMultiply,
         Divide
     }
 }

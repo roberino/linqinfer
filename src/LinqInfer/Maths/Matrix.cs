@@ -305,7 +305,7 @@ namespace LinqInfer.Maths
                 throw new InvalidOperationException();
             }
 
-            if (m2.Width == 1) return (m1 * m2.Columns.First()).AsMatrix();
+            if (m2.Width == 1) return (m1 * m2.Columns.First()).ToColumnVector().AsMatrix();
 
             double[][] c = CreateArray(m1.Height, m2.Width);
 
@@ -335,59 +335,25 @@ namespace LinqInfer.Maths
             return new Matrix(c);
         }
 
-        public static ColumnVector1D operator *(Matrix m, Vector v)
+        public IVector Multiply(IVector c)
         {
-            AssertDimensionalCompatibility(m, v);
-
-            var data = new double[v.Size];
-
-            int yi = 0;
-
-            foreach (var y in m.Rows.Select(r => r.GetUnderlyingArray()))
-            {
-                for (int x = 0; x < v.Size; x++)
-                {
-                    data[yi] += y[x] * v[x];
-                }
-                yi++;
-            }
-
-            return new ColumnVector1D(data);
-        }
-
-        public ColumnVector1D Multiply(ColumnVector1D c)
-        {
-            // a, b * x     =   ax + by
-            // c, d   y         cx + dx
+            // | a, b, c |   x     =   ax + by + cz
+            // | d, e, f | * y         dx + ey + fz
+            //               z
 
             var result = new double[Height];
 
             for (var i = 0; i < result.Length; i++)
             {
-                var x = Rows[i] * c;
-                result[i] = x.Sum();
+                result[i] = Rows[i].DotProduct(c);
             }
 
             return new ColumnVector1D(result);
         }
 
-        public static ColumnVector1D operator *(Matrix m, ColumnVector1D c)
+        public static IVector operator *(Matrix m, IVector c)
         {
-            // | a, b, c | * x     =   ax + by + cz
-            // | d, e, f |   y         dx + ey + fz
-            //               z
-
-            var result = new double[m.Height];
-            int i = 0;
-
-            foreach (var row in m.Rows)
-            {
-                result[i++] = c.DotProduct(row);
-            }
-
-            return new ColumnVector1D(result);
-
-            // return new ColumnVector1D(m.Rows.Select(r => (r * c).Sum()).ToArray());
+            return m.Multiply(c);
         }
 
         public static Matrix operator *(Matrix m, double s)

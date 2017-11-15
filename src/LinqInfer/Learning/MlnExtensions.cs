@@ -23,7 +23,7 @@ namespace LinqInfer.Learning
         /// return a true to indicate the training should stop</param>
         /// <returns></returns>
         public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipeline<TInput> pipeline,
+            this IFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             float errorTolerance = 0.1f,
             Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
@@ -117,7 +117,7 @@ namespace LinqInfer.Learning
         /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
         /// <returns>An executable object which produces a classifier</returns>
         public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipeline<TInput> pipeline,
+            this IFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -135,11 +135,7 @@ namespace LinqInfer.Learning
 
             return pipeline.ProcessWith((p, n) =>
             {
-                var result = trainingPipline.TrainUsing(strategy).Result;
-
-                if (n != null) pipeline.OutputResults(result, n);
-
-                return result;
+                return trainingPipline.TrainUsing(strategy).Result;
             });
         }
 
@@ -174,7 +170,7 @@ namespace LinqInfer.Learning
         /// <param name="trainingStrategy">A implementation of a multilayer network training strategy</param>
         /// <returns></returns>
         public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
-            this FeatureProcessingPipeline<TInput> pipeline,
+            this IFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -182,32 +178,9 @@ namespace LinqInfer.Learning
             {
                 var trainingSet = new TrainingSet<TInput, TClass>(pipeline, classf);
                 var trainingPipline = new MultilayerNetworkTrainingRunner<TClass, TInput>(trainingSet);
-                var result = await trainingPipline.TrainUsing(trainingStrategy);
 
-                if (n != null) pipeline.OutputResults(result, n);
-
-                return result;
+                return await trainingPipline.TrainUsing(trainingStrategy);
             });
-        }
-
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="store">A blob store</returns>
-        /// <param name="key">The name of a previously stored classifier</returns>
-        [Obsolete]
-        public static IDynamicClassifier<TClass, TInput> OpenMultilayerNetworkClassifier<TInput, TClass>(
-            this IBlobStore store, string key, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
-        {
-            if (featureExtractor == null) featureExtractor = new FeatureProcessingPipeline<TInput>().FeatureExtractor;
-
-            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor);
-
-            store.Restore(key, classifier);
-
-            return classifier;
         }
 
         /// <summary>

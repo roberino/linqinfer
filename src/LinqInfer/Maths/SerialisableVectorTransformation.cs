@@ -23,7 +23,7 @@ namespace LinqInfer.Maths
                 _operations.Add(new VectorOperation(VectorOperationType.Subtract, transposer));
             }
 
-            _operations.Add(new VectorOperation(VectorOperationType.Multiply, transformer));
+            _operations.Add(new VectorOperation(VectorOperationType.MatrixMultiply, transformer));
         }
 
         public SerialisableVectorTransformation(IEnumerable<VectorOperation> operations)
@@ -36,11 +36,11 @@ namespace LinqInfer.Maths
             foreach (var operation in operations) _operations.Add(operation);
         }
 
-        public Vector Apply(Vector vector)
+        public IVector Apply(IVector vector)
         {
             if (vector == null) return null;
 
-            Vector result = vector;
+            IVector result = vector;
 
             foreach(var op in _operations)
             {

@@ -154,30 +154,6 @@ namespace LinqInfer.Tests.Learning
         }
 
         [Test]
-        public void ToMultilayerNetworkClassifier_SaveOutput_RestoresAsExpected()
-        {
-            var pirateSample = CreatePirates().ToList();
-            var pipeline = pirateSample.AsQueryable().CreatePipeline();
-
-            using (var blob = new InMemoryBlobStore())
-            {
-                pipeline.OutputResultsTo(blob);
-
-                var classifier = pipeline
-                    .ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 0.1f)
-                    .Execute("x");
-
-                var classifier2 = blob.OpenMultilayerNetworkClassifier<Pirate, string>("x");
-
-                Assert.That(classifier2, Is.Not.Null);
-
-                var cls = classifier2.Classify(new Pirate() { Age = 10, Gold = 2, IsCaptain = false, Ships = 1 });
-
-                Assert.That(cls.Any(x => x.Score > 0));
-            }
-        }
-
-        [Test]
         public void ToMultilayerNetworkClassifier_UsingParametersSimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = CreatePirates().ToList();
@@ -232,7 +208,7 @@ namespace LinqInfer.Tests.Learning
             foreach (var i in Enumerable.Range(1, 25))
             {
                 var pirateSample = CreatePirates().ToList();
-                var pipeline = pirateSample.AsQueryable().CreatePipeline();
+                var pipeline = pirateSample.AsQueryable().CreatePipeline().NormaliseData();
                 var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", errorTolerance: 0.1f).Execute();
                 
                 var classOfPirate = classifier.Classify(new Pirate()

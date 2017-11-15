@@ -43,7 +43,7 @@ namespace LinqInfer.Tests.Maths
             var vect1 = new OneOfNVector(4, 3);
             var vect2 = new OneOfNVector(4, 2);
 
-            var result = vect1.Multiply(vect2);
+            var result = vect1.MultiplyBy(vect2);
 
             Assert.That(result, Is.InstanceOf<OneOfNVector>());
             Assert.That(result.Size, Is.EqualTo(4));
@@ -56,7 +56,7 @@ namespace LinqInfer.Tests.Maths
             var vect1 = new OneOfNVector(4, 2);
             var vect2 = new OneOfNVector(4, 2);
 
-            var result = vect1.Multiply(vect2);
+            var result = vect1.MultiplyBy(vect2);
 
             Assert.That(result, Is.InstanceOf<OneOfNVector>());
             Assert.That(result.Size, Is.EqualTo(4));

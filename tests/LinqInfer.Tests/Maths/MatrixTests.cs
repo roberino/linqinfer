@@ -219,7 +219,7 @@ namespace LinqInfer.Tests.Maths
 
             var v = ColumnVector1D.Create(3, 6, 7);
 
-            var mm = (m * v).AsMatrix();
+            var mm = (m * v).ToColumnVector().AsMatrix();
 
             Assert.That(mm.Width, Is.EqualTo(1));
             Assert.That(mm.Height, Is.EqualTo(2));

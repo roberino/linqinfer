@@ -28,7 +28,7 @@ namespace LinqInfer.Tests.Learning.Features
 
             var tx = transform(x);
 
-            Assert.That(tx.Length == 2);
+            Assert.That(tx.Length, Is.EqualTo(2));
         }
 
         private class MockFeatures : IFeatureDataSource

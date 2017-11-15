@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class ColumnVector1D : Vector, IVector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
+    public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
     {
         private Lazy<double> _euclideanLength;
 
@@ -160,31 +160,6 @@ namespace LinqInfer.Maths
         public ColumnVector1D Negate()
         {
             return new ColumnVector1D(_values.Select(v => -v).ToArray());
-        }
-
-        /// <summary>
-        /// Multiplies the vector by the matrix
-        /// </summary>
-        public ColumnVector1D Multiply(Matrix matrix)
-        {
-            return matrix * this;
-        }
-
-        public IVector Multiply(IVector vector)
-        {
-            if (vector is ColumnVector1D) return vector.ToColumnVector() * this;
-
-            return vector.Multiply(this);
-        }
-
-        public double DotProduct(IVector vector)
-        {
-            return Multiply(vector).ToColumnVector().Sum();
-        }
-
-        public ColumnVector1D ToColumnVector()
-        {
-            return this;
         }
 
         /// <summary>

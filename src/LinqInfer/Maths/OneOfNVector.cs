@@ -40,7 +40,7 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(result);
         }
 
-        public ColumnVector1D Multiply(Matrix matrix)
+        public IVector MultiplyBy(Matrix matrix)
         {
             var result = new double[Size];
 
@@ -52,10 +52,10 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(result);
         }
 
-        public IVector Multiply(IVector vector)
+        public IVector MultiplyBy(IVector vector)
         {
             if (vector is OneOfNVector) return ((OneOfNVector)vector) * this;
-            if (vector is BitVector) return ((BitVector)vector).Multiply(this);
+            if (vector is BitVector) return ((BitVector)vector).MultiplyBy(this);
 
             var result = new double[Size];
 

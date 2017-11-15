@@ -9,12 +9,12 @@ namespace LinqInfer.Learning.Features
 {
     internal class FloatingPointTransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
-        private readonly IFeatureExtractor<TInput, double> _baseFeatureExtractor;
+        private readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
         private readonly List<IVectorTransformation> _transformations;
 
         private IList<IFeature> _transformedFeatures;
 
-        public FloatingPointTransformingFeatureExtractor(IFeatureExtractor<TInput, double> baseFeatureExtractor, IVectorTransformation transformation = null)
+        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, IVectorTransformation transformation = null)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
             _transformations = new List<IVectorTransformation>();
@@ -61,9 +61,7 @@ namespace LinqInfer.Learning.Features
 
         public double[] ExtractVector(TInput obj)
         {
-            var bnv = _baseFeatureExtractor.ExtractVector(obj);
-
-            return Transform(bnv);
+            return ExtractColumnVector(obj).GetUnderlyingArray();
         }
 
         public virtual void Load(Stream input)
@@ -76,34 +74,33 @@ namespace LinqInfer.Learning.Features
             _baseFeatureExtractor.Save(output);
         }
 
-        private double[] Transform(double[] input)
+        private IVector Transform(IVector input)
         {
-            var nextInput = new ColumnVector1D(input);
+            IVector nextInput = input;
 
             foreach(var tx in _transformations)
             {
-                nextInput = new ColumnVector1D(tx.Apply(nextInput));
+                nextInput = tx.Apply(nextInput);
             }
 
-            return nextInput.GetUnderlyingArray();
+            return nextInput;
         }
 
         public ColumnVector1D ExtractColumnVector(TInput obj)
         {
-            var bnv = _baseFeatureExtractor.ExtractVector(obj);
-            var nextInput = new ColumnVector1D(bnv);
-
-            foreach (var tx in _transformations)
-            {
-                nextInput = new ColumnVector1D(tx.Apply(nextInput));
-            }
-
-            return new ColumnVector1D(nextInput);
+            return ExtractIVector(obj).ToColumnVector();
         }
 
         public IVector ExtractIVector(TInput obj)
         {
-            return ExtractColumnVector(obj);
+            var nextInput = _baseFeatureExtractor.ExtractIVector(obj);
+
+            foreach (var tx in _transformations)
+            {
+                nextInput = tx.Apply(nextInput);
+            }
+
+            return nextInput;
         }
 
         public BinaryVectorDocument ToVectorDocument()

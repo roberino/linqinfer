@@ -13,17 +13,12 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features based on a predicate function
         /// </summary>
-        FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter);
+        IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter);
 
         /// <summary>
         /// Filters features based on their mapped property name (assumes a direct mapping between property name and feature key)
         /// </summary>
-        FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector);
-
-        /// <summary>
-        /// Applies a pre-processing function which transforms the source vector into a new vector
-        /// </summary>
-        FeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation);
+        IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector);
 
         /// <summary>
         /// Centres the features around the mean

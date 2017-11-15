@@ -60,12 +60,12 @@ namespace LinqInfer.Maths
             return GetEnumerator();
         }
 
-        public ColumnVector1D Multiply(Matrix matrix)
+        public IVector MultiplyBy(Matrix matrix)
         {
             return matrix * this;
         }
 
-        public IVector Multiply(IVector vector)
+        public IVector MultiplyBy(IVector vector)
         {
             if (vector is BitVector) return (((BitVector)vector) * this);
 

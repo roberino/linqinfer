@@ -209,7 +209,7 @@ namespace LinqInfer.Learning.Classification
 
             if (_parameters.OutputTransformation == null) return res;
 
-            return new ColumnVector1D(_parameters.OutputTransformation.Apply(res.ToColumnVector()));
+            return _parameters.OutputTransformation.Apply(res.ToColumnVector()).ToColumnVector();
         }
 
         /// <summary>

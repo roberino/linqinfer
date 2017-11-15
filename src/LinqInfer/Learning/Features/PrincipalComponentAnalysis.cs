@@ -43,7 +43,7 @@ namespace LinqInfer.Learning.Features
         {
             var tx = CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
 
-            return v => tx.Apply(new ColumnVector1D(v)).GetUnderlyingArray();
+            return v => tx.Apply(new ColumnVector1D(v)).ToColumnVector().GetUnderlyingArray();
         }
 
         /// <summary>

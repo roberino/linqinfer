@@ -7,15 +7,15 @@ using System.Collections;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class TrainingSet<TInput, TClass> : ITrainingSet<TInput, TClass>, IQueryable<IGrouping<TClass, ObjectVector<TInput>>>
+    internal class TrainingSet<TInput, TClass> : ITrainingSet<TInput, TClass>
         where TInput : class
         where TClass : IEquatable<TClass>
     {
-        private readonly FeatureProcessingPipeline<TInput> _pipeline;
+        private readonly IFeatureProcessingPipeline<TInput> _pipeline;
         private readonly Expression<Func<TInput, TClass>> _classf;
         private readonly Lazy<ICategoricalOutputMapper<TClass>> _outputMapper;
 
-        internal TrainingSet(FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
+        internal TrainingSet(IFeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
         {
             _pipeline = pipeline;
             _classf = classf;
@@ -47,30 +47,6 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public Expression Expression
-        {
-            get
-            {
-                return ClassifyingExpression;
-            }
-        }
-
-        public Type ElementType
-        {
-            get
-            {
-                return typeof(TInput);
-            }
-        }
-
-        public IQueryProvider Provider
-        {
-            get
-            {
-                return _pipeline.Data.Provider;
-            }
-        }
-
         public IEnumerable<TrainingPair<TInput, TClass>> ExtractTrainingObjects()
         {
             var cf = _classf.Compile();
@@ -98,16 +74,6 @@ namespace LinqInfer.Learning.Features
                         g.Select(x =>
                             new ObjectVector<TInput>(x, _pipeline.FeatureExtractor.ExtractColumnVector(x))))
                             );
-        }
-
-        IEnumerator<IGrouping<TClass, ObjectVector<TInput>>> IEnumerable<IGrouping<TClass, ObjectVector<TInput>>>.GetEnumerator()
-        {
-            return this.AsEnumerable().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.AsEnumerable().GetEnumerator();
         }
 
         private class G : IGrouping<TClass, ObjectVector<TInput>>

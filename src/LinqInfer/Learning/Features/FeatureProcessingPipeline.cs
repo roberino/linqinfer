@@ -87,7 +87,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features by property
         /// </summary>
-        public FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
+        public IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
         {
             var ps = new PropertySelector<T>();
 
@@ -104,7 +104,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features using the specified predicate function
         /// </summary>
-        public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
+        public IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             _featureExtractor.FilterFeatures(featureFilter);
 
@@ -152,7 +152,7 @@ namespace LinqInfer.Learning.Features
         /// <param name="numberOfDimensions">The (max) number of features to retain</param>
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public FeatureProcessingPipeline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
+        public IFeatureProcessingPipeline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
         {
             var pca = new PrincipalComponentAnalysis(this);
 
@@ -168,7 +168,7 @@ namespace LinqInfer.Learning.Features
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <param name="parameters">The parameters used to affect the clustering process</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public FeatureProcessingPipeline<T> KohonenSOMFeatureReduction(int numberOfDimensions, int sampleSize = 100, ClusteringParameters parameters = null)
+        public IFeatureProcessingPipeline<T> KohonenSOMFeatureReduction(int numberOfDimensions, int sampleSize = 100, ClusteringParameters parameters = null)
         {
             if (parameters == null) parameters = new ClusteringParameters()
             {
@@ -194,25 +194,9 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public FeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        public IFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Preprocesses the data with transforming function
-        /// (only one supported currently)
-        /// The transforming function may or may not
-        /// change the size of the extracted vector.
-        /// Function transformations are not serialisable.
-        /// </summary>
-        /// <param name="transformFunction">The transforming function</param>
-        /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public FeatureProcessingPipeline<T> PreprocessWith(Func<double[], double[]> transformFunction)
-        {
-            PreprocessWith(new DelegateVectorTransformation(_featureExtractor.VectorSize, transformFunction));
 
             return this;
         }
@@ -250,18 +234,6 @@ namespace LinqInfer.Learning.Features
 
                 return res;
             }, (x, o) => true);
-        }
-
-        /// <summary>
-        /// Specifies where output should be stored
-        /// </summary>
-        /// <param name="store"></param>
-        [Obsolete]
-        public FeatureProcessingPipeline<T> OutputResultsTo(IBlobStore store)
-        {
-            _outputs.Add(store);
-
-            return this;
         }
 
         /// <summary>

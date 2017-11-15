@@ -24,12 +24,12 @@ namespace LinqInfer.Maths
         /// Returns the matrix multiplied by this vector
         /// i.e. M X V
         /// </summary>
-        ColumnVector1D Multiply(Matrix matrix);
+        IVector MultiplyBy(Matrix matrix);
 
         /// <summary>
         /// Returns the given vector multiplied by this vector
         /// </summary>
-        IVector Multiply(IVector vector);
+        IVector MultiplyBy(IVector vector);
 
         /// <summary>
         /// Returns the dot product of this vector and another
