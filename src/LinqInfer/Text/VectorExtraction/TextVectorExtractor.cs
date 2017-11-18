@@ -150,7 +150,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public double[] NormaliseUsing(IEnumerable<IEnumerable<IToken>> samples)
         {
-            _normalisingFrequencies = Functions.MaxOfEachDimension(samples.Select(s => new ColumnVector1D(ExtractVectorDenormal(s)))).Select(v => (int)v).ToArray();
+            _normalisingFrequencies = samples.Select(s => new ColumnVector1D(ExtractVectorDenormal(s))).MaxOfEachDimension().Select(v => (int)v).ToArray();
             _normalise = true;
 
             return _normalisingFrequencies.Select(d => (double)d).ToArray(); // Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();

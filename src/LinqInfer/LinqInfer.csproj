@@ -27,24 +27,23 @@
     <Version>3.9.1-beta</Version>
     <RootNamespace>LinqInfer</RootNamespace>
     <RootNamespace>LinqInfer</RootNamespace>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\*.txt" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' "> 
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Contracts" Version="4.3.0" />
-    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <PackageReference Include="System.Security.Claims" Version="4.3.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Linq.Parallel" Version="4.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
@@ -63,22 +62,21 @@
     <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.6|AnyCPU'">
-    <LangVersion>7</LangVersion>
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' Or '$(TargetFramework)' == 'netstandard2.0' ">
-    <Compile Remove="Learning\Classification\Remoting\*.cs;" />
-    <Compile Remove="Data\Remoting\VectorTransferClient.cs;" />
-    <Compile Remove="Data\Remoting\TransferHandle.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <PackageReference Include="System.Net.Http" Version="4.1.1" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\Remoting\HttpApplicationHost.cs" />
+    <Compile Remove="Data\Remoting\HttpServer.cs" />
+    <Compile Remove="Data\Remoting\VectorTransferServer.cs" />
+    <Compile Remove="Learning\Classification\Remoting\*.cs;" />
+    <Compile Remove="Data\Remoting\VectorTransferClient.cs;" />
+    <Compile Remove="Data\Remoting\TransferHandle.cs" />
   </ItemGroup>
 
 </Project>

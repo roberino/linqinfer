@@ -96,9 +96,13 @@ namespace LinqInfer.Tests.Utility
             using (var ms = new MemoryStream(output))
             {
                 var data2 = s.Read(ms);
+                var type = data2.GetType();
+                var type2 = typeof(ConcurrentDictionary<string, int>);
 
                 Assert.That(data2, Is.EquivalentTo(data));
-                Assert.That(data2, Is.InstanceOf<ConcurrentDictionary<string, int>>());
+                Assert.That(type.AssemblyQualifiedName, Is.EqualTo(type2.AssemblyQualifiedName));
+
+                //Assert.That(data2, Is.InstanceOf<ConcurrentDictionary<string, int>>());
             }
         }
     }

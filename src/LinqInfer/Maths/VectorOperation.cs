@@ -36,7 +36,10 @@ namespace LinqInfer.Maths
 
         public int InputSize => _parameters.Any() ? _parameters.First().Size : 0;
 
-        public int OutputSize => Operation == VectorOperationType.EuclideanDistance ? _parameters.Count : (_parameters.Any() ? _parameters.First().Size : 0);
+        public int OutputSize => 
+            Operation == VectorOperationType.EuclideanDistance ||
+            Operation == VectorOperationType.MatrixMultiply
+                ? _parameters.Count : (_parameters.Any() ? _parameters.First().Size : 0);
 
         public IVector Apply(IVector input)
         {
@@ -65,7 +68,7 @@ namespace LinqInfer.Maths
         {
             _parameters.Clear();
 
-            Operation = (VectorOperationType)Enum.Parse(typeof(VectorOperationType), doc.Properties["Type"]);
+            Operation = (VectorOperationType)Enum.Parse(typeof(VectorOperationType), doc.Properties["Operation"]);
 
             foreach (var vect in doc.Vectors) _parameters.Add(vect);
         }

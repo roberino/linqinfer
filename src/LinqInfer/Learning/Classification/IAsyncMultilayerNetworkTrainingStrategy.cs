@@ -12,6 +12,6 @@ namespace LinqInfer.Learning.Classification
         /// <param name="trainingSet">A set of training data</param>    
         /// <param name="trainingContextFactory">A factory function which can generate new training contexts</param>
         /// <returns></returns>
-        Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory);
+        Task<IClassifierTrainingContext<NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory);
     }
 }

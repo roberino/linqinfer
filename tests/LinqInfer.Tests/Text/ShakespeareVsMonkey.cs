@@ -101,9 +101,13 @@ namespace LinqInfer.Tests.Text
 
                 var optimalParams = ao.Optimise(p =>
                 {
-                    var pipeline = data.CreateTextFeaturePipeline(a => a.cls, vectorSize);
+                    var pipeline = data
+                        .CreateTextFeaturePipeline(a => a.cls, vectorSize);
 
-                    if (pcaFactor > 1) pipeline.PrincipalComponentReduction(pcaFactor);
+                    if (pcaFactor > 1)
+                        pipeline.PrincipalComponentReduction(pcaFactor);
+                    else
+                        pipeline.NormaliseData();
 
                     var trainingSet = pipeline.AsTrainingSet(c => c.cls);
                     var classifier = trainingSet.ToMultilayerNetworkClassifier(learningRate, hiddenLayer).Execute();

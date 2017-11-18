@@ -8,7 +8,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class LinearClassifier : IAssistedLearningProcessor
+    public sealed class LinearClassifier : 
+        IAssistedLearningProcessor, 
+        IVectorClassifier
     {
         private readonly Matrix _weights;
         private readonly ColumnVector1D _bias;
@@ -38,7 +40,7 @@ namespace LinqInfer.Learning.Classification
 
         public Matrix Vectors => new Matrix(_weights.Transpose().Concat(new[] { _bias })).Transpose();
 
-        public ColumnVector1D Evaluate(IVector input)
+        public IVector Evaluate(IVector input)
         {
             var output = input.MultiplyBy(_weights);
 
@@ -125,11 +127,11 @@ namespace LinqInfer.Learning.Classification
             return new Matrix(rows);
         }
 
-        private LossAndDerivative CalculateCostAndDerivative(IVector input, ColumnVector1D score, IVector targetOutput)
+        private LossAndDerivative CalculateCostAndDerivative(IVector input, IVector score, IVector targetOutput)
         {
-            var cost = targetOutput.MultiplyBy(score.Log()).ToColumnVector();
+            var cost = targetOutput.MultiplyBy(score.ToColumnVector().Log()).ToColumnVector();
 
-            var grad = targetOutput.ToColumnVector() - score;
+            var grad = targetOutput.ToColumnVector() - score.ToColumnVector();
 
             var dW = new Matrix(input.ToColumnVector().Select(x => grad * x));
 

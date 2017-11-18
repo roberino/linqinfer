@@ -15,7 +15,8 @@ namespace LinqInfer.Learning.Classification
         IBinaryPersistable, 
         IExportableAsVectorDocument, 
         IImportableAsVectorDocument, 
-        IHasNetworkTopology
+        IHasNetworkTopology,
+        IVectorClassifier
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 

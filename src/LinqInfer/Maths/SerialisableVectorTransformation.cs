@@ -56,7 +56,7 @@ namespace LinqInfer.Maths
 
         public static SerialisableVectorTransformation LoadFromDocument(BinaryVectorDocument doc)
         {
-            var transform = new SerialisableVectorTransformation(Matrix.IdentityMatrix(1));
+            var transform = new SerialisableVectorTransformation();
 
             transform.FromVectorDocument(doc);
 

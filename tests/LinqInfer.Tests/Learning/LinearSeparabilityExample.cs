@@ -41,11 +41,16 @@ namespace LinqInfer.Tests.Learning
                 cls = "C1"
             });
 
-            var pipeline = c0.Concat(c1).AsQueryable().CreatePipeline(v => new[] { v.x, v.y }, 2);
+            var pipeline = c0.Concat(c1)
+                .AsQueryable()
+                .CreatePipeline(v => new[] { v.x, v.y }, 2)
+                .CentreFeatures()
+                .ScaleFeatures();
 
             // pipeline.ToCsv(Console.Out, x => x.cls).Execute();
 
-            var classifier = pipeline.ToMultilayerNetworkClassifier(c => c.cls).Execute();
+            var classifier = pipeline
+                .ToMultilayerNetworkClassifier(c => c.cls).Execute();
 
             Console.Write("Classifier created");
            

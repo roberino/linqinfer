@@ -11,7 +11,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Returns the inverse error (1/e) accumulated over a training interation.
         /// </summary>
-        public static Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> ErrorMinimisationFunction<TInput, TClass>()
+        public static Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<NetworkParameters>, double> ErrorMinimisationFunction<TInput, TClass>()
         {
             return ((f, c) => c.CumulativeError.HasValue ? 1d / c.CumulativeError.Value : 0);
         }

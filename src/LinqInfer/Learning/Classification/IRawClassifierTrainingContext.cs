@@ -53,7 +53,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Gets the classifier
         /// </summary>
-        IBinaryPersistable Output { get; }
+        IVectorClassifier Output { get; }
 
         /// <summary>
         /// Trains the classifier, associating the output vector with the input vector

@@ -63,7 +63,7 @@ namespace LinqInfer.Tests.Learning.Classification
             foreach (var test in SetupData())
             {
                 var output = classifier.Evaluate(test.Input);
-                var diff = test.TargetOutput.ToColumnVector().CosineDistance(output);
+                var diff = test.TargetOutput.ToColumnVector().CosineDistance(output.ToColumnVector());
 
                 Console.WriteLine($"diff: {diff} exp: {test.TargetOutput} act: {output}\n");
                 

@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning;
+﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using NUnit.Framework;
@@ -71,7 +70,7 @@ namespace LinqInfer.Tests.Learning
         {
             var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
             var pipeline = data.CreatePipeline();
-            var map = pipeline.ToSofm(3, 0.2f, 0.1f).Execute();
+            var map = pipeline.ToSofm(3, 0.2f, 0.1f, 100).Execute();
 
             foreach (var m in map)
             {
@@ -197,52 +196,6 @@ namespace LinqInfer.Tests.Learning
             Console.WriteLine(score);
 
             Assert.That(classOfPirate, Is.Not.Null);
-        }
-
-        [Test]
-        [Category("BuildOmit")]
-        public void ToMultilayerNetworkClassifier_SimpleSample_ClassifiesAsExpected()
-        {
-            int successCounter = 0; int failureCounter = 0;
-
-            foreach (var i in Enumerable.Range(1, 25))
-            {
-                var pirateSample = CreatePirates().ToList();
-                var pipeline = pirateSample.AsQueryable().CreatePipeline().NormaliseData();
-                var classifier = pipeline.ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", errorTolerance: 0.1f).Execute();
-                
-                var classOfPirate = classifier.Classify(new Pirate()
-                {
-                    Gold = 120,
-                    Age = 5,
-                    IsCaptain = false,
-                    Ships = 1
-                }).FirstOrDefault();
-
-                var classOfPirate2 = classifier.Classify(new Pirate()
-                {
-                    Gold = 1600,
-                    Age = 61,
-                    IsCaptain = true,
-                    Ships = 7
-                }).FirstOrDefault();
-
-                try
-                {
-                    Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
-                    Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
-                    Console.WriteLine("=> SUCCESS");
-                    successCounter++;
-                }
-                catch
-                {
-                    Console.WriteLine("=> FAILURE");
-                    failureCounter++;
-                }
-            }
-
-            Console.WriteLine("successes:{0},failures:{1}", successCounter, failureCounter);
-            Assert.That((float)successCounter / (float)failureCounter, Is.GreaterThan(2.5f));
         }
     }
 }

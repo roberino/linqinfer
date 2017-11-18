@@ -1,67 +1,60 @@
 ﻿using LinqInfer.Learning.Features;
-using System;
 using LinqInfer.Maths;
-using System.Diagnostics;
-using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LinqInfer.Learning.Classification
 {
     internal class MultilayerNetworkTrainingContextFactory<TClass> where TClass : IEquatable<TClass>
     {
         private int _currentId;
-        private readonly ICategoricalOutputMapper<TClass> _outputMapper;
 
-        public MultilayerNetworkTrainingContextFactory(ICategoricalOutputMapper<TClass> outputMapper)
+        public MultilayerNetworkTrainingContextFactory()
         {
-            _outputMapper = outputMapper;
             _currentId = 0;
         }
 
-        public IClassifierTrainingContext<TClass, NetworkParameters> Create(MultilayerNetwork network)
+        public IClassifierTrainingContext<NetworkParameters> Create(MultilayerNetwork network)
         {
-            return new MlnTrainngContext(() => ++_currentId, network, _outputMapper);
+            return new MlnTrainngContext(() => ++_currentId, network);
         }
 
-        public IClassifierTrainingContext<TClass, NetworkParameters> Create(NetworkParameters parameters)
+        public IClassifierTrainingContext<NetworkParameters> Create(NetworkParameters parameters)
         {
-            return new MlnTrainngContext(() => ++_currentId, parameters, _outputMapper);
+            return new MlnTrainngContext(() => ++_currentId, parameters);
         }
 
         [DebuggerDisplay("{AverageError}:{Parameters}")]
-        private class MlnTrainngContext : IClassifierTrainingContext<TClass, NetworkParameters>
+        private class MlnTrainngContext : IClassifierTrainingContext<NetworkParameters>
         {
             private readonly MultilayerNetwork _network;
             private readonly IAssistedLearningProcessor _rawLearningProcessor;
-            private readonly MultilayerNetworkClassifier<TClass> _classifier;
             private readonly Func<int> _idFunc;
 
             private double? _lastError;
             private double? _error;
             private int _trainingCounter;
 
-            public MlnTrainngContext(Func<int> idFunc, NetworkParameters parameters, ICategoricalOutputMapper<TClass> outputMapper)
+            public MlnTrainngContext(Func<int> idFunc, NetworkParameters parameters)
             {
                 _network = new MultilayerNetwork(parameters);
 
                 var bpa = new BackPropagationLearning(_network);
 
                 _rawLearningProcessor = bpa;
-                _classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, _network);
-
                 _idFunc = idFunc;
 
                 Id = idFunc();
                 Parameters = parameters;
             }
 
-            public MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network, ICategoricalOutputMapper<TClass> outputMapper)
+            public MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network)
             {
                 _network = network;
 
                 var bpa = new BackPropagationLearning(_network);
                 
-                _classifier = new MultilayerNetworkClassifier<TClass>(outputMapper, _network);
                 _idFunc = idFunc;
 
                 Id = idFunc();
@@ -72,9 +65,7 @@ namespace LinqInfer.Learning.Classification
 
             public int IterationCounter { get; set; }
 
-            public IBinaryPersistable Output { get { return _network; } }
-
-            public IFloatingPointClassifier<TClass> Classifier { get { return _classifier; } }
+            public IVectorClassifier Output { get { return _network; } }
 
             public NetworkParameters Parameters { get; private set; }
 
@@ -103,7 +94,7 @@ namespace LinqInfer.Learning.Classification
 
             public void PruneInputs(params int[] inputIndexes)
             {
-                ((MultilayerNetworkClassifier<TClass>)Classifier).Network.PruneInputs(inputIndexes);
+                _network.PruneInputs(inputIndexes);
             }
 
             public double Train(IVector outputVector, IVector sampleVector)
@@ -139,9 +130,9 @@ namespace LinqInfer.Learning.Classification
                 return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError, Parameters);
             }
 
-            public IClassifierTrainingContext<TClass, NetworkParameters> Clone(bool deep)
+            public IClassifierTrainingContext<NetworkParameters> Clone(bool deep)
             {
-                return new MlnTrainngContext(_idFunc, _network.Clone(true), _classifier.OutputMapper)
+                return new MlnTrainngContext(_idFunc, _network.Clone(true))
                 {
                     _error = _error,
                     _lastError = _lastError,

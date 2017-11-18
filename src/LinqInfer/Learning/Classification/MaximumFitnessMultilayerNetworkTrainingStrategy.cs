@@ -13,15 +13,15 @@ namespace LinqInfer.Learning.Classification
         private const float _minRateOfChange = 0.001f;
 
         private readonly NetworkParameterCache _paramCache;
-        private readonly Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> _fitnessFunction;
-        private readonly Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> _haltingFunction;
+        private readonly Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<NetworkParameters>, double> _fitnessFunction;
+        private readonly Func<IClassifierTrainingContext<NetworkParameters>, int, TimeSpan, bool> _haltingFunction;
 
         private double _currentLearningRate = 0.1;
 
         public MaximumFitnessMultilayerNetworkTrainingStrategy(
             float errorTolerance = 0.3f,
-            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<TClass, NetworkParameters>, double> fitnessFunction = null,
-            Func<IClassifierTrainingContext<TClass, NetworkParameters>, int, TimeSpan, bool> haltingFunction = null)
+            Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<NetworkParameters>, double> fitnessFunction = null,
+            Func<IClassifierTrainingContext<NetworkParameters>, int, TimeSpan, bool> haltingFunction = null)
         {
             _paramCache = NetworkParameterCache.DefaultCache;
 
@@ -36,15 +36,15 @@ namespace LinqInfer.Learning.Classification
 
         public bool ParallelProcess { get; set; }
 
-        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
+        public Task<IClassifierTrainingContext<NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory)
         {
-            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(() =>
+            return Task<IClassifierTrainingContext<NetworkParameters>>.Factory.StartNew(() =>
             {
                 return TrainInternal(trainingSet, trainingContextFactory);
             });
         }
 
-        private IClassifierTrainingContext<TClass, NetworkParameters> TrainInternal(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
+        private IClassifierTrainingContext<NetworkParameters> TrainInternal(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory)
         {
             var timer = new Stopwatch();
 
@@ -141,7 +141,7 @@ namespace LinqInfer.Learning.Classification
             return bestSolution;
         }
 
-        private IClassifierTrainingContext<TClass, NetworkParameters> Breed(Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, IClassifierTrainingContext<TClass, NetworkParameters> contextA, IClassifierTrainingContext<TClass, NetworkParameters> contextB)
+        private IClassifierTrainingContext<NetworkParameters> Breed(Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory, IClassifierTrainingContext<NetworkParameters> contextA, IClassifierTrainingContext<NetworkParameters> contextB)
         {
             var newParameters = contextA.Parameters.Breed(contextB.Parameters);
 
@@ -150,7 +150,7 @@ namespace LinqInfer.Learning.Classification
             return trainingContextFactory(newParameters);
         }
 
-        private bool HasConverged(IClassifierTrainingContext<TClass, NetworkParameters> context)
+        private bool HasConverged(IClassifierTrainingContext<NetworkParameters> context)
         {
             return
                 (context.AverageError.HasValue &&
@@ -163,16 +163,16 @@ namespace LinqInfer.Learning.Classification
 
         private class PipelineFactory
         {
-            private readonly Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> _trainingContextFactory;
+            private readonly Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> _trainingContextFactory;
             private readonly NetworkParameterFactory _nwpf;
 
-            public PipelineFactory(Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory, int vectorSize, int outputSize, double learningRate = 0.1)
+            public PipelineFactory(Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory, int vectorSize, int outputSize, double learningRate = 0.1)
             {
                 _trainingContextFactory = trainingContextFactory;
                 _nwpf = new NetworkParameterFactory(vectorSize, outputSize, learningRate);
             }
 
-            public IEnumerable<IClassifierTrainingContext<TClass, NetworkParameters>> GeneratePipelines(ActivatorFunc activator)
+            public IEnumerable<IClassifierTrainingContext<NetworkParameters>> GeneratePipelines(ActivatorFunc activator)
             {
                 return _nwpf.GenerateParameters(activator).Select(_trainingContextFactory);
             }

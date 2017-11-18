@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
@@ -16,10 +15,9 @@ namespace LinqInfer.Learning.Classification
         protected readonly Config _config;
 
         protected MultilayerNetwork _network;
-        protected IObjectClassifier<TClass, TInput> _classifier;
 
         public MultilayerNetworkObjectClassifier(
-            IFeatureExtractor<TInput, double> featureExtractor,
+            IFloatingPointFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper = null,
             MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
@@ -101,21 +99,28 @@ namespace LinqInfer.Learning.Classification
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
         {
-            if (_classifier == null) throw new InvalidOperationException("Pipeline not trained");
+            if (_network == null) throw new InvalidOperationException("Pipeline not trained");
 
-            var results = _classifier.Classify(obj);
+            var input = _config.FeatureExtractor.ExtractIVector(obj);
+
+            var output = _network.Evaluate(input);
+
+            var outputObjects = _config.OutputMapper.Map(output);
 
             Statistics.IncrementClassificationCount();
             
-            return results;
+            return outputObjects;
         }
 
         public void Train(TInput obj, TClass classification)
         {
-            if (_classifier == null) throw new InvalidOperationException("Pipeline not initialised");
+            if (_network == null) throw new InvalidOperationException("Pipeline not initialised");
+
+            var inputVector = _config.FeatureExtractor.ExtractIVector(obj);
+            var targetVector = _config.OutputMapper.ExtractIVector(classification);
 
             new BackPropagationLearning(_network)
-                .Train(new ColumnVector1D(_config.FeatureExtractor.ExtractVector(obj)), new ColumnVector1D(_config.OutputMapper.ExtractVector(classification)));
+                .Train(inputVector, targetVector);
 
             Statistics.IncrementTrainingSampleCount();
         }
@@ -136,10 +141,7 @@ namespace LinqInfer.Learning.Classification
 
             var newNn = _network.Clone(true);
 
-            var mnClassifier = new MultilayerNetworkClassifier<TClass>(_config.OutputMapper, _network);
-
             classifier._network = newNn;
-            classifier._classifier = new ObjectClassifier<TClass, TInput, double>(mnClassifier, _config.FeatureExtractor);
             classifier.Statistics = Statistics.Clone(true);
 
             return classifier;
@@ -160,7 +162,7 @@ namespace LinqInfer.Learning.Classification
         }
 
         private static Config Setup(
-            IFeatureExtractor<TInput, double> featureExtractor,
+            IFloatingPointFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
@@ -176,17 +178,14 @@ namespace LinqInfer.Learning.Classification
 
         private void Setup(MultilayerNetwork network)
         {
-            var classifier = new MultilayerNetworkClassifier<TClass>(_config.OutputMapper, network);
-
             _network = network;
-            _classifier = new ObjectClassifier<TClass, TInput, double>(classifier, _config.FeatureExtractor);
         }
 
         protected class Config
         {
             public TInput NormalisingSample { get; set; }
             public ICategoricalOutputMapper<TClass> OutputMapper { get; set; }
-            public IFeatureExtractor<TInput, double> FeatureExtractor { get; set; }
+            public IFloatingPointFeatureExtractor<TInput> FeatureExtractor { get; set; }
         }
     }
 }

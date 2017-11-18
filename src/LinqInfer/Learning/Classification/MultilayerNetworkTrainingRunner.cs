@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification
     {
         private readonly ITrainingSet<TInput, TClass> _trainingSet;
 
-        private IClassifierTrainingContext<TClass, NetworkParameters> _result;
+        private IClassifierTrainingContext<NetworkParameters> _result;
 
         public MultilayerNetworkTrainingRunner(ITrainingSet<TInput, TClass> trainingSet)
         {
@@ -25,11 +25,11 @@ namespace LinqInfer.Learning.Classification
 
         public async Task<IDynamicClassifier<TClass, TInput>> TrainUsing(IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy)
         {
-            var trainingContextFactory = new MultilayerNetworkTrainingContextFactory<TClass>(_trainingSet.OutputMapper);
+            var trainingContextFactory = new MultilayerNetworkTrainingContextFactory<TClass>();
 
             _result = await trainingStrategy.Train(_trainingSet, trainingContextFactory.Create);
 
-            return new MultilayerNetworkObjectClassifier<TClass, TInput>(_trainingSet.FeaturePipeline.FeatureExtractor, _trainingSet.OutputMapper, ((MultilayerNetworkClassifier<TClass>)_result.Classifier).Network);
+            return new MultilayerNetworkObjectClassifier<TClass, TInput>(_trainingSet.FeaturePipeline.FeatureExtractor, _trainingSet.OutputMapper, _result.Output as MultilayerNetwork);
         }
     }
 }

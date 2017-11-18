@@ -7,18 +7,6 @@ namespace LinqInfer.Text.Analysis
 {
     public static class AnalysisExtensions
     {
-        public static IImportableExportableSemanticSet ExtractKeyTerms(this ICorpus corpus, int maxNumberOfTerms = 256)
-        {
-            var index = new DocumentIndex();
-            int i = 0;
-
-            index.IndexDocuments(corpus
-                .Blocks
-                .Select(b => new TokenisedTextDocument((i++).ToString(), b)));
-
-            return index.ExtractKeyTerms(maxNumberOfTerms);
-        }
-
         public static ContinuousBagOfWords CreateContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int contextPadding = 2)
         {
             var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary ?? targetVocabulary, contextPadding);

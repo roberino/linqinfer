@@ -18,11 +18,11 @@ namespace LinqInfer.Learning.Classification
 
         public float ErrorTolerance { get; set; }
 
-        public Task<IClassifierTrainingContext<TClass, NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<TClass, NetworkParameters>> trainingContextFactory)
+        public Task<IClassifierTrainingContext<NetworkParameters>> Train(ITrainingSet<TInput, TClass> trainingSet, Func<NetworkParameters, IClassifierTrainingContext<NetworkParameters>> trainingContextFactory)
         {
             var context = trainingContextFactory(_parameters);
 
-            return Task<IClassifierTrainingContext<TClass, NetworkParameters>>.Factory.StartNew(
+            return Task<IClassifierTrainingContext<NetworkParameters>>.Factory.StartNew(
                 () =>
                 {
                     foreach (var batch in trainingSet.ExtractTrainingVectorBatches())

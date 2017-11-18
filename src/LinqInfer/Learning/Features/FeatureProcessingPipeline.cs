@@ -126,9 +126,7 @@ namespace LinqInfer.Learning.Features
 
             var transform = new SerialisableVectorTransformation(minTranspose, scale, rangeTranspose);
 
-            PreprocessWith(transform);
-
-            return this;
+            return PreprocessWith(transform);
         }
 
         /// <summary>
@@ -140,9 +138,7 @@ namespace LinqInfer.Learning.Features
 
             var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.Subtract, mean));
 
-            PreprocessWith(transform);
-
-            return this;
+            return PreprocessWith(transform);
         }
 
         /// <summary>
@@ -242,12 +238,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public IFeatureProcessingPipeline<T> NormaliseData()
         {
-            var fe = FeatureExtractor;
-
-            CentreFeatures();
-            ScaleFeatures(new Range(1, 0));
-
-            return this;
+            return CentreFeatures().ScaleFeatures(new Range(1, 0));
         }
 
         /// <summary>
@@ -272,8 +263,6 @@ namespace LinqInfer.Learning.Features
         public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
         {
             var fe = FeatureExtractor;
-
-            NormaliseData();
 
             foreach (var batch in _data.Chunk(batchSize))
             {
