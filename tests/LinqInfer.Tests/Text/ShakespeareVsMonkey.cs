@@ -70,6 +70,7 @@ namespace LinqInfer.Tests.Text
         }
 
         [Test]
+        [Ignore("Too slow")]
         public void ClassificationOfShakespearTextVsRandomGeneratedText()
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
