@@ -5,7 +5,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyName>LinqInfer.Tests</AssemblyName>
     <RootNamespace>LinqInfer.Tests</RootNamespace>
-    <RuntimeFrameworkVersion>2.0.3</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>

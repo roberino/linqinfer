@@ -1,16 +1,14 @@
 ﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning
 {
     public static class LinearClassifierExtensions
     {
-        public static async Task<LinearClassifier> Train<TInput, TClass>
-            (IAsyncTrainingSet<TInput, TClass> trainingSet, float learningRate = 0.1f, float minError = 0.001f)
+        public static async Task<LinearClassifier> CreateLinearClassifier<TInput, TClass>
+            (this IAsyncTrainingSet<TInput, TClass> trainingSet, float learningRate = 0.1f, float minError = 0.001f)
             where TInput : class
             where TClass : IEquatable<TClass>
         {

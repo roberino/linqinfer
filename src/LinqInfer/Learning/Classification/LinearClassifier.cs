@@ -21,9 +21,9 @@ namespace LinqInfer.Learning.Classification
         
         public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
         {
-            Contract.Ensures(inputVectorSize > 0);
-            Contract.Ensures(outputVectorSize > 0);
-            Contract.Ensures(learningRate > 0);
+            ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
+            ArgAssert.AssertGreaterThanZero(outputVectorSize, nameof(outputVectorSize));
+            ArgAssert.AssertGreaterThanZero(learningRate, nameof(learningRate));
 
             _learningRate = learningRate;
             _weightDecay = decay;

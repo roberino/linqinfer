@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Text.Analysis
@@ -34,33 +33,48 @@ namespace LinqInfer.Text.Analysis
             var bufferSize = _padding * 2 + 1;
             var buffer = new IToken[bufferSize];
 
+            SyntacticContext nextContext = null;
+
             foreach (var token in tokens)
             {
-                if (IsFull(buffer))
-                {
-                    var targ = buffer[_padding];
+                nextContext = MoveNext(buffer);
 
-                    if (_targetVocabulary.IsDefined(targ.Text.ToLowerInvariant()))
-                    {
-                        var context = new SyntacticContext()
-                        {
-                            TargetWord = targ,
-                            ContextualWords = Extract(buffer)
-                        };
-
-                        if (_widerVocabulary != null)
-                        {
-                            context.ContextualWords = context.ContextualWords.Where(w => _widerVocabulary.IsDefined(w.Text.ToLowerInvariant())).ToArray();
-                        }
-
-                        yield return context;
-                    }
-
-                    Dequeue(buffer);
-                }
+                if (nextContext != null) yield return nextContext;
 
                 Enqueue(buffer, token);
             }
+
+            nextContext = MoveNext(buffer);
+
+            if (nextContext != null) yield return nextContext;
+        }
+
+        private SyntacticContext MoveNext(IToken[] buffer)
+        {
+            if (IsFull(buffer))
+            {
+                var targ = buffer[_padding];
+
+                if (_targetVocabulary.IsDefined(targ.Text.ToLowerInvariant()))
+                {
+                    var context = new SyntacticContext()
+                    {
+                        TargetWord = targ,
+                        ContextualWords = Extract(buffer)
+                    };
+
+                    if (_widerVocabulary != null)
+                    {
+                        context.ContextualWords = context.ContextualWords.Where(w => _widerVocabulary.IsDefined(w.Text.ToLowerInvariant())).ToArray();
+                    }
+
+                    return context;
+                }
+
+                Dequeue(buffer);
+            }
+
+            return null;
         }
 
         private IToken[] Extract(IToken[] buffer)
