@@ -4,6 +4,7 @@ using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning
@@ -27,6 +28,26 @@ namespace LinqInfer.Learning
             var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
 
             return pipeline;
+        }
+
+        /// Creates a training set from an async feature pipeline
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A feature pipeline</param>
+        /// <param name="classf">A classifying expression</param>
+        /// <param name="outputs">Outputs</param>
+        /// <returns>A training set</returns>
+        public static IAsyncTrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(
+            this IAsyncFeatureProcessingPipeline<TInput> pipeline,
+            Expression<Func<TInput, TClass>> classf,
+            params TClass[] outputs)
+            where TInput : class
+            where TClass : IEquatable<TClass>
+        {
+            var outputMapper = new OutputMapperFactory<TInput, TClass>().Create(outputs);
+
+            return new AsyncTrainingSet<TInput, TClass>(pipeline, classf, outputMapper);
         }
 
         /// <summary>
@@ -58,7 +79,8 @@ namespace LinqInfer.Learning
         /// <returns>The training set</returns>
         public static async Task<IAsyncTrainingSet<TInput, TClass>> SendAsync<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            IMessagePublisher<IBatch<TrainingPair<IVector, IVector>>> publisher)
+            IMessagePublisher<IBatch<TrainingPair<IVector, IVector>>> publisher,
+            CancellationToken cancellationToken)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
@@ -69,9 +91,7 @@ namespace LinqInfer.Learning
                    var msg = b.AsMessage();
 
                    await publisher.PublishAsync(msg);
-
-                   return true;
-               });
+               }, cancellationToken);
 
             return trainingSet;
         }

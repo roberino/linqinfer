@@ -1,6 +1,8 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data
@@ -52,13 +54,45 @@ namespace LinqInfer.Data
             return new AsyncEnumerator<T2>(tx);
         }
 
+        public Task<bool> ProcessUsing(Action<IBatch<T>> processor, CancellationToken cancellationToken)
+        {
+            ArgAssert.AssertNonNull(processor, nameof(processor));
+
+            return ProcessUsing(b =>
+            {
+                if (cancellationToken.IsCancellationRequested) return false;
+
+                processor(b);
+
+                return true;
+            });
+        }
+
         public Task<bool> ProcessUsing(Func<IBatch<T>, bool> processor)
         {
+            ArgAssert.AssertNonNull(processor, nameof(processor));
+
             return ProcessUsing(b => Task.FromResult(processor(b)));
         }
 
-        public async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
+        public Task<bool> ProcessUsing(Func<IBatch<T>, Task> processor, CancellationToken cancellationToken)
         {
+            ArgAssert.AssertNonNull(processor, nameof(processor));
+
+            return ProcessUsing(async b =>
+            {
+                if (cancellationToken.IsCancellationRequested) return false;
+
+                await processor(b);
+
+                return true;
+            });
+        }
+
+        private async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
+        {
+            ArgAssert.AssertNonNull(processor, nameof(processor));
+
             int i = 0;
 
             Batch<T> next = null;
@@ -67,7 +101,7 @@ namespace LinqInfer.Data
             {
                 if (next != null)
                 {
-                    if (!(await processor(next))) return false;
+                    if(!(await processor(next))) return false;
                 }
 
                 var items = await batchTask;
