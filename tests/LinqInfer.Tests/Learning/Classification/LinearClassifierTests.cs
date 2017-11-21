@@ -18,7 +18,7 @@ namespace LinqInfer.Tests.Learning.Classification
             var classifier = new LinearClassifier(2, 3);
 
             var trainingData1 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.9, 0.7), new OneOfNVector(3, 0));
-            var trainingData2 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.1, 0.1), new OneOfNVector(3, 1));
+            var trainingData2 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.01, 0.1), new OneOfNVector(3, 1));
             var trainingData3 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(-0.99, -0.6), new OneOfNVector(3, 2));
 
             classifier.Train(new[] { trainingData1, trainingData2, trainingData3 }, (n, e) =>
@@ -26,9 +26,10 @@ namespace LinqInfer.Tests.Learning.Classification
                 return n > 500;
             });
 
-            var result = classifier.Evaluate(ColumnVector1D.Create(0.2, 0.1));
+            var result = classifier.Evaluate(ColumnVector1D.Create(-0.8, -0.5));
 
-            Assert.That(result[1], Is.GreaterThan(result[0]));
+            Assert.That(result[2], Is.GreaterThan(result[0]));
+            Assert.That(result[2], Is.GreaterThan(result[1]));
         }
 
         [Test]

@@ -1,4 +1,4 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data;
 using System;
 using System.Threading.Tasks;
 

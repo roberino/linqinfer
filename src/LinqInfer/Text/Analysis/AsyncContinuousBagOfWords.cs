@@ -1,4 +1,5 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System.Linq;
 
 namespace LinqInfer.Text.Analysis

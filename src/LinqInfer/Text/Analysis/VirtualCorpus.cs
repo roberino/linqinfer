@@ -1,4 +1,5 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;

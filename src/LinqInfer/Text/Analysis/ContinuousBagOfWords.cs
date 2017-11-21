@@ -39,7 +39,12 @@ namespace LinqInfer.Text.Analysis
             {
                 nextContext = MoveNext(buffer);
 
-                if (nextContext != null) yield return nextContext;
+                if (nextContext != null)
+                {
+                    yield return nextContext;
+
+                    Dequeue(buffer);
+                }
 
                 Enqueue(buffer, token);
             }
@@ -70,8 +75,6 @@ namespace LinqInfer.Text.Analysis
 
                     return context;
                 }
-
-                Dequeue(buffer);
             }
 
             return null;

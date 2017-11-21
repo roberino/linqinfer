@@ -100,7 +100,7 @@ namespace LinqInfer.Tests.Utility
                 var type2 = typeof(ConcurrentDictionary<string, int>);
 
                 Assert.That(data2, Is.EquivalentTo(data));
-                Assert.That(type.AssemblyQualifiedName, Is.EqualTo(type2.AssemblyQualifiedName));
+                Assert.That(type.Namespace + type.Name, Is.EqualTo(type2.Namespace + type2.Name));
 
                 //Assert.That(data2, Is.InstanceOf<ConcurrentDictionary<string, int>>());
             }

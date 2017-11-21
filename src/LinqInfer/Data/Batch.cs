@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace LinqInfer.Utility
+namespace LinqInfer.Data
 {
-    public sealed class AsyncBatch<T>
+    public sealed class Batch<T> : IBatch<T>
     {
-        internal AsyncBatch(IList<T> items, int batchNumber)
+        internal Batch(IList<T> items, int batchNumber)
         {
             Items = items;
             BatchNumber = batchNumber;
@@ -13,5 +13,7 @@ namespace LinqInfer.Utility
         public int BatchNumber { get; }
 
         public IList<T> Items { get; }
+
+        public bool IsLast { get; internal set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace LinqInfer.Learning.Features
         internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
         {
             _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
-            _featureExtractor = featureExtractor ?? throw new ArgumentNullException(nameof(featureExtractor));
+            _featureExtractor = new MultiFunctionFeatureExtractor<T>(featureExtractor);
         }
 
         public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Utility
+namespace LinqInfer.Data
 {
     internal class AsyncEnumerator<T> : IAsyncEnumerator<T>
     {
@@ -52,15 +52,33 @@ namespace LinqInfer.Utility
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public async Task<bool> ProcessUsing(Func<AsyncBatch<T>, bool> processor)
+        public Task<bool> ProcessUsing(Func<IBatch<T>, bool> processor)
+        {
+            return ProcessUsing(b => Task.FromResult(processor(b)));
+        }
+
+        public async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
         {
             int i = 0;
 
+            Batch<T> next = null;
+
             foreach (var batchTask in _batchLoader)
             {
+                if (next != null)
+                {
+                    if (!(await processor(next))) return false;
+                }
+
                 var items = await batchTask;
 
-                if (!processor(new AsyncBatch<T>(items, i++))) return false;
+                next = new Batch<T>(items, i++);
+            }
+
+            if (next != null)
+            {
+                next.IsLast = true;
+                if (!(await processor(next))) return false;
             }
 
             return true;

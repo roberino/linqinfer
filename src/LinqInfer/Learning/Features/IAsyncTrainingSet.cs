@@ -1,5 +1,5 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Utility;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;
 
