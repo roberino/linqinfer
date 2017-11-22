@@ -113,19 +113,8 @@ namespace LinqInfer.Learning.Features
 
         public IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
         {
-            if (!range.HasValue) range = new Range(1, -1);
-
-            var minMax = ExtractColumnVectors().MinAnMaxOfEachDimension();
-            var adjustedMax = minMax.Item2 - minMax.Item1;
-            var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
-            var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
-
-            var minTranspose = new VectorOperation(VectorOperationType.Subtract, minMax.Item1);
-            var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
-            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
-
-            var transform = new SerialisableVectorTransformation(minTranspose, scale, rangeTranspose);
-
+            var minMax = ExtractColumnVectors().MinMaxAndMeanOfEachDimension();
+            var transform = minMax.CreateScaleTransformation(range);
             return PreprocessWith(transform);
         }
 

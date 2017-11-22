@@ -49,15 +49,17 @@ namespace LinqInfer.Utility
             }
         }
 
-        public static void AssertNonNull<T>(T value, string name) where T : class
+        public static T AssertNonNull<T>(T value, string name) where T : class
         {
             if (value == null)
             {
                 throw new ArgumentNullException(name);
             }
+
+            return value;
         }
 
-        public static void AssertNonEmpty<T>(T[] values, string name)
+        public static T[] AssertNonEmpty<T>(T[] values, string name)
         {
             AssertNonNull(values, name);
 
@@ -65,6 +67,8 @@ namespace LinqInfer.Utility
             {
                 throw new ArgumentException(name);
             }
+
+            return values;
         }
     }
 }

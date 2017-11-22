@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace LinqInfer.Learning.Features
         : IAsyncFeatureProcessingPipeline<T>
         where T : class
     {
-        private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
         private readonly IAsyncEnumerator<T> _dataLoader;
 
         internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
@@ -19,6 +20,30 @@ namespace LinqInfer.Learning.Features
         }
 
         public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
+
+        /// <summary>
+        /// Centres and scales the data
+        /// </summary>
+        public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Range? range = null)
+        {
+            var minMaxMean = await MinMaxMeanVector.MinMaxAndMeanOfEachDimensionAsync(ExtractBatches().TransformEachItem(o => o.VirtualVector));
+
+            var transform = minMaxMean.CreateCentreAndScaleTransformation(range);
+
+            return PreprocessWith(transform);
+        }
+
+        /// <summary>
+        /// Preprocesses the data with the supplied transformation
+        /// </summary>
+        /// <param name="transformation">The vector transformation</param>
+        /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
+        public IAsyncFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        {
+            _featureExtractor.PreprocessWith(transformation);
+
+            return this;
+        }
 
         public IAsyncEnumerator<ObjectVector<T>> ExtractBatches()
         {
