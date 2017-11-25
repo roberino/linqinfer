@@ -80,6 +80,21 @@ namespace LinqInfer.Tests.Maths
             var vect2 = BitVector.FromBase64(data);
 
             Assert.That(vect2.Size, Is.EqualTo(values.Length));
+            Assert.That(vect.Equals(vect2));
+        }
+
+        [Test]
+        public void ToByteArray_WhenConvertedAndDeconverted_CreatesAnEqualInstance()
+        {
+            var values = Enumerable.Range(1, 20).Select(n => n % 3 == 0).ToArray();
+            var vect = new BitVector(values);
+
+            var data = vect.ToByteArray();
+
+            var vect2 = BitVector.FromByteArray(data);
+
+            Assert.That(vect2.Size, Is.EqualTo(values.Length));
+            Assert.That(vect.Equals(vect2));
         }
 
         [Test]

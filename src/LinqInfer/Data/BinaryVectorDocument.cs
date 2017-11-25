@@ -23,14 +23,14 @@ namespace LinqInfer.Data
 
         private readonly IDictionary<string, string> _properties;
         private readonly IDictionary<string, byte[]> _blobs;
-        private readonly IList<ColumnVector1D> _vectorData;
+        private readonly IList<IVector> _vectorData;
         private readonly IList<BinaryVectorDocument> _children;
 
         public BinaryVectorDocument()
         {
             _properties = new ConstrainableDictionary<string, string>(v => v != null);
             _blobs = new Dictionary<string, byte[]>();
-            _vectorData = new List<ColumnVector1D>();
+            _vectorData = new List<IVector>();
             _children = new List<BinaryVectorDocument>();
 
             Version = 1;
@@ -53,6 +53,8 @@ namespace LinqInfer.Data
         /// If true, the checksum will be validated on import
         /// </summary>
         public bool ValidateOnImport { get; set; } = true;
+
+        public IVectorSerialiser VectorSerialiser { get; set; } = new VectorSerialiser();
 
         public XmlVectorSerialisationMode VectorToXmlSerialisationMode { get; set; } = XmlVectorSerialisationMode.Default;
 
@@ -141,7 +143,7 @@ namespace LinqInfer.Data
             return defaultValue;
         }
 
-        public IList<ColumnVector1D> Vectors
+        public IList<IVector> Vectors
         {
             get
             {
@@ -357,7 +359,8 @@ namespace LinqInfer.Data
             if (_vectorData.Any())
             {
                 var dataNode = new XElement(DataName.ToLower(),
-                    _vectorData.Select(v => new XElement("vector", base64v ? v.ToBase64() : v.ToCsv(',', int.MaxValue))));
+                    _vectorData.Select(v => new XElement("vector", 
+                    VectorSerialiser.Serialize(v, base64v))));
                 doc.Root.Add(dataNode);
             }
 
@@ -419,7 +422,7 @@ namespace LinqInfer.Data
 
             foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == "vector"))
             {
-                var vd = new ColumnVector1D(VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64 ? Vector.FromBase64(vect.Value.Trim()) : Vector.FromCsv(vect.Value));
+                var vd = VectorSerialiser.Deserialize(vect.Value, VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
 
                 _vectorData.Add(vd);
             }

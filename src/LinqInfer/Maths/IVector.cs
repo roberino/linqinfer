@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using System;
 
 namespace LinqInfer.Maths
 {
@@ -8,7 +9,7 @@ namespace LinqInfer.Maths
     /// vector some of which are more efficient in
     /// specific scenarios
     /// </summary>
-    public interface IVector : IEquatable<IVector>
+    public interface IVector : IEquatable<IVector>, IBinaryExportable
     {
         /// <summary>
         /// Returns the size of the vector

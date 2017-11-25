@@ -139,7 +139,7 @@ namespace LinqInfer.Learning.Classification
 
             foreach (var neuron in _neurons)
             {
-                neuron.Import(data.Vectors[i++]);
+                neuron.Import(data.Vectors[i++].ToColumnVector());
             }
         }
 

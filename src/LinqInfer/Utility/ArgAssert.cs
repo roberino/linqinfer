@@ -11,7 +11,7 @@ namespace LinqInfer.Utility
 
         public static void Assert(Func<bool> assertion, string name)
         {
-            if (assertion())
+            if (!assertion())
             {
                 throw new ArgumentException(name);
             }

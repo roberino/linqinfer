@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Features
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
-            _weights = new Matrix(doc.Vectors);
+            _weights = new Matrix(doc.Vectors.Select(v => v.ToColumnVector()));
             _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
         }
 

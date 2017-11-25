@@ -153,7 +153,7 @@ namespace LinqInfer.Maths
             Array.Copy(data, 0, len, 0, len.Length);
 
             var size = BitConverter.ToInt32(len, 0);
-            var vals = new byte[size / 8];
+            var vals = GetByteStore(size);
 
             Array.Copy(data, len.Length, vals, 0, vals.Length);
 
@@ -180,7 +180,7 @@ namespace LinqInfer.Maths
         {
             Contract.Requires(values != null);
 
-            var data = new byte[values.Length / 8 + 1];
+            var data = GetByteStore(values.Length);
             
             for (var i = 0; i < values.Length; i++)
             {
@@ -188,6 +188,11 @@ namespace LinqInfer.Maths
             }
 
             return data;
+        }
+
+        private static byte[] GetByteStore(int len)
+        {
+            return new byte[len / 8 + 1];
         }
 
         public override string ToString()

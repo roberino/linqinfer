@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿using LinqInfer.Utility;
+using System;
 
 namespace LinqInfer.Maths
 {
@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     {
         public Range(double max = 1, double min = 0)
         {
-            Contract.Requires(max > min);
+            ArgAssert.Assert(() => max >= min, nameof(max));
 
             Min = min;
             Max = max;

@@ -70,7 +70,7 @@ namespace LinqInfer.Maths
 
             Operation = (VectorOperationType)Enum.Parse(typeof(VectorOperationType), doc.Properties["Operation"]);
 
-            foreach (var vect in doc.Vectors) _parameters.Add(vect);
+            foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector())) _parameters.Add(vect);
         }
 
         public BinaryVectorDocument ToVectorDocument()

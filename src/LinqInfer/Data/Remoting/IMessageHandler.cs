@@ -2,8 +2,8 @@
 
 namespace LinqInfer.Data.Remoting
 {
-    public interface IMessageHandler<T>
+    public interface IMessageHandler
     {
-        Task HandleAsync(Message<T> message);
+        Task HandleAsync(Message message);
     }
 }

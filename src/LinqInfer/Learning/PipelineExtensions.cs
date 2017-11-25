@@ -58,7 +58,7 @@ namespace LinqInfer.Learning
 
             var featureExtractor = new DelegatingFloatingPointFeatureExtractor<Vector>(v => v.GetUnderlyingArray(), data.Vectors.First().Size);
 
-            return new FeatureProcessingPipeline<Vector>(data.Vectors.AsQueryable(), featureExtractor);
+            return new FeatureProcessingPipeline<Vector>(data.Vectors.Select(v => v.ToColumnVector()).AsQueryable(), featureExtractor);
         }
 
         /// <summary>

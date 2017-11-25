@@ -545,7 +545,7 @@ namespace LinqInfer.Maths
         {
             Rows.Clear();
 
-            foreach (var vect in doc.Vectors)
+            foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector()))
             {
                 Rows.Add(vect);
             }

@@ -205,7 +205,7 @@ namespace LinqInfer.Text.VectorExtraction
             {
                 int i = 0;
 
-                foreach (var f in doc.Vectors.First())
+                foreach (var f in doc.Vectors.First().ToColumnVector())
                 {
                     _normalisingFrequencies[i++] = (int)f;
                 }

@@ -2,8 +2,8 @@
 
 namespace LinqInfer.Data.Remoting
 {
-    public interface IMessagePublisher<T>
+    public interface IMessagePublisher
     {
-        Task PublishAsync(Message<T> message);
+        Task PublishAsync(Message message);
     }
 }

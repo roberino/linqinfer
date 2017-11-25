@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -79,7 +78,7 @@ namespace LinqInfer.Learning
         /// <returns>The training set</returns>
         public static async Task<IAsyncTrainingSet<TInput, TClass>> SendAsync<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            IMessagePublisher<IBatch<TrainingPair<IVector, IVector>>> publisher,
+            IMessagePublisher publisher,
             CancellationToken cancellationToken)
             where TInput : class
             where TClass : IEquatable<TClass>
@@ -88,7 +87,8 @@ namespace LinqInfer.Learning
                 .ExtractInputOutputIVectorBatches()
                .ProcessUsing(async b =>
                {
-                   var msg = b.AsMessage();
+                   var batch = new TrainingBatch(b);
+                   var msg = batch.AsMessage();
 
                    await publisher.PublishAsync(msg);
                }, cancellationToken);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,17 +20,16 @@ namespace LinqInfer.Maths
             if (!range.HasValue) range = new Range(1, -1);
 
             var mean = minMaxAndMean.Mean.ToColumnVector();
-            var adjustedMax = minMaxAndMean.Max.ToColumnVector() - mean - minMaxAndMean.Min.ToColumnVector();
             var adjustedMin = minMaxAndMean.Min.ToColumnVector() - mean;
+            var adjustedMax = minMaxAndMean.Max.ToColumnVector() - mean - adjustedMin;
             var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
             var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
 
-            var minTranspose = new VectorOperation(VectorOperationType.Subtract, adjustedMin);
+            var centre = new VectorOperation(VectorOperationType.Subtract, mean + adjustedMin);
             var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
             var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
-            var centre = new VectorOperation(VectorOperationType.Subtract, mean);
 
-            var transform = new SerialisableVectorTransformation(centre, minTranspose, scale, rangeTranspose);
+            var transform = new SerialisableVectorTransformation(centre, scale, rangeTranspose);
 
             return transform;
         }
@@ -53,6 +53,13 @@ namespace LinqInfer.Maths
             var transform = new SerialisableVectorTransformation(minTranspose, scale, rangeTranspose);
 
             return transform;
+        }
+
+        internal static bool GreaterThanOrEqualElements<T>(this T a, T b) where T : IVector
+        {
+            ArgAssert.AssertEquals(a.Size, b.Size, nameof(a.Size));
+
+            return a.ToColumnVector().Zip(b.ToColumnVector(), (x, y) => x >= y).All(x => x);
         }
 
         public static ColumnVector1D MaxOfEachDimension<T>(this IEnumerable<T> values) where T : IVector

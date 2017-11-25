@@ -117,5 +117,21 @@ namespace LinqInfer.Maths
         {
             return new OneOfNVector(Size, ActiveIndex);
         }
+
+        public byte[] ToByteArray()
+        {
+            var size = BitConverter.GetBytes(Size);
+            var index = BitConverter.GetBytes(ActiveIndex.GetValueOrDefault(-1));
+
+            return size.Concat(index).ToArray();
+        }
+
+        public static OneOfNVector FromByteArray(byte[] data)
+        {
+            var size = BitConverter.ToInt32(data, 0);
+            var index = BitConverter.ToInt32(data, sizeof(int));
+
+            return new OneOfNVector(size, index > -1 ? new int?(index) : null);
+        }
     }
 }

@@ -24,11 +24,11 @@ namespace LinqInfer.Tests.Learning
 
             var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
 
-            var publisher = Substitute.For<IMessagePublisher<IBatch<TrainingPair<IVector, IVector>>>>();
+            var publisher = Substitute.For<IMessagePublisher>();
 
             await trainingData.SendAsync(publisher, CancellationToken.None);
             
-            await publisher.Received().PublishAsync(Arg.Is<Message<IBatch<TrainingPair<IVector, IVector>>>>(m => m.Id != null && m.TypeName != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
+            await publisher.Received().PublishAsync(Arg.Is<Message>(m => m.Id != null && m.Properties["_Type"] != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
         }
 
         [Test]

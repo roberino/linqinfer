@@ -10,6 +10,29 @@ namespace LinqInfer.Utility
     {
         private static readonly Type nullableType = typeof(Nullable<>);
 
+        public static IEnumerable<Type> FindTypes<T>(this Assembly asm, Func<Type, bool> predicate = null)
+        {
+            var searchType = typeof(T).GetTypeInf();
+
+            return asm
+                .ExportedTypes
+                .Where(t => searchType.IsAssignableFrom(t) && (predicate?.Invoke(t)).GetValueOrDefault(true));
+        }
+
+        public static Func<TArg, T> FindFactory<TArg, T>(this Type type)
+            where T : class
+        {
+            if (type == null) type = typeof(T);
+            var argType = typeof(TArg);
+            var allMethods = type.GetTypeInf().GetMethods(BindingFlags.Static | BindingFlags.Public);
+
+            var matching = allMethods.Where(m => m.ReturnType == type && m.GetParameters().Length == 1 && m.GetParameters().Single().ParameterType == argType);
+
+            var match = matching.Single();
+
+            return x => match.Invoke(null, new object[] { x }) as T;
+        }
+
 #if NET_STD
         public static TypeInfo GetTypeInf<T>()
         {
