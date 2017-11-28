@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Utility;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Maths
@@ -53,19 +54,38 @@ namespace LinqInfer.Maths
 
                 if (useBase64)
                 {
-                    var types = GetType().GetTypeInf().Assembly.FindTypes<IVector>(t => t.Name == typeName);
-
-                    var type = types.FirstOrDefault();
-
-                    var factory = type.FindFactory<byte[], IVector>();
+                    var factory = FindVectorFactory(typeName);
 
                     return factory.Invoke(Convert.FromBase64String(parts[1]));
                 }
                 else
                 {
-                    return Vector.FromCsv(parts[1]);
+                    return Vector.FromCsv(parts[1]).ToColumnVector();
                 }
             }
         }
+
+        internal static Func<byte[], IVector> FindVectorFactory(string typeName)
+        {
+            lock (_factoryCache)
+            {
+                Func<byte[], IVector> factory;
+
+                if (!_factoryCache.TryGetValue(typeName, out factory))
+                {
+                    var type = typeof(VectorSerialiser)
+                                .GetTypeInf()
+                                .Assembly
+                                .FindTypes<IVector>(t => t.Name == typeName)
+                                .FirstOrDefault();
+
+                    _factoryCache[typeName] = factory = type.FindFactory<byte[], IVector>();
+                }
+
+                return factory;
+            }
+        }
+
+        private static IDictionary<string, Func<byte[], IVector>> _factoryCache = new Dictionary<string, Func<byte[], IVector>>();
     }
 }

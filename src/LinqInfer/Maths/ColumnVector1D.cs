@@ -18,7 +18,7 @@ namespace LinqInfer.Maths
         {
         }
 
-        public ColumnVector1D(double[] values) : base(values)
+        public ColumnVector1D(params double[] values) : base(values)
         {
         }
 
