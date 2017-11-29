@@ -43,6 +43,46 @@ namespace LinqInfer.Tests.Maths
             var vect2 = new ColumnVector1D(2, 5, 8, 1, 5, 9);
 
             var x = vect.DotProduct(vect2);
+
+            var expected = 3 * 2 + 6 * 5 + 1 * 8 + 0 * 1 + 0 * 5 + 1 * 9;
+
+            Assert.That(x, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void MultiplyBy_Vector_GivenMultipleVectorTypesAndColumnVector_ReturnsCorrectValue()
+        {
+            var vect = new MultiVector(
+                new ColumnVector1D(3, 6),
+                new BitVector(true, false),
+                new OneOfNVector(2, 1));
+
+            var vect2 = new ColumnVector1D(2, 5, 8, 1, 5, 9);
+
+            var x = vect.MultiplyBy(vect2).ToColumnVector().GetUnderlyingArray();
+
+            var expected = new[] { 3 * 2, 6 * 5, 1 * 8, 0 * 1, 0 * 5, 1 * 9 };
+
+            Assert.That(x, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void MultiplyBy_Matrix_GivenMultipleVectorTypesAndColumnVector_ReturnsCorrectValue()
+        {
+            var vect = new MultiVector(
+                new ColumnVector1D(3, 6),
+                new BitVector(true, false),
+                new OneOfNVector(2, 1));
+
+            var m = new Matrix(new[] { new[] { 1, 23, 5, 4, 1, 8.3 }, new[] { 4, 5.6, 8, 12, 5, 9.1 } });
+            var expected1 = new[] { 3, 6 * 23, 5, 0, 0, 8.3 }.Sum();
+            var expected2 = new[] { 3 * 4, 6 * 5.6, 8, 0, 0, 9.1 }.Sum();
+            var expected = new ColumnVector1D(expected1, expected2);
+
+            var x = vect.MultiplyBy(m);
+
+            Assert.That(x.Size, Is.EqualTo(2));
+            Assert.That(expected.Equals(x));
         }
 
         [Test]

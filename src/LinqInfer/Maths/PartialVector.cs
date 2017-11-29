@@ -64,8 +64,9 @@ namespace LinqInfer.Maths
             ArgAssert.AssertEquals(vector.Size, Size, nameof(Size));
 
             var values = new double[Size];
+            var endIndex = (_startIndex + Size);
 
-            for (int i = _startIndex; i < Size; i++)
+            for (int i = _startIndex; i < endIndex; i++)
             {
                 values[i - _startIndex] = _data[i] * vector[i - _startIndex];
             }
