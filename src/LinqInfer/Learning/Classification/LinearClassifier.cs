@@ -135,7 +135,7 @@ namespace LinqInfer.Learning.Classification
 
             var dW = new Matrix(input.ToColumnVector().Select(x => grad * x));
 
-            var dB = grad.Sum();
+            var dB = grad.Sum;
 
             return new LossAndDerivative()
             {

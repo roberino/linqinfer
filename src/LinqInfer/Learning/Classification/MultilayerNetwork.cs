@@ -96,7 +96,7 @@ namespace LinqInfer.Learning.Classification
             var mSize = Layers.Max(x => x.Size);
             var unitW = width / numLayers;
             var unitH = height / mSize;
-            var maxWeight = AllNeurons().Max(n => n.Export().Sum());
+            var maxWeight = AllNeurons().Max(n => n.Export().Sum);
 
             foreach (var layer in Layers.Reverse())
             {
@@ -124,7 +124,7 @@ namespace LinqInfer.Learning.Classification
                     var attribs = await node.GetAttributesAsync();
                     
                     var weights = n.Export();
-                    var wsum = Math.Abs(weights.Sum());
+                    var wsum = Math.Abs(weights.Sum);
 
                     attribs["weights"] = weights.ToJson();
 

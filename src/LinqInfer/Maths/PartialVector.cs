@@ -32,9 +32,26 @@ namespace LinqInfer.Maths
 
         public int Size { get; }
 
+        public double Sum
+        {
+            get
+            {
+                double value = 0;
+
+                var endIndex = (_startIndex + Size);
+
+                for (int i = _startIndex; i < endIndex; i++)
+                {
+                    value += _data[i];
+                }
+
+                return value;
+            }
+        }
+
         public double DotProduct(IVector vector)
         {
-            return MultiplyBy(vector).ToColumnVector().Sum();
+            return MultiplyBy(vector).Sum;
         }
 
         public bool Equals(IVector other)

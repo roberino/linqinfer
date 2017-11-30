@@ -92,7 +92,7 @@ namespace LinqInfer.Learning.Classification
                             return lastError[k] * nk[i];
                         });
 
-                        return err.Sum() * _network.Parameters.Activator.Derivative(n.Output);
+                        return err.Sum * _network.Parameters.Activator.Derivative(n.Output);
                     });
                 }
 

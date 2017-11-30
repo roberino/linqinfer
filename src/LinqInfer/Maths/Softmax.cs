@@ -23,7 +23,7 @@
 
             var exp = shifted.Exp();
 
-            return exp / exp.Sum();
+            return exp / exp.Sum;
         }
     }
 }

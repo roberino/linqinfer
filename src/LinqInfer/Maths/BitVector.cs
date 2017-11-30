@@ -34,6 +34,11 @@ namespace LinqInfer.Maths
         public int Size { get; }
 
         /// <summary>
+        /// Gets the sum of all values
+        /// </summary>
+        public double Sum => this.Sum(v => v ? 1 : 0);
+
+        /// <summary>
         /// Retrieves a double value by index
         /// </summary>
         public double this[int index]

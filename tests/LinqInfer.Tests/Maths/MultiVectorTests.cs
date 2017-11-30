@@ -86,6 +86,53 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        public void MultiplyBy_GivenBitVector_ReturnsResult()
+        {
+            var vect1 = new MultiVector(
+                new ColumnVector1D(3),
+                new BitVector(true),
+                new OneOfNVector(1));
+
+            var vect2 = new BitVector(true, false, true);
+
+            var vect3 = vect1.MultiplyBy(vect2);
+
+            Assert.That(vect3[0], Is.EqualTo(3));
+            Assert.That(vect3[1], Is.EqualTo(0));
+            Assert.That(vect3[2], Is.EqualTo(0));
+        }
+
+        [Test]
+        public void MultiplyBy_GivenSameInstance_ReturnsMultiVector()
+        {
+            var vect1 = new MultiVector(
+                new ColumnVector1D(3),
+                new BitVector(true),
+                new OneOfNVector(1));
+
+            var vect2 = (MultiVector)vect1.MultiplyBy(vect1);
+
+            Assert.That(vect2[0], Is.EqualTo(9));
+            Assert.That(vect2[1], Is.EqualTo(1));
+            Assert.That(vect2[2], Is.EqualTo(0));
+            Assert.That(vect2.IsIsomorphicTo(vect1));
+        }
+
+        [Test]
+        public void IsIsomorphicTo_ReturnsTrueForTwoVectorsWithTheSameVectorSizes()
+        {
+            var v1 = new MultiVector(
+                new ColumnVector1D(1, 8),
+                new OneOfNVector(5, 3));
+
+            var v2 = new MultiVector(
+                new ColumnVector1D(6.1, 1.2),
+                new OneOfNVector(5, 1));
+
+            Assert.That(v1.IsIsomorphicTo(v2));
+        }
+
+        [Test]
         public void ToByteArray_GivenMultipleVectorTypes_CanCreateEqualVectorFromBytes()
         {
             var vect = new MultiVector(

@@ -169,7 +169,7 @@ namespace LinqInfer.Maths
         /// <returns>A new normalised vector</returns>
         public ColumnVector1D Normalise(bool bySum = true)
         {
-            var t = bySum ? Sum() : EuclideanLength;
+            var t = bySum ? Sum : EuclideanLength;
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 

@@ -21,6 +21,8 @@ namespace LinqInfer.Maths
 
         public int? ActiveIndex { get; }
 
+        public double Sum => ActiveIndex.HasValue ? 1 : 0;
+
         public double this[int index] => ActiveIndex.HasValue && ActiveIndex.Value == index ? 1d : 0;
 
         public BitVector ToBitVector()
@@ -54,6 +56,8 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(IVector vector)
         {
+            ArgAssert.AssertEquals(vector.Size, Size, nameof(Size));
+
             if (vector is OneOfNVector) return ((OneOfNVector)vector) * this;
             if (vector is BitVector) return ((BitVector)vector).MultiplyBy(this);
 
@@ -62,9 +66,11 @@ namespace LinqInfer.Maths
             if (ActiveIndex.HasValue)
             {
                 result[ActiveIndex.Value] = vector[ActiveIndex.Value];
+
+                return new ColumnVector1D(result);
             }
 
-            return new ColumnVector1D(result);
+            return new ZeroVector(Size);
         }
 
         public static IVector operator *(OneOfNVector vector1, OneOfNVector vector2)
@@ -73,7 +79,7 @@ namespace LinqInfer.Maths
 
             if (vector1.ActiveIndex == vector2.ActiveIndex) return vector1.Clone(true);
 
-            return new OneOfNVector(vector1.Size);
+            return new ZeroVector(vector1.Size);
         }
 
         public double DotProduct(IVector vector)

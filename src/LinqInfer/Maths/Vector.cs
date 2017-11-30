@@ -108,6 +108,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the sum of all values
+        /// </summary>
+        public double Sum => _values.Sum();
+
+        /// <summary>
         /// Applies a function over all values in the vector, modifying each value.
         /// </summary>
         /// <param name="func">A function to transform the value (takes the original value as input)</param>
@@ -139,15 +144,6 @@ namespace LinqInfer.Maths
         public Vector Shift(double value)
         {
             return new Vector(_values.Select(v => v - value).ToArray());
-        }
-
-        /// <summary>
-        /// Returns the sum of all values.
-        /// </summary>
-        /// <returns>A double</returns>
-        public double Sum()
-        {
-            return _values.Sum();
         }
 
         /// <summary>
@@ -218,7 +214,7 @@ namespace LinqInfer.Maths
         {
             var v = this * other;
 
-            return v.Sum();
+            return v.Sum;
         }
 
         public bool IsOrthogonalTo(Vector other)
@@ -289,8 +285,6 @@ namespace LinqInfer.Maths
             return new Vector(v1._values.Select(x => x * y).ToArray());
         }
 
-
-
         /// <summary>
         /// Multiplies the vector by the matrix
         /// </summary>
@@ -308,7 +302,7 @@ namespace LinqInfer.Maths
 
         public double DotProduct(IVector vector)
         {
-            return MultiplyBy(vector).ToColumnVector().Sum();
+            return MultiplyBy(vector).Sum;
         }
 
         public virtual ColumnVector1D ToColumnVector()

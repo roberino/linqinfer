@@ -43,11 +43,21 @@ namespace LinqInfer.Maths
             }
         }
 
-        public double Sum => _vectors.Select(v => v.ToColumnVector().Sum()).Sum();
+        public double Sum => _vectors.Select(v => v.Sum).Sum();
 
         public IEnumerable<IVector> InnerVectors => _vectors.AsEnumerable();
 
         public int Size => _vectors.Sum(v => v.Size);
+
+        public bool IsIsomorphicTo(MultiVector other)
+        {
+            if (other == null) return false;
+            if (other.Size != Size) return false;
+            if (other._vectors.Count != _vectors.Count) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return other._vectors.Zip(_vectors, (v1, v2) => v1.Size == v2.Size).All(x => x);
+        }
 
         public double DotProduct(IVector vector)
         {
@@ -56,14 +66,21 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(Matrix matrix)
         {
-            return ToColumnVector().MultiplyBy(matrix);
+            var results = new double[matrix.Height];
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                results[i] = matrix.Rows[i].DotProduct(this);
+            }
+
+            return new ColumnVector1D(results);
         }
 
         public IVector MultiplyBy(IVector vector)
         {
-            if (vector is ColumnVector1D)
+            if (vector is Vector v)
             {
-                var arr = vector.ToColumnVector().GetUnderlyingArray();
+                var arr = v.GetUnderlyingArray();
                 int i = 0;
 
                 var vectorResults = new List<IVector>();
@@ -81,6 +98,14 @@ namespace LinqInfer.Maths
             }
             else
             {
+                if (vector is MultiVector mv && IsIsomorphicTo(mv))
+                {
+                    return new MultiVector(
+                        _vectors
+                        .Zip(mv._vectors, (v1, v2) => v1.MultiplyBy(v2))
+                        .ToList());
+                }
+
                 return vector.MultiplyBy(this);
             }
         }
