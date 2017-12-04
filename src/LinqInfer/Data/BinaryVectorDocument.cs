@@ -98,6 +98,14 @@ namespace LinqInfer.Data
             }
         }
 
+        public void SetType<T>(T instance = default(T))
+        {
+            var type = instance?.GetType() ?? typeof(T);
+
+            Properties["AssemblyQualifiedName"] = type.AssemblyQualifiedName;
+            Properties["TypeName"] = type.Name;
+        }
+
         public IDictionary<string, string> Properties
         {
             get
@@ -149,6 +157,13 @@ namespace LinqInfer.Data
             {
                 return _vectorData;
             }
+        }
+
+        public BinaryVectorDocument AddChild()
+        {
+            var doc = new BinaryVectorDocument();
+            Children.Add(doc);
+            return doc;
         }
 
         public IList<BinaryVectorDocument> Children

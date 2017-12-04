@@ -11,6 +11,17 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Converts an enumeration into an async enumerator
+        /// </summary>
+        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
+        {
+            return new AsyncEnumerator<T>(values
+                .AsQueryable()
+                .Chunk(batchSize)
+                .Select(b => Task.FromResult<IList<T>>(b.ToList())));
+        }
+
+        /// <summary>
         /// Converts an enumeration of batch loading tasks
         /// into an async enumerable object
         /// </summary>

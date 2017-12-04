@@ -72,7 +72,7 @@ namespace LinqInfer.Learning.Features
                 .Select(g =>
                     (IGrouping<TClass, ObjectVector<TInput>>)new G(g.Key,
                         g.Select(x =>
-                            new ObjectVector<TInput>(x, _pipeline.FeatureExtractor.ExtractColumnVector(x))))
+                            new ObjectVector<TInput>(x, _pipeline.FeatureExtractor.ExtractIVector(x))))
                             );
         }
 

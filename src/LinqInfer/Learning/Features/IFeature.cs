@@ -58,7 +58,7 @@ namespace LinqInfer.Learning.Features
                     .ToArray();
         }
 
-        public static IFeature[] CreateDefaults(IEnumerable<string> labels, DistributionModel model = DistributionModel.Unknown)
+        public static IFeature[] CreateDefaults(IEnumerable<string> labels, DistributionModel model = DistributionModel.Magnitudinal)
         {
             Contract.Assert(labels != null && labels.Any());
 

@@ -159,11 +159,11 @@ namespace LinqInfer.Learning
                 if (_featureExtractor.VectorSize > 3)
                 {
                     var members = node.GetMembers();
-                    var pipe = members.Select(m => _featureExtractor.ExtractColumnVector(m.Key)).AsQueryable().CreatePipeline();
+                    var pipe = members.Select(m => _featureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
                     var reduce = pipe.PrincipalComponentReduction(3);
                     var fe = reduce.FeatureExtractor;
 
-                    vect = fe.ExtractColumnVector(node.Weights);
+                    vect = fe.ExtractIVector(node.Weights).ToColumnVector();
                 }
                 else
                 {
@@ -220,21 +220,21 @@ namespace LinqInfer.Learning
 
             if (ExportMode == GraphExportMode.Spatial3D)
             {
-                Func<T, ColumnVector1D> extractor;
+                Func<T, IVector> extractor;
 
                 var maxCount = (double)members.Max(m => m.Value);
 
                 if (_featureExtractor.VectorSize > 3)
                 {
-                    var pipe = members.Select(m => _featureExtractor.ExtractColumnVector(m.Key)).AsQueryable().CreatePipeline();
+                    var pipe = members.Select(m => _featureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
                     var reduce = pipe.PrincipalComponentReduction(3);
                     var fe = reduce.FeatureExtractor;
 
-                    extractor = v => fe.ExtractColumnVector(_featureExtractor.ExtractColumnVector(v));
+                    extractor = v => fe.ExtractIVector(_featureExtractor.ExtractIVector(v));
                 }
                 else
                 {
-                    extractor = _featureExtractor.ExtractColumnVector;
+                    extractor = _featureExtractor.ExtractIVector;
                 }
 
                 return (i, m, c) =>

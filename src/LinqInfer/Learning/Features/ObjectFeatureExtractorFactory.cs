@@ -50,6 +50,27 @@ namespace LinqInfer.Learning.Features
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, string setName = null) where T : class
         {
+            var featureProperties = GetFeatureProperties<T>(actualType, setName)
+                .Where(f => f.ConversionFunction != null).ToList();
+
+            var i = 0;
+            foreach (var p in featureProperties) p.Index = i++;
+
+            return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
+                featureProperties.Select(c => x == null ? 1f : c.ConversionFunction(x)).ToArray(),
+                featureProperties.Count,
+                featureProperties.Select(f => new Feature()
+                {
+                    Key = f.Property.Name.ToLower(),
+                    DataType = Type.GetTypeCode(f.Property.PropertyType),
+                    Label = f.Property.Name,
+                    Index = f.Index,
+                    Model = f.FeatureMetadata.Model
+                }).ToArray());
+        }
+
+        internal IList<PropertyExtractor<T>> GetFeatureProperties<T>(Type actualType, string setName = null) where T : class
+        {
             int i = 0;
 
 #if NET_STD
@@ -58,7 +79,7 @@ namespace LinqInfer.Learning.Features
             var type = actualType;
 #endif
 
-            var featureProps = type
+            return type
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Select(p =>
                 {
@@ -73,21 +94,8 @@ namespace LinqInfer.Learning.Features
                 .Where(f => !f.featureDef.Ignore)
                 .OrderBy(f => f.featureDef.IndexOrder)
                 .ThenBy(f => f.property.Name)
-                .Select(f => new { converter = CreateConverter<T>(f.property, f.featureDef), feature = f, index = i++ })
-                .Where(c => c.converter != null)
+                .Select(f => new PropertyExtractor<T>(i++, f.property, f.featureDef, CreateConverter<T>(f.property, f.featureDef)))
                 .ToList();
-
-            return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
-                featureProps.Select(c => x == null ? 1f : c.converter(x)).ToArray(),
-                featureProps.Count,
-                featureProps.Select(f => new Feature()
-                {
-                    Key = f.feature.property.Name.ToLower(),
-                    DataType = Type.GetTypeCode(f.feature.property.PropertyType),
-                    Label = f.feature.property.Name,
-                    Index = f.index,
-                    Model = f.feature.featureDef.Model
-                }).ToArray());
         }
 
         private Func<T, double> CreateConverter<T>(PropertyInfo prop, FeatureAttribute featureDef)

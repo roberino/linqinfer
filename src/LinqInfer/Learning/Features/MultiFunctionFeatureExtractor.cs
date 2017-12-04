@@ -104,7 +104,7 @@ namespace LinqInfer.Learning.Features
 
         public ColumnVector1D ExtractColumnVector(T obj)
         {
-            return FeatureExtractor.ExtractColumnVector(obj);
+            return FeatureExtractor.ExtractIVector(obj).ToColumnVector();
         }
 
         public double[] ExtractVector(T obj)

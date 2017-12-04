@@ -105,7 +105,7 @@ namespace LinqInfer.Learning
         /// </summary>
         public double CalculateDifference(T value)
         {
-            return _featureExtractor.ExtractColumnVector(value).Distance(Weights);
+            return _featureExtractor.ExtractIVector(value).ToColumnVector().Distance(Weights);
         }
 
         internal double CalculateDifference(ObjectVector<T> dataItem)

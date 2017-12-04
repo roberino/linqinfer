@@ -81,7 +81,7 @@ namespace LinqInfer.Text.Analysis
 
             _featureExtractor = _index.CreateVectorExtractor(_vectorSize, false);
 
-            return new Matrix(samples.Select(s => _featureExtractor.ExtractColumnVector(s.Tokens)));
+            return new Matrix(samples.Select(s => _featureExtractor.ExtractIVector(s.Tokens).ToColumnVector()));
         }
 
         private void Append(TokenisedTextDocument document)

@@ -27,7 +27,7 @@ namespace LinqInfer.Learning.Features
 
         public ColumnVector1D ExtractColumnVector(T obj)
         {
-            var vect = _baseFeatureExtractor.ExtractColumnVector(obj);
+            var vect = _baseFeatureExtractor.ExtractIVector(obj).ToColumnVector();
 
             return new ColumnVector1D(_weights.Select(v => vect.Distance(new ColumnVector1D(v))).ToArray());
         }

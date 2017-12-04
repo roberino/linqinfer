@@ -45,7 +45,7 @@ namespace LinqInfer.Tests.Maths
 
             var result = vect1.MultiplyBy(vect2);
 
-            Assert.That(result, Is.InstanceOf<OneOfNVector>());
+            Assert.That(result, Is.InstanceOf<ZeroVector>());
             Assert.That(result.Size, Is.EqualTo(4));
             Assert.That(result.ToColumnVector().All(v => v == 0));
         }
