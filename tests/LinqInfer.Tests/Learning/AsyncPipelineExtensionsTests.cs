@@ -1,22 +1,34 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
+using LinqInfer.Learning.Features;
+using NSubstitute;
 using NUnit.Framework;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using static LinqInfer.Tests.TestData;
+using System.Linq;
 using System.Threading;
-using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
-using LinqInfer.Data.Remoting;
-using NSubstitute;
+using System.Threading.Tasks;
+using static LinqInfer.Tests.TestData;
 
 namespace LinqInfer.Tests.Learning
 {
     [TestFixture]
     public class AsyncPipelineExtensionsTests
     {
+        [Test]
+        public async Task BuildPipeineAsync_ReturnsAsyncPipeline()
+        {
+            var pipeline = await From.Func(Load)
+                .BuildPipeineAsync(
+                    new DefaultFeatureExtractionStrategy<Pirate>(),
+                    new CategoricalFeatureExtractionStrategy<Pirate>());
+
+            var data = await pipeline.ExtractBatches().ToMemory(CancellationToken.None);
+
+            Assert.That(data.Count, Is.GreaterThan(0));
+        }
+
         [Test]
         public async Task SendAsync_InvokesPublishAsync()
         {
@@ -83,7 +95,14 @@ namespace LinqInfer.Tests.Learning
         {
             var items = Task.FromResult(
                     (IList<Pirate>)Enumerable.Range(0, 10)
-                    .Select(x => new Pirate() { Age = x, Gold = n, Ships = x * n, IsCaptain = ((x * n) % 3) == 0 })
+                    .Select(x => new Pirate()
+                    {
+                        Age = x,
+                        Gold = n,
+                        Ships = x * n,
+                        IsCaptain = ((x * n) % 3) == 0,
+                        Category = ((x * n) % 3) == 0 ? "a" : "b"
+                    })
                     .ToList()
                     );
 

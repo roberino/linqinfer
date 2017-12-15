@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Maths.Probability;
 using System.Collections.Generic;
 using System.Linq;

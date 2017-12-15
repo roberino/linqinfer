@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Pipes
 {
     public sealed class AsyncBatch<T> : IBatch<T>
     {

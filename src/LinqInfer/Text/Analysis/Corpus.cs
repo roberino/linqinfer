@@ -1,9 +1,10 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LinqInfer.Utility;
 
 namespace LinqInfer.Text.Analysis
 {

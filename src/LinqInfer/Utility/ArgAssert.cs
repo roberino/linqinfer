@@ -33,12 +33,14 @@ namespace LinqInfer.Utility
             }
         }
 
-        public static void AssertGreaterThanZero(double value, string name)
+        public static double AssertGreaterThanZero(double value, string name)
         {
             if (value <= 0)
             {
                 throw new ArgumentOutOfRangeException(name);
             }
+
+            return value;
         }
 
         public static int AssertGreaterThanOrEqualToZero(int value, string name)

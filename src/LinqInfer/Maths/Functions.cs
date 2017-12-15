@@ -312,22 +312,6 @@ namespace LinqInfer.Maths
             // 1 / (theta * SqrR(2 * Pi)) * e -((x - mu) ^ 2) / (2 * theta ^ 2)
         }
 
-        internal static Func<ColumnVector1D, double> MultiVariateNormalKernel(IEnumerable<ColumnVector1D> sample, double bandwidth)
-        {
-            var h = bandwidth;
-            var hSq2 = 2 * h * h;
-            var n = (double)sample.Count();
-            var a = 1d / n;
-
-            return (x) =>
-            {
-                var b = 1d / Math.Pow(Math.PI * hSq2, x.Size / 2);
-                var c = sample.Select(x0 => b * Math.Exp(-Math.Pow((x - x0).EuclideanLength, 2) / hSq2)).Sum();
-
-                return a * c;
-            };
-        }
-
         internal static Tuple<Fraction, Fraction, Fraction, Fraction, Fraction> NormalDistributionDebug(Fraction x, Fraction theta, Fraction mu)
         {
             var a = Fraction.Divide(Fraction.One, Fraction.Multiply(theta, Fraction.ApproximateRational(Math.Sqrt(Math.PI * 2)), true).Approximate(), true);

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class CategoricalClassifier<TClass> : IClassifier<TClass, bool>, IAssistedLearning<TClass, bool>
+    internal class CategoricalClassifier<TClass> : IClassifier<TClass, bool>, IAssistedLearningProcessor<TClass, bool>
     {
         private readonly IDictionary<TClass, ClassData> _histogram;
         private readonly int _vectorSize;

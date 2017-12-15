@@ -3,12 +3,11 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class LinearClassifier : 
+    public sealed class LinearSoftmaxClassifier : 
         IAssistedLearningProcessor, 
         IVectorClassifier
     {
@@ -19,7 +18,7 @@ namespace LinqInfer.Learning.Classification
 
         private double _learningRate;
         
-        public LinearClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
+        public LinearSoftmaxClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
         {
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
             ArgAssert.AssertGreaterThanZero(outputVectorSize, nameof(outputVectorSize));

@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Maths;
 using System;
 using System.Linq;
@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 namespace LinqInfer.Learning.Features
 {
     internal class AsyncFeatureProcessingPipeline<T>
-        : IAsyncFeatureProcessingPipeline<T>
+        : AsyncPipe<ObjectVector<T>>, IAsyncFeatureProcessingPipeline<T>
         where T : class
     {
         private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
         private readonly IAsyncEnumerator<T> _dataLoader;
 
         internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
+            : base(ExtractBatches(asyncDataLoader, featureExtractor))
         {
             _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
             _featureExtractor = new MultiFunctionFeatureExtractor<T>(featureExtractor);
@@ -47,20 +48,15 @@ namespace LinqInfer.Learning.Features
 
         public IAsyncEnumerator<ObjectVector<T>> ExtractBatches()
         {
-            return _dataLoader
-                .TransformEachBatch(b => b
-                        .Select(x => new ObjectVector<T>(x, _featureExtractor.ExtractIVector(x)))
-                        .ToList());
+            return ExtractBatches(_dataLoader, _featureExtractor);
         }
 
-        public ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<IAsyncFeatureProcessingPipeline<T>, string, Task<TResult>> processor)
+        private static IAsyncEnumerator<ObjectVector<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
         {
-            return new ExecutionPipline<TResult>((n) =>
-            {
-                var res = processor.Invoke(this, n);
-
-                return res;
-            }, (x, o) => true);
+            return dataLoader
+                .TransformEachBatch(b => b
+                        .Select(x => new ObjectVector<T>(x, fe.ExtractIVector))
+                        .ToList());
         }
     }
 }

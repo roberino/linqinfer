@@ -3,7 +3,7 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class AssistedLearningAdapter<TClass> : IAssistedLearning<TClass, double>
+    internal class AssistedLearningAdapter<TClass> : IAssistedLearningProcessor<TClass, double>
     {
         private readonly IAssistedLearningProcessor _processor;
         private readonly IFeatureExtractor<TClass, double> _outputVectorExtractor;

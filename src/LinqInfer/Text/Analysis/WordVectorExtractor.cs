@@ -23,7 +23,7 @@ namespace LinqInfer.Text.Analysis
 
             var trainingSet = pipeline.AsTrainingSet(t => t.WordB);
 
-            var classifier = new LinearClassifier(trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize);
+            var classifier = new LinearSoftmaxClassifier(trainingSet.FeaturePipeline.VectorSize, trainingSet.OutputMapper.VectorSize);
 
             classifier.Train(trainingSet.ExtractTrainingVectorBatches().SelectMany(b => b), 0.0001f);
 

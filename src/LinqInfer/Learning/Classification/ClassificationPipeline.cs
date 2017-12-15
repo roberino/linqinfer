@@ -11,11 +11,11 @@ namespace LinqInfer.Learning.Classification
     internal class ClassificationPipeline<TClass, TInput, TVector> 
         : ObjectClassifier<TClass, TInput, TVector> where TVector : struct
     {
-        private readonly IAssistedLearning<TClass, TVector> _learning;
+        private readonly IAssistedLearningProcessor<TClass, TVector> _learning;
 
         private double? error;
 
-        public ClassificationPipeline(IAssistedLearning<TClass, TVector> learning,
+        public ClassificationPipeline(IAssistedLearningProcessor<TClass, TVector> learning,
             IClassifier<TClass, TVector> classifier,
             IFeatureExtractor<TInput, TVector> featureExtract) : base(classifier, featureExtract)
         {

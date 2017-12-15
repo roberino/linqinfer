@@ -1,10 +1,10 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    public abstract class FeatureExtractionStrategy<T>
+    public abstract class FeatureExtractionStrategy<T> : IFeatureExtractionStrategy<T>
     {
         protected FeatureExtractionStrategy()
         {

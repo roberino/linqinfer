@@ -1,19 +1,35 @@
-﻿using System;
+﻿using LinqInfer.Data.Pipes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    public class FeatureExtractorBuilder<T>
+    internal class FeatureExtractorBuilder<T>
         where T : class
     {
         private readonly Type _actualType;
-        private readonly FeatureExtractionStrategy<T>[] _strategies;
+        private readonly IFeatureExtractionStrategy<T>[] _strategies;
 
-        public FeatureExtractorBuilder(Type type, params FeatureExtractionStrategy<T>[] strategies)
+        public FeatureExtractorBuilder(Type type, params IFeatureExtractionStrategy<T>[] strategies)
         {
             _strategies = strategies.Length == 0 ? new[] { new DefaultFeatureExtractionStrategy<T>() } : strategies;
+            _actualType = type;
+
+            Setup();
+        }
+
+        public async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(IAsyncEnumerator<T> samples)
+        {
+            var extractors = new List<IFloatingPointFeatureExtractor<T>>();
+
+            foreach (var strategy in _strategies.Where(s => s.Properties.Any()))
+            {
+                extractors.Add(await strategy.BuildAsync(samples));
+            }
+
+            return new MultiStrategyFeatureExtractor<T>(extractors.ToArray());
         }
 
         private void Setup()

@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -15,10 +15,7 @@ namespace LinqInfer.Utility
         /// </summary>
         public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
         {
-            return new AsyncEnumerator<T>(values
-                .AsQueryable()
-                .Chunk(batchSize)
-                .Select(b => Task.FromResult<IList<T>>(b.ToList())));
+            return From.Enumerable(values, batchSize);
         }
 
         /// <summary>
@@ -29,7 +26,7 @@ namespace LinqInfer.Utility
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
         public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
         {
-            return new AsyncEnumerator<T>(batchLoader);
+            return From.EnumerableTasks(batchLoader);
         }
 
         /// <summary>

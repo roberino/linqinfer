@@ -37,7 +37,14 @@ namespace LinqInfer.Learning.Features
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
-            throw new System.NotImplementedException();
+            foreach (var item in doc
+                   .Children
+                   .Zip(
+                       _featureExtractionStrategies,
+                       (c, s) => new { strat = s, child = c }))
+            {
+                item.child.ReadChildObject(item.strat);
+            }
         }
 
         public void Load(Stream input)
@@ -45,17 +52,15 @@ namespace LinqInfer.Learning.Features
             var xml = XDocument.Load(input);
             var doc = new BinaryVectorDocument(xml);
 
-            foreach (var item in doc
-                .Children
-                .Zip(
-                    _featureExtractionStrategies,
-                    (c, s) => new { strat = s, child = c }))
-            {
-                item.child.ReadChildObject(item.strat);
-            }
+            FromVectorDocument(doc);
         }
 
         public void Save(Stream output)
+        {
+            ToVectorDocument().ExportAsXml().Save(output);
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
         {
             var doc = new BinaryVectorDocument();
 
@@ -66,12 +71,7 @@ namespace LinqInfer.Learning.Features
                 doc.WriteChildObject(fe);
             }
 
-            doc.ExportAsXml().Save(output);
-        }
-
-        public BinaryVectorDocument ToVectorDocument()
-        {
-            throw new System.NotImplementedException();
+            return doc;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Learning.Classification
 {
-    public interface IAssistedLearning<TClass, TVector>
+    public interface IAssistedLearningProcessor<TClass, TVector>
     {
         /// <summary>
         /// Trains the classifier by associating the sample class with the sample vector.

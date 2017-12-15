@@ -1,6 +1,5 @@
-﻿using LinqInfer.Data;
-using System;
-using System.Threading.Tasks;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Features
 {
@@ -9,7 +8,7 @@ namespace LinqInfer.Learning.Features
     /// which can be transformed and processed
     /// </summary>
     /// <typeparam name="T">The input type</typeparam>
-    public interface IAsyncFeatureProcessingPipeline<T> where T : class
+    public interface IAsyncFeatureProcessingPipeline<T> : IAsyncPipe<ObjectVector<T>> where T : class
     {
         /// <summary>
         /// Returns the feature extractor
@@ -23,11 +22,8 @@ namespace LinqInfer.Learning.Features
         IAsyncEnumerator<ObjectVector<T>> ExtractBatches();
 
         /// <summary>
-        /// Processes the data using the supplied asyncronous function
+        /// Preprocesses the data with the vector transformation
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="processor">A processing function which takes a pipeline and an output name</param>
-        /// <returns></returns>
-        ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<IAsyncFeatureProcessingPipeline<T>, string, Task<TResult>> processor);
+        IAsyncFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation);
     }
 }

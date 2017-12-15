@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Pipes;
 using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;

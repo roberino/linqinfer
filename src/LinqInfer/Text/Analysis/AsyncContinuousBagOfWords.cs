@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using System.Linq;
 

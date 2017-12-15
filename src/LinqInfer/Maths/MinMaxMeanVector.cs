@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;

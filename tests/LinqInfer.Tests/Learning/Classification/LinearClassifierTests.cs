@@ -15,7 +15,7 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_Simple2DExample()
         {
-            var classifier = new LinearClassifier(2, 3);
+            var classifier = new LinearSoftmaxClassifier(2, 3);
 
             var trainingData1 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.9, 0.7), new OneOfNVector(3, 0));
             var trainingData2 = new TrainingPair<IVector, IVector>(ColumnVector1D.Create(0.01, 0.1), new OneOfNVector(3, 1));
@@ -35,7 +35,7 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_RandomNormalDataset_ClassifiesAsExpected()
         {
-            var classifier = new LinearClassifier(2, 2);
+            var classifier = new LinearSoftmaxClassifier(2, 2);
             var trainingData = SetupData();
 
             var lastErr = new Queue<double>();

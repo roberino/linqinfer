@@ -5,16 +5,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Pipes
 {
     internal class AsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IEnumerable<Task<IList<T>>> _batchLoader;
+        private readonly IList<Func<T, bool>> _filters;
 
-        public AsyncEnumerator(IEnumerable<Task<IList<T>>> batchLoader)
+        public AsyncEnumerator(IEnumerable<Task<IList<T>>> batchLoader, long? estimatedTotalCount = null)
         {
             _batchLoader = batchLoader ?? throw new ArgumentNullException(nameof(batchLoader));
+            _filters = new List<Func<T, bool>>();
+
+            EstimatedTotalCount = estimatedTotalCount;
         }
+
+        public long? EstimatedTotalCount { get; }
 
         public IEnumerable<Task<IList<T>>> Items => _batchLoader;
 
@@ -89,6 +95,12 @@ namespace LinqInfer.Data
             });
         }
 
+        public IAsyncEnumerator<T> Filter(Func<T, bool> predicate)
+        {
+            _filters.Add(predicate);
+            return this;
+        }
+
         private async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
         {
             ArgAssert.AssertNonNull(processor, nameof(processor));
@@ -104,7 +116,7 @@ namespace LinqInfer.Data
                     if(!(await processor(next))) return false;
                 }
 
-                var items = await batchTask;
+                var items = Filter(await batchTask);
 
                 next = new Batch<T>(items, i++);
             }
@@ -116,6 +128,20 @@ namespace LinqInfer.Data
             }
 
             return true;
+        }
+
+        private IList<T> Filter(IList<T> items)
+        {
+            if (_filters.Count == 0) return items;
+
+            IEnumerable<T> filtered = items;
+
+            foreach(var filter in _filters)
+            {
+                filtered = filtered.Where(filter);
+            }
+
+            return filtered.ToList();
         }
     }
 }

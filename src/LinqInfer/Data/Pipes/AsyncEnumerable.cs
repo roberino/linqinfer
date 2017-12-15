@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Pipes
 {
     internal sealed class AsyncEnumerable<T> : IEnumerable<Task<IList<T>>>
     {
