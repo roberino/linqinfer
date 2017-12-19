@@ -38,11 +38,9 @@ namespace LinqInfer.Learning
         {
             HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline.FeatureExtractor);
 
-            var iterationsMax = _parameters.EstimatedSampleSize.GetValueOrDefault(1) * _parameters.TrainingEpochs;
-
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {
-                await RunAsync(pipeline, outputNodes, i, iterationsMax, i == _parameters.TrainingEpochs - 1, cancellationToken);
+                await RunAsync(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1, cancellationToken);
             }
 
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
@@ -51,18 +49,16 @@ namespace LinqInfer.Learning
         public FeatureMap<T> Map(IFeatureProcessingPipeline<T> pipeline)
         {
             HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline.FeatureExtractor);
-
-            var iterationsMax = pipeline.SampleCount * _parameters.TrainingEpochs;
-
+            
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {
-                Run(pipeline, outputNodes, i, iterationsMax, i == _parameters.TrainingEpochs - 1);
+                Run(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1);
             }
 
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
         }
 
-        private async Task RunAsync(IAsyncFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, int iterationsMax, bool append, CancellationToken cancellationToken)
+        private async Task RunAsync(IAsyncFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append, CancellationToken cancellationToken)
         {
             await pipeline
                    .ExtractBatches()
@@ -79,7 +75,7 @@ namespace LinqInfer.Learning
                    }, cancellationToken);
         }
 
-        private void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, int iterationsMax, bool append)
+        private void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append)
         {
             foreach (var batch in pipeline.ExtractBatches())
             {

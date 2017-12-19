@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths.Graphs;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,16 +13,20 @@ namespace LinqInfer.Learning
     {
         private readonly IWeightedGraphStore<DataLabel<TInput>, double> _weightedGraphStore;
         private readonly ClusteringParameters _clusteringParameters;
+        private readonly Func<int, double> _weightFunction;
 
         public HeirarchicalGraphBuilder(
-            IWeightedGraphStore<DataLabel<TInput>, double> weightedGraphStore, int estimatedSampleSize)
+            IWeightedGraphStore<DataLabel<TInput>, double> weightedGraphStore, 
+            Func<int, double> weightFunction = null)
         {
             _weightedGraphStore = weightedGraphStore;
             _clusteringParameters = new ClusteringParameters()
             {
                 NumberOfOutputNodes = 2,
-                EstimatedSampleSize = estimatedSampleSize
+                TrainingEpochs = 100,
+                InitialRadius = 0.4
             };
+            _weightFunction = weightFunction ?? (n => n);
         }
 
         public async Task<WeightedGraph<DataLabel<TInput>, double>> CreateBinaryGraph(IAsyncFeatureProcessingPipeline<TInput> pipeline, CancellationToken cancellationToken)
@@ -45,9 +50,11 @@ namespace LinqInfer.Learning
 
         private async Task CreateBinaryGraph(IFloatingPointFeatureExtractor<TInput> featureExtractor, WeightedGraphNode<DataLabel<TInput>, double> parent, IEnumerable<TInput> input, CancellationToken cancellationToken)
         {
+            DebugOutput.Log($"Map nodes: {input.Count()}");
+
             if (input.Count() <= 2)
             {
-                var vertexes = input.Select(i => parent.ConnectToAsync(new DataLabel<TInput>(i, i.ToString()), 1)).ToList();
+                var vertexes = input.Select(i => parent.ConnectToAsync(new DataLabel<TInput>(i, i.ToString()), _weightFunction(1))).ToList();
 
                 await Task.WhenAll(vertexes);
 
@@ -62,9 +69,16 @@ namespace LinqInfer.Learning
 
             var map = await sofm.MapAsync(pipeline, cancellationToken);
 
+            if (map.Count() == 1)
+            {
+                _clusteringParameters.InitialRadius *= 0.6;
+
+                DebugOutput.Log($"Reduce radius: {_clusteringParameters.InitialRadius}");
+            }
+
             var tasks = map.Select(async n =>
             {
-                var vertex = await parent.ConnectToAsync(CreateEmptyLabel(), 1);
+                var vertex = await parent.ConnectToAsync(CreateEmptyLabel(), _weightFunction(n.Count()));
 
                 await CreateBinaryGraph(pipeline.FeatureExtractor, vertex, n, cancellationToken);
             }

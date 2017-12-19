@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Maths.Graphs
 {
-    public class DataLabel<T> : IEquatable<DataLabel<T>>
+    public class DataLabel<T> : IEquatable<DataLabel<T>>, IComparable
     {
         public DataLabel(string label = null)
         {
@@ -21,6 +21,15 @@ namespace LinqInfer.Maths.Graphs
         public bool HasValue { get; }
 
         public T Data { get; }
+
+        public int CompareTo(object obj)
+        {
+            if (obj is DataLabel<T> other && other.Label != null)
+            {
+                return other.Label.CompareTo(Label);
+            }
+            return -1;
+        }
 
         public bool Equals(DataLabel<T> other)
         {
@@ -54,6 +63,11 @@ namespace LinqInfer.Maths.Graphs
         public override int GetHashCode()
         {
             return $"{Label}/{(HasValue ? Data.GetHashCode() : 0)}".GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Label;
         }
     }
 }

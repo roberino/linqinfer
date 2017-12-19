@@ -2,10 +2,9 @@
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Learning
@@ -14,10 +13,9 @@ namespace LinqInfer.Tests.Learning
     public class HeirarchicalGraphBuilderTests
     {
         [Test]
-        [Ignore("WIP")]
         public async Task CreateBinaryGraph_RandomDataSet_CreatesBinaryGraphStructure()
         {
-            var data = Functions.NormalRandomDataset(0.2, 0.4, 100)
+            var data = Functions.NormalRandomDataset(0.2, 0.4, 16)
                 .Select(x => new
                 {
                     a = x,
@@ -27,7 +25,14 @@ namespace LinqInfer.Tests.Learning
 
             var pipe = data.CreatePipeine(x => ColumnVector1D.Create(x.a, x.b), 2);
 
-            var graph = await pipe.CreateBinaryGraphAsync(100);
+            var graph = await pipe.CreateBinaryGraphAsync();
+
+            var gexf = await graph.ExportAsGexfAsync();
+            
+            using (var fs = File.OpenWrite(@"h.gexf"))
+            {
+                await gexf.SaveAsync(fs, System.Xml.Linq.SaveOptions.None, CancellationToken.None);
+            }
         }
     }
 }

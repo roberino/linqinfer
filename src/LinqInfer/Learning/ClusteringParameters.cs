@@ -21,7 +21,7 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Returns the estimate of how many samples are available
         /// </summary>
-        public int? EstimatedSampleSize { get; set; }
+        public long? EstimatedSampleSize { get; set; }
 
         /// <summary>
         /// The number of output nodes
