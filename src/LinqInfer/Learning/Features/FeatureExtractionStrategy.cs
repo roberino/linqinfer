@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Data.Pipes;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
@@ -12,14 +12,16 @@ namespace LinqInfer.Learning.Features
         }
 
         public int Priority { get; set; } = 1;
+        
+        public IList<PropertyExtractor<T>> Properties { get; }
+
+        public virtual bool CanBuild => Properties.Any();
 
         public virtual bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
             return true;
         }
 
-        public IList<PropertyExtractor<T>> Properties { get; }
-
-        public abstract Task<IFloatingPointFeatureExtractor<T>> BuildAsync(IAsyncEnumerator<T> samples);
+        public abstract IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder();
     }
 }

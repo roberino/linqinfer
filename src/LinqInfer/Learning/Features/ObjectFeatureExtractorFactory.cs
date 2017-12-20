@@ -81,6 +81,7 @@ namespace LinqInfer.Learning.Features
 
             return type
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.CanRead)
                 .Select(p =>
                 {
                     var featureDef = p.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);

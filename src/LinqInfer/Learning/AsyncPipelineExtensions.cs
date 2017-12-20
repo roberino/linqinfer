@@ -11,14 +11,23 @@ namespace LinqInfer.Learning
 {
     public static class AsyncPipelineExtensions
     {
+        public static Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipeineAsync<TInput>(
+            this IAsyncEnumerator<TInput> asyncEnumerator,
+            params IFeatureExtractionStrategy<TInput>[] strategies)
+            where TInput : class
+        {
+            return BuildPipeineAsync(asyncEnumerator, CancellationToken.None, strategies);
+        }
+
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipeineAsync<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
+            CancellationToken cancellationToken,
             params IFeatureExtractionStrategy<TInput>[] strategies)
             where TInput : class
         {
             var builder = new FeatureExtractorBuilder<TInput>(typeof(TInput), strategies);
 
-            var fe = await builder.BuildAsync(asyncEnumerator);
+            var fe = await builder.BuildAsync(asyncEnumerator, cancellationToken);
 
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, fe);
         }

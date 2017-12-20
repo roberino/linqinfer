@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data;
 
 namespace LinqInfer.Learning.Features
 {
@@ -15,38 +16,55 @@ namespace LinqInfer.Learning.Features
             return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == DistributionModel.Categorical;
         }
 
-        public override async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(IAsyncEnumerator<T> samples)
+        public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
         {
-            var vals = new Dictionary<string, long>();
+            return new Builder(Properties);
+        }
 
-            await samples.ProcessUsing(b =>
+        private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
+        {
+            private readonly IDictionary<string, long> _values;
+            private readonly IEnumerable<PropertyExtractor<T>> _properties;
+
+            public Builder(IEnumerable<PropertyExtractor<T>> properties)
             {
-                foreach (var v in b.Items)
+                _values = new Dictionary<string, long>();
+                _properties = properties;
+            }
+
+            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            {
+                var set = new HashSet<string>(_values.Keys);
+
+                var fe = new CategoricalFeatureExtractor<T, string>(GetValue, Feature.CreateDefaults(_properties.Select(p => p.Property.Name), DistributionModel.Categorical), set);
+
+                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(fe);
+            }
+
+            public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
+            {
+                foreach (var v in dataBatch.Items)
                 {
-                    vals[GetValue(v)] = 1;
+                    _values[GetValue(v)] = 1;
                 }
-            }, CancellationToken.None);
 
-            var encoder = new OneHotEncoding<string>(new HashSet<string>(vals.Keys));
+                return Task.FromResult(true);
+            }
 
-            var fe = new CategoricalFeatureExtractor<T, string>(GetValue, Feature.CreateDefaults(Properties.Select(p => p.Property.Name), DistributionModel.Categorical), new HashSet<string>(vals.Keys));
+            private string GetValue(T item)
+            {
+                return _properties
+                    .Select(p => p.Property.GetValue(item))
+                    .Aggregate(new StringBuilder(), (s, v) => (s.Length > 0 ? s.Append('/') : s).Append(Convert(v)))
+                    .ToString();
+            }
 
-            return fe;
-        }
+            private static string Convert(object value)
+            {
+                if (value == null) return string.Empty;
 
-        private string GetValue(T item)
-        {
-            return Properties
-                .Select(p => p.Property.GetValue(item))
-                .Aggregate(new StringBuilder(), (s, v) => (s.Length > 0 ? s.Append('/') : s).Append(Convert(v)))
-                .ToString();
-        }
-
-        private string Convert(object value)
-        {
-            if (value == null) return string.Empty;
-
-            return value.ToString();
+                return value.ToString();
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using LinqInfer.Data.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Data;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Features
 {
@@ -17,15 +20,33 @@ namespace LinqInfer.Learning.Features
                 propertyExtractor.ConversionFunction != null;
         }
 
-        public override Task<IFloatingPointFeatureExtractor<T>> BuildAsync(IAsyncEnumerator<T> samples)
+        public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
         {
-            var props = Properties;
+            return new Builder(Properties);
+        }
 
-            return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new DelegatingFloatingPointFeatureExtractor<T>(
-                x => props.Select(p => p.ConversionFunction(x)).ToArray(),
-                props.Count,
-                Feature.CreateDefaults(props.Select(p => p.Property.Name)))
-                );
+        private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
+        {
+            private readonly IList<PropertyExtractor<T>> _properties;
+
+            public Builder(IList<PropertyExtractor<T>> properties)
+            {
+                _properties = properties;
+            }
+
+            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            {
+                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new DelegatingFloatingPointFeatureExtractor<T>(
+                   x => _properties.Select(p => p.ConversionFunction(x)).ToArray(),
+                   _properties.Count,
+                   Feature.CreateDefaults(_properties.Select(p => p.Property.Name)))
+                   );
+            }
+
+            public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(true);
+            }
         }
     }
 }

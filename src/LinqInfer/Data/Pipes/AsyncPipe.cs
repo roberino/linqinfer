@@ -18,6 +18,8 @@ namespace LinqInfer.Data.Pipes
 
         public IAsyncSource<T> Source { get; }
 
+        public IEnumerable<IAsyncSink<T>> Sinks => _sinks;
+
         public IAsyncPipe<T> RegisterSinks(params IAsyncSink<T>[] sinks)
         {
             _sinks.AddRange(sinks);

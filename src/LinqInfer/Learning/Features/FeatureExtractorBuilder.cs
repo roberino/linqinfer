@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
@@ -20,13 +21,24 @@ namespace LinqInfer.Learning.Features
             Setup();
         }
 
-        public async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(IAsyncEnumerator<T> samples)
+        public async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(
+            IAsyncEnumerator<T> samples,
+            CancellationToken cancellationToken)
         {
             var extractors = new List<IFloatingPointFeatureExtractor<T>>();
+            var strategyBuilders = _strategies
+                .Where(s => s.CanBuild)
+                .Select(s => s.CreateBuilder())
+                .ToArray();
 
-            foreach (var strategy in _strategies.Where(s => s.Properties.Any()))
+            await samples
+                .CreatePipe()
+                .RegisterSinks(strategyBuilders)
+                .RunAsync(cancellationToken);
+
+            foreach (var builder in strategyBuilders)
             {
-                extractors.Add(await strategy.BuildAsync(samples));
+                extractors.Add(await builder.BuildAsync());
             }
 
             return new MultiStrategyFeatureExtractor<T>(extractors.ToArray());
