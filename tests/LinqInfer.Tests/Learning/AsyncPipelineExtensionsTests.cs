@@ -20,13 +20,13 @@ namespace LinqInfer.Tests.Learning
         public async Task BuildPipeineAsync_ReturnsAsyncPipeline()
         {
             var pipeline = await From.Func(Load)
-                .BuildPipeineAsync(
+                .BuildPipelineAsync(
                     new DefaultFeatureExtractionStrategy<Pirate>(),
                     new CategoricalFeatureExtractionStrategy<Pirate>());
 
-            var data = await pipeline.ExtractBatches().ToMemory(CancellationToken.None);
+            var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
-            Assert.That(data.Count, Is.GreaterThan(0));
+            Assert.That(data.Count, Is.EqualTo(100));
         }
 
         [Test]

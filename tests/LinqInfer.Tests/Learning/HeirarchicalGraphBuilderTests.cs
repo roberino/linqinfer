@@ -23,7 +23,7 @@ namespace LinqInfer.Tests.Learning
                 })
                 .AsAsyncEnumerator();
 
-            var pipe = data.CreatePipeine(x => ColumnVector1D.Create(x.a, x.b), 2);
+            var pipe = data.CreatePipeline(x => ColumnVector1D.Create(x.a, x.b), 2);
 
             var graph = await pipe.CreateBinaryGraphAsync();
 

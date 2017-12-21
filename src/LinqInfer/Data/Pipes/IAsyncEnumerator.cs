@@ -12,5 +12,6 @@ namespace LinqInfer.Data.Pipes
         IAsyncEnumerator<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer);
         IAsyncEnumerator<T2> TransformEachItem<T2>(Func<T, T2> transformer);
         IAsyncEnumerator<T> Filter(Func<T, bool> predicate);
+        IAsyncEnumerator<T> Limit(long maxNumberOfItems);
     }
 }

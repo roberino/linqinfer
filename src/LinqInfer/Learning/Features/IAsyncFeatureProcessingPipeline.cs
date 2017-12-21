@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Features
     /// which can be transformed and processed
     /// </summary>
     /// <typeparam name="T">The input type</typeparam>
-    public interface IAsyncFeatureProcessingPipeline<T> : IAsyncPipe<ObjectVector<T>> where T : class
+    public interface IAsyncFeatureProcessingPipeline<T> : IAsyncPipe<ObjectVectorPair<T>> where T : class
     {
         /// <summary>
         /// Returns the feature extractor
@@ -19,7 +19,7 @@ namespace LinqInfer.Learning.Features
         /// Returns an enumeration of vector data in batches.
         /// </summary>
         /// <returns></returns>
-        IAsyncEnumerator<ObjectVector<T>> ExtractBatches();
+        IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches();
 
         /// <summary>
         /// Preprocesses the data with the vector transformation

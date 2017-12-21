@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Maths;
 using System;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class AsyncTrainingSet<TInput, TClass> : IAsyncTrainingSet<TInput, TClass>
+    internal class AsyncTrainingSet<TInput, TClass> : AsyncPipe<TrainingPair<IVector, IVector>>, IAsyncTrainingSet<TInput, TClass>
         where TInput : class
         where TClass : IEquatable<TClass>
     {
@@ -15,6 +14,7 @@ namespace LinqInfer.Learning.Features
             IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             ICategoricalOutputMapper<TClass> outputMapper)
+            : base(ExtractBatches(pipeline, outputMapper, classf.Compile()))
         {
             FeaturePipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             ClassifyingExpression = classf ?? throw new ArgumentNullException(nameof(classf));
@@ -31,11 +31,16 @@ namespace LinqInfer.Learning.Features
         {
             var clsFunc = ClassifyingExpression.Compile();
 
-            return FeaturePipeline
-                .ExtractBatches()
-                .TransformEachBatch(b => b
-                        .Select(x => new TrainingPair<IVector, IVector>(x.VirtualVector, OutputMapper.ExtractIVector(clsFunc(x.Value))))
-                        .ToList());
+            return ExtractBatches(FeaturePipeline, OutputMapper, clsFunc);
+        }
+
+        private static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
+        {
+            return pipeline
+                   .ExtractBatches()
+                   .TransformEachBatch(b => b
+                           .Select(x => new TrainingPair<IVector, IVector>(x.Vector, outputMapper.ExtractIVector(classifyingFunc(x.Value))))
+                           .ToList());
         }
     }
 }

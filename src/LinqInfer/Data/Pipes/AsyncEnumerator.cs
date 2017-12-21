@@ -11,11 +11,17 @@ namespace LinqInfer.Data.Pipes
     {
         private readonly IEnumerable<Task<IList<T>>> _batchLoader;
         private readonly IList<Func<T, bool>> _filters;
+        private readonly long? _limit;
 
-        public AsyncEnumerator(IEnumerable<Task<IList<T>>> batchLoader, long? estimatedTotalCount = null)
+        public AsyncEnumerator(
+            IEnumerable<Task<IList<T>>> batchLoader, 
+            long? estimatedTotalCount = null,
+            long? limit = null,
+            IList<Func<T, bool>> filters = null)
         {
             _batchLoader = batchLoader ?? throw new ArgumentNullException(nameof(batchLoader));
-            _filters = new List<Func<T, bool>>();
+            _filters = filters ?? new List<Func<T, bool>>();
+            _limit = limit;
 
             EstimatedTotalCount = estimatedTotalCount;
         }
@@ -97,8 +103,12 @@ namespace LinqInfer.Data.Pipes
 
         public IAsyncEnumerator<T> Filter(Func<T, bool> predicate)
         {
-            _filters.Add(predicate);
-            return this;
+            return new AsyncEnumerator<T>(_batchLoader, EstimatedTotalCount, _limit, _filters.Concat(new[] { predicate }).ToList());
+        }
+
+        public IAsyncEnumerator<T> Limit(long maxNumberOfItems)
+        {
+            return new AsyncEnumerator<T>(_batchLoader, EstimatedTotalCount, maxNumberOfItems, _filters);
         }
 
         private async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
@@ -106,6 +116,7 @@ namespace LinqInfer.Data.Pipes
             ArgAssert.AssertNonNull(processor, nameof(processor));
 
             int i = 0;
+            long counter = 0;
 
             Batch<T> next = null;
 
@@ -117,6 +128,21 @@ namespace LinqInfer.Data.Pipes
                 }
 
                 var items = Filter(await batchTask);
+
+                if (_limit.HasValue)
+                {
+                    counter += items.Count;
+
+                    if (counter >= _limit.Value)
+                    {
+                        var overflow = counter - _limit.Value;
+                        var excess = (int)(next.Items.Count - overflow);
+
+                        next = new Batch<T>(items.Take(excess).ToList(), i++);
+
+                        break;
+                    }
+                }
 
                 next = new Batch<T>(items, i++);
             }

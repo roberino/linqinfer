@@ -184,7 +184,7 @@ namespace LinqInfer.Learning
                         {
                             writer.Write("\"" + label(m.Value).Replace("\"", "\\\"") + "\"" + delimitter);
                         }
-                        writer.WriteLine(m.Vector.ToCsv(delimitter));
+                        writer.WriteLine(m.ColumnVector.ToCsv(delimitter));
                     }
                 }
 

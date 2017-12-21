@@ -37,8 +37,11 @@ namespace LinqInfer.Tests
 
             public bool IsCaptain { get; set; }
 
-            [Feature(Model = DistributionModel.Categorical)]
+            [Feature(Model = FeatureVectorModel.Categorical)]
             public string Category { get; set; }
+
+            [Feature(Model = FeatureVectorModel.Semantic)]
+            public string Text { get; set; }
 
             public override string ToString()
             {

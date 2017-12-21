@@ -1,11 +1,10 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Maths.Probability;
+﻿using LinqInfer.Data;
+using LinqInfer.Data.Pipes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Data;
 
 namespace LinqInfer.Learning.Features
 {
@@ -13,7 +12,7 @@ namespace LinqInfer.Learning.Features
     {
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
-            return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == DistributionModel.Categorical;
+            return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == FeatureVectorModel.Categorical;
         }
 
         public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
@@ -23,47 +22,49 @@ namespace LinqInfer.Learning.Features
 
         private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
         {
-            private readonly IDictionary<string, long> _values;
-            private readonly IEnumerable<PropertyExtractor<T>> _properties;
+            private readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
 
             public Builder(IEnumerable<PropertyExtractor<T>> properties)
             {
-                _values = new Dictionary<string, long>();
-                _properties = properties;
+                _propertyLookups = properties
+                    .Select(p =>
+                        new Tuple<PropertyExtractor<T>, IDictionary<string, long>>
+                            (p, new Dictionary<string, long>()))
+                            .ToList();
             }
 
             public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
             {
-                var set = new HashSet<string>(_values.Keys);
+                var extractors = new List<IFloatingPointFeatureExtractor<T>>(_propertyLookups.Count);
 
-                var fe = new CategoricalFeatureExtractor<T, string>(GetValue, Feature.CreateDefaults(_properties.Select(p => p.Property.Name), DistributionModel.Categorical), set);
+                foreach (var plookup in _propertyLookups)
+                {
+                    var set = new HashSet<string>(plookup.Item2.Keys);
 
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(fe);
+                    var fe = new CategoricalFeatureExtractor<T, string>(x => GetValue(x, plookup.Item1), Feature.CreateDefaults(new[] { plookup.Item1.Property.Name }, FeatureVectorModel.Categorical), set);
+
+                    extractors.Add(fe);
+                }
+
+                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new MultiStrategyFeatureExtractor<T>(extractors.ToArray()));
             }
 
             public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
             {
-                foreach (var v in dataBatch.Items)
+                foreach (var plookup in _propertyLookups)
                 {
-                    _values[GetValue(v)] = 1;
+                    foreach (var v in dataBatch.Items)
+                    {
+                        plookup.Item2[GetValue(v, plookup.Item1)] = 1;
+                    }
                 }
 
                 return Task.FromResult(true);
             }
 
-            private string GetValue(T item)
+            private string GetValue(T item, PropertyExtractor<T> property)
             {
-                return _properties
-                    .Select(p => p.Property.GetValue(item))
-                    .Aggregate(new StringBuilder(), (s, v) => (s.Length > 0 ? s.Append('/') : s).Append(Convert(v)))
-                    .ToString();
-            }
-
-            private static string Convert(object value)
-            {
-                if (value == null) return string.Empty;
-
-                return value.ToString();
+                return property.GetValue(item)?.ToString() ?? string.Empty;
             }
         }
     }

@@ -21,5 +21,17 @@ namespace LinqInfer.Learning.Features
         public PropertyInfo Property { get;}
         public FeatureAttribute FeatureMetadata { get; }
         public Func<T, double> ConversionFunction { get; }
+
+        public object GetValue(T item)
+        {
+            if (ConversionFunction != null)
+            {
+                return ConversionFunction(item);
+            }
+            else
+            {
+                return Property.GetValue(item);
+            }
+        }
     }
 }

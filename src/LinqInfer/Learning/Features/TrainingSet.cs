@@ -60,27 +60,27 @@ namespace LinqInfer.Learning.Features
 
             foreach (var batch in _pipeline.ExtractBatches(batchSize))
             {
-                yield return batch.Select(b => new TrainingPair<IVector, IVector>(b.VirtualVector, _outputMapper.Value.ExtractIVector(cf(b.Value)))).ToList();
+                yield return batch.Select(b => new TrainingPair<IVector, IVector>(b.Vector, _outputMapper.Value.ExtractIVector(cf(b.Value)))).ToList();
             }
         }
 
-        public IQueryable<IGrouping<TClass, ObjectVector<TInput>>> GetEnumerator()
+        public IQueryable<IGrouping<TClass, ObjectVectorPair<TInput>>> GetEnumerator()
         {
             return _pipeline
                 .Data
                 .GroupBy(_classf)
                 .Select(g =>
-                    (IGrouping<TClass, ObjectVector<TInput>>)new G(g.Key,
+                    (IGrouping<TClass, ObjectVectorPair<TInput>>)new G(g.Key,
                         g.Select(x =>
-                            new ObjectVector<TInput>(x, _pipeline.FeatureExtractor.ExtractIVector(x))))
+                            new ObjectVectorPair<TInput>(x, _pipeline.FeatureExtractor.ExtractIVector(x))))
                             );
         }
 
-        private class G : IGrouping<TClass, ObjectVector<TInput>>
+        private class G : IGrouping<TClass, ObjectVectorPair<TInput>>
         {
-            private readonly IEnumerable<ObjectVector<TInput>> _data;
+            private readonly IEnumerable<ObjectVectorPair<TInput>> _data;
 
-            public G(TClass key, IEnumerable<ObjectVector<TInput>> data)
+            public G(TClass key, IEnumerable<ObjectVectorPair<TInput>> data)
             {
                 Key = key;
                 _data = data;
@@ -88,7 +88,7 @@ namespace LinqInfer.Learning.Features
 
             public TClass Key { get; private set; }
 
-            public IEnumerator<ObjectVector<TInput>> GetEnumerator()
+            public IEnumerator<ObjectVectorPair<TInput>> GetEnumerator()
             {
                 return _data.GetEnumerator();
             }

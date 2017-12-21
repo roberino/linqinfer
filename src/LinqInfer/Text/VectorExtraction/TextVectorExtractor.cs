@@ -221,7 +221,7 @@ namespace LinqInfer.Text.VectorExtraction
             if (ignoreExisting) _features.Clear();
 
             foreach (var f in _words.Select(w =>
-                  (IFeature)new Feature() { DataType = TypeCode.String, Index = w.Value, Key = w.Key, Label = w.Key, Model = Maths.Probability.DistributionModel.Magnitudinal }))
+                  (IFeature)new Feature() { DataType = TypeCode.String, Index = w.Value, Key = w.Key, Label = w.Key, Model = FeatureVectorModel.Magnitudinal }))
             {
                 _features.Add(f);
             }

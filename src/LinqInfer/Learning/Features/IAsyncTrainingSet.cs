@@ -1,12 +1,11 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    public interface IAsyncTrainingSet<TInput, TClass>
+    public interface IAsyncTrainingSet<TInput, TClass> : IAsyncPipe<TrainingPair<IVector, IVector>>
         where TInput : class
         where TClass : IEquatable<TClass>
     {

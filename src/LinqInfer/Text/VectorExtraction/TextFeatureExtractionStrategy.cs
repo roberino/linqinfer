@@ -67,7 +67,7 @@ namespace LinqInfer.Text.VectorExtraction
 
                 foreach (var p in _properties)
                 {
-                    if (p.Property.GetValue(item) is string text)
+                    if (p.GetValue(item) is string text)
                     {
                         sb.AppendLine(text);
                     }
@@ -79,7 +79,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
-            return propertyExtractor.Property.PropertyType == typeof(string);
+            return propertyExtractor.Property.PropertyType == typeof(string) && propertyExtractor.FeatureMetadata.Model == FeatureVectorModel.Semantic;
         }
     }
 }

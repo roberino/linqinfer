@@ -21,7 +21,7 @@ namespace LinqInfer.Learning.Features
         /// Returns an enumeration of vector data in batches
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000);
+        IEnumerable<IList<ObjectVectorPair<T>>> ExtractBatches(int batchSize = 1000);
 
         /// <summary>
         /// Processes the data using the supplied function

@@ -29,7 +29,7 @@ namespace LinqInfer.Data.Pipes
         {
             return new AsyncEnumerator<T>(values
                 .Chunk(batchSize)
-                .Select(b => Task.FromResult<IList<T>>(b.ToList())), estimatedResultCount.HasValue ? estimatedResultCount.Value : values.Count());
+                .Select(b => Task.FromResult<IList<T>>(b.ToList())), estimatedResultCount ?? values.Count());
         }
 
         /// <summary>
@@ -48,11 +48,11 @@ namespace LinqInfer.Data.Pipes
         /// </summary>
         /// <typeparam name="TInput">The type of data</typeparam>
         /// <param name="batchLoaderFunc">A batch loading function</param>
-        public static IAsyncEnumerator<TInput> Func<TInput>(Func<int, AsyncBatch<TInput>> batchLoaderFunc)
+        public static IAsyncEnumerator<TInput> Func<TInput>(Func<int, AsyncBatch<TInput>> batchLoaderFunc, long? estimatedNumberOfResults = null)
         {
             var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);
 
-            var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum);
+            var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum, estimatedNumberOfResults);
 
             return asyncEnumerator;
         }

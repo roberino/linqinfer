@@ -249,13 +249,13 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Extracts object vector pairs in batches
         /// </summary>
-        public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
+        public IEnumerable<IList<ObjectVectorPair<T>>> ExtractBatches(int batchSize = 1000)
         {
             var fe = FeatureExtractor;
 
             foreach (var batch in _data.Chunk(batchSize))
             {
-                yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractIVector(b))).ToList();
+                yield return batch.Select(b => new ObjectVectorPair<T>(b, fe.ExtractIVector(b))).ToList();
             }
         }
 

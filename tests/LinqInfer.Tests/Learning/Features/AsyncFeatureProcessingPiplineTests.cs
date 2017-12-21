@@ -28,8 +28,8 @@ namespace LinqInfer.Tests.Learning.Features
 
                 foreach(var item in items)
                 {
-                    Assert.That(item.VirtualVector[0], Is.EqualTo(n));
-                    Assert.That(item.VirtualVector[1], Is.EqualTo(m));
+                    Assert.That(item.Vector[0], Is.EqualTo(n));
+                    Assert.That(item.Vector[1], Is.EqualTo(m));
                     Assert.That(item.Value, Is.EqualTo($"{n},{m}"));
 
                     m++;

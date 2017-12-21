@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace LinqInfer.Learning.Features
 {
     internal class AsyncFeatureProcessingPipeline<T>
-        : AsyncPipe<ObjectVector<T>>, IAsyncFeatureProcessingPipeline<T>
+        : AsyncPipe<ObjectVectorPair<T>>, IAsyncFeatureProcessingPipeline<T>
         where T : class
     {
         private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
@@ -27,7 +27,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Range? range = null)
         {
-            var minMaxMean = await MinMaxMeanVector.MinMaxAndMeanOfEachDimensionAsync(ExtractBatches().TransformEachItem(o => o.VirtualVector));
+            var minMaxMean = await MinMaxMeanVector.MinMaxAndMeanOfEachDimensionAsync(ExtractBatches().TransformEachItem(o => o.Vector));
 
             var transform = minMaxMean.CreateCentreAndScaleTransformation(range);
 
@@ -46,16 +46,16 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
-        public IAsyncEnumerator<ObjectVector<T>> ExtractBatches()
+        public IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches()
         {
             return ExtractBatches(_dataLoader, _featureExtractor);
         }
 
-        private static IAsyncEnumerator<ObjectVector<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
+        private static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
         {
             return dataLoader
                 .TransformEachBatch(b => b
-                        .Select(x => new ObjectVector<T>(x, fe.ExtractIVector))
+                        .Select(x => new ObjectVectorPair<T>(x, fe.ExtractIVector))
                         .ToList());
         }
     }

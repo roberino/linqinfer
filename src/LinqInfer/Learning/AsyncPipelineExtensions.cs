@@ -11,15 +11,15 @@ namespace LinqInfer.Learning
 {
     public static class AsyncPipelineExtensions
     {
-        public static Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipeineAsync<TInput>(
+        public static Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             params IFeatureExtractionStrategy<TInput>[] strategies)
             where TInput : class
         {
-            return BuildPipeineAsync(asyncEnumerator, CancellationToken.None, strategies);
+            return BuildPipelineAsync(asyncEnumerator, CancellationToken.None, strategies);
         }
 
-        public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipeineAsync<TInput>(
+        public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             CancellationToken cancellationToken,
             params IFeatureExtractionStrategy<TInput>[] strategies)
@@ -40,7 +40,7 @@ namespace LinqInfer.Learning
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
         }
 
-        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
+        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             Func<TInput, IVector> featureExtractorFunction,
             int vectorSize)

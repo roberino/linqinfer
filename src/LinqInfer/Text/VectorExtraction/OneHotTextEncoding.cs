@@ -1,11 +1,10 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using System.Collections.Generic;
-using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using LinqInfer.Data;
-using LinqInfer.Maths.Probability;
+using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
@@ -18,7 +17,7 @@ namespace LinqInfer.Text.VectorExtraction
         {
             _objectToStringTransform = objectToStringTransform;
             _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
-            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, DistributionModel.Categorical);
+            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
         }
 
         public int VectorSize => _encoder.VectorSize;
