@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class GenericClassifier<TInput, TOutput>
+    internal class GenericClassifier<TInput, TOutput> : IObjectClassifier<TOutput, TInput>
         where TOutput : IEquatable<TOutput>
     {
         private readonly IFloatingPointFeatureExtractor<TInput> _featureExtractor;

@@ -6,7 +6,6 @@ namespace LinqInfer.Learning.Classification
         ICloneableObject<IPrunableObjectClassifier<TClass, TInput>>, 
         IObjectClassifier<TClass, TInput>, 
         IBinaryPersistable
-        // IExportableAsVectorDocument
     {
         void PruneFeatures(params int[] featureIndexes);
     }

@@ -32,7 +32,7 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task SendAsync_InvokesPublishAsync()
         {
-            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
+            var pipeline = CreatePipeline();
 
             var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
 
@@ -46,7 +46,7 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task AsTrainingSet_UsingOutputParams_ReturnsProcessableTrainingSet()
         {
-            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
+            var pipeline = CreatePipeline();
 
             var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
 
@@ -70,7 +70,7 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task CreatePipeline_ReturnsProcessablePipeline()
         {
-            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
+            var pipeline = CreatePipeline();
 
             int counter = 0;
 
@@ -89,6 +89,13 @@ namespace LinqInfer.Tests.Learning
             });
 
             Assert.That(counter, Is.EqualTo(10));
+        }
+
+        internal static IAsyncFeatureProcessingPipeline<Pirate> CreatePipeline()
+        {
+            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
+
+            return pipeline;
         }
 
         private static AsyncBatch<Pirate> Load(int n)

@@ -1,45 +1,35 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Threading.Tasks;
+using LinqInfer.Data;
+using System.Threading;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class AsyncTrainingAdapter<TInput, TClass>
+    internal class AsyncTrainingAdapter<TInput, TClass, TProcessor>
+        : IAsyncSink<TrainingPair<IVector, IVector>>
         where TInput : class
         where TClass : IEquatable<TClass>
+        where TProcessor : IAssistedLearningProcessor
     {
-        private readonly IAssistedLearningProcessor _learningProcessor;
+        private readonly Func<int, double, bool> _haltingFunction;
 
-        public AsyncTrainingAdapter(IAssistedLearningProcessor learningProcessor)
+        public AsyncTrainingAdapter(TProcessor learningProcessor, Func<int, double, bool> haltingFunction)
         {
-            _learningProcessor = learningProcessor;
+            Processor = learningProcessor;
+            _haltingFunction = haltingFunction;
         }
 
-        public async Task<double> Train(
-            IAsyncTrainingSet<TInput, TClass> trainingData,
-            Func<int, double, bool> haltingFunction)
+        public TProcessor Processor { get; }
+
+        public Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
         {
-            bool halted = false;
-
-            double lastError = 0;
-
-            await trainingData
-                .ExtractInputOutputIVectorBatches()
-                .ProcessUsing(b =>
-                {
-                    _learningProcessor.Train(b.Items, (n, e) =>
-                    {
-                        halted = haltingFunction(n * (b.BatchNumber + 1), e);
-
-                        lastError = e;
-
-                        return halted;
-                    });
-
-                    return !halted;
-                });
-
-            return lastError;
+            return Task.Factory.StartNew(() =>
+            {
+                Processor.Train(dataBatch.Items, (n, e) => _haltingFunction(n, e) || cancellationToken.IsCancellationRequested);
+            });
         }
     }
 }

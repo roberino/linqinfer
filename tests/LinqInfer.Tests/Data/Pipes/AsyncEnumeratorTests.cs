@@ -22,9 +22,9 @@ namespace LinqInfer.Tests.Data.Pipes
         [Test]
         public async Task WhenLimitSet_RestrictsTheNumberOfItemsReturned()
         {
-            var asyncEnum = From.Func(Load);
-
-            asyncEnum.Limit(53);
+            var asyncEnum = From
+                .Func(Load)
+                .Limit(53);
 
             var data = await asyncEnum.ToMemoryAsync(CancellationToken.None);
 

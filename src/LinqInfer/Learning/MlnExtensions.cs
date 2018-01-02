@@ -14,6 +14,25 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="trainingSet">A asyncronous training set</param>
+        public static IDynamicClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
+            this IAsyncTrainingSet<TInput, TClass> trainingSet,
+            params int[] hiddenLayerSizes) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var parameters = NetworkParameters.Sigmoidal(new[] { trainingSet.FeaturePipeline.FeatureExtractor.VectorSize }.Concat(hiddenLayerSizes).Concat(new[] { trainingSet.OutputMapper.VectorSize }).ToArray());
+            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(parameters, (n, e) => true);
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Classifier);
+
+            trainingSet.RegisterSinks(sink);
+
+            return classifier;
+        }
+
+        /// <summary>
+        /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="pipeline">A pipeline of feature data</param>
         /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
         /// <param name="errorTolerance">The network error tolerance</param>

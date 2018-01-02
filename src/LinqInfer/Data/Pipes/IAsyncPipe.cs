@@ -12,6 +12,6 @@ namespace LinqInfer.Data.Pipes
 
         IAsyncPipe<T> RegisterSinks(params IAsyncSink<T>[] sinks);
 
-        Task RunAsync(CancellationToken cancellationToken);
+        Task RunAsync(CancellationToken cancellationToken, int epochs = 1);
     }
 }

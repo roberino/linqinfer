@@ -99,7 +99,7 @@ namespace LinqInfer.Learning
         /// <param name="outputMapper">An output mapper</param>
         /// <returns>A training set</returns>
         public static IAsyncTrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(
-            this IAsyncFeatureProcessingPipeline<TInput> pipeline, 
+            this IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             ICategoricalOutputMapper<TClass> outputMapper)
             where TInput : class

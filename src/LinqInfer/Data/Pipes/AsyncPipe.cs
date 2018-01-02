@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,15 +27,20 @@ namespace LinqInfer.Data.Pipes
             return this;
         }
 
-        public async Task RunAsync(CancellationToken cancellationToken)
+        public async Task RunAsync(CancellationToken cancellationToken, int epochs = 1)
         {
-            await Source.ProcessUsing(async b =>
+            ArgAssert.AssertGreaterThanZero(epochs, nameof(epochs));
+
+            for (var i = 0; i < epochs; i++)
             {
-                var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
+                await Source.ProcessUsing(async b =>
+                {
+                    var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 
-                await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks);
 
-            }, cancellationToken);
+                }, cancellationToken);
+            }
         }
     }
 }

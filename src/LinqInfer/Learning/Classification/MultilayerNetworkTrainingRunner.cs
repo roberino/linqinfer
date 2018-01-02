@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class MultilayerNetworkTrainingRunner<TClass, TInput> where TInput : class where TClass : IEquatable<TClass>
+    internal class MultilayerNetworkTrainingRunner<TClass, TInput> 
+        where TInput : class where TClass : IEquatable<TClass>
     {
         private readonly ITrainingSet<TInput, TClass> _trainingSet;
 
