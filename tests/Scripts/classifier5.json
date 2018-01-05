@@ -1,6 +1,6 @@
 {
 	"transform": "pca(50,100)",
-	"maxVectorSize": 200,
+	"maxVectorSize": 500,
 	"classAttributeName": "cls",
-	"errorTolerance": 0.1
+	"errorTolerance": 0.03
 }
