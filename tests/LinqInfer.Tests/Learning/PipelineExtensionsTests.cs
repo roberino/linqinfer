@@ -112,7 +112,6 @@ namespace LinqInfer.Tests.Learning
             Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
         }
 
-
         [Test]
         public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()
         {

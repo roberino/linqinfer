@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
 using NUnit.Framework;
 using System.Linq;
 using System.Threading;

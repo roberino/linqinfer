@@ -42,7 +42,7 @@ namespace LinqInfer.Tests.Text.Analysis
                 .ProcessUsing(p =>
                 {
                     Assert.That(counter, Is.EqualTo(p.BatchNumber));
-                    Assert.That(p.Items.Count, Is.EqualTo((26 - 4) * 4));
+                    Assert.That(p.Items.Count, Is.EqualTo(22));
 
                     counter++;
 
@@ -59,7 +59,7 @@ namespace LinqInfer.Tests.Text.Analysis
             var trainingBatches = trainingData.ExtractTrainingVectorBatches();
 
             Assert.That(trainingBatches.Count(), Is.EqualTo(1));
-            Assert.That(trainingBatches.First().Count, Is.EqualTo((26 - 4) * 4));
+            Assert.That(trainingBatches.First().Count, Is.EqualTo(22)); // (26 - 4) * 4));
         }
 
         [Test]

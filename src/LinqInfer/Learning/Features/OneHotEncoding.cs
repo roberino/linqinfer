@@ -24,6 +24,28 @@ namespace LinqInfer.Learning.Features
             return new OneOfNVector(VectorSize);
         }
 
+        public BitVector Encode(IEnumerable<T> categories)
+        {
+            var indexes = new List<int>();
+            
+            foreach(var cat in categories)
+            {
+                if (Lookup.TryGetValue(cat, out int index))
+                {
+                    indexes.Add(index);
+                }
+            }
+
+            return new BitVector(indexes, VectorSize);
+        }
+
+        public IVector Encode(T[] categories)
+        {
+            if (categories.Length == 0) return new ZeroVector(VectorSize);
+            if (categories.Length == 1) return Encode(categories[0]);
+            return Encode(categories as IEnumerable<T>);
+        }
+
         internal IDictionary<T, int> Lookup { get; }
     }
 }
