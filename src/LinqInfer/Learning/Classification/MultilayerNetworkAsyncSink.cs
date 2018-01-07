@@ -25,6 +25,8 @@ namespace LinqInfer.Learning.Classification
 
         public IVectorClassifier Classifier => _trainingContext.Output;
 
+        public bool CanReceive => true;
+
         public Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>

@@ -33,8 +33,18 @@ namespace LinqInfer.Data.Pipes
 
             for (var i = 0; i < epochs; i++)
             {
+                if (!_sinks.Any(s => s.CanReceive))
+                {
+                    return;
+                }
+
                 await Source.ProcessUsing(async b =>
                 {
+                    if (!_sinks.Any(s => s.CanReceive))
+                    {
+                        return;
+                    }
+
                     var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 
                     await Task.WhenAll(tasks);

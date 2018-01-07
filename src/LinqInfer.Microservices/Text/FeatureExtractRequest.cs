@@ -28,7 +28,7 @@ namespace LinqInfer.Microservices.Text
                         pipeline.PrincipalComponentReduction(int.Parse(op.Parameters[0]), int.Parse(op.Parameters[1]));
                         break;
                     case "map":
-                        pipeline.KohonenSOMFeatureReduction(int.Parse(op.Parameters[0]), int.Parse(op.Parameters[1]));
+                        pipeline.KohonenSomFeatureReduction(int.Parse(op.Parameters[0]), int.Parse(op.Parameters[1]));
                         break;
                     case "norm":
                         pipeline.NormaliseData();

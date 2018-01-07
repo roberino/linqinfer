@@ -27,13 +27,18 @@ namespace LinqInfer.Text.Analysis
             return pipeline.AsTrainingSet(t => t.TargetWord.Text);
         }
 
-        public static IAsyncTrainingSet<SyntacticContext, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int sampleSize = 1000, int contextPadding = 2)
+        public static AsyncContinuousBagOfWords CreateAsyncContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
         {
-            var cbow = new AsyncContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
+            return new AsyncContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
+        }
+
+        public static IAsyncTrainingSet<SyntacticContext, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
+        {
+            var cbow = CreateAsyncContinuousBagOfWords(corpus, targetVocabulary, contextPadding);
 
             var encoder = new OneHotTextEncoding<SyntacticContext>(targetVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
 
-            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.StreamContext(), encoder);
+            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetEnumerator(), encoder);
 
             var omf = new OutputMapperFactory<WordPair, string>();
 

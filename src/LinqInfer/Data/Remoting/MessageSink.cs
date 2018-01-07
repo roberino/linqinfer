@@ -16,6 +16,8 @@ namespace LinqInfer.Data.Remoting
             _messageConverter = messageConverter ?? throw new ArgumentNullException(nameof(messageConverter));
         }
 
+        public bool CanReceive => true;
+
         public async Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
         {
             var msg = _messageConverter(dataBatch);

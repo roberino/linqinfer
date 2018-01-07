@@ -13,7 +13,7 @@ namespace LinqInfer.Tests.Utility
         {
             var data = new[] { 'a', 'b', 'c' };
 
-            var result = data.All((n, x) => n > 0 && n < 4);
+            var result = data.All((n, x) => n >= 0 && n < 4);
 
             Assert.That(result);
         }

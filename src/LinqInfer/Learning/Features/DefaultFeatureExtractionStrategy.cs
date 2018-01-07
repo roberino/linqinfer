@@ -34,6 +34,8 @@ namespace LinqInfer.Learning.Features
                 _properties = properties;
             }
 
+            public bool CanReceive => true;
+
             public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
             {
                 return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new DelegatingFloatingPointFeatureExtractor<T>(

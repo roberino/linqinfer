@@ -12,7 +12,14 @@ namespace LinqInfer.Tests.Learning
         public void ToSofm_SimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = TestData.CreatePirates().ToList();
-            var featureMap = pirateSample.AsQueryable().CreatePipeline().ToSofm(2, 0.5f, null, 100).Execute().ToList();
+
+            var pipeline = pirateSample
+                .AsQueryable()
+                .CreatePipeline()
+                .CentreFeatures()
+                .ScaleFeatures(new Range(1, -1));
+
+            var featureMap = pipeline.ToSofm(2, 0.5f, null, 100).Execute().ToList();
 
             Assert.That(featureMap.Count(), Is.EqualTo(2));
 
