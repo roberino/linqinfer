@@ -18,6 +18,27 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        public void WhenConstructedWithIndexes_CreatesAValidInstance()
+        {
+            var indexes = new[] { 1, 5, 9 };
+            var vect = new BitVector(indexes, 12);
+
+            Assert.That(vect.Size, Is.EqualTo(12));
+
+            for (int i = 0; i < 12; i++)
+            {
+                if (indexes.Contains(i))
+                {
+                    Assert.That(vect.ValueAt(i), Is.True);
+                }
+                else
+                {
+                    Assert.That(vect.ValueAt(i), Is.False);
+                }
+            }
+        }
+
+        [Test]
         public void WhenConstructedWithAMultiValueSmallArray_CreatesAValidInstance()
         {
             var vect = new BitVector(new[] { false, true, false, true, false });

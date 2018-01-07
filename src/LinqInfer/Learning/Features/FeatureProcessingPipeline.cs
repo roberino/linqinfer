@@ -153,15 +153,18 @@ namespace LinqInfer.Learning.Features
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <param name="parameters">The parameters used to affect the clustering process</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public IFeatureProcessingPipeline<T> KohonenSOMFeatureReduction(int numberOfDimensions, int sampleSize = 100, ClusteringParameters parameters = null)
+        public IFeatureProcessingPipeline<T> KohonenSomFeatureReduction(int numberOfDimensions, int sampleSize = 100, Action<ClusteringParameters> configure = null)
         {
-            if (parameters == null) parameters = new ClusteringParameters()
+            var parameters = new ClusteringParameters()
             {
                 InitialRadius = 0.5,
-                InitialLearningRate = 0.1f
+                InitialLearningRate = 0.1f,
+                NumberOfOutputNodes = numberOfDimensions
             };
 
             parameters.NumberOfOutputNodes = numberOfDimensions;
+
+            configure?.Invoke(parameters);
 
             var mapper = new FeatureMapperV3<T>(parameters);
 

@@ -9,6 +9,26 @@ namespace LinqInfer.Tests.Utility
     public class LinqExtensionsTests
     {
         [Test]
+        public void All_GivenTruePredicate_ReturnsTrue()
+        {
+            var data = new[] { 'a', 'b', 'c' };
+
+            var result = data.All((n, x) => n >= 0 && n < 4);
+
+            Assert.That(result);
+        }
+
+        [Test]
+        public void All_GivenFalsePredicate_ReturnsFalse()
+        {
+            var data = new[] { 'a', 'b', 'c' };
+
+            var result = data.All((n, x) => x == 'a');
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
         public void Invert_InvertsExpressions()
         {
             Expression<Func<string, bool>> e = x => x.Length > 0;

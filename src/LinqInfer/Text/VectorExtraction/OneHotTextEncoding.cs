@@ -11,9 +11,16 @@ namespace LinqInfer.Text.VectorExtraction
     internal class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private readonly OneHotEncoding<string> _encoder;
-        private readonly Func<T, string> _objectToStringTransform;
+        private readonly Func<T, string[]> _objectToStringTransform;
 
         public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
+        {
+            _objectToStringTransform = x => new[] { objectToStringTransform(x) };
+            _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
+            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
+        }
+
+        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string[]> objectToStringTransform)
         {
             _objectToStringTransform = objectToStringTransform;
             _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
@@ -23,11 +30,6 @@ namespace LinqInfer.Text.VectorExtraction
         public int VectorSize => _encoder.VectorSize;
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
-
-        public ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return ExtractColumnVector(_objectToStringTransform(obj));
-        }
 
         public double[] ExtractVector(T obj)
         {
@@ -39,24 +41,19 @@ namespace LinqInfer.Text.VectorExtraction
             return ExtractOneOfNVector(_objectToStringTransform(obj));
         }
 
-        public ColumnVector1D ExtractColumnVector(string token)
+        public double[] ExtractVector(string[] tokens)
         {
-            return ExtractOneOfNVector(token).ToColumnVector();
+            return ExtractOneOfNVector(tokens).ToColumnVector().GetUnderlyingArray();
         }
 
-        public double[] ExtractVector(string token)
+        public IVector ExtractOneOfNVector(string[] tokens)
         {
-            return ExtractOneOfNVector(token).ToColumnVector().GetUnderlyingArray();
+            return _encoder.Encode(tokens);
         }
 
-        public OneOfNVector ExtractOneOfNVector(string token)
+        public IVector Encode(IToken token)
         {
-            return _encoder.Encode(token);
-        }
-
-        public ColumnVector1D Encode(IToken token)
-        {
-            return ExtractColumnVector(token.Text.ToLowerInvariant());
+            return ExtractOneOfNVector(new[] { token.Text.ToLowerInvariant() });
         }
 
         public void Save(Stream output)

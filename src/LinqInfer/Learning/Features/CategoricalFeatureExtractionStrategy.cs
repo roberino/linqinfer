@@ -33,6 +33,8 @@ namespace LinqInfer.Learning.Features
                             .ToList();
             }
 
+            public bool CanReceive => true;
+
             public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
             {
                 var extractors = new List<IFloatingPointFeatureExtractor<T>>(_propertyLookups.Count);

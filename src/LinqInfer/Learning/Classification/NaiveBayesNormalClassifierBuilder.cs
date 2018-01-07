@@ -22,6 +22,8 @@ namespace LinqInfer.Learning.Classification
             _samples = new Dictionary<IVector, IList<IVector>>(); 
         }
 
+        public bool CanReceive => true;
+
         public Func<IVector, IVector> Build()
         {
             var outputModels = _samples.Select(s => new

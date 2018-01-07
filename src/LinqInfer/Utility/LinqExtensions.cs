@@ -11,6 +11,38 @@ namespace LinqInfer.Utility
     public static class LinqExtensions
     {
         /// <summary>
+        /// Returns true if all members of an enumeration
+        /// satisfy a predicate function which takes an
+        /// item index and an item.
+        /// e.g. {'a', 'b', 'c'}.All((n, x) => x == (char)((byte)'a' + n))
+        /// </summary>
+        public static bool All<T>(this IEnumerable<T> items, Func<int, T, bool> predicate)
+        {
+            int i = 0;
+            foreach (var x in items)
+            {
+                if (!predicate(i++, x)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if all members of an enumeration
+        /// satisfy a predicate function which takes an
+        /// item index and an item.
+        /// e.g. {'a', 'b', 'c'}.All((n, x) => x == (char)((byte)'a' + n))
+        /// </summary>
+        public static bool AllEqual<T>(this IEnumerable<T> items, Func<int, T> comparisonFunc)
+        {
+            int i = 0;
+            foreach (var x in items)
+            {
+                if (!comparisonFunc(i++).Equals(x)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
         public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)

@@ -85,14 +85,14 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public void ToNaiveBayesClassifier_SimpleSample_ClassifiesAsExpected()
         {
-            var pirateSample = TestData.CreatePirates().ToList();
+            var pirateSample = CreatePirates().ToList();
             var pipeline = pirateSample.AsQueryable().CreatePipeline();
             var classifier = pipeline.ToNaiveBayesClassifier(p => p.Age > 25 ? "old" : "young").Execute();
             
             // In the original predicate, if age > 25 then old.
             // But this pirate shares many features of other young pirates
             // So therfore should be classed as "young"
-            var classOfPirate = classifier.Classify(new TestData.Pirate()
+            var classOfPirate = classifier.Classify(new Pirate()
             {
                 Gold = 120,
                 Age = 27,
@@ -100,7 +100,7 @@ namespace LinqInfer.Tests.Learning
                 Ships = 1
             }).FirstOrDefault();
 
-            var classOfPirate2 = classifier.Classify(new TestData.Pirate()
+            var classOfPirate2 = classifier.Classify(new Pirate()
             {
                 Gold = 1600,
                 Age = 41,
@@ -111,7 +111,6 @@ namespace LinqInfer.Tests.Learning
             Assert.That(classOfPirate.ClassType, Is.EqualTo("young"));
             Assert.That(classOfPirate2.ClassType, Is.EqualTo("old"));
         }
-
 
         [Test]
         public void ToMultilayerNetworkClassifier_XorSample_ClassifiesAsExpected()

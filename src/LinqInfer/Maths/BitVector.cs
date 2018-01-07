@@ -19,6 +19,15 @@ namespace LinqInfer.Maths
             Size = values.Length;
         }
 
+        public BitVector(IEnumerable<int> hotIndexes, int vectorSize)
+        {
+            ArgAssert.AssertNonNull(hotIndexes, nameof(hotIndexes));
+            ArgAssert.AssertGreaterThanOrEqualToZero(vectorSize, nameof(vectorSize));
+
+            _data = Encode(hotIndexes, vectorSize);
+            Size = vectorSize;
+        }
+
         private BitVector(byte[] data, int size)
         {
             ArgAssert.AssertNonNull(data, nameof(data));
@@ -190,6 +199,20 @@ namespace LinqInfer.Maths
             for (var i = 0; i < values.Length; i++)
             {
                 if (values[i]) data[i / 8] |= (byte)(1 << (i % 8));
+            }
+
+            return data;
+        }
+
+        private static byte[] Encode(IEnumerable<int> hotIndexes, int vectorSize)
+        {
+            Contract.Requires(hotIndexes != null);
+
+            var data = GetByteStore(vectorSize);
+
+            foreach(var i in hotIndexes)
+            {
+                data[i / 8] |= (byte)(1 << (i % 8));
             }
 
             return data;

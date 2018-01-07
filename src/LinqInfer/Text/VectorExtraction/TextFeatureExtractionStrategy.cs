@@ -40,6 +40,8 @@ namespace LinqInfer.Text.VectorExtraction
                 _index = new DocumentIndex(tokeniser);
             }
 
+            public bool CanReceive => true;
+
             public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
             {
                 var f = new Func<T, IEnumerable<IToken>>(x => _index.Tokeniser.Tokenise(GetText(x)));

@@ -21,7 +21,7 @@ namespace LinqInfer.Text.Analysis
             _padding = paddingSize;
         }
 
-        public IAsyncEnumerator<SyntacticContext> StreamContext()
+        public IAsyncEnumerator<SyntacticContext> GetEnumerator()
         {
             var asyncEnum = _corpus
                 .ReadBlocksAsync()
@@ -32,7 +32,7 @@ namespace LinqInfer.Text.Analysis
 
         public IAsyncEnumerator<WordPair> StreamPairs()
         {
-            return StreamContext().SplitEachItem(
+            return GetEnumerator().SplitEachItem(
                 c => c
                     .ContextualWords
                     .Select(w =>

@@ -21,6 +21,8 @@ namespace LinqInfer.Learning.Classification
 
         public double MinError { get; set; } = 0.2;
 
+        public bool CanReceive => true;
+
         public Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>
