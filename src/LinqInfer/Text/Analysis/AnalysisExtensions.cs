@@ -2,11 +2,22 @@
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
     public static class AnalysisExtensions
     {
+        public static async Task<IImportableExportableSemanticSet> ExtractKeyTermsAsync(this ICorpus corpus, CancellationToken cancellationToken)
+        {
+            var builder = new SemanticSetBuilder();
+
+            await builder.AddAsync(corpus, cancellationToken);
+
+            return builder.Build();
+        }
+
         public static ContinuousBagOfWords CreateContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int contextPadding = 2)
         {
             var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary ?? targetVocabulary, contextPadding);

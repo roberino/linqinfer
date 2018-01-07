@@ -12,6 +12,14 @@ namespace LinqInfer.Data.Pipes
     public static class From
     {
         /// <summary>
+        /// Returns an empty AsyncEnumerator
+        /// </summary>
+        public static IAsyncEnumerator<T> EmptySource<T>()
+        {
+            return Enumerable(System.Linq.Enumerable.Empty<T>());
+        }
+
+        /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
         public static IAsyncEnumerator<T> Enumerable<T>(IEnumerable<T> values, int batchSize = 1000)

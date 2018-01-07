@@ -21,6 +21,8 @@ namespace LinqInfer.Data.Pipes
 
         public IEnumerable<IAsyncSink<T>> Sinks => _sinks;
 
+        public event EventHandler Disposing;
+
         public IAsyncPipe<T> RegisterSinks(params IAsyncSink<T>[] sinks)
         {
             _sinks.AddRange(sinks);
@@ -51,6 +53,11 @@ namespace LinqInfer.Data.Pipes
 
                 }, cancellationToken);
             }
+        }
+
+        public void Dispose()
+        {
+            Disposing?.Invoke(this, EventArgs.Empty);
         }
     }
 }

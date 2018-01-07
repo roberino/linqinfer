@@ -6,5 +6,8 @@ namespace LinqInfer.TextCrawler
     {
         [Option('u', "url", HelpText = "The root URL")]
         public string Url { get; set; }
+
+        [Option('o', "output", HelpText = "The output path")]
+        public string OutputPath { get; set; }
     }
 }

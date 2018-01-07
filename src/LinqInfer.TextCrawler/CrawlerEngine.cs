@@ -4,22 +4,36 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using LinqInfer.Text;
+using LinqInfer.Data.Pipes;
 
 namespace LinqInfer.TextCrawler
 {
     public class CrawlerEngine
     {
-        public Task Run(Uri uri, CancellationToken cancellationToken)
+        public async Task<IImportableExportableSemanticSet> ExtractVocabulary(Uri uri, CancellationToken cancellationToken)
         {
             var httpServices = new HttpDocumentServices();
 
             var corpus = httpServices.CreateVirtualCorpus(uri);
 
-            var engDict = new EnglishDictionary();
+            return await corpus.ExtractKeyTermsAsync(cancellationToken);
+        }
 
-            var cbow = corpus.CreateAsyncContinuousBagOfWords(engDict);
+        public IAsyncPipe<SyntacticContext> CreatePipe(Uri uri, CancellationToken cancellationToken, ISemanticSet vocabulary)
+        {
+            var httpServices = new HttpDocumentServices();
 
-            return Task.FromResult(0);
+            var corpus = httpServices.CreateVirtualCorpus(uri);
+
+            var vocab = vocabulary ?? new EnglishDictionary();
+
+            var cbow = corpus.CreateAsyncContinuousBagOfWords(vocab);
+
+            var pipe = cbow.GetEnumerator().CreatePipe();
+
+            pipe.Disposing += (s, e) => httpServices.Dispose();
+
+            return pipe;
         }
     }
 }
