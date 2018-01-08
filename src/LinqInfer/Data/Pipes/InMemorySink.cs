@@ -19,6 +19,8 @@ namespace LinqInfer.Data.Pipes
         {
             foreach(var item in dataBatch.Items)
             {
+                if (!CanReceive) break;
+
                 Enqueue(item);
             }
 

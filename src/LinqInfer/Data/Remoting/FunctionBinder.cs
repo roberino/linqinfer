@@ -129,9 +129,7 @@ namespace LinqInfer.Data.Remoting
 
         private void ValidateContextAndAppendDebugInfo(IOwinContext c, MethodInfo innerMethod, Type argType, Type resultType)
         {
-            object expectedResponseType;
-
-            if (c.TryGetValue("ext.ExpectedResponseType", out expectedResponseType))
+            if (c.TryGetValue("ext.ExpectedResponseType", out object expectedResponseType))
             {
                 if (expectedResponseType is Type && !((Type)expectedResponseType).GetTypeInf().IsAssignableFrom(resultType))
                 {
@@ -261,9 +259,8 @@ namespace LinqInfer.Data.Remoting
 
         private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name, bool ignoreCase = false)
         {
-            object val;
 
-            if (context.TryGetValue("route." + name, out val))
+            if (context.TryGetValue("route." + name, out object val))
             {
                 return new Tuple<object, bool>(Convert.ChangeType(val, type), true);
             }
