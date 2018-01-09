@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     {
         public Range(double max = 1, double min = 0)
         {
-            ArgAssert.Assert(() => max >= min, nameof(max));
+            ArgAssert.Assert(() => max >= min, $"max ({max}) should be greater than or equal to min ({min})");
 
             Min = min;
             Max = max;

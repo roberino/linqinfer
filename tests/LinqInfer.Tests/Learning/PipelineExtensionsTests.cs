@@ -91,7 +91,7 @@ namespace LinqInfer.Tests.Learning
             
             // In the original predicate, if age > 25 then old.
             // But this pirate shares many features of other young pirates
-            // So therfore should be classed as "young"
+            // So therefore should be classed as "young"
             var classOfPirate = classifier.Classify(new Pirate()
             {
                 Gold = 120,

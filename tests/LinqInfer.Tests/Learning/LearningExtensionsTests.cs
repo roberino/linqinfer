@@ -15,9 +15,9 @@ namespace LinqInfer.Tests.Learning
 
             var pipeline = pirateSample
                 .AsQueryable()
-                .CreatePipeline();
-                //.CentreFeatures()
-                //.ScaleFeatures(new Range(1, -1));
+                .CreatePipeline()
+                .CentreFeatures()
+                .ScaleFeatures(new Range(1, -1));
 
             var featureMap = pipeline.ToSofm(2, 0.5f, null, 100).Execute().ToList();
 

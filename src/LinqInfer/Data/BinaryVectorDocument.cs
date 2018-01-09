@@ -263,17 +263,19 @@ namespace LinqInfer.Data
         {
             if (obj == null) return;
 
+            var childType = obj.GetType().GetTypeInf();
             var tc = Type.GetTypeCode(obj.GetType());
 
             if (tc == TypeCode.Object)
             {
                 if (obj is IExportableAsVectorDocument && obj is IImportableAsVectorDocument)
                 {
-                    var cdoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
+                    var childDoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
 
-                    cdoc.Properties["TypeName"] = obj.GetType().GetTypeInf().Name;
+                    childDoc.Properties["TypeName"] = childType.Name;
+                    childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
 
-                    Children.Add(cdoc);
+                    Children.Add(childDoc);
                 }
                 else
                 {
@@ -281,7 +283,8 @@ namespace LinqInfer.Data
                     {
                         var childDoc = new BinaryVectorDocument();
 
-                        childDoc.Properties["TypeName"] = obj.GetType().GetTypeInf().Name;
+                        childDoc.Properties["TypeName"] = childType.Name;
+                        childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
                         childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
 
                         Children.Add(childDoc);
