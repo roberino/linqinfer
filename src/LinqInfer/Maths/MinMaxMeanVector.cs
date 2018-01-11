@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -83,7 +82,7 @@ namespace LinqInfer.Maths
 
             foreach (var val in values)
             {
-                if (min == null)
+                if (counter == 0)
                 {
                     min = new ColumnVector1D(val.ToColumnVector().ToDoubleArray());
                     max = new ColumnVector1D(val.ToColumnVector().ToDoubleArray());

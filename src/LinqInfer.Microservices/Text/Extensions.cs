@@ -15,6 +15,13 @@ namespace LinqInfer.Microservices.Text
             return aspNetCoreBuilder;
         }
 
+        public static IApplicationBuilder UseTextServices(this IApplicationBuilder aspNetCoreBuilder, IVirtualFileStore fileStore, Uri baseUri = null)
+        {
+            aspNetCoreBuilder.CreateHttpApi(baseUri ?? new Uri("http://0.0.0.0/")).UseTextServices(fileStore);
+
+            return aspNetCoreBuilder;
+        }
+
         public static IHttpApiBuilder UseTextServices(this IHttpApiBuilder apiBuilder, DirectoryInfo dataDir = null, ICache cache = null)
         {
             new TextServices(dataDir, cache).Register(apiBuilder);
