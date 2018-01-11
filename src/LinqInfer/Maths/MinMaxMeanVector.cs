@@ -20,8 +20,8 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Inconsistent sized vectors");
             }
 
-            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(min), nameof(max));
-            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(mean), nameof(max));
+            ArgAssert.Assert(() => mean.GreaterThanOrEqualElements(min), $"{nameof(mean)} < {nameof(min)}");
+            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(mean), $"{nameof(max)} < {nameof(mean)}");
         }
 
         public MinMaxMeanVector(IVector min, IVector max) : this(min, max, Vector.UniformVector(min.Size, 0))
