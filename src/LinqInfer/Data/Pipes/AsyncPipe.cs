@@ -47,6 +47,8 @@ namespace LinqInfer.Data.Pipes
                         return;
                     }
 
+                    DebugOutput.Log($"Processing batch: {b}");
+
                     var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 
                     await Task.WhenAll(tasks);

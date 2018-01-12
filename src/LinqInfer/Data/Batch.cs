@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Data
 {
-    public sealed class Batch<T> : IBatch<T>
+    internal sealed class Batch<T> : IBatch<T>
     {
         internal Batch(IList<T> items, int batchNumber)
         {
@@ -15,5 +15,10 @@ namespace LinqInfer.Data
         public IList<T> Items { get; }
 
         public bool IsLast { get; internal set; }
+
+        public override string ToString()
+        {
+            return $"#{BatchNumber} ({Items.Count} items{(IsLast ? " - last batch" : "")})";
+        }
     }
 }

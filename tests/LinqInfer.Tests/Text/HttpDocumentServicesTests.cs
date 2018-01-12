@@ -19,7 +19,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var doc = await reader.GetDocument(uri);
+                var doc = await reader.DocumentClient.GetDocument(uri);
 
                 Assert.That(doc.BaseUrl, Is.EqualTo(uri));
                 Assert.That(doc.Links.Any());
@@ -75,7 +75,7 @@ namespace LinqInfer.Tests.Text
                 var uri = new Uri(url);
                 var index = new DocumentIndex();
 
-                foreach (var docs in reader.CrawlDocuments(new Uri(url), d =>
+                foreach (var docs in reader.DocumentCrawler.CrawlDocuments(new Uri(url), d =>
                 {
                     return true;
                 }))

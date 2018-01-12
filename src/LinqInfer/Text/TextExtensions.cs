@@ -19,7 +19,7 @@ namespace LinqInfer.Text
     {
         public static Task<HttpDocument> OpenAsHtmlTokenDocument(this Uri rootUri)
         {            
-            return new HttpDocumentServices().GetDocument(rootUri);
+            return new HttpDocumentServices().DocumentClient.GetDocument(rootUri);
         }
 
         /// <summary>

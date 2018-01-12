@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LinqInfer.TextCrawler": {
+      "commandName": "Project",
+      "commandLineArgs": "-u https://en.wikipedia.org/wiki/Main_Page -o \"C:\\dev\\out.xml\""
+    }
+  }
+}
