@@ -11,18 +11,21 @@ namespace LinqInfer.Text.Http
         private const int MaxVisited = 350;
 
         private readonly HttpDocumentClient _docClient;
-        private readonly Func<Uri, bool> _linkFilter;
+        private readonly HashSet<Uri> _visited;
 
         internal HttpDocumentCrawler(
-            HttpDocumentClient documentClient,
-            Func<Uri, bool> linkFilter = null)
+            HttpDocumentClient documentClient)
         {
             _docClient = documentClient;
-            _linkFilter = linkFilter ?? (_ => true);
+            _visited = new HashSet<Uri>();
         }
 
-        public IEnumerable<Task<IList<HttpDocument>>> CrawlDocuments(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        public IEnumerable<Uri> VisitedUrls => _visited;
+
+        public IEnumerable<Task<IList<HttpDocument>>> CrawlDocuments(Uri rootUri, HttpDocumentCrawlerOptions options = null)
         {
+            if (options == null) options = new HttpDocumentCrawlerOptions();
+
             var pending = new Queue<IList<Uri>>();
 
             pending.Enqueue(new[] { rootUri });
@@ -32,51 +35,28 @@ namespace LinqInfer.Text.Http
             {
                 var docs = new List<HttpDocument>();
 
-                foreach (var child in await _docClient.FollowLinks(pending.Dequeue().Take(maxDocs - count), targetElement))
+                var links = pending.Dequeue().Take(options.MaxNumberOfDocuments - count);
+
+                foreach (var child in await _docClient.FollowLinks(links, options.TargetElement))
                 {
-                    if ((documentFilter?.Invoke(child)).GetValueOrDefault(true))
+                    if ((options.DocumentFilter?.Invoke(child)).GetValueOrDefault(true))
                     {
                         docs.Add(child);
 
                         count++;
 
-                        pending.Enqueue(child.Links.Select(l => l.Url).Where(_linkFilter).ToList());
+                        pending.Enqueue(child.Links.Select(l => l.Url).Where(options.LinkFilter).ToList());
                     }
 
-                    if (count >= maxDocs) break;
+                    if (count >= options.MaxNumberOfDocuments) break;
                 }
 
                 return docs;
             });
 
-            while (count < maxDocs && pending.Any())
+            while (count < options.MaxNumberOfDocuments && pending.Any())
             {
                 yield return f();
-            }
-        }
-
-        public async Task CrawlDocuments(Uri rootUri, Action<HttpDocument> documentAction, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
-        {
-            var pending = new Queue<IList<Uri>>();
-
-            pending.Enqueue(new[] { rootUri });
-            int count = 1;
-
-            while (count < maxDocs && pending.Any())
-            {
-                foreach (var child in await _docClient.FollowLinks(pending.Dequeue().Take(maxDocs - count), targetElement))
-                {
-                    if ((documentFilter?.Invoke(child)).GetValueOrDefault(true))
-                    {
-                        documentAction(child);
-
-                        count++;
-
-                        pending.Enqueue(child.Links.Select(l => l.Url).Where(_linkFilter).ToList());
-                    }
-
-                    if (count >= maxDocs) break;
-                }
             }
         }
 

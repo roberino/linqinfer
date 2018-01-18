@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LinqInfer.TextCrawler
 {
@@ -25,13 +26,13 @@ namespace LinqInfer.TextCrawler
 
             var engine = new CrawlerEngine();
 
-            var vocab = await engine.ExtractVocabulary(url, new CancellationTokenSource(15000).Token);
+            var index = await engine.CreateIndexAsync(url, new CancellationTokenSource(15000).Token);
 
-            var doc = vocab.ExportAsXml();
+            var doc = index.ExportAsXml();
 
             using (var fs = File.OpenWrite(options.OutputPath))
             {
-                await doc.SaveAsync(fs, System.Xml.Linq.SaveOptions.OmitDuplicateNamespaces, CancellationToken.None);
+                await doc.SaveAsync(fs, SaveOptions.OmitDuplicateNamespaces, CancellationToken.None);
             }
         }
     }

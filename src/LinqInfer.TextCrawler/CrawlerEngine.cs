@@ -10,20 +10,22 @@ namespace LinqInfer.TextCrawler
 {
     public class CrawlerEngine
     {
-        public async Task<IImportableExportableSemanticSet> ExtractVocabulary(Uri uri, CancellationToken cancellationToken)
+        public async Task<IDocumentIndex> CreateIndexAsync(Uri uri, CancellationToken cancellationToken)
         {
             var httpServices = new HttpDocumentServices();
 
-            var corpus = httpServices.CreateVirtualCorpus(uri);
+            var opts = new HttpDocumentCrawlerOptions();
 
-            return await corpus.ExtractKeyTermsAsync(cancellationToken);
+            var index = await httpServices.CreateDocumentSource(uri, opts).CreateIndexAsync();
+
+            return index;
         }
 
         public IAsyncPipe<SyntacticContext> CreatePipe(Uri uri, CancellationToken cancellationToken, ISemanticSet vocabulary)
         {
             var httpServices = new HttpDocumentServices();
 
-            var corpus = httpServices.CreateVirtualCorpus(uri);
+            var corpus = httpServices.CreateDocumentSource(uri).CreateVirtualCorpus();
 
             var vocab = vocabulary ?? new EnglishDictionary();
 

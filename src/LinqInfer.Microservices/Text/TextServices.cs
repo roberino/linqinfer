@@ -375,7 +375,7 @@ namespace LinqInfer.Microservices.Text
             {
                 using (var docServices = new HttpDocumentServices())
                 {
-                    var hdoc = await docServices.DocumentClient.GetDocument(request.SourceUrl);
+                    var hdoc = await docServices.DocumentClient.GetDocumentAsync(request.SourceUrl);
                     
                     doc = new TokenisedTextDocument(request.DocumentId, hdoc.Tokens);
 

@@ -1,9 +1,7 @@
-﻿using LinqInfer.Data.Remoting;
-using LinqInfer.Text.Analysis;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Data.Remoting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
@@ -12,9 +10,8 @@ namespace LinqInfer.Text.Http
     {
         public HttpDocumentServices(ITokeniser tokeniser = null,
             TextMimeType mimeType = TextMimeType.Default,
-            Func<Uri, bool> linkFilter = null,
             Func<XNode, bool> nodeFilter = null,
-            Func<XElement, IEnumerable<string>> linkExtractor = null) : this(new HttpBasicClient(), tokeniser, mimeType, linkFilter, nodeFilter, linkExtractor)
+            Func<XElement, IEnumerable<string>> linkExtractor = null) : this(new HttpBasicClient(), tokeniser, mimeType, nodeFilter, linkExtractor)
         {
         }
 
@@ -22,7 +19,6 @@ namespace LinqInfer.Text.Http
             IHttpClient httpClient,
             ITokeniser tokeniser = null,
             TextMimeType mimeType = TextMimeType.Default,
-            Func<Uri, bool> linkFilter = null,
             Func<XNode, bool> nodeFilter = null,
             Func<XElement, IEnumerable<string>> linkExtractor = null)
         {
@@ -34,57 +30,19 @@ namespace LinqInfer.Text.Http
                 linkExtractor
                 );
 
-            DocumentCrawler = new HttpDocumentCrawler(DocumentClient, linkFilter);
-        }
-
-        public HttpDocumentServices(Func<Uri, bool> linkFilter) : this(null, TextMimeType.Default, linkFilter)
-        {
+            DocumentCrawler = new HttpDocumentCrawler(DocumentClient);
         }
 
         public HttpDocumentClient DocumentClient { get; }
 
         internal HttpDocumentCrawler DocumentCrawler { get; }
 
-        public ICorpus CreateVirtualCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
+        public IAsyncEnumerator<HttpDocument> CreateDocumentSource(Uri rootUri, HttpDocumentCrawlerOptions options = null)
         {
-            return new VirtualCorpus(
-                DocumentCrawler.CrawlDocuments(rootUri, documentFilter, maxDocs, targetElement)
-                .Select(async t =>
-                {
-                    var docs = await t;
+            var batchLoader = new HttpDocumentSource(DocumentClient, rootUri, options ?? new HttpDocumentCrawlerOptions());
 
-                    return (IList<IToken>)docs.SelectMany(d => d.Tokens).ToList();
-                }));
+            return batchLoader.GetAsyncSource();
         }
-
-        public async Task<ICorpus> CreateCorpus(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
-        {
-            var corpus = new Corpus();
-
-            await DocumentCrawler.CrawlDocuments(rootUri, d =>
-            {
-                foreach (var token in d.Tokens)
-                {
-                    corpus.Append(token);
-                }
-            }, documentFilter, maxDocs, targetElement);
-
-            return corpus;
-        }
-
-        public async Task<IDocumentIndex> CreateIndex(Uri rootUri, Func<HttpDocument, bool> documentFilter = null, int maxDocs = 50, Func<XElement, XElement> targetElement = null)
-        {
-            var index = new DocumentIndex(DocumentClient.Tokeniser);
-
-            await DocumentCrawler.CrawlDocuments(rootUri, d =>
-            {
-                index.IndexDocument(d);
-            }, documentFilter, maxDocs, targetElement);
-
-            return index;
-        }
-
-        public IEnumerable<Uri> VisitedUrls => DocumentClient.VisitedUrls;
 
         public void Dispose()
         {

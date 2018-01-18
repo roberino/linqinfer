@@ -18,7 +18,6 @@ namespace LinqInfer.Text.Http
         private readonly TextMimeType _mimeType;
         private readonly Func<XNode, bool> _nodeFilter;
         private readonly Func<XElement, IEnumerable<string>> _linkExtractor;
-        private readonly HashSet<Uri> _visited;
 
         internal HttpDocumentClient(
             IHttpClient httpClient,
@@ -28,7 +27,6 @@ namespace LinqInfer.Text.Http
             Func<XElement, IEnumerable<string>> linkExtractor = null)
         {
             _client = httpClient;
-            _visited = new HashSet<Uri>();
             _tokeniser = tokeniser ?? new Tokeniser();
             _mimeType = mimeType;
             _nodeFilter = nodeFilter ?? HtmlTextNodeFilter.Filter;
@@ -37,20 +35,16 @@ namespace LinqInfer.Text.Http
 
         public ITokeniser Tokeniser => _tokeniser;
 
-        public IEnumerable<Uri> VisitedUrls => _visited;
-
-        public Task<HttpDocument> GetDocument(Uri rootUri, Func<XElement, XElement> targetElement = null)
+        public Task<HttpDocument> GetDocumentAsync(Uri rootUri, Func<XElement, XElement> targetElement = null)
         {
             var current = Read(rootUri, targetElement);
-
-            _visited.Add(rootUri);
 
             return current;
         }
 
         public async Task<IList<HttpDocument>> FollowLinks(IEnumerable<Uri> links, Func<XElement, XElement> targetElement = null)
         {
-            var docs = links.Where(l => !_visited.Contains(l)).Select(l => GetDocument(l, targetElement)).ToList();
+            var docs = links.Select(l => GetDocumentAsync(l, targetElement)).ToList();
 
             await Task.WhenAll(docs);
 

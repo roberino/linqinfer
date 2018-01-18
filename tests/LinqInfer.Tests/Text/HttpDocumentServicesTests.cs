@@ -19,7 +19,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var doc = await reader.DocumentClient.GetDocument(uri);
+                var doc = await reader.DocumentClient.GetDocumentAsync(uri);
 
                 Assert.That(doc.BaseUrl, Is.EqualTo(uri));
                 Assert.That(doc.Links.Any());
@@ -34,7 +34,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var corpus = await reader.CreateCorpus(uri, null, 25);
+                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync();
 
                 var graph = await corpus.ExportWordGraph(word);
 
@@ -50,7 +50,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var corpus = await reader.CreateCorpus(uri, null, 25);
+                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync();
 
                 var graph = await corpus.ExportWordGraph(t => word.Contains(t.Text.ToLower()));
 
@@ -64,34 +64,6 @@ namespace LinqInfer.Tests.Text
                 var gexf = await graph.ExportAsGexfAsync();
 
                 // gexf.Save($"c:\\git\\wiki-multi.gexf");
-            }
-        }
-
-        [TestCase("https://en.wikipedia.org/wiki/Portal:Mathematics")]
-        public async Task Crawl(string url)
-        {
-            using (var reader = new HttpDocumentServices())
-            {
-                var uri = new Uri(url);
-                var index = new DocumentIndex();
-
-                foreach (var docs in reader.DocumentCrawler.CrawlDocuments(new Uri(url), d =>
-                {
-                    return true;
-                }))
-                {
-                    foreach (var doc in await docs)
-                    {
-                        index.IndexDocument(doc);
-                    }
-                }
-
-                var terms = index.ExtractTerms();
-                
-                foreach(var term in terms.Words.OrderBy(w => w))
-                {
-                    Console.Write(term + ", ");
-                }
             }
         }
     }
