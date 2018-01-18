@@ -17,9 +17,9 @@ namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
-        public static Task<HttpDocument> OpenAsHtmlTokenDocument(this Uri rootUri)
-        {            
-            return new HttpDocumentServices().DocumentClient.GetDocumentAsync(rootUri);
+        public static Task<HttpDocument> OpenAsHtmlTokenDocumentAsync(this Uri rootUri)
+        {
+            return new HttpDocumentServices().GetDocumentAsync(rootUri);
         }
 
         /// <summary>

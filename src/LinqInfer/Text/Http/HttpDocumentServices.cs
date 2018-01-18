@@ -2,51 +2,52 @@
 using LinqInfer.Data.Remoting;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
 {
     public class HttpDocumentServices : IDisposable
     {
-        public HttpDocumentServices(ITokeniser tokeniser = null,
-            TextMimeType mimeType = TextMimeType.Default,
+        private readonly HttpDocumentClient _documentClient;
+
+        public HttpDocumentServices(
+            ITokeniser tokeniser = null,
             Func<XNode, bool> nodeFilter = null,
-            Func<XElement, IEnumerable<string>> linkExtractor = null) : this(new HttpBasicClient(), tokeniser, mimeType, nodeFilter, linkExtractor)
+            Func<XElement, IEnumerable<string>> linkExtractor = null) : this(new HttpBasicClient(), tokeniser, nodeFilter, linkExtractor)
         {
         }
 
         public HttpDocumentServices(
             IHttpClient httpClient,
             ITokeniser tokeniser = null,
-            TextMimeType mimeType = TextMimeType.Default,
             Func<XNode, bool> nodeFilter = null,
-            Func<XElement, IEnumerable<string>> linkExtractor = null)
+            Func<XElement, IEnumerable<string>> linkExtractor = null) : this(httpClient, new DefaultContentReader(tokeniser, nodeFilter, linkExtractor))
         {
-            DocumentClient = new HttpDocumentClient(
-                httpClient,
-                tokeniser,
-                mimeType,
-                nodeFilter,
-                linkExtractor
-                );
-
-            DocumentCrawler = new HttpDocumentCrawler(DocumentClient);
         }
 
-        public HttpDocumentClient DocumentClient { get; }
+        public HttpDocumentServices(
+            IHttpClient httpClient,
+            IContentReader contentReader)
+        {
+            _documentClient = new HttpDocumentClient(httpClient, contentReader);
+        }
 
-        internal HttpDocumentCrawler DocumentCrawler { get; }
+        public Task<HttpDocument> GetDocumentAsync(Uri url)
+        {
+            return _documentClient.GetDocumentAsync(url);
+        }
 
         public IAsyncEnumerator<HttpDocument> CreateDocumentSource(Uri rootUri, HttpDocumentCrawlerOptions options = null)
         {
-            var batchLoader = new HttpDocumentSource(DocumentClient, rootUri, options ?? new HttpDocumentCrawlerOptions());
+            var batchLoader = new HttpDocumentSource(_documentClient, rootUri, options ?? new HttpDocumentCrawlerOptions());
 
             return batchLoader.GetAsyncSource();
         }
 
         public void Dispose()
         {
-            DocumentClient.Dispose();
+            _documentClient.Dispose();
         }
     }
 }

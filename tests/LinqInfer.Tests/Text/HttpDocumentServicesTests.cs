@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Maths.Graphs;
-using LinqInfer.Text;
-using LinqInfer.Text.Http;
 using LinqInfer.Text.Analysis;
+using LinqInfer.Text.Http;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -19,7 +18,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var doc = await reader.DocumentClient.GetDocumentAsync(uri);
+                var doc = await reader.GetDocumentAsync(uri);
 
                 Assert.That(doc.BaseUrl, Is.EqualTo(uri));
                 Assert.That(doc.Links.Any());
