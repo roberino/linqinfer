@@ -14,9 +14,13 @@ namespace LinqInfer.TextCrawler
         {
             var httpServices = new HttpDocumentServices();
 
-            var opts = new HttpDocumentCrawlerOptions();
+            var documentSource = httpServices.CreateDocumentSource(uri);
 
-            var index = await httpServices.CreateDocumentSource(uri, opts).CreateIndexAsync();
+            var index = await documentSource.CreateIndexAsync();
+
+            var corpus = await documentSource.CreateCorpusAsync(1000);
+
+            var trainingSet = corpus.CreateContinuousBagOfWordsAsyncTrainingSet(index.ExtractKeyTerms(500));
 
             return index;
         }

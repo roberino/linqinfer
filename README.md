@@ -6,21 +6,37 @@ Nuget Package: https://www.nuget.org/packages/LinqInfer/
 
 ## A lightweight inference library for C# / LINQ
 
+LinqInfer is a data transformation, learning and inference framework. 
+
 This library reflects my interest over the years in Bayesian probability, 
 probabilistic reasoning, classification and other means of inference.
 
-It is an attempt to create a useful library which uses a fluent and LINQ-like approach to this type of problem solving.
+### Some key features / aims of the library
+
+* Data extraction methods for object and text based data sets for converting into vector representations
+* Methods for transforming and processing vector models
+* Implementations of learning algorithms
+* An extensible framework for integrating other vector based algorithms
 
 ### Basic library layout 
 
 #### Features and Feature Pipelines
 
-Feature extraction is key to many of the classification algorithms and feature pipelines
-represent a pipeline of feature data which can be pumped into various forms. There are a few mechanisms
+Feature extraction is key to many of the classification algorithms.
+
+Feature pipelines represent a pipeline of feature data which can be 
+transformed and pumped into various forms. There are a few mechanisms
 for reducing the dimensionality of the input data, such as principle component analysis and custom transformations.
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
+
+Feature pipelines come in asyncronous and syncronous flavours. 
+
+Async pipelines support a more complex, batch orientated processing model
+which allows for parallel processing of data.
+
+Synronous pipelines are derived from IQueryable data sets.
 
 #### Learning
 
@@ -58,10 +74,35 @@ var classifier3 = trainingSet.ToMultilayerNetworkClassifier().Execute();
 
 See more documentation on [Neural Networks](docs/neural-networks.md)
 
+#### Text
+
+Utilities for working with text and text documents.
+
+```cs
+
+var index = docs // enumeration of XDocuments
+	.AsTokenisedDocuments(d => d.Root.Name.LocalName) // Use the root element name as the doc ID
+	.CreateIndex();
+
+var results = index.Search("brown fox");
+
+// create training sets
+
+var httpServices = new HttpDocumentServices();
+
+var documentSource = httpServices.CreateDocumentSource(uri);
+
+var corpus = await documentSource.CreateCorpusAsync(1000);
+
+var trainingSet = corpus.CreateContinuousBagOfWordsAsyncTrainingSet(index.ExtractKeyTerms(500));
+
+```
+See more documentation on [Text](docs/text.md)
+
 #### Maths
 
-The Maths namespace consists of some basic numerical utilities including vector manipulation classes 
-and fractions which can sometimes offer a nicer way of working with probabilities.
+The Maths namespace consists of some basic numerical utilities 
+including numerous forms of vectors and vector manipulation methods.
 
 #### Maths.Graphs
 
@@ -102,26 +143,6 @@ var hypos = die.Select(n => P.Of(n).Is(1).OutOf(die.Length)).AsHypotheses();
 hypos.Update(x => x < 6 ? Fraction.Zero : (1).OutOf(x));
 
 hypos.ProbabilityOf(4);
-
-```
-
-#### Text
-
-Utilities for working with text and text documents.
-
-```cs
-
-var index = docs // enumeration of XDocuments
-	.AsTokenisedDocuments(d => d.Root.Name.LocalName) // Use the root element name as the doc ID
-	.CreateIndex();
-
-var results = index.Search("brown fox");
-
-// create feature pipelines
-
-var data = GetTextualObjects();
-
-var pipeline = data.CreateTextFeaturePipeline(a => a.cls, vectorSize);
 
 ```
 

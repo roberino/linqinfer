@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{55C85CF2-3ECB-4E90-B5CB-60E7AC8D06B0}"
 	ProjectSection(SolutionItems) = preProject
+		docs\async-pipelines.md = docs\async-pipelines.md
 		LICENSE = LICENSE
 		docs\neural-networks.md = docs\neural-networks.md
 		README.md = README.md
@@ -45,7 +46,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{0F16
 		build\test-dotnet.sh = build\test-dotnet.sh
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.TextCrawler", "src\LinqInfer.TextCrawler\LinqInfer.TextCrawler.csproj", "{F7C1E6B2-906F-4B68-83CA-847AA341D10F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.TextCrawler", "src\LinqInfer.TextCrawler\LinqInfer.TextCrawler.csproj", "{F7C1E6B2-906F-4B68-83CA-847AA341D10F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

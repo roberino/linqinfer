@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Data.Pipes
 {
-    public interface IBuilder<T, O> : IAsyncSink<T>
+    public interface IAsyncBuilderSink<T, O> : IAsyncSink<T>
     {
         Task<O> BuildAsync();
     }

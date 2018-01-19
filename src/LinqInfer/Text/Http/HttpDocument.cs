@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Text.Http
 {
@@ -22,5 +23,10 @@ namespace LinqInfer.Text.Http
         public IDictionary<string, string[]> Headers { get; private set; }
 
         public IEnumerable<RelativeLink> Links { get; private set; }
+
+        public static HttpDocument CreateEmpty(Uri uri, IDictionary<string, string[]> headers = null)
+        {
+            return new HttpDocument(uri, Enumerable.Empty<IToken>(), Enumerable.Empty<RelativeLink>(), headers ?? new Dictionary<string, string[]>());
+        }
     }
 }

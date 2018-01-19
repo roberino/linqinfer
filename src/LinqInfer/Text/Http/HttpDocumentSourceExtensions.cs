@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    public static class HttpDocumentExtensions
+    public static class HttpDocumentSourceExtensions
     {
         /// <summary>
         /// Creates a dynamic corpus of text
@@ -28,9 +28,20 @@ namespace LinqInfer.Text.Http
         /// <param name="maxCapacity">The max number of docs to be indexed</param>
         public static async Task<ICorpus> CreateCorpusAsync(this IAsyncEnumerator<HttpDocument> httpDocumentSource, int maxCapacity = 1000)
         {
+            return await RunAsync(httpDocumentSource, new CorpusSink(maxCapacity));
+        }
+
+        /// <summary>
+        /// Pushes the document source into a corpus
+        /// </summary>
+        /// <param name="maxCapacity">The max number of docs to be indexed</param>
+        public static ICorpus AttachCorpusAsync(this IAsyncPipe<HttpDocument> httpDocumentPipeline, int maxCapacity = 1000)
+        {
             var corpusSink = new CorpusSink(maxCapacity);
 
-            return await RunAsync(httpDocumentSource, corpusSink);
+            httpDocumentPipeline.RegisterSinks(corpusSink);
+
+            return corpusSink.Output;
         }
 
         /// <summary>
@@ -39,18 +50,30 @@ namespace LinqInfer.Text.Http
         /// <param name="maxCapacity">The max number of docs to be indexed</param>
         public static async Task<IDocumentIndex> CreateIndexAsync(this IAsyncEnumerator<HttpDocument> httpDocumentSource, int maxCapacity = 1000)
         {
-            var indexSink = new IndexSink(maxCapacity);
-
-            return await RunAsync(httpDocumentSource, indexSink);
+            return await RunAsync(httpDocumentSource, new IndexSink(maxCapacity));
         }
 
-        private static async Task<T> RunAsync<T>(this IAsyncEnumerator<HttpDocument> httpDocumentSource, IBuilder<HttpDocument, T> sink)
+        /// <summary>
+        /// Attaches and index to the pipeline
+        /// which will be populated when the pipeline runs
+        /// </summary>
+        /// <param name="maxCapacity">The max number of docs to be indexed</param>
+        public static IDocumentIndex AttachIndex(this IAsyncPipe<HttpDocument> documentPipeline, int maxCapacity = 1000)
+        {
+            var indexSink = new IndexSink(maxCapacity);
+
+            documentPipeline.RegisterSinks(indexSink);
+
+            return indexSink.Output;
+        }
+
+        private static async Task<T> RunAsync<T>(this IAsyncEnumerator<HttpDocument> httpDocumentSource, IBuilderSink<HttpDocument, T> sink)
         {
             var pipe = httpDocumentSource.CreatePipe().RegisterSinks(sink);
 
             await pipe.RunAsync(CancellationToken.None);
 
-            return await sink.BuildAsync();
+            return sink.Output;
         }
     }
 }

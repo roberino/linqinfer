@@ -230,7 +230,18 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public IFeatureProcessingPipeline<T> NormaliseData()
         {
-            return CentreFeatures().ScaleFeatures(new Range(1, 0));
+            try
+            {
+                return CentreFeatures().ScaleFeatures(new Range(1, 0));
+            }
+            catch (Exception ex)
+            {
+                DebugOutput.Log(ex);
+
+                DebugOutput.Log(ExtractColumnVectors());
+
+                throw;
+            }
         }
 
         /// <summary>

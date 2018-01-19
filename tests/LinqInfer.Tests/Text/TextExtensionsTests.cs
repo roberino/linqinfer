@@ -58,7 +58,6 @@ namespace LinqInfer.Tests.Text
             Assert.That(results.Single().DocumentKey == "doc3");
         }
 
-
         [Test]
         public void ExportAsXml_ThenOpenAsIndex()
         {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    internal class IndexSink : IBuilder<HttpDocument, IDocumentIndex>
+    internal class IndexSink : IBuilderSink<HttpDocument, IDocumentIndex>
     {
         private readonly DocumentIndex _index;
 
@@ -23,10 +23,7 @@ namespace LinqInfer.Text.Http
 
         public bool CanReceive => _index.DocumentCount < MaxCapacity;
 
-        public Task<IDocumentIndex> BuildAsync()
-        {
-            return Task.FromResult<IDocumentIndex>(_index);
-        }
+        public IDocumentIndex Output => _index;
 
         public Task ReceiveAsync(IBatch<HttpDocument> dataBatch, CancellationToken cancellationToken)
         {

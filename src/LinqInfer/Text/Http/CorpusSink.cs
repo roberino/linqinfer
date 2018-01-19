@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    internal class CorpusSink : IBuilder<HttpDocument, ICorpus>
+    internal class CorpusSink : IBuilderSink<HttpDocument, ICorpus>
     {
         private readonly Corpus _corpus;
         private int _received;
@@ -23,10 +23,7 @@ namespace LinqInfer.Text.Http
 
         public bool CanReceive => _received < MaxCapacity;
 
-        public Task<ICorpus> BuildAsync()
-        {
-            return Task.FromResult<ICorpus>(_corpus);
-        }
+        public ICorpus Output => _corpus;
 
         public Task ReceiveAsync(IBatch<HttpDocument> dataBatch, CancellationToken cancellationToken)
         {

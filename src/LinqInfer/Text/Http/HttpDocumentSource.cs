@@ -14,9 +14,7 @@ namespace LinqInfer.Text.Http
         private readonly HttpDocumentCrawlerOptions _options;
         private readonly ConcurrentDictionary<Uri, int> _visited;
         private readonly ConcurrentQueue<Uri> _pending;
-
-        private readonly int _batchSize = 10;
-
+        
         private int _batchCounter;
         private int _docCounter;
 
@@ -71,7 +69,7 @@ namespace LinqInfer.Text.Http
                 await TryAddBatchItem(RootUri);
             }
 
-            while (batch.Count < _batchSize && _pending.Any() && _docCounter < _options.MaxNumberOfDocuments)
+            while (batch.Count < _options.BatchSize && _pending.Any() && _docCounter < _options.MaxNumberOfDocuments)
             {
                 if (_pending.TryDequeue(out Uri nextUri))
                 {

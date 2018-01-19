@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Creates a builder for creating feature extractors
         /// </summary>
-        IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder();
+        IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder();
 
         /// <summary>
         /// Returns true if the strategy
