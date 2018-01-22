@@ -35,9 +35,9 @@ namespace LinqInfer.Text.Http
 
         public IEnumerable<Uri> VisitedUrls => _visited.Keys;
 
-        public IAsyncEnumerator<HttpDocument> GetAsyncSource()
+        public IAsyncEnumerator<HttpDocument> GetAsyncSource(Action onDispose = null)
         {
-            return From.Func(LoadBatch);
+            return From.Func(LoadBatch, null, onDispose);
         }
 
         private AsyncBatch<HttpDocument> LoadBatch(int i)

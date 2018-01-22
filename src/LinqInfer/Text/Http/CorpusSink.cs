@@ -17,6 +17,8 @@ namespace LinqInfer.Text.Http
             ArgAssert.AssertGreaterThanZero(maxCapacity, nameof(maxCapacity));
 
             MaxCapacity = maxCapacity;
+
+            _corpus = new Corpus();
         }
 
         public int MaxCapacity { get; }

@@ -6,11 +6,11 @@ namespace LinqInfer.Text.Http
 {
     public sealed class HttpDocument : TokenisedTextDocument
     {
-        internal HttpDocument(Uri url, IEnumerable<IToken> tokens, IEnumerable<RelativeLink> links, IDictionary<string, string[]> headers) : base(url.ToString(), tokens)
+        internal HttpDocument(Uri url, IEnumerable<IToken> tokens, IEnumerable<RelativeLink> links = null, IDictionary<string, string[]> headers = null) : base(url.ToString(), tokens)
         {
             BaseUrl = url;
-            Links = links;
-            Headers = headers;
+            Links = links ?? Enumerable.Empty<RelativeLink>();
+            Headers = headers ?? new Dictionary<string, string[]>();
             Metadata = new Dictionary<string, string>();
         }
 
@@ -26,7 +26,7 @@ namespace LinqInfer.Text.Http
 
         public static HttpDocument CreateEmpty(Uri uri, IDictionary<string, string[]> headers = null)
         {
-            return new HttpDocument(uri, Enumerable.Empty<IToken>(), Enumerable.Empty<RelativeLink>(), headers ?? new Dictionary<string, string[]>());
+            return new HttpDocument(uri, Enumerable.Empty<IToken>(), Enumerable.Empty<RelativeLink>(), headers);
         }
     }
 }

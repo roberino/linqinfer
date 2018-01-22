@@ -10,6 +10,13 @@ namespace LinqInfer.Data.Pipes
             return new AsyncPipe<T>(asyncEnumerator);
         }
 
+        public static PipeOutput<T, O> Attach<T, O> (this IAsyncPipe<T> pipe, IBuilderSink<T, O> builder)
+        {
+            pipe.RegisterSinks(builder);
+
+            return new PipeOutput<T, O>(pipe, builder.Output);
+        }
+
         public static IEnumerable<S> GetSinks<T, S>(this IAsyncPipe<T> pipe) where S : IAsyncSink<T>
         {
             return pipe.Sinks.Where(s => s is S).Cast<S>();

@@ -45,6 +45,13 @@ namespace LinqInfer.Text.Http
             return batchLoader.GetAsyncSource();
         }
 
+        internal IAsyncEnumerator<HttpDocument> CreateAutoDisposingDocumentSource(Uri rootUri, HttpDocumentCrawlerOptions options = null)
+        {
+            var batchLoader = new HttpDocumentSource(_documentClient, rootUri, options ?? new HttpDocumentCrawlerOptions());
+
+            return batchLoader.GetAsyncSource(Dispose);
+        }
+
         public void Dispose()
         {
             _documentClient.Dispose();

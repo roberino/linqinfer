@@ -4,6 +4,7 @@ using LinqInfer.Text.Http;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Text
@@ -33,7 +34,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync();
+                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync(CancellationToken.None);
 
                 var graph = await corpus.ExportWordGraph(word);
 
@@ -49,7 +50,7 @@ namespace LinqInfer.Tests.Text
             using (var reader = new HttpDocumentServices())
             {
                 var uri = new Uri(url);
-                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync();
+                var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync(CancellationToken.None);
 
                 var graph = await corpus.ExportWordGraph(t => word.Contains(t.Text.ToLower()));
 
