@@ -17,7 +17,6 @@ namespace LinqInfer.Maths
     /// i.e. A.Multiply(V) equals V.Multiply(D).  The matrix V may be badly
     /// conditioned, or even singular, so the validity of the equation
     /// A = V*D*Inverse(V) depends upon V.cond().
-    /// 
     /// </summary>
     internal class EigenvalueDecomposition
     {

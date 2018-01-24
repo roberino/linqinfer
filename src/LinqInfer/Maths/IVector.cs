@@ -43,7 +43,7 @@ namespace LinqInfer.Maths
         double DotProduct(IVector vector);
 
         /// <summary>
-        /// Converts the vector to a column vector
+        /// Converts or casts the vector as a column vector
         /// </summary>
         /// <returns></returns>
         ColumnVector1D ToColumnVector();

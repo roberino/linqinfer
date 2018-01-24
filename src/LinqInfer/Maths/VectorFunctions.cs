@@ -38,7 +38,7 @@ namespace LinqInfer.Maths
         /// Creates a transformation to scale a vector 
         /// so that values fall between a min max range
         /// </summary>
-        public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxMeanVector minMax, Range? range = null)
+        public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxVector minMax, Range? range = null)
         {
             if (!range.HasValue) range = new Range(1, -1);
 

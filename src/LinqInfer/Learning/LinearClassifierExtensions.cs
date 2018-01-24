@@ -8,19 +8,23 @@ namespace LinqInfer.Learning
     public static class LinearClassifierExtensions
     {
         public static async Task<LinearSoftmaxClassifier> CreateLinearClassifier<TInput, TClass>
-            (this IAsyncTrainingSet<TInput, TClass> trainingSet, float learningRate = 0.1f, float minError = 0.001f)
+            (this IAsyncTrainingSet<TInput, TClass> trainingSet, Action<LearningParameters> config = null)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
-            var classifier = new LinearSoftmaxClassifier(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize, learningRate);
+            var parameters = new LearningParameters();
+
+            config?.Invoke(parameters);
+
+            var classifier = new LinearSoftmaxClassifier(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize, parameters.LearningRate);
 
             await trainingSet
                 .ExtractInputOutputIVectorBatches()
                 .ProcessUsing(b =>
                 {
-                    var err = classifier.Train(b.Items, minError, 1);
+                    var err = classifier.Train(b.Items, parameters.MinimumError, 1);
 
-                    return err > minError;
+                    return err > parameters.MinimumError;
                 });
 
             return classifier;

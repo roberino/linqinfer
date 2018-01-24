@@ -17,13 +17,28 @@ namespace LinqInfer.Tests.Learning
     public class AsyncPipelineExtensionsTests
     {
         [Test]
+        public async Task PrincipalComponentReductionAsync_ReducesVectorSizeAsSpecified()
+        {
+            var pipeline = CreatePipeline();
+
+            pipeline = await pipeline.PrincipalComponentReductionAsync(2);
+
+            Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
+
+            var items = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None, 10);
+
+            Assert.That(items.First().Vector.Size, Is.EqualTo(2));
+        }
+
+        [Test]
         public async Task BuildPipeineAsync_ReturnsAsyncPipeline()
         {
             var pipeline = await From.Func(Load)
                 .BuildPipelineAsync(
+                    CancellationToken.None,
                     new DefaultFeatureExtractionStrategy<Pirate>(),
                     new CategoricalFeatureExtractionStrategy<Pirate>());
-
+            
             var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
             Assert.That(data.Count, Is.EqualTo(100));

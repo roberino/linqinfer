@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    class MultilayerNetworkAsyncSink<TInput, TClass>
-        : IAsyncSink<TrainingPair<IVector, IVector>>
+    internal class MultilayerNetworkAsyncSink<TInput, TClass>
+        : IBuilderSink<TrainingPair<IVector, IVector>, IVectorClassifier>
         where TInput : class where TClass : IEquatable<TClass>
     {
         private readonly IClassifierTrainingContext<NetworkParameters> _trainingContext;
@@ -26,6 +26,8 @@ namespace LinqInfer.Learning.Classification
         public IVectorClassifier Classifier => _trainingContext.Output;
 
         public bool CanReceive => true;
+
+        public IVectorClassifier Output => _trainingContext.Output;
 
         public Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
         {

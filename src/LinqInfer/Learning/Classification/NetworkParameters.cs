@@ -12,7 +12,7 @@ namespace LinqInfer.Learning.Classification
     /// The parameters define the input, output and hidden layer sizes as well as the activator
     /// and learning rate.
     /// </summary>
-    public class NetworkParameters : IChromosome<NetworkParameters>, ICloneableObject<NetworkParameters>
+    public class NetworkParameters : LearningParameters, IChromosome<NetworkParameters>, ICloneableObject<NetworkParameters>
     {
         /// <summary>
         /// Creates new NetworkParameters instance
@@ -110,12 +110,7 @@ namespace LinqInfer.Learning.Classification
         /// Gets or sets the initial weight range used to initialise neurons
         /// </summary>
         public Range InitialWeightRange { get; set; }
-
-        /// <summary>
-        /// Gets or sets the learning rate
-        /// </summary>
-        public double LearningRate { get; set; }
-
+        
         /// <summary>
         /// Creates a new set of parameters combining the parameters of this instance and another
         /// </summary>

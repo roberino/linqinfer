@@ -94,6 +94,9 @@ namespace LinqInfer.Maths
         /// </summary>
         public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
 
+        /// <summary>
+        /// Returns the rows of the matrix
+        /// </summary>
         public IList<Vector> Rows { get; }
 
         /// <summary>

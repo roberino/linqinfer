@@ -16,7 +16,7 @@ namespace LinqInfer.Tests.Learning
 
             var trainingSet = pipeline.AsTrainingSet(p => p.Category, "a", "b");
 
-            var classifier = trainingSet.AttachMultilayerNetworkClassifier(2);
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(c => c.LearningRate = 0.15, 2);
 
             await trainingSet.RunAsync(CancellationToken.None);
 

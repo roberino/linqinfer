@@ -9,13 +9,13 @@ namespace LinqInfer.Tests.Maths
         [Test]
         public void CreateScaleTransformation_GivenSampleMinMaxMean_ReturnsValidTransformation()
         {
-            var minMaxAve = new MinMaxMeanVector(
+            var minMax = new MinMaxVector(
                 ColumnVector1D.Create(1, 2, 3),
                 ColumnVector1D.Create(5, 6, 9));
 
             var input = ColumnVector1D.Create(5, 3, 8);
 
-            var transform = minMaxAve
+            var transform = minMax
                 .CreateScaleTransformation(new Range(1, 0));
 
             var output = transform.Apply(input);
@@ -55,6 +55,24 @@ namespace LinqInfer.Tests.Maths
             Assert.That(min[0], Is.EqualTo(1));
             Assert.That(min[1], Is.EqualTo(4));
             Assert.That(min[2], Is.EqualTo(3));
+        }
+
+        [Test]
+        public void MinMaxAndMeanOfEachDimension_GivenTwoColVectors_ReturnsExpectedValues()
+        {
+            var values = new[] { ColumnVector1D.Create(1, 5, 3), ColumnVector1D.Create(2, 4, 7) };
+
+            var minMaxMean = values.MinMaxAndMeanOfEachDimension();
+
+            Assert.That(minMaxMean.Min[0], Is.EqualTo(1));
+            Assert.That(minMaxMean.Min[1], Is.EqualTo(4));
+            Assert.That(minMaxMean.Min[2], Is.EqualTo(3));
+            Assert.That(minMaxMean.Max[0], Is.EqualTo(2));
+            Assert.That(minMaxMean.Max[1], Is.EqualTo(5));
+            Assert.That(minMaxMean.Max[2], Is.EqualTo(7));
+            Assert.That(minMaxMean.Mean[0], Is.EqualTo(1.5d));
+            Assert.That(minMaxMean.Mean[1], Is.EqualTo(4.5d));
+            Assert.That(minMaxMean.Mean[2], Is.EqualTo(5));
         }
     }
 }

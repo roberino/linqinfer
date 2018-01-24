@@ -17,11 +17,15 @@ namespace LinqInfer.Learning
         /// <param name="trainingSet">A asyncronous training set</param>
         public static IDynamicClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
+            Action<NetworkParameters> config = null,
             params int[] hiddenLayerSizes) where TInput : class where TClass : IEquatable<TClass>
         {
             var parameters = NetworkParameters.Sigmoidal(new[] { trainingSet.FeaturePipeline.FeatureExtractor.VectorSize }.Concat(hiddenLayerSizes).Concat(new[] { trainingSet.OutputMapper.VectorSize }).ToArray());
+
+            config?.Invoke(parameters);
+
             var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(parameters, (n, e) => true);
-            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Classifier);
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
 

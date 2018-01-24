@@ -7,12 +7,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Maths
 {
-    public sealed class MinMaxMeanVector
+    public sealed class MinMaxMeanVector : MinMaxVector
     {
-        public MinMaxMeanVector(IVector min, IVector max, IVector mean)
+        public MinMaxMeanVector(IVector min, IVector max, IVector mean) : base(min, max)
         {
-            Min = ArgAssert.AssertNonNull(min, nameof(min));
-            Max = ArgAssert.AssertNonNull(max, nameof(max));
             Mean = ArgAssert.AssertNonNull(mean, nameof(mean));
 
             if (min.Size != max.Size && max.Size != mean.Size)
@@ -23,14 +21,6 @@ namespace LinqInfer.Maths
             ArgAssert.Assert(() => mean.GreaterThanOrEqualElements(min), $"{nameof(mean)} < {nameof(min)}");
             ArgAssert.Assert(() => max.GreaterThanOrEqualElements(mean), $"{nameof(max)} < {nameof(mean)}");
         }
-
-        public MinMaxMeanVector(IVector min, IVector max) : this(min, max, Vector.UniformVector(min.Size, 0))
-        {
-        }
-
-        public IVector Min { get; }
-
-        public IVector Max { get; }
 
         public IVector Mean { get; }
 
