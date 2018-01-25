@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace LinqInfer.Text.Analysis
         {
             var cbow = CreateContinuousBagOfWords(corpus, targetVocabulary, widerVocabulary, contextPadding);
 
-            var data = cbow.AsQueryable();
+            var data = cbow.GetNGrams().AsQueryable();
 
             var encoder = new OneHotTextEncoding<SyntacticContext>(widerVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
 
@@ -49,13 +50,28 @@ namespace LinqInfer.Text.Analysis
 
             var encoder = new OneHotTextEncoding<SyntacticContext>(targetVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
 
-            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetEnumerator(), encoder);
+            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetNGramSource(), encoder);
 
-            var omf = new OutputMapperFactory<WordPair, string>();
+            var omf = new OutputMapperFactory<BiGram, string>();
 
             var mapper = omf.Create(targetVocabulary.Words);
 
             return pipeline.AsTrainingSet(t => t.TargetWord.Text.ToLowerInvariant(), mapper);
+        }
+
+        public static IAsyncTrainingSet<BiGram, string> CreateBiGramContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
+        {
+            var cbow = CreateAsyncContinuousBagOfWords(corpus, targetVocabulary, contextPadding);
+
+            var encoder = new OneHotTextEncoding<BiGram>(targetVocabulary, t => t.Input);
+
+            var pipeline = new AsyncFeatureProcessingPipeline<BiGram>(cbow.GetBiGramSource(), encoder);
+
+            var omf = new OutputMapperFactory<BiGram, string>();
+
+            var mapper = omf.Create(targetVocabulary.Words);
+
+            return pipeline.AsTrainingSet(t => t.Output, mapper);
         }
     }
 }

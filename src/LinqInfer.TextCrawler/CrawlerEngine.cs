@@ -38,7 +38,7 @@ namespace LinqInfer.TextCrawler
 
             var cbow = corpus.CreateAsyncContinuousBagOfWords(vocab);
 
-            var pipe = cbow.GetEnumerator().CreatePipe();
+            var pipe = cbow.GetNGramSource().CreatePipe();
 
             pipe.Disposing += (s, e) => httpServices.Dispose();
 

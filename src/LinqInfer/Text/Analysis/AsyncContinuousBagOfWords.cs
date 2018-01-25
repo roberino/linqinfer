@@ -21,25 +21,25 @@ namespace LinqInfer.Text.Analysis
             _padding = paddingSize;
         }
 
-        public IAsyncEnumerator<SyntacticContext> GetEnumerator()
+        public IAsyncEnumerator<SyntacticContext> GetNGramSource()
         {
             var asyncEnum = _corpus
                 .ReadBlocksAsync()
-                .TransformEachBatch(t => new ContinuousBagOfWords(t, _targetVocabulary, _widerVocabulary, _padding).ToList());
+                .TransformEachBatch(t => new ContinuousBagOfWords(t, _targetVocabulary, _widerVocabulary, _padding).GetNGrams().ToList());
 
             return asyncEnum;
         }
 
-        public IAsyncEnumerator<WordPair> StreamPairs()
+        public IAsyncEnumerator<BiGram> GetBiGramSource()
         {
-            return GetEnumerator().SplitEachItem(
+            return GetNGramSource().SplitEachItem(
                 c => c
                     .ContextualWords
                     .Select(w =>
-                    new WordPair()
+                    new BiGram()
                     {
-                        WordA = w.Text,
-                        WordB = c.TargetWord.Text
+                        Input = w.Text,
+                        Output = c.TargetWord.Text
                     }));
         }
     }

@@ -67,11 +67,11 @@ namespace LinqInfer.Tests.Text.Analysis
         {
             var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
 
-            Assert.That(cbow.Count(), Is.EqualTo(26 - 4));
+            Assert.That(cbow.GetNGrams().Count(), Is.EqualTo(26 - 4));
 
             char c = 'c';
 
-            foreach(var context in cbow)
+            foreach(var context in cbow.GetNGrams())
             {
                 Console.WriteLine(context);
 

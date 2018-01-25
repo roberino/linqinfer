@@ -1,12 +1,11 @@
 ﻿using LinqInfer.Utility;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    public class ContinuousBagOfWords : IEnumerable<SyntacticContext>
+    public class ContinuousBagOfWords
     {
         private readonly IEnumerable<IToken> _tokens;
         private readonly ISemanticSet _targetVocabulary;
@@ -23,12 +22,22 @@ namespace LinqInfer.Text.Analysis
             _padding = paddingSize;
         }
 
-        public IEnumerator<SyntacticContext> GetEnumerator()
+        public IEnumerable<BiGram> GetBiGrams()
         {
-            return Stream(_tokens).GetEnumerator();
+            return GetNGrams()
+                .SelectMany(
+                    c => c
+                        .ContextualWords
+                        .Select(
+                            w => new BiGram(w.Text.ToLower(), c.TargetWord.Text.ToLower())));
         }
 
-        private IEnumerable<SyntacticContext> Stream(IEnumerable<IToken> tokens)
+        public IEnumerable<SyntacticContext> GetNGrams()
+        {
+            return GetNGrams(_tokens);
+        }
+
+        private IEnumerable<SyntacticContext> GetNGrams(IEnumerable<IToken> tokens)
         {
             var bufferSize = _padding * 2 + 1;
             var buffer = new IToken[bufferSize];
@@ -120,11 +129,6 @@ namespace LinqInfer.Text.Analysis
                 buffer[i - 1] = buffer[i];
             }
             buffer[buffer.Length - 1] = null;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
         }
     }
 }
