@@ -23,7 +23,8 @@ namespace LinqInfer.Tests.Text.Analysis
         [Test]
         public async Task CreateLinearClassifier_ReturnsVectors()
         {
-            var trainingData = _testCorpus.CreateContinuousBagOfWordsAsyncTrainingSet(_testVocab);
+            var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
+            var trainingData = cbow.AsNGramAsyncTrainingSet();
 
             var classifier = await trainingData.CreateLinearClassifier();
 
@@ -33,7 +34,8 @@ namespace LinqInfer.Tests.Text.Analysis
         [Test]
         public async Task CreateContinuousBagOfWordsAsyncTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
         {
-            var trainingData = _testCorpus.CreateContinuousBagOfWordsAsyncTrainingSet(_testVocab);
+            var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
+            var trainingData = cbow.AsNGramAsyncTrainingSet();
 
             int counter = 0;
 
@@ -55,7 +57,8 @@ namespace LinqInfer.Tests.Text.Analysis
         [Test]
         public void CreateContinuousBagOfWordsTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
         {
-            var trainingData = _testCorpus.CreateContinuousBagOfWordsTrainingSet(_testVocab, _testVocab);
+            var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
+            var trainingData = cbow.AsNGramTrainingSet();
             var trainingBatches = trainingData.ExtractTrainingVectorBatches();
 
             Assert.That(trainingBatches.Count(), Is.EqualTo(1));

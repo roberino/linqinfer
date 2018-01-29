@@ -59,7 +59,7 @@ namespace LinqInfer.Maths
         {
             ArgAssert.AssertEquals(a.Size, b.Size, nameof(a.Size));
 
-            return a.ToColumnVector().Zip(b.ToColumnVector(), (x, y) => x >= y).All(x => x);
+            return a.ToColumnVector().Zip(b.ToColumnVector(), (ax, bx) => ax >= bx).All(x => x);
         }
 
         public static ColumnVector1D MaxOfEachDimension<T>(this IEnumerable<T> values) where T : IVector

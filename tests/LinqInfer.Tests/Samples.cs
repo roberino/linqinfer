@@ -12,7 +12,6 @@ namespace LinqInfer.Tests
     {
         [TestCase(1)]
         [TestCase(2)]
-        [TestCase(3)]
         public void ShakespeareAsNOrderMarkovChain(byte order)
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
@@ -35,6 +34,7 @@ namespace LinqInfer.Tests
         }
 
         [Test]
+        [Ignore("Integration - to be moved")]
         public void ShakespeareAs4OrderMarkovChain()
         {
             using (var corpusStream = GetResource("shakespeare.txt"))

@@ -1,10 +1,10 @@
-﻿using LinqInfer.Text.Http;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
+using LinqInfer.Text.Http;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Text;
-using LinqInfer.Data.Pipes;
 
 namespace LinqInfer.TextCrawler
 {
@@ -23,7 +23,8 @@ namespace LinqInfer.TextCrawler
 
             await pipe.RunAsync(cancellationToken);
 
-            var trainingSet = corpus.CreateContinuousBagOfWordsAsyncTrainingSet(index.ExtractKeyTerms(500));
+            var cbow = corpus.CreateAsyncContinuousBagOfWords(index.ExtractKeyTerms(500));
+            var trainingSet = cbow.AsNGramAsyncTrainingSet();
 
             return index;
         }

@@ -42,6 +42,7 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        [Ignore("Performance - to be moved")]
         public void Performance_Test2()
         {
             var rnd1 = Functions.RandomGenerator(0.43, 4);

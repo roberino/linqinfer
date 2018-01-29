@@ -19,57 +19,51 @@ namespace LinqInfer.Text.Analysis
             return builder.Build();
         }
 
-        public static ContinuousBagOfWords CreateContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int contextPadding = 2)
+        public static ContinuousBagOfWords CreateContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null)
         {
-            var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary ?? targetVocabulary, contextPadding);
+            var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary);
 
             return cbow;
         }
 
-        public static ITrainingSet<SyntacticContext, string> CreateContinuousBagOfWordsTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary, int sampleSize = 1000, int contextPadding = 2)
+        public static ITrainingSet<SyntacticContext, string> AsNGramTrainingSet(this ContinuousBagOfWords cbow, int contextPadding = 2)
         {
-            var cbow = CreateContinuousBagOfWords(corpus, targetVocabulary, widerVocabulary, contextPadding);
+            var data = cbow.GetNGrams(contextPadding).AsQueryable();
 
-            var data = cbow.GetNGrams().AsQueryable();
-
-            var encoder = new OneHotTextEncoding<SyntacticContext>(widerVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
+            var encoder = new OneHotTextEncoding<SyntacticContext>(cbow.WiderVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
 
             var pipeline = data.CreatePipeline(encoder);
 
             return pipeline.AsTrainingSet(t => t.TargetWord.Text);
         }
 
-        public static AsyncContinuousBagOfWords CreateAsyncContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
+        public static AsyncContinuousBagOfWords CreateAsyncContinuousBagOfWords(this ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null)
         {
-            return new AsyncContinuousBagOfWords(corpus, targetVocabulary, null, contextPadding);
+            return new AsyncContinuousBagOfWords(corpus, targetVocabulary, widerVocabulary);
         }
 
-        public static IAsyncTrainingSet<SyntacticContext, string> CreateContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
+        public static IAsyncTrainingSet<SyntacticContext, string> AsNGramAsyncTrainingSet(this AsyncContinuousBagOfWords cbow, int contextPadding = 2)
         {
-            var cbow = CreateAsyncContinuousBagOfWords(corpus, targetVocabulary, contextPadding);
+            var encoder = new OneHotTextEncoding<SyntacticContext>(cbow.WiderVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
 
-            var encoder = new OneHotTextEncoding<SyntacticContext>(targetVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
-
-            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetNGramSource(), encoder);
+            var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetNGramSource(contextPadding), encoder);
 
             var omf = new OutputMapperFactory<BiGram, string>();
 
-            var mapper = omf.Create(targetVocabulary.Words);
+            var mapper = omf.Create(cbow.TargetVocabulary.Words);
 
             return pipeline.AsTrainingSet(t => t.TargetWord.Text.ToLowerInvariant(), mapper);
         }
 
-        public static IAsyncTrainingSet<BiGram, string> CreateBiGramContinuousBagOfWordsAsyncTrainingSet(this ICorpus corpus, ISemanticSet targetVocabulary, int contextPadding = 2)
+        public static IAsyncTrainingSet<BiGram, string> AsBiGramAsyncTrainingSet(this AsyncContinuousBagOfWords cbow, int contextPadding = 2)
         {
-            var cbow = CreateAsyncContinuousBagOfWords(corpus, targetVocabulary, contextPadding);
+            var encoder = new OneHotTextEncoding<BiGram>(cbow.WiderVocabulary, t => t.Input);
 
-            var encoder = new OneHotTextEncoding<BiGram>(targetVocabulary, t => t.Input);
-
-            var pipeline = new AsyncFeatureProcessingPipeline<BiGram>(cbow.GetBiGramSource(), encoder);
+            var pipeline = new AsyncFeatureProcessingPipeline<BiGram>(cbow.GetBiGramSource(contextPadding), encoder);
 
             var omf = new OutputMapperFactory<BiGram, string>();
 
-            var mapper = omf.Create(targetVocabulary.Words);
+            var mapper = omf.Create(cbow.TargetVocabulary.Words);
 
             return pipeline.AsTrainingSet(t => t.Output, mapper);
         }

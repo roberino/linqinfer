@@ -7,32 +7,33 @@ namespace LinqInfer.Text.Analysis
     public class AsyncContinuousBagOfWords
     {
         private readonly ICorpus _corpus;
-        private readonly ISemanticSet _targetVocabulary;
         private readonly ISemanticSet _widerVocabulary;
-        private readonly int _padding;
 
         internal AsyncContinuousBagOfWords(ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int paddingSize = 1)
         {
-            ArgAssert.AssertGreaterThanZero(paddingSize, nameof(paddingSize));
+            _corpus = ArgAssert.AssertNonNull(corpus, nameof(corpus));
 
-            _corpus = corpus;
-            _targetVocabulary = targetVocabulary;
+            TargetVocabulary = ArgAssert.AssertNonNull(targetVocabulary, nameof(targetVocabulary));
+
             _widerVocabulary = widerVocabulary;
-            _padding = paddingSize;
         }
 
-        public IAsyncEnumerator<SyntacticContext> GetNGramSource()
+        public ISemanticSet WiderVocabulary => _widerVocabulary ?? TargetVocabulary;
+
+        public ISemanticSet TargetVocabulary { get; }
+
+        public IAsyncEnumerator<SyntacticContext> GetNGramSource(int padding = 2)
         {
             var asyncEnum = _corpus
                 .ReadBlocksAsync()
-                .TransformEachBatch(t => new ContinuousBagOfWords(t, _targetVocabulary, _widerVocabulary, _padding).GetNGrams().ToList());
+                .TransformEachBatch(t => new ContinuousBagOfWords(t, TargetVocabulary, _widerVocabulary).GetNGrams(padding).ToList());
 
             return asyncEnum;
         }
 
-        public IAsyncEnumerator<BiGram> GetBiGramSource()
+        public IAsyncEnumerator<BiGram> GetBiGramSource(int padding = 2)
         {
-            return GetNGramSource().SplitEachItem(
+            return GetNGramSource(padding).SplitEachItem(
                 c => c
                     .ContextualWords
                     .Select(w =>
