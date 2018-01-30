@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyName>LinqInfer.Tests</AssemblyName>
-    <RootNamespace>LinqInfer.Tests</RootNamespace>
+    <AssemblyName>LinqInfer.UnitTests</AssemblyName>
+    <RootNamespace>LinqInfer.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -36,8 +37,8 @@ namespace LinqInfer.Maths
             Func<T, bool> haltingFunc = null,
             bool includeHaltValueInResults = false)
         {
-            Contract.Requires(maxIterations > 0);
-            Contract.Requires(numberOfValuesToReturn > 0);
+            ArgAssert.AssertGreaterThanZero(maxIterations, nameof(maxIterations));
+            ArgAssert.AssertGreaterThanZero(numberOfValuesToReturn, nameof(numberOfValuesToReturn));
 
             var actualIterations = 0;
             var wasHalted = false;
@@ -51,10 +52,8 @@ namespace LinqInfer.Maths
             valHistory.Enqueue(x);
             plotter?.Invoke(0, x);
 
-            for (int n = 1; n < maxIterations; n++)
+            for (int n = 1; n <= maxIterations; n++)
             {
-                if (valHistory.Count == numberOfValuesToReturn) valHistory.Dequeue();
-
                 x = _func(x);
 
                 if ((haltingFunc?.Invoke(x)).GetValueOrDefault())
@@ -71,9 +70,13 @@ namespace LinqInfer.Maths
 
                 valHistory.Enqueue(x);
                 plotter?.Invoke(n, x);
+
+                if (valHistory.Count > numberOfValuesToReturn) valHistory.Dequeue();
             }
 
             timer.Stop();
+
+            if (valHistory.Count > numberOfValuesToReturn) valHistory.Dequeue();
 
             return new FunctionIterationResult()
             {

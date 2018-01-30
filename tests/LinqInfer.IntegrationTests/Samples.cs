@@ -34,7 +34,6 @@ namespace LinqInfer.Tests
         }
 
         [Test]
-        [Ignore("Integration - to be moved")]
         public void ShakespeareAs4OrderMarkovChain()
         {
             using (var corpusStream = GetResource("shakespeare.txt"))

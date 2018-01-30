@@ -31,12 +31,12 @@ for reducing the dimensionality of the input data, such as principle component a
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
 
-Feature pipelines come in asyncronous and syncronous flavours. 
+Feature pipelines come in asynchronous and synchronous flavours. 
 
 Async pipelines support a more complex, batch orientated processing model
 which allows for parallel processing of data.
 
-Synronous pipelines are derived from IQueryable data sets.
+Synchronous pipelines are derived from IQueryable data sets.
 
 #### Learning
 
