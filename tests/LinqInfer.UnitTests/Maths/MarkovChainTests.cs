@@ -140,8 +140,7 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
-        [Category("BuildOmit")]
-        public void AddSequence_Simulate()
+        public void AddCharSequence_Simulate()
         {
             var mkc = new DiscreteMarkovChain<char>(2);
 
@@ -153,6 +152,21 @@ namespace LinqInfer.Tests.Maths
 
             Assert.That(simulation.Count > 0);
             Assert.That(simulation.All(c => seq.IndexOf(c) > -1));
+        }
+
+        [Test]
+        public void AddIntSequence_Simulate()
+        {
+            var mkc = new DiscreteMarkovChain<int>(2);
+
+            var seq = new[] { 1, 3, 3, 2, 5, 6, 4, 3, 2, 6, 9, 7, 2, 9, 1, 9 };
+
+            mkc.AnalyseSequence(seq);
+
+            var simulation = mkc.Simulate(5).ToList();
+
+            Assert.That(simulation.Count > 0);
+            Assert.That(simulation.All(c => seq.Any(x => x == c)));
         }
 
         [Test]
