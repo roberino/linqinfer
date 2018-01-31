@@ -148,9 +148,8 @@ namespace LinqInfer.Maths.Probability
         {
             var freq = GetFrequencies(transitionStates);
 
-            int f = 0;
 
-            if (freq.TryGetValue(nextState, out f))
+            if (freq.TryGetValue(nextState, out int f))
             {
                 return new Fraction(f, freq.Sum(x => x.Value));
             }
@@ -168,8 +167,7 @@ namespace LinqInfer.Maths.Probability
                     .Following
                     .Select(p =>
                     {
-                        Transition tx;
-                        var m = p.Value.Following.TryGetValue(currentState, out tx);
+                        var m = p.Value.Following.TryGetValue(currentState, out Transition tx);
                         return new
                         {
                             p = p,
@@ -189,9 +187,8 @@ namespace LinqInfer.Maths.Probability
         {
             if (currentState != null)
             {
-                Transition node;
 
-                if (_root.Following.TryGetValue(currentState, out node))
+                if (_root.Following.TryGetValue(currentState, out Transition node))
                 {
                     return node.Following.ToDictionary(x => x.Key, x => x.Value.Frequency);
                 }
@@ -274,9 +271,7 @@ namespace LinqInfer.Maths.Probability
                 {
                     while (!c.complete.IsCancellationRequested)
                     {
-                        IEnumerable<T> next;
-
-                        while (c.queue.TryDequeueWhenAvailable(out next))
+                        while (c.queue.TryDequeueWhenAvailable(out IEnumerable<T> next))
                         {
                             if (next != null) c.chain.AnalyseSequence(next);
                         }
@@ -327,9 +322,8 @@ namespace LinqInfer.Maths.Probability
         {
             foreach (var item in source.Following)
             {
-                Transition tartt;
 
-                if (target.Following.TryGetValue(item.Key, out tartt))
+                if (target.Following.TryGetValue(item.Key, out Transition tartt))
                 {
                     tartt.Frequency += item.Value.Frequency;
                 }
@@ -349,7 +343,7 @@ namespace LinqInfer.Maths.Probability
         {
             var freq = GetFrequencies(transitionStates);
 
-            if (freq.Count == 0) return new NullableState { HasValue = false };
+            if (freq.Count == 0 || (freq.Count == 1 && freq.Values.First() == 0)) return new NullableState { HasValue = false };
 
             var value = Functions.FrequencyWeightedRandomSelector(freq)();
 
@@ -398,9 +392,8 @@ namespace LinqInfer.Maths.Probability
 
             public Transition SetFollowing(T state)
             {
-                Transition n;
 
-                if (!Following.TryGetValue(state, out n))
+                if (!Following.TryGetValue(state, out Transition n))
                 {
                     Following[state] = n = new Transition(state);
                 }

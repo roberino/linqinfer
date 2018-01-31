@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Maths;
 using NUnit.Framework;
+using System;
 using System.Linq;
 
 namespace LinqInfer.Tests.Learning
@@ -15,7 +16,11 @@ namespace LinqInfer.Tests.Learning
 
             var pipeline = pirateSample
                 .AsQueryable()
-                .CreatePipeline()
+                .CreatePipeline();
+
+            Console.WriteLine($"VectorSize:{pipeline.VectorSize}");
+
+            pipeline
                 .CentreFeatures()
                 .ScaleFeatures(new Range(1, -1));
 

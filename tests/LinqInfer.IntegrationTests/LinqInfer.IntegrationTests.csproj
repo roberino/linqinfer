@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Maths\CanvasTemplate.html" />
+    <EmbeddedResource Include="Text\shakespeare.txt" />
   </ItemGroup>
 
   <ItemGroup>

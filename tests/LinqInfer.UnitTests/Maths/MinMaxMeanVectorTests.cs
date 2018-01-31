@@ -22,6 +22,18 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        public void GivenZeros_CalculatesWithoutError()
+        {
+            var vect0 = ColumnVector1D.Create(6, 5, 0);
+            var vect1 = ColumnVector1D.Create(14.1, 5.5, 0);
+            var vect2 = ColumnVector1D.Create(-4, 2, 0f);
+
+            var minMaxMean = new[] { vect0, vect1, vect2 }.MinMaxAndMeanOfEachDimension();
+
+            Assert.That(minMaxMean.Min[2], Is.EqualTo(0));
+        }
+
+        [Test]
         public void GivenTheSameValue_ConstructsWithoutArgError()
         {
             var vect0 = ColumnVector1D.Create(1, 5, 12.3);

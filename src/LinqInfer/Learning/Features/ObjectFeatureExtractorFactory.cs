@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -53,6 +54,8 @@ namespace LinqInfer.Learning.Features
             var featureProperties = GetFeatureProperties<T>(actualType, setName)
                 .Where(f => f.ConversionFunction != null).ToList();
 
+            DebugOutput.Log($"found {featureProperties.Count} features for type {actualType.FullName}");
+
             var i = 0;
             foreach (var p in featureProperties) p.Index = i++;
 
@@ -84,12 +87,22 @@ namespace LinqInfer.Learning.Features
                 .Where(p => p.CanRead)
                 .Select(p =>
                 {
-                    var featureDef = p.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
+                    var featureDef = new FeatureAttribute();
+                    var featureAttr = p.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
+
+                    if (featureAttr != null)
+                    {
+                        featureDef.Converter = featureAttr.Converter;
+                        featureDef.Ignore = featureAttr.Ignore;
+                        featureDef.IndexOrder = featureAttr.IndexOrder;
+                        featureDef.Model = featureAttr.Model;
+                        featureDef.SetName = featureAttr.SetName;
+                    }
 
                     return new
                     {
                         property = p,
-                        featureDef = featureDef ?? new FeatureAttribute()
+                        featureDef = featureDef
                     };
                 })
                 .Where(f => !f.featureDef.Ignore)
@@ -117,7 +130,7 @@ namespace LinqInfer.Learning.Features
                 }
                 else
                 {
-                    converter = _converters.Values.FirstOrDefault(c => c.CanConvert(prop.PropertyType));
+                    converter = _converters.Values.FirstOrDefault(c => c is IDefaultValueConverter && c.CanConvert(prop.PropertyType));
                 }
             }
             else

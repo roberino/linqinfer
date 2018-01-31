@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Learning.Features
 {
-    public class DefaultConverter : IValueConverter
+    public class DefaultConverter : IDefaultValueConverter
     {
         public DefaultConverter() { }
 
