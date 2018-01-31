@@ -14,5 +14,4 @@ WORKDIR ./build
 RUN ./build-docker.sh
 
 WORKDIR ../
-RUN dotnet run -f netcoreapp1.1 -p ./tests/LinqInfer.Tests/LinqInfer.Tests-dotnetcore.csproj
-# RUN dotnet run -p ./tests/LinqInfer.AspNetCoreTestHarness/LinqInfer.AspNetCoreTestHarness.csproj
+RUN dotnet run -f netcoreapp1.1 -p ./tests/LinqInfer.Tests/LinqInfer.UnitTests.csproj
