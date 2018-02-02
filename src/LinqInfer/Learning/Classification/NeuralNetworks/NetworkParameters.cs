@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
     /// Used to specify the parameters that are used to create a new neural network architecture.

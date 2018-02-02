@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MaximumFitnessMultilayerNetworkTrainingStrategy<TClass, TInput> : IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {
@@ -25,7 +25,7 @@ namespace LinqInfer.Learning.Classification
         {
             _paramCache = NetworkParameterCache.DefaultCache;
 
-            _fitnessFunction = fitnessFunction ?? MultilayerNetworkFitnessFunctions.ErrorMinimisationFunction<TInput, TClass>();
+            _fitnessFunction = fitnessFunction ?? ClassifierFitnessFunctions.ErrorMinimisationFunction<TInput, TClass>();
             _haltingFunction = haltingFunction ?? ((c, i, t) => i > 500 || t > TimeSpan.FromSeconds(10));
 
             ErrorTolerance = errorTolerance;

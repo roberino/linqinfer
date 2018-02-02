@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using System;
 using System.Linq;

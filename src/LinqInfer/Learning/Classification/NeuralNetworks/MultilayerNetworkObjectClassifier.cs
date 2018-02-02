@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetworkObjectClassifier<TClass, TInput> :
         INetworkClassifier<TClass, TInput>

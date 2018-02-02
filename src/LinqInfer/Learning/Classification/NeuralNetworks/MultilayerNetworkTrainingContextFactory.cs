@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetworkTrainingContextFactory<TClass> where TClass : IEquatable<TClass>
     {

@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class NetworkParameterCache
     {

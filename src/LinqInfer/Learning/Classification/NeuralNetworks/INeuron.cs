@@ -2,7 +2,7 @@
 using LinqInfer.Maths;
 using System;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public interface INeuron : ICloneableObject<INeuron>
     {

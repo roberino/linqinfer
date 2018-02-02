@@ -3,7 +3,7 @@ using LinqInfer.Utility;
 using System;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class StaticParametersMultilayerTrainingStrategy<TClass, TInput> : IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> where TClass : IEquatable<TClass> where TInput : class
     {

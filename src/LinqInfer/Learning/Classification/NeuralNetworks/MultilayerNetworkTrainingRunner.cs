@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetworkTrainingRunner<TClass, TInput> 
         where TInput : class where TClass : IEquatable<TClass>

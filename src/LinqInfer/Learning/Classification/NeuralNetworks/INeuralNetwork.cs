@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Maths;
 using System.Collections.Generic;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
     /// Represents a layered architecture of neurons which

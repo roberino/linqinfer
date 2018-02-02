@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Learning.Classification
+﻿namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public interface INeuronGenerator
     {

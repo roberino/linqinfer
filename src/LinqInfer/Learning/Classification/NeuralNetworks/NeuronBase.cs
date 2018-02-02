@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public class NeuronBase : INeuron
     {

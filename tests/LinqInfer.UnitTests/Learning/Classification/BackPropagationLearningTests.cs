@@ -1,6 +1,5 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 using System.IO;
 

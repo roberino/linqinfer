@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning.Features;
+﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public static class MultilayerNetworkFitnessFunctions
+    public static class ClassifierFitnessFunctions
     {
         /// <summary>
         /// Returns the inverse error (1/e) accumulated over a training interation.

@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetworkAsyncSink<TInput, TClass>
         : IBuilderSink<TrainingPair<IVector, IVector>, IVectorClassifier>

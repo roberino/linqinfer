@@ -3,7 +3,7 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 
-namespace LinqInfer.Learning.Classification
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
     /// Represents a layer in a layered network of neurons
