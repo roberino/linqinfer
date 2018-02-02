@@ -8,4 +8,3 @@ script:
   - dotnet build LinqInfer.sln
   - dotnet test tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj --filter TestCategory!=BuildOmit
   - dotnet test tests/LinqInfer.IntegrationTests/LinqInfer.IntegrationTests.csproj --filter TestCategory!=BuildOmit
-  - dotnet test tests/LinqInfer.Microservices.Tests/LinqInfer.Microservices.Tests.csproj --filter TestCategory!=BuildOmit
