@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Xml.Linq;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.IntegrationTests.Maths
 {
     [TestFixture]
     public class MandelbrotSet : TestFixtureBase
@@ -72,6 +72,8 @@ namespace LinqInfer.Tests.Maths
             var data = script.Element("vectorData");
 
             data.ReplaceWith(new XText(htmlString.ToString()));
+
+            SaveArtifact("mandelbrot.html", doc.Save);
         }
 
         private void Print(string msg, params object[] args)

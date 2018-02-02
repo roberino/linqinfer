@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.IntegrationTests.Text
 {
     [TestFixture]
     public class TextExtensionsTests : TestFixtureBase
@@ -34,7 +34,7 @@ namespace LinqInfer.Tests.Text
 
             var pipeline = data.Take(4).AsQueryable().CreateTextFeaturePipeline();
 
-            var classifier = pipeline.ToMultilayerNetworkClassifier(x => x.cls).Execute();
+            var classifier = pipeline.AsTrainingSet(x => x.cls).ToMultilayerNetworkClassifier().Execute();
 
             var state = classifier.ToVectorDocument();
 
@@ -55,7 +55,7 @@ namespace LinqInfer.Tests.Text
 
             var pipeline = data.Take(4).AsQueryable().CreateTextFeaturePipeline();
 
-            var classifier = pipeline.ToMultilayerNetworkClassifier(x => x.cls).Execute();
+            var classifier = pipeline.AsTrainingSet(x => x.cls).ToMultilayerNetworkClassifier().Execute();
                         
             var test = data.Last();
 

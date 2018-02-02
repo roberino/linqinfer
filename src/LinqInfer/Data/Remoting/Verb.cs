@@ -7,12 +7,6 @@ namespace LinqInfer.Data.Remoting
     {
         Default = 0,
 
-        [Obsolete]
-        /// <summary>
-        /// Creates a new resource (currently equiv to PUT but will be removed in future releases)
-        /// </summary>
-        Create = 1,
-
         /// <summary>
         /// Creates a new resource
         /// </summary>
@@ -27,12 +21,6 @@ namespace LinqInfer.Data.Remoting
         /// Posts data
         /// </summary>
         Post = 4,
-
-        [Obsolete]
-        /// <summary>
-        /// Updates a resource (currently equiv to POST but will be removed in future releases)
-        /// </summary>
-        Update = 4,
 
         /// <summary>
         /// Deletes a resource
@@ -49,6 +37,6 @@ namespace LinqInfer.Data.Remoting
         /// </summary>
         Patch = 32,
 
-        All = Create | Update | Get | Delete | Options | Patch
+        All = Put | Post | Get | Delete | Options | Patch
     }
 }

@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.IntegrationTests
 {
     public class TestFixtureBase : AssertionHelper
     {
@@ -64,6 +64,15 @@ namespace LinqInfer.Tests
             using (var stream = GetResource(name))
             {
                 return XDocument.Load(stream);
+            }
+        }
+
+        public static void SaveArtifact(string fileName, Action<Stream> writer)
+        {
+            const string artifactPath = "../../../../../artifacts";
+            using (var fs = File.OpenWrite(Path.Combine(artifactPath, fileName)))
+            {
+                writer(fs);
             }
         }
 

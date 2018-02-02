@@ -180,8 +180,8 @@ namespace LinqInfer.Text
             index.IndexDocuments(docs);
 
             var pipeline = new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
-
-            return pipeline.ToMultilayerNetworkClassifier(classifyingFunction).Execute();
+            var trainingSet = pipeline.AsTrainingSet(classifyingFunction);
+            return trainingSet.ToMultilayerNetworkClassifier().Execute();
         }
 
         /// <summary>

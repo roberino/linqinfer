@@ -7,11 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.IntegrationTests.Text
 {
     [Ignore("Integration only")]
     [TestFixture]
-    public class HttpDocumentServicesTests
+    public class CrawlerTests
     {
         [TestCase("https://en.wikipedia.org/wiki/Main_Page")]
         public async Task GetDocument_TestUrl_ReturnsHttpDoc(string url)
@@ -36,7 +36,7 @@ namespace LinqInfer.Tests.Text
                 var uri = new Uri(url);
                 var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync(CancellationToken.None);
 
-                var graph = await corpus.ExportWordGraph(word);
+                var graph = await corpus.ExportWordGraphAsync(word, CancellationToken.None);
 
                 var gexf = await graph.ExportAsGexfAsync();
 
@@ -52,7 +52,7 @@ namespace LinqInfer.Tests.Text
                 var uri = new Uri(url);
                 var corpus = await reader.CreateDocumentSource(uri).CreateCorpusAsync(CancellationToken.None);
 
-                var graph = await corpus.ExportWordGraph(t => word.Contains(t.Text.ToLower()));
+                var graph = await corpus.ExportWordGraphAsync(t => word.Contains(t.Text.ToLower()), CancellationToken.None);
 
                 var science = await graph.FindVertexAsync("science");
                 var mathematics = await graph.FindVertexAsync("mathematics");

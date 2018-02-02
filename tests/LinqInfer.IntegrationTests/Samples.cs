@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.IntegrationTests
 {
     [TestFixture]
     public class Samples : TestFixtureBase

@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.IntegrationTests.Maths
 {
     [TestFixture]
     public class MatrixTests : TestFixtureBase

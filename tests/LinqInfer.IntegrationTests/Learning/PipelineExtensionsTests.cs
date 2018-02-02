@@ -5,9 +5,9 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using static LinqInfer.Tests.TestData;
+using static LinqInfer.IntegrationTests.TestData;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.IntegrationTests.Learning
 {
     [TestFixture]
     public class PipelineExtensionsTests
@@ -86,7 +86,8 @@ namespace LinqInfer.Tests.Learning
             var pipeline = samples.AsQueryable().CreatePipeline();
             
             var classifier = pipeline
-                .ToMultilayerNetworkClassifier(x => x.Output, 0.3f)
+                .AsTrainingSet(x => x.Output)
+                .ToMultilayerNetworkClassifier(0.3f)
                 .ExecuteUntil(f =>
             {
                 i++;
@@ -117,7 +118,8 @@ namespace LinqInfer.Tests.Learning
             var pirateSample = CreatePirates().ToList();
             var pipeline = pirateSample.AsQueryable().CreatePipeline();
             var classifier = pipeline
-                .ToMultilayerNetworkClassifier(p => p.Age > 25 ? "old" : "young", 8)
+                .AsTrainingSet(p => p.Age > 25 ? "old" : "young")
+                .ToMultilayerNetworkClassifier(8)
                 .Execute();
 
             var results = classifier.Classify(new Pirate()

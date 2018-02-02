@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.IntegrationTests
 {
     internal static class TestData
     {

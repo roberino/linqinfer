@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.IntegrationTests.Learning
 {
     [TestFixture]
     public class LinearSeparabilityExample
@@ -50,7 +50,9 @@ namespace LinqInfer.Tests.Learning
             // pipeline.ToCsv(Console.Out, x => x.cls).Execute();
 
             var classifier = pipeline
-                .ToMultilayerNetworkClassifier(c => c.cls).Execute();
+                .AsTrainingSet(c => c.cls)
+                .ToMultilayerNetworkClassifier()
+                .Execute();
 
             Console.Write("Classifier created");
            
