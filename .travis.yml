@@ -5,6 +5,7 @@ mono: none
 dotnet: 2.0.0
 script:
   - dotnet restore LinqInfer.sln
-  - dotnet build LinqInfer.sln
+  - dotnet build tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj
+  - dotnet build tests/LinqInfer.IntegrationTests/LinqInfer.IntegrationTests.csproj
   - dotnet test tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj --filter TestCategory!=BuildOmit
   - dotnet test tests/LinqInfer.IntegrationTests/LinqInfer.IntegrationTests.csproj --filter TestCategory!=BuildOmit
