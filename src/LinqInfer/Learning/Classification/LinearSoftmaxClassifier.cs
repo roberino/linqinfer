@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal sealed class LinearSoftmaxVectorExtractor : 
+    public sealed class LinearSoftmaxClassifier : 
         IAssistedLearningProcessor, 
         IVectorClassifier
     {
@@ -18,7 +18,7 @@ namespace LinqInfer.Learning.Classification
 
         private double _learningRate;
         
-        public LinearSoftmaxVectorExtractor(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
+        public LinearSoftmaxClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
         {
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
             ArgAssert.AssertGreaterThanZero(outputVectorSize, nameof(outputVectorSize));

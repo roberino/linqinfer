@@ -33,14 +33,15 @@ namespace LinqInfer.TextCrawler
         {
             var httpServices = new HttpDocumentServices();
 
-            var corpus = httpServices.CreateDocumentSource(uri).CreateVirtualCorpus();
+            var corpus = httpServices.CreateDocumentSource(uri)
+                .CreateVirtualCorpus();
 
             var vocab = vocabulary ?? new EnglishDictionary();
 
             var cbow = corpus.CreateAsyncContinuousBagOfWords(vocab);
 
             var pipe = cbow.GetNGramSource().CreatePipe();
-
+            
             pipe.Disposing += (s, e) => httpServices.Dispose();
 
             return pipe;

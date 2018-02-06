@@ -7,20 +7,24 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class LinearSoftmaxClassifier : 
-        IAssistedLearningProcessor, 
-        IVectorClassifier
+    public sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
     {
-        private readonly Matrix _weights;
-        private readonly ColumnVector1D _bias;
+        private readonly Matrix _weights0;
+        private readonly Matrix _weights1;
         private readonly Softmax _softmax;
         private readonly double _weightDecay = 0.001;
 
         private double _learningRate;
-        
-        public LinearSoftmaxClassifier(int inputVectorSize, int outputVectorSize, double learningRate = 0.1f, double decay = 0.001)
+
+        public LinearSoftmaxVectorExtractor(
+            int inputVectorSize, 
+            int outputVectorSize, 
+            int hiddenLayerSize,
+            double learningRate = 0.1f, 
+            double decay = 0.001)
         {
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
+            ArgAssert.AssertGreaterThanZero(hiddenLayerSize, nameof(hiddenLayerSize));
             ArgAssert.AssertGreaterThanZero(outputVectorSize, nameof(outputVectorSize));
             ArgAssert.AssertGreaterThanZero(learningRate, nameof(learningRate));
 
@@ -28,151 +32,26 @@ namespace LinqInfer.Learning.Classification
             _weightDecay = decay;
 
             // W = n features * n classes
-            _weights = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(inputVectorSize, -0.01, 0.01)));
-            _bias = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
+            _weights0 = new Matrix(Enumerable.Range(0, hiddenLayerSize).Select(n => Functions.RandomVector(inputVectorSize, -0.01, 0.01)));
+            _weights1 = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(hiddenLayerSize, -0.01, 0.01)));
             _softmax = new Softmax(outputVectorSize);
         }
 
-        public int InputVectorSize => _weights.Width;
+        public int InputVectorSize => _weights0.Width;
 
-        public int OutputVectorSize => _weights.Height;
-
-        public Matrix Vectors => new Matrix(_weights.Transpose().Concat(new[] { _bias })).Transpose();
+        public int OutputVectorSize => _weights1.Height;
 
         public IVector Evaluate(IVector input)
         {
-            var output = input.MultiplyBy(_weights);
+            var v1 = input.MultiplyBy(_weights0);
+            var v2 = v1.MultiplyBy(_weights1);
 
-            var biasAdjusted = output.ToColumnVector() + _bias;
-
-            return _softmax.Calculate(output.ToColumnVector());
+            return _softmax.Apply(v2);
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
             _learningRate = rateAdjustment(_learningRate);
-        }
-
-        public double Train(IVector inputVector, IVector output)
-        {
-            return Train(new[] { new TrainingPair<IVector, IVector>(inputVector, output) }, (n, e) => false);
-        }
-
-        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, double minError, int maxIterations = 10000)
-        {
-            return Train(trainingData, (n, e) => n >= maxIterations || e < minError);
-        }
-
-        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, Func<int, double, bool> haltingFunction)
-        {
-            var i = 0;
-            var err = 0d;
-
-            do
-            {
-                err = Train(trainingData);
-
-                DebugOutput.Log($"{i}: error={err}");
-
-                i++;
-            }
-            while (!haltingFunction(i, err));
-
-            return err;
-        }
-
-        public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData)
-        {
-            int i = 0;
-            ColumnVector1D error = new ColumnVector1D(Vector.UniformVector(OutputVectorSize, 0));
-
-            foreach (var batch in trainingData.AsQueryable().Chunk())
-            {
-                var evaluation = batch.Select(b => new
-                {
-                    input = b.Input,
-                    score = Evaluate(b.Input),
-                    targetOutput = b.TargetOutput
-                })
-                .Select(s => new
-                {
-                    score = s.score,
-                    targetOutput = s.targetOutput,
-                    cost = CalculateCostAndDerivative(s.input, s.score, s.targetOutput)
-                })
-                .ToList();
-                
-                var dW = Mean(evaluation.Select(c => c.cost.dW)).Transpose();
-                var dB = evaluation.Select(c => c.cost.dB).Average();
-
-                var decay = (_weightDecay / 2) * _weights.Sum(v => v.DotProduct(v));
-
-                Update(dW, dB, decay);
-
-                error += evaluation.Select(c => c.cost.Cost.ToColumnVector()).MeanOfEachDimension() + decay;
-
-                i += batch.Count();
-            }
-
-            return (error / i).EuclideanLength;
-        }
-
-        private Matrix Mean(IEnumerable<Matrix> values)
-        {
-            var h = values.First().Height;
-
-            var rows = Enumerable.Range(0, h).Select(i => values.Select(m => new ColumnVector1D(m.Rows[i])).MeanOfEachDimension());
-
-            return new Matrix(rows);
-        }
-
-        private LossAndDerivative CalculateCostAndDerivative(IVector input, IVector score, IVector targetOutput)
-        {
-            var cost = targetOutput.MultiplyBy(score.ToColumnVector().Log()).ToColumnVector();
-
-            var grad = targetOutput.ToColumnVector() - score.ToColumnVector();
-
-            var dW = new Matrix(input.ToColumnVector().Select(x => grad * x));
-
-            var dB = grad.Sum;
-
-            return new LossAndDerivative()
-            {
-                Cost = cost,
-                Gradient = grad,
-                dW = dW,
-                dB = dB
-            };
-        }
-
-        private void Update(Matrix dW, double dB, double decay)
-        {
-            ArgAssert.AssertEquals(dW.Width, _weights.Width, nameof(dW.Width));
-
-            foreach (var row in _weights.Zip(dW, (w, u) => new { w = w, u = u }))
-            {
-                row.w.Apply((w, i) =>
-                {
-                    return ExecuteUpdateRule(w, -row.u[i], decay);
-                });
-            }
-
-            _bias.Apply(w => ExecuteUpdateRule(w, dB));
-        }
-
-        private double ExecuteUpdateRule(double currentWeightValue, double adjustment, double decay = 0)
-        {
-            adjustment = adjustment + (adjustment * decay);
-
-            return currentWeightValue + (-_learningRate * adjustment);
-        }
-
-        private class LossAndDerivative
-        {
-            public ColumnVector1D Gradient;
-            public IVector Cost;
-            public Matrix dW;
-            public double dB;
         }
     }
 }
