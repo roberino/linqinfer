@@ -44,14 +44,14 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(Matrix matrix)
         {
-            var result = new double[Size];
-
             if (ActiveIndex.HasValue)
             {
-                result[ActiveIndex.Value] = matrix.ColumnSum(ActiveIndex.Value);
+                return new ColumnVector1D(matrix.Column(ActiveIndex.Value).ToArray());
             }
-
-            return new ColumnVector1D(result);
+            else
+            {
+                return new ZeroVector(matrix.Height);
+            }
         }
 
         public IVector MultiplyBy(IVector vector)

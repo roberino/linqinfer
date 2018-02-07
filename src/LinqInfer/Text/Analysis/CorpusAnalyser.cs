@@ -57,6 +57,7 @@ namespace LinqInfer.Text.Analysis
                 var term = Terms.Single(t => t.Index == index);
 
                 results[term] = row
+                    .ToColumnVector()
                     .IndexedValues
                     .Where(v => v.Value >= minCovariance)
                     .ToDictionary(v => Terms.Single(t => t.Index == v.Key), v => v.Value);

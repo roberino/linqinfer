@@ -116,7 +116,7 @@ namespace LinqInfer.Tests.Maths
                 modified = true;
             };
 
-            m.Rows[0].Apply(r => r * 12);
+            ((Vector)m.Rows[0]).Apply(r => r * 12);
 
             Assert.That(modified);
             Assert.That(m.MeanVector.Equals(ave), Is.False);

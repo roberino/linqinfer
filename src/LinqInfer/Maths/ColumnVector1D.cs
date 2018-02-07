@@ -273,7 +273,7 @@ namespace LinqInfer.Maths
 
             for (var i = 0; i < m.Height; i++)
             {
-                rows.Add(v * m.Rows[i]);
+                rows.Add(v * m.Rows[i].ToColumnVector());
             }
 
             return new Matrix(rows);

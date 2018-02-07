@@ -32,8 +32,8 @@ namespace LinqInfer.Learning.Classification
             _weightDecay = decay;
 
             // W = n features * n classes
-            _weights0 = new Matrix(Enumerable.Range(0, hiddenLayerSize).Select(n => Functions.RandomVector(inputVectorSize, -0.01, 0.01)));
-            _weights1 = new Matrix(Enumerable.Range(0, outputVectorSize).Select(n => Functions.RandomVector(hiddenLayerSize, -0.01, 0.01)));
+            _weights0 = new Matrix(Enumerable.Range(0, inputVectorSize).Select(n => Functions.RandomVector(hiddenLayerSize, -0.01, 0.01)));
+            _weights1 = new Matrix(Enumerable.Range(0, hiddenLayerSize).Select(n => Functions.RandomVector(outputVectorSize, -0.01, 0.01)));
             _softmax = new Softmax(outputVectorSize);
         }
 
@@ -47,6 +47,15 @@ namespace LinqInfer.Learning.Classification
             var v2 = v1.MultiplyBy(_weights1);
 
             return _softmax.Apply(v2);
+        }
+
+        public double CalculateError(IVector input, IVector targetOutput)
+        {
+            var actualOutput = Evaluate(input);
+
+            var error = actualOutput.ToColumnVector() - targetOutput.ToColumnVector();
+
+            return error.Sum;
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)

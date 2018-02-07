@@ -121,7 +121,7 @@ namespace LinqInfer.Learning.Classification
         {
             var h = values.First().Height;
 
-            var rows = Enumerable.Range(0, h).Select(i => values.Select(m => new ColumnVector1D(m.Rows[i])).MeanOfEachDimension());
+            var rows = Enumerable.Range(0, h).Select(i => values.Select(m => m.Rows[i].ToColumnVector()).MeanOfEachDimension());
 
             return new Matrix(rows);
         }

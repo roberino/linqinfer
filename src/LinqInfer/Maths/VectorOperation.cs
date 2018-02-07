@@ -24,7 +24,7 @@ namespace LinqInfer.Maths
             foreach (var para in parameters) _parameters.Add(new ColumnVector1D(para));
         }
 
-        public VectorOperation(VectorOperationType type, Matrix transformation) : this(type, transformation.Rows)
+        public VectorOperation(VectorOperationType type, Matrix transformation) : this(type, transformation.Rows.Select(r => r.ToColumnVector()))
         {
             Operation = type;
         }

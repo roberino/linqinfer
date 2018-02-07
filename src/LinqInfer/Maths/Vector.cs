@@ -295,7 +295,10 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(IVector vector)
         {
-            if (vector is ColumnVector1D) return vector.ToColumnVector() * this;
+            if (vector is Vector v)
+            {
+                return v * this;
+            }
 
             return vector.MultiplyBy(this);
         }
