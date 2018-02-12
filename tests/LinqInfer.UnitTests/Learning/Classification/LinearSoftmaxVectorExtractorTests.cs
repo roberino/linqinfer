@@ -21,14 +21,14 @@ namespace LinqInfer.Tests.Learning.Classification
         }
 
         [Test]
-        public void CalculateErrpr_WhenGivenSample_ThenWeightsUpdated()
+        public void Train_WhenGivenSample_ThenWeightsUpdated()
         {
             var sample1 = new OneOfNVector(5, 3);
             var targetOutput = new OneOfNVector(3, 1);
 
             var lsve = new LinearSoftmaxVectorExtractor(sample1.Size, targetOutput.Size, 2);
 
-            var error = lsve.CalculateError(sample1, targetOutput);
+            var error = lsve.Train(sample1, targetOutput);
 
             Assert.That(error, Is.GreaterThan(0));
         }

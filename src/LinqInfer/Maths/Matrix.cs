@@ -234,6 +234,40 @@ namespace LinqInfer.Maths
             OnModify();
         }
 
+        internal void Concat(params Vector[] rows)
+        {
+            foreach(var row in rows)
+            {
+                _rows.Add(row);
+            }
+
+            Setup();
+            OnModify();
+        }
+
+        internal void Overwrite(Matrix other)
+        {
+            foreach (var row in _rows)
+            {
+                row.DetachEvents();
+            }
+
+            _rows.Clear();
+
+            foreach(var row in other._rows)
+            {
+                _rows.Add(row);
+            }
+
+            Setup();
+            OnModify();
+        }
+
+        public static Matrix Create(params Vector[] rows)
+        {
+            return new Matrix(rows);
+        }
+
         public static Matrix DiagonalMatrix(Func<int, double> valueFactory, int size)
         {
             Contract.Assert(size > 0);
@@ -248,11 +282,6 @@ namespace LinqInfer.Maths
             return new Matrix(data);
         }
 
-        public static Matrix Create(params Vector[] rows)
-        {
-            return new Matrix(rows);
-        }
-
         public static Matrix DiagonalMatrix(Vector values)
         {
             var a = values.GetUnderlyingArray();
@@ -262,6 +291,11 @@ namespace LinqInfer.Maths
         public static Matrix IdentityMatrix(int size)
         {
             return DiagonalMatrix(_ => 1, size);
+        }
+
+        public static Matrix RandomMatrix(int width, int height, Range range)
+        {
+            return new Matrix(Enumerable.Range(0, height).Select(n => Functions.RandomVector(width, range)));
         }
 
         internal static Matrix Multiply(Matrix a, Matrix b)
@@ -291,6 +325,18 @@ namespace LinqInfer.Maths
             AssertDimensionalEquivalence(m1, m2);
 
             return new Matrix(m1._rows.Zip(m2._rows, (r1, r2) => r1 + r2));
+        }
+
+        public static Matrix operator *(double v, Matrix m2)
+        {
+            var newRows = new List<Vector>();
+
+            foreach (var row in m2._rows)
+            {
+                newRows.Add(row * v);
+            }
+
+            return new Matrix(newRows);
         }
 
         public static Matrix operator *(Matrix m1, Matrix m2)

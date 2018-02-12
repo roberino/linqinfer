@@ -9,6 +9,19 @@ namespace LinqInfer.Tests.Probability
     public class ColumnVector1DTests
     {
         [Test]
+        public void HorizontalMultiply_WhenGivenMultiColMatrix_ThenExpectedVectorReturned()
+        {
+            var v1 = new ColumnVector1D(3d, 4.1d, 8d);
+            var m1 = new Matrix(new[] { new[] { 91d, 12 }, new[] { 23.3d, 8 }, new[] { 10.8d, 6 } });
+
+            var x = v1.HorizontalMultiply(m1);
+
+            Assert.That(x.Size, Is.EqualTo(2));
+            Assert.That(x[0], Is.EqualTo(3d * 91d + 4.1 * 23.3 + 8d * 10.8));
+            Assert.That(x[1], Is.EqualTo(3d * 12d + 4.1 * 8d + 8d * 6d));
+        }
+
+        [Test]
         public void Split_And_Concat()
         {
             var vect1 = ColumnVector1D.Create(1, 2, 3);

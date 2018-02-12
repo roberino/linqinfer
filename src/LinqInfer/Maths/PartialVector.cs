@@ -91,6 +91,11 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(values);
         }
 
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            return ToColumnVector().HorizontalMultiply(matrix);
+        }
+
         public byte[] ToByteArray()
         {
             return ToColumnVector().ToByteArray();

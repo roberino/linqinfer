@@ -54,6 +54,23 @@ namespace LinqInfer.Maths
             }
         }
 
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // 0, 0, 1 * x a
+            //           y b
+            //           z c
+            // = [z, c]
+
+            ArgAssert.AssertEquals(matrix.Height, Size, nameof(matrix.Height));
+
+            if (ActiveIndex.HasValue)
+            {
+                return matrix.Rows[ActiveIndex.Value];
+            }
+
+            return new ZeroVector(matrix.Width);
+        }
+
         public IVector MultiplyBy(IVector vector)
         {
             ArgAssert.AssertEquals(vector.Size, Size, nameof(Size));

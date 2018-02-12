@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -224,7 +225,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator -(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
             int i = 0;
 
@@ -233,7 +234,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator +(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
             var newValues = new double[v1.Size];
             var v1a = v1._values;

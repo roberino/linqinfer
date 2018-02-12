@@ -93,6 +93,31 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(result);
         }
 
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // T, T, F * x a
+            //           y b
+            //           z c
+            // = [x + y, a + b]
+
+            var result = new double[matrix.Width];
+            var j = 0;
+
+            foreach (var row in matrix.Rows)
+            {
+                var rowVals = row.ToColumnVector().GetUnderlyingArray();
+
+                for (var i = 0; i < rowVals.Length; i++)
+                {
+                    if (ValueAt(j)) result[i] += rowVals[i];
+                }
+
+                j++;
+            }
+
+            return new Vector(result);
+        }
+
         public static BitVector operator *(BitVector v1, BitVector v2)
         {
             ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));

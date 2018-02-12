@@ -76,6 +76,31 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(results);
         }
 
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // 1, 2, 3 * x a
+            //           y b
+            //           z c
+            // = [1x + 2y + 3z, 1a + 2b + 3c]
+
+            var result = new double[matrix.Width];
+            var j = 0;
+
+            foreach (var row in matrix.Rows)
+            {
+                var rowVals = row.ToColumnVector().GetUnderlyingArray();
+
+                for (var i = 0; i < rowVals.Length; i++)
+                {
+                    result[i] += this[j] * rowVals[i];
+                }
+
+                j++;
+            }
+
+            return new Vector(result);
+        }
+
         public IVector MultiplyBy(IVector vector)
         {
             if (vector is Vector v)

@@ -10,7 +10,9 @@ namespace LinqInfer.Learning.Classification
     public sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
     {
         private readonly Matrix _weights0;
+        private readonly ColumnVector1D _bias0;
         private readonly Matrix _weights1;
+        private readonly ColumnVector1D _bias1;
         private readonly Softmax _softmax;
         private readonly double _weightDecay = 0.001;
 
@@ -31,9 +33,12 @@ namespace LinqInfer.Learning.Classification
             _learningRate = learningRate;
             _weightDecay = decay;
 
-            // W = n features * n classes
-            _weights0 = new Matrix(Enumerable.Range(0, inputVectorSize).Select(n => Functions.RandomVector(hiddenLayerSize, -0.01, 0.01)));
-            _weights1 = new Matrix(Enumerable.Range(0, hiddenLayerSize).Select(n => Functions.RandomVector(outputVectorSize, -0.01, 0.01)));
+            _weights0 = Matrix.RandomMatrix(hiddenLayerSize, inputVectorSize, new Range(0.01, -0.01));
+            _weights1 = Matrix.RandomMatrix(outputVectorSize, hiddenLayerSize, new Range(0.01, -0.01));
+
+            _bias0 = new ColumnVector1D(Vector.UniformVector(hiddenLayerSize, 0));
+            _bias1 = new ColumnVector1D(Vector.UniformVector(outputVectorSize, 0));
+
             _softmax = new Softmax(outputVectorSize);
         }
 
@@ -41,26 +46,96 @@ namespace LinqInfer.Learning.Classification
 
         public int OutputVectorSize => _weights1.Height;
 
-        public IVector Evaluate(IVector input)
+        public IEnumerable<Matrix> Weights
         {
-            var v1 = input.MultiplyBy(_weights0);
-            var v2 = v1.MultiplyBy(_weights1);
-
-            return _softmax.Apply(v2);
+            get
+            {
+                yield return _weights0;
+                yield return _weights1;
+            }
         }
 
-        public double CalculateError(IVector input, IVector targetOutput)
+        public IVector Evaluate(IVector input)
         {
-            var actualOutput = Evaluate(input);
+            return EvaluateInternal(input).Last();
+        }
 
-            var error = actualOutput.ToColumnVector() - targetOutput.ToColumnVector();
+        public double Train(IVector input, IVector targetOutput)
+        {
+            var lAndD = CalculateError(input, targetOutput);
 
-            return error.Sum;
+            UpdateWeights1(lAndD.Gradient, lAndD.HiddenOutput);
+            UpdateWeights0(lAndD);
+
+            return -lAndD.Cost.Sum;
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
             _learningRate = rateAdjustment(_learningRate);
+        }
+
+        private IVector[] EvaluateInternal(IVector input)
+        {
+            var v1 = input.HorizontalMultiply(_weights0).ToColumnVector() + _bias0;
+            var v2 = v1.HorizontalMultiply(_weights1).ToColumnVector() + _bias1;
+
+            return new[] { v1, v2, _softmax.Apply(v2) };
+        }
+
+        private LossAndDerivative CalculateError(IVector input, IVector targetOutput)
+        {
+            var result = EvaluateInternal(input);
+            var actualOutput = result.Last();
+
+            var cost = targetOutput.MultiplyBy(actualOutput.ToColumnVector().Log()).ToColumnVector();
+
+            var error = actualOutput.ToColumnVector() - targetOutput.ToColumnVector();
+
+            var dW = new Matrix(input.ToColumnVector().Select(x => error * x));
+
+            return new LossAndDerivative()
+            {
+                Cost = cost,
+                Gradient = error,
+                dW = dW,
+                HiddenOutput = result.First()
+            };
+        }
+
+        private void UpdateWeights1(IVector error, IVector hiddenOutput)
+        {
+            // j = cols
+            // i = rows
+
+            // w1[i, j] (new) = w[i, j] (old) - n * e[j] * h[i]
+
+            _weights1.Apply((j, i, w) =>
+                w - _learningRate * error[j] * hiddenOutput[i]                
+                );
+
+            _bias1.Apply((w, j) => w - _learningRate * error[j]);
+        }
+
+        private void UpdateWeights0(LossAndDerivative ld)
+        {
+            var dW = ld.dW;
+            var error = ld.Gradient;
+
+            dW.Apply((r, c, x) => x * _learningRate);
+
+            _weights0.Overwrite(_weights0 - dW);
+
+            _bias0.Apply((w, j) => w - _learningRate * error[j]);
+        }
+
+        private class LossAndDerivative
+        {
+            public ColumnVector1D Gradient;
+            public IVector HiddenOutput;
+            public IVector Cost;
+            public Matrix dW;
+            public double dB;
         }
     }
 }

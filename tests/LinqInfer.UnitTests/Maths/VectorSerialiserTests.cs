@@ -61,5 +61,35 @@ namespace LinqInfer.Tests.Maths
 
             Assert.That(vect.Equals((BitVector)vect2));
         }
+
+        [Test]
+        public void GivenZeroVector_CanSerialiseAndDeserialise()
+        {
+            var sz = new VectorSerialiser();
+
+            var vect = new ZeroVector(81);
+
+            var data = sz.Serialize(vect, false);
+
+            var vect2 = sz.Deserialize(data);
+
+            Assert.That(vect.Equals((ZeroVector)vect2));
+        }
+
+        [Test]
+        public void GivenMultiVector_CanSerialiseAndDeserialise()
+        {
+            var sz = new VectorSerialiser();
+
+            var vectA = new BitVector(true, false);
+            var vectB = new ColumnVector1D(1, 3, 7d);
+            var vect = new MultiVector(vectA, vectB);
+
+            var data = sz.Serialize(vect, false);
+
+            var vect2 = sz.Deserialize(data);
+
+            Assert.That(vect.Equals((MultiVector)vect2));
+        }
     }
 }

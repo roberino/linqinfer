@@ -7,6 +7,19 @@ namespace LinqInfer.Tests.Maths
     public class BitVectorTests
     {
         [Test]
+        public void HorizontalMultiply_WhenGivenMultiColMatrix_ThenActiveRowsReturned()
+        {
+            var v1 = new BitVector(true, false, true);
+            var m1 = new Matrix(new[] { new[] { 91d, 12 }, new[] { 23.3d, 8 }, new[] { 10.8d, 6 } });
+
+            var x = v1.HorizontalMultiply(m1);
+
+            Assert.That(x.Size, Is.EqualTo(2));
+            Assert.That(x[0], Is.EqualTo(91d + 10.8d));
+            Assert.That(x[1], Is.EqualTo(12d + 6d));
+        }
+
+        [Test]
         public void WhenConstructedWithASingleValueSmallArray_CreatesAValidInstance()
         {
             var vect = new BitVector(new[] { false, true, false });

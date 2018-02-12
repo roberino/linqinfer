@@ -8,6 +8,43 @@ namespace LinqInfer.Tests.Maths
     public class OneOfNVectorTests
     {
         [Test]
+        public void HorizontalMultiply_WhenGivenMatrixAndInactiveIndex_ThenZeroVectReturned()
+        {
+            var v1 = new OneOfNVector(2);
+            var m1 = new Matrix(new[] { new[] { 91d, 43 }, new[] { 23.3d, 12.4 } });
+
+            var x = v1.HorizontalMultiply(m1);
+
+            Assert.That(x, Is.InstanceOf<ZeroVector>());
+            Assert.That(x.Size, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void HorizontalMultiply_WhenGivenSingleColMatrix_ThenActiveRowReturned()
+        {
+            var v1 = new OneOfNVector(3, 1);
+            var m1 = new Matrix(new[] { new[] { 91d }, new[] { 23.3d }, new[] { 10.8d } });
+
+            var x = v1.HorizontalMultiply(m1);
+
+            Assert.That(x.Size, Is.EqualTo(1));
+            Assert.That(x[0], Is.EqualTo(23.3d));
+        }
+
+        [Test]
+        public void HorizontalMultiply_WhenGivenMultiColMatrix_ThenActiveRowReturned()
+        {
+            var v1 = new OneOfNVector(3, 0);
+            var m1 = new Matrix(new[] { new[] { 91d, 12 }, new[] { 23.3d, 8 }, new[] { 10.8d, 6 } });
+
+            var x = v1.HorizontalMultiply(m1);
+
+            Assert.That(x.Size, Is.EqualTo(2));
+            Assert.That(x[0], Is.EqualTo(91d));
+            Assert.That(x[1], Is.EqualTo(12d));
+        }
+
+        [Test]
         public void Equals_WhenEqualColumnAndOneOfNVector_ThenTrue()
         {
             var vect1 = new OneOfNVector(4, 3);
