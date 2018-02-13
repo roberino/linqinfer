@@ -110,7 +110,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Gets or sets the initial weight range used to initialise neurons
         /// </summary>
         public Range InitialWeightRange { get; set; }
-        
+
+        /// <summary>
+        /// Generates a specification for the parameters
+        /// </summary>
+        public NetworkSpecification ToSpecification()
+        {
+            var layerSpecs = LayerSizes
+                .Where(x => x > 0)
+                .Select(x => new LayerSpecification(x, Activator, InitialWeightRange));
+
+            return new NetworkSpecification(this, InputVectorSize, OutputVectorSize, layerSpecs.ToArray());
+        }
+
         /// <summary>
         /// Creates a new set of parameters combining the parameters of this instance and another
         /// </summary>

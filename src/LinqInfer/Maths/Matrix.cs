@@ -234,7 +234,7 @@ namespace LinqInfer.Maths
             OnModify();
         }
 
-        internal void Concat(params Vector[] rows)
+        internal Matrix ConcatRows(params Vector[] rows)
         {
             foreach(var row in rows)
             {
@@ -243,6 +243,8 @@ namespace LinqInfer.Maths
 
             Setup();
             OnModify();
+
+            return this;
         }
 
         internal void Overwrite(Matrix other)

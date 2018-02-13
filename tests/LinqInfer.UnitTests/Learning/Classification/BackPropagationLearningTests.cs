@@ -30,7 +30,8 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_Multilayer_ReturnsErrorGt0()
         {
-            var network = new MultilayerNetwork(4, new[] { 4, 4 });
+            var parameters = new NetworkParameters(new[] { 4, 4 });
+            var network = new MultilayerNetwork(parameters);
 
             var bp = new BackPropagationLearning(network);
 
@@ -45,7 +46,8 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_MultilayerAndNeuronCounts_ReturnsErrorGt0()
         {
-            var network = new MultilayerNetwork(4, new[] { 4, 2 });
+            var parameters = new NetworkParameters(new[] { 4, 2, 4 });
+            var network = new MultilayerNetwork(parameters);
 
             var bp = new BackPropagationLearning(network);
 
@@ -60,7 +62,8 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_Multilayer_IsTrained()
         {
-            var network = new MultilayerNetwork(4, new[] { 4, 2 });
+            var parameters = new NetworkParameters(new[] { 4, 2, 4 });
+            var network = new MultilayerNetwork(parameters);
 
             var bp = new BackPropagationLearning(network);
 
@@ -75,7 +78,8 @@ namespace LinqInfer.Tests.Learning.Classification
         [Test]
         public void Train_Multilayer_SaveThenLoad()
         {
-            var network = new MultilayerNetwork(4, new[] { 4, 2 });
+            var parameters = new NetworkParameters(new[] { 4, 3, 4 });
+            var network = new MultilayerNetwork(parameters);
 
             var bp = new BackPropagationLearning(network);
 

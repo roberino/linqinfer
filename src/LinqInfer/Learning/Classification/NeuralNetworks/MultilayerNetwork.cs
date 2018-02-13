@@ -23,6 +23,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private IDictionary<string, string> _properties;
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
+        private NetworkSpecification _specification;
         private bool initd;
 
         public MultilayerNetwork(Stream input)
@@ -40,25 +41,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             parameters.Validate();
 
             _parameters = parameters;
+            _specification = parameters.ToSpecification();
             _properties = properties ?? new Dictionary<string, string>();
 
             initd = false;
         }
 
-        internal MultilayerNetwork(int inputVectorSize, int[] neuronSizes, ActivatorFunc activator = null, Func<int, Range, INeuron> neuronFactory = null)
-        {
-            _neuronFactory = neuronFactory;
-
-            _parameters = new NetworkParameters(new int[] { inputVectorSize }.Concat(neuronSizes).ToArray(), activator);
-            _properties = new Dictionary<string, string>();
-
-            initd = false;
-        }
-
-        private MultilayerNetwork(NetworkParameters parameters, Func<int, Range, INeuron> neuronFactory, INetworkSignalFilter rootLayer, int inputVectorSize)
+        private MultilayerNetwork(NetworkParameters parameters, INetworkSignalFilter rootLayer)
         {
             _parameters = parameters;
-            _neuronFactory = neuronFactory;
             _rootLayer = rootLayer;
             initd = true;
         }
@@ -156,7 +147,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        private void InitialiseLayers()
+        private void InitialiseLayersOld()
         {
             INetworkSignalFilter next = null;
 
@@ -185,6 +176,33 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
 
                 lastN = n;
+            }
+
+            initd = true;
+        }
+
+        private void InitialiseLayers()
+        {
+            INetworkSignalFilter next = null;
+
+            LayerSpecification lastLayer = null;
+
+            foreach (var layer in _specification.Layers)
+            {
+                var prev = next;
+
+                if (prev != null)
+                {
+                    next = new NetworkLayer(lastLayer.LayerSize, layer.LayerSize, layer.Activator, layer.NeuronFactory);
+                    prev.Successor = next;
+                }
+                else
+                {
+                    next = new NetworkLayer(_specification.InputVectorSize, _specification.InputVectorSize, layer.Activator, layer.NeuronFactory);
+                    _rootLayer = next;
+                }
+
+                lastLayer = layer;
             }
 
             initd = true;
@@ -358,7 +376,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetwork Clone(bool deep)
         {
-            return new MultilayerNetwork(_parameters.Clone(deep), _neuronFactory, _rootLayer.Clone(deep), Parameters.InputVectorSize);
+            return new MultilayerNetwork(_parameters.Clone(deep), _rootLayer.Clone(deep));
         }
 
         public object Clone()
