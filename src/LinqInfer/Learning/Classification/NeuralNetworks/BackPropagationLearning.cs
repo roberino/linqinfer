@@ -15,12 +15,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public BackPropagationLearning(MultilayerNetwork network, double momentum = 0.05)
         {
-            network.Parameters.Validate();
+            network.Specification.Validate();
 
             Contract.Assert(momentum >= 0 && momentum <= 1);
 
             _network = network;
-            _learningRate = network.Parameters.LearningRate;
+            _learningRate = network.Specification.LearningParameters.LearningRate;
             _momentum = momentum;
         }
 
@@ -80,7 +80,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     {
                         var e = targetOutput[k] - n.Output;
                         error += e * e;
-                        return e * _network.Parameters.Activator.Derivative(n.Output);
+                        return e * layer.Activator.Derivative(n.Output);
                     });
                 }
                 else
@@ -92,7 +92,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                             return lastError[k] * nk[i];
                         });
 
-                        return err.Sum * _network.Parameters.Activator.Derivative(n.Output);
+                        return err.Sum * layer.Activator.Derivative(n.Output);
                     });
                 }
 

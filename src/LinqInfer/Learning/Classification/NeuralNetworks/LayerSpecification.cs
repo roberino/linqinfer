@@ -1,12 +1,11 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class LayerSpecification
+    public sealed class LayerSpecification : IExportableAsVectorDocument
     {
         public LayerSpecification(int layerSize, ActivatorFunc activator, Range initialWeightRange)
         {
@@ -38,5 +37,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Gets or sets the initial weight range used to initialise neurons
         /// </summary>
         public Range InitialWeightRange { get; }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.SetPropertyFromExpression(() => LayerSize);
+            doc.SetPropertyFromExpression(() => Activator);
+
+            doc.Properties["InitialWeightRangeMin"] = InitialWeightRange.Min.ToString();
+            doc.Properties["InitialWeightRangeMax"] = InitialWeightRange.Max.ToString();
+
+            return doc;
+        }
     }
 }

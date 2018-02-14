@@ -22,6 +22,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         INeuron this[int index] { get; }
 
         /// <summary>
+        /// Gets the activator used for the layer
+        /// </summary>
+        ActivatorFunc Activator { get; }
+
+        /// <summary>
         /// Applies a function over each neuron supplying the neuron as a parameter
         /// </summary>
         IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func);

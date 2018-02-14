@@ -47,25 +47,30 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             initd = false;
         }
 
+        public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
+        {
+            specification.Validate();
+
+            _parameters = specification.ToParameters();
+            _specification = specification;
+            _properties = properties ?? new Dictionary<string, string>();
+
+            initd = false;
+        }
+
         private MultilayerNetwork(NetworkParameters parameters, INetworkSignalFilter rootLayer)
         {
             _parameters = parameters;
             _rootLayer = rootLayer;
+            _specification = parameters.ToSpecification();
             initd = true;
         }
 
-        public IDictionary<string, string> Properties
-        {
-            get { return _properties; }
-        }
+        public IDictionary<string, string> Properties => _properties;
 
-        public NetworkParameters Parameters
-        {
-            get
-            {
-                return _parameters;
-            }
-        }
+        public NetworkSpecification Specification => _specification;
+
+        public NetworkParameters Parameters => _parameters;
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
             VisualSettings visualSettings = null,
@@ -147,62 +152,27 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        private void InitialiseLayersOld()
-        {
-            INetworkSignalFilter next = null;
-
-            int lastN = 0;
-
-            Func<int, INeuron> neuronFactory;
-
-            if (_neuronFactory == null)
-                neuronFactory = (x => new NeuronBase(x, _parameters.InitialWeightRange));
-            else
-                neuronFactory = (x => _neuronFactory(x, _parameters.InitialWeightRange));
-
-            foreach (var n in _parameters.LayerSizes.Where(x => x > 0)) // Don't create empty layers
-            {
-                var prev = next;
-
-                if (prev == null)
-                {
-                    next = new NetworkLayer(Parameters.InputVectorSize, Parameters.InputVectorSize, _parameters.Activator, neuronFactory);
-                    _rootLayer = next;
-                }
-                else
-                {
-                    next = new NetworkLayer(lastN, n, _parameters.Activator, neuronFactory);
-                    prev.Successor = next;
-                }
-
-                lastN = n;
-            }
-
-            initd = true;
-        }
-
         private void InitialiseLayers()
         {
-            INetworkSignalFilter next = null;
+            NetworkLayer next = null;
+            NetworkLayer lastLayer = null;
 
-            LayerSpecification lastLayer = null;
-
-            foreach (var layer in _specification.Layers)
+            for (int i = 0; i < _specification.Layers.Count; i++)
             {
-                var prev = next;
+                var layer = _specification.Layers[i];
 
-                if (prev != null)
+                if (i == 0)
                 {
-                    next = new NetworkLayer(lastLayer.LayerSize, layer.LayerSize, layer.Activator, layer.NeuronFactory);
-                    prev.Successor = next;
+                    next = new NetworkLayer(_specification.InputVectorSize, layer.LayerSize, layer.Activator, layer.NeuronFactory);
+                    _rootLayer = next;
                 }
                 else
                 {
-                    next = new NetworkLayer(_specification.InputVectorSize, _specification.InputVectorSize, layer.Activator, layer.NeuronFactory);
-                    _rootLayer = next;
+                    next = new NetworkLayer(lastLayer.Size, layer.LayerSize, layer.Activator, layer.NeuronFactory);
+                    lastLayer.Successor = next;
                 }
 
-                lastLayer = layer;
+                lastLayer = next;
             }
 
             initd = true;
@@ -239,7 +209,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             if (inputIndexes == null || inputIndexes.Length == 0) throw new ArgumentException("No inputs recieved");
 
-            var newSize = Enumerable.Range(0, Parameters.InputVectorSize).Except(inputIndexes).Count();
+            var newSize = Enumerable.Range(0, Specification.InputVectorSize).Except(inputIndexes).Count();
 
             ForEachLayer(l =>
             {
@@ -284,35 +254,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public BinaryVectorDocument ToVectorDocument()
         {
-            var doc = new BinaryVectorDocument();
-
-            foreach (var prop in _properties)
-            {
-                doc.Properties["_" + prop.Key] = prop.Value;
-            }
-
-            doc.Properties["Activator"] = _parameters.Activator.Name;
-            doc.Properties["ActivatorParameter"] = _parameters.Activator.Parameter.ToString();
-            doc.Properties["InitialWeightRangeMin"] = _parameters.InitialWeightRange.Min.ToString();
-            doc.Properties["InitialWeightRangeMax"] = _parameters.InitialWeightRange.Max.ToString();
-            doc.Properties["LearningRate"] = _parameters.LearningRate.ToString();
-
-            doc.Properties["Label"] = "Network";
-
-            int i = 0;
-
-            foreach (var layer in Layers)
-            {
-                i++;
-
-                var layerDoc = layer.Export();
-
-                layerDoc.Properties["Label"] = "Layer " + i;
-
-                doc.Children.Add(layerDoc);
-            }
-
-            return doc;
+            return new MultilayerNetworkExporter().Export(this);
         }
 
         public void FromVectorDocument(BinaryVectorDocument doc)
@@ -325,25 +267,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public static MultilayerNetwork CreateFromVectorDocument(BinaryVectorDocument doc)
         {
-            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
-            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
-
-            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
-
-            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
-            {
-                LearningRate = double.Parse(doc.Properties["LearningRate"]),
-                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
-            }, properties);
-
-            int i = 0;
-
-            foreach (var layer in network.Layers)
-            {
-                layer.Import(doc.Children[i++]);
-            }
-
-            return network;
+            return new MultilayerNetworkExporter().Import(doc);
         }
 
         public void Load(Stream input)

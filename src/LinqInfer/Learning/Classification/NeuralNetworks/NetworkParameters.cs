@@ -120,7 +120,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 .Where(x => x > 0)
                 .Select(x => new LayerSpecification(x, Activator, InitialWeightRange));
 
-            return new NetworkSpecification(this, InputVectorSize, OutputVectorSize, layerSpecs.ToArray());
+            return new NetworkSpecification(this, layerSpecs.ToArray());
         }
 
         /// <summary>

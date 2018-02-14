@@ -29,6 +29,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             });
 
             _neurons = _neuronsFactory(neuronCount);
+
+            Activator = activator;
         }
 
         private NetworkLayer(IEnumerable<INeuron> neurons)
@@ -74,13 +76,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public INetworkSignalFilter Successor { get; set; }
 
-        public int Size
-        {
-            get
-            {
-                return _neurons.Count;
-            }
-        }
+        public int Size => _neurons.Count;
+
+        public ActivatorFunc Activator { get; }
 
         public INeuron this[int index]
         {
@@ -99,25 +97,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ILayer Clone(bool deep)
         {
-            var layer = new NetworkLayer(_neurons.Select(n => n.Clone(true)));
+            var layer = new NetworkLayer(_neurons.Select(n => n.Clone(deep)));
 
             if (layer.Successor != null)
             {
-                layer.Successor = layer.Successor.Clone(true);
+                layer.Successor = layer.Successor.Clone(deep);
             }
 
             return layer;
         }
 
-        public object Clone()
-        {
-            return Clone(true);
-        }
+        public object Clone() => Clone(true);
 
-        INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep)
-        {
-            return Clone(true);
-        }
+        INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep) => Clone(deep);
 
         public BinaryVectorDocument Export()
         {

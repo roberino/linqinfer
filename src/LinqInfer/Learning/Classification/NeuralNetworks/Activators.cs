@@ -31,7 +31,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 Name = "None",
                 Activator = x => s * x,
-                Derivative = x => 0,
+                Derivative = x => s,
                 Parameter = s,
                 Create = (p) => None(p)
             };
