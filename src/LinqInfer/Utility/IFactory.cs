@@ -1,7 +1,7 @@
 ﻿namespace LinqInfer.Utility
 {
-    public interface IFactory<T>
+    public interface IFactory<TResult, TArgs>
     {
-        T Create(string parameters);
+        TResult Create(TArgs parameters);
     }
 }

@@ -50,5 +50,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return doc;
         }
+
+        internal static LayerSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context)
+        {
+            LayerSpecification layer = null;
+
+            var layerSize = doc.PropertyOrDefault(() => layer.LayerSize, 0);
+            var activatorStr = doc.PropertyOrDefault(() => layer.Activator, string.Empty);
+
+            var initRangeMin = doc.PropertyOrDefault("InitialWeightRangeMin", 0.0d);
+            var initRangeMax = doc.PropertyOrDefault("InitialWeightRangeMax", 0.0d);
+
+            var activator = context.ActivatorFactory.Create(activatorStr);
+
+            return new LayerSpecification(layerSize, activator, new Range(initRangeMax, initRangeMin));
+        }
     }
 }

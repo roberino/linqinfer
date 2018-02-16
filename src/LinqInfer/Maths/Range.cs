@@ -74,7 +74,7 @@ namespace LinqInfer.Maths
 
         public override int GetHashCode()
         {
-            return (Min * -7 + Max).GetHashCode();
+            return new Tuple<double, double>(Min, Max).GetHashCode();
         }
     }
 }

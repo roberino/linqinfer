@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -50,6 +51,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
 
             return doc;
+        }
+
+        internal static NetworkSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context = null)
+        {
+            NetworkSpecification networkSpecification = null;
+
+            var ctx = context ?? new NetworkBuilderContext();
+            var learningRate = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.LearningRate, 0.01);
+            var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01); 
+
+            var layers = doc.Children.Select(c => LayerSpecification.FromVectorDocument(c, ctx)).ToArray();
+
+            var learningParams = new LearningParameters()
+            {
+                LearningRate = learningRate,
+                MinimumError = minimumError
+            };
+
+            return new NetworkSpecification(learningParams, layers);
         }
 
         internal void Validate()
