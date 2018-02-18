@@ -105,17 +105,17 @@ namespace LinqInfer.Learning
         /// </summary>
         public double CalculateDifference(T value)
         {
-            return _featureExtractor.ExtractColumnVector(value).Distance(Weights);
+            return _featureExtractor.ExtractIVector(value).ToColumnVector().Distance(Weights);
         }
 
-        internal double CalculateDifference(ObjectVector<T> dataItem)
+        internal double CalculateDifference(ObjectVectorPair<T> dataItem)
         {
             if (IsMember(dataItem.Value)) return -1;
 
-            return dataItem.Vector.Distance(Weights);
+            return dataItem.ColumnVector.Distance(Weights);
         }
 
-        internal void AppendMember(ObjectVector<T> dataItem)
+        internal void AppendMember(ObjectVectorPair<T> dataItem)
         {
             IsInitialised = true;
 
@@ -129,7 +129,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        internal void AdjustForIteration(IEnumerable<ClusterNode<T>> otherNodes, ObjectVector<T> dataItem, int epoch, bool appendMember = true)
+        internal void AdjustForIteration(IEnumerable<ClusterNode<T>> otherNodes, ObjectVectorPair<T> dataItem, int epoch, bool appendMember = true)
         {
             if (appendMember) AppendMember(dataItem);
 
@@ -156,7 +156,7 @@ namespace LinqInfer.Learning
             }
             else
             {
-                AdjustFor(dataItem.Vector, epoch);
+                AdjustFor(dataItem.ColumnVector, epoch);
             }
         }
 

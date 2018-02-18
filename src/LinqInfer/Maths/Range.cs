@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿using LinqInfer.Utility;
+using System;
 
 namespace LinqInfer.Maths
 {
@@ -10,7 +10,7 @@ namespace LinqInfer.Maths
     {
         public Range(double max = 1, double min = 0)
         {
-            Contract.Requires(max > min);
+            ArgAssert.Assert(() => max >= min, $"max ({max}) should be greater than or equal to min ({min})");
 
             Min = min;
             Max = max;
@@ -74,7 +74,7 @@ namespace LinqInfer.Maths
 
         public override int GetHashCode()
         {
-            return (Min * -7 + Max).GetHashCode();
+            return new Tuple<double, double>(Min, Max).GetHashCode();
         }
     }
 }

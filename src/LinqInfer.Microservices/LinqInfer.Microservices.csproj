@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>AspNet Core adapters and microservices for LinqInfer</Description>
+    <AssemblyTitle>LinqInfer.AspNetCore</AssemblyTitle>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <VersionPrefix>1.0.2</VersionPrefix>
+    <TargetFrameworks>netcoreapp1.1;netstandard2.0;</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <Version>1.0.3-beta</Version>
+    <Copyright>Copyright © 2017</Copyright>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/roberino/linqinfer</PackageProjectUrl>
+    <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <PackageTags>linqinfer;aspnet core;microservices</PackageTags>
+    <PackageId>LinqInfer.Microservices</PackageId>
+    <Authors>R Eyres</Authors>
+    <Company />
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
+    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="1.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LinqInfer\LinqInfer.csproj" />
+  </ItemGroup>
+
+</Project>

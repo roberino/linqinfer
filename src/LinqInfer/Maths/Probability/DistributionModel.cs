@@ -2,8 +2,7 @@
 {
     public enum DistributionModel
     {
-        Unknown,
-        Normal,
+        Magnitudinal,
         Binomial,
         Multinomial,
         Categorical

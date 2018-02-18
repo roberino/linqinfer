@@ -43,7 +43,7 @@ namespace LinqInfer.Maths.Graphs
             Label = label;
         }
 
-        public T Label { get; private set; }
+        public T Label { get; }
 
         public async Task<IDictionary<string, object>> GetAttributesAsync()
         {

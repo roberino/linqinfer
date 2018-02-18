@@ -1,6 +1,5 @@
-﻿using System;
-using LinqInfer.Data;
-using System.Collections.Generic;
+﻿using LinqInfer.Maths;
+using System;
 
 namespace LinqInfer.Learning.Features
 {
@@ -12,28 +11,32 @@ namespace LinqInfer.Learning.Features
         IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
 
         /// <summary>
-        /// Returns storage outputs
-        /// </summary>
-        IEnumerable<IBlobStore> Outputs { get; }
-
-        /// <summary>
         /// Filters features based on a predicate function
         /// </summary>
-        FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter);
+        IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter);
 
         /// <summary>
         /// Filters features based on their mapped property name (assumes a direct mapping between property name and feature key)
         /// </summary>
-        FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector);
+        IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector);
 
         /// <summary>
-        /// Applies a pre-processing function which transforms the source vector into a new vector
+        /// Centres the features around the mean
         /// </summary>
-        FeatureProcessingPipeline<T> PreprocessWith(Func<double[], double[]> transformFunction);
+        IFeatureProcessingPipeline<T> CentreFeatures();
 
         /// <summary>
-        /// Specifies a storage output for persisting data
+        /// Transforms the data so that it fits between
+        /// the given range
         /// </summary>
-        FeatureProcessingPipeline<T> OutputResultsTo(IBlobStore store);
+        /// <param name="range">The range (defaults to -1 <= =< 1)</param>
+        /// <returns></returns>
+        IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null);
+
+        /// <summary>
+        /// Performs simple normalisation over the data,
+        /// readjusting data so that values fall between 0 and 1
+        /// </summary>
+        IFeatureProcessingPipeline<T> NormaliseData();
     }
 }

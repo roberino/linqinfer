@@ -1,1 +1,3 @@
-xbuild /p:Configuration=Release LinqInfer.sln
+#!/bin/sh
+dotnet restore "LinqInfer.sln"
+dotnet build "LinqInfer.sln"

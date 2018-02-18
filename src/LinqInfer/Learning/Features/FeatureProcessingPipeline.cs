@@ -62,45 +62,32 @@ namespace LinqInfer.Learning.Features
         /// Returns the size of the vector returned
         /// when vectors are extracted
         /// </summary>
-        public int VectorSize
-        {
-            get
-            {
-                return FeatureExtractor.VectorSize;
-            }
-        }
+        public int VectorSize => FeatureExtractor.VectorSize;
 
         /// <summary>
         /// Returns an enumeration of feature metadata
         /// </summary>
-        public IEnumerable<IFeature> FeatureMetadata
-        {
-            get
-            {
-                return FeatureExtractor.FeatureMetadata;
-            }
-        }
+        public IEnumerable<IFeature> FeatureMetadata => FeatureExtractor.FeatureMetadata;
+
+        /// <summary>
+        /// Returns the number of samples in the pipeline
+        /// </summary>
+        public int SampleCount => Data.Count();
 
         /// <summary>
         /// Exports the internal state (not the data) of the pipeline as a <see cref="BinaryVectorDocument"/>
         /// </summary>
-        public BinaryVectorDocument SaveState()
-        {
-            return _featureExtractor.ToVectorDocument();
-        }
+        public BinaryVectorDocument SaveState() => _featureExtractor.ToVectorDocument();
 
         /// <summary>
         /// Retores the state of the pipeline from a previously exported <see cref="BinaryVectorDocument"/>
         /// </summary>
-        public void RestoreState(BinaryVectorDocument data)
-        {
-            _featureExtractor.FromVectorDocument(data);
-        }
+        public void RestoreState(BinaryVectorDocument data) => _featureExtractor.FromVectorDocument(data);
 
         /// <summary>
         /// Filters features by property
         /// </summary>
-        public FeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
+        public IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
         {
             var ps = new PropertySelector<T>();
 
@@ -117,11 +104,30 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Filters features using the specified predicate function
         /// </summary>
-        public FeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
+        public IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
         {
             _featureExtractor.FilterFeatures(featureFilter);
 
             return this;
+        }
+
+        public IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
+        {
+            var minMax = ExtractColumnVectors().MinMaxAndMeanOfEachDimension();
+            var transform = minMax.CreateScaleTransformation(range);
+            return PreprocessWith(transform);
+        }
+
+        /// <summary>
+        /// Centres the feature data by subtracting the mean from each dimension
+        /// </summary>
+        public IFeatureProcessingPipeline<T> CentreFeatures()
+        {
+            var mean = ExtractColumnVectors().MeanOfEachDimension();
+
+            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.Subtract, mean));
+
+            return PreprocessWith(transform);
         }
 
         /// <summary>
@@ -131,14 +137,12 @@ namespace LinqInfer.Learning.Features
         /// <param name="numberOfDimensions">The (max) number of features to retain</param>
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public FeatureProcessingPipeline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
+        public IFeatureProcessingPipeline<T> PrincipalComponentReduction(int numberOfDimensions, int sampleSize = 100)
         {
             var pca = new PrincipalComponentAnalysis(this);
 
             var pp = pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
-
-            _featureExtractor.IsNormalising = false; // Assume that PCA expects the raw data and does it's own "normalisation"
-
+            
             return PreprocessWith(pp);
         }
 
@@ -149,15 +153,18 @@ namespace LinqInfer.Learning.Features
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
         /// <param name="parameters">The parameters used to affect the clustering process</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
-        public FeatureProcessingPipeline<T> KohonenSOMFeatureReduction(int numberOfDimensions, int sampleSize = 100, ClusteringParameters parameters = null)
+        public IFeatureProcessingPipeline<T> KohonenSomFeatureReduction(int numberOfDimensions, int sampleSize = 100, Action<ClusteringParameters> configure = null)
         {
-            if (parameters == null) parameters = new ClusteringParameters()
+            var parameters = new ClusteringParameters()
             {
                 InitialRadius = 0.5,
-                InitialLearningRate = 0.1f
+                InitialLearningRate = 0.1f,
+                NumberOfOutputNodes = numberOfDimensions
             };
 
             parameters.NumberOfOutputNodes = numberOfDimensions;
+
+            configure?.Invoke(parameters);
 
             var mapper = new FeatureMapperV3<T>(parameters);
 
@@ -165,7 +172,7 @@ namespace LinqInfer.Learning.Features
 
             var map = mapper.Map(Limit(sampleSize));
 
-            var transform = new SerialisableVectorTransformation(map.ExportClusterWeights(), SerialisableVectorTransformation.TransformType.EuclideanDistance);
+            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.EuclideanDistance, map.ExportClusterWeights()));
 
             return PreprocessWith(transform);
         }
@@ -175,25 +182,9 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public FeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        public IFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Preprocesses the data with transforming function
-        /// (only one supported currently)
-        /// The transforming function may or may not
-        /// change the size of the extracted vector.
-        /// Function transformations are not serialisable.
-        /// </summary>
-        /// <param name="transformFunction">The transforming function</param>
-        /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public FeatureProcessingPipeline<T> PreprocessWith(Func<double[], double[]> transformFunction)
-        {
-            PreprocessWith(new DelegateVectorTransformation(_featureExtractor.VectorSize, transformFunction));
 
             return this;
         }
@@ -213,7 +204,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        internal ExecutionPipline<TResult> ProcessWith<TResult>(Func<FeatureProcessingPipeline<T>, string, TResult> processor)
+        public ExecutionPipline<TResult> ProcessWith<TResult>(Func<IFeatureProcessingPipeline<T>, string, TResult> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -223,7 +214,7 @@ namespace LinqInfer.Learning.Features
             }, (x, o) => true);
         }
 
-        internal ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<FeatureProcessingPipeline<T>, string, Task<TResult>> processor)
+        public ExecutionPipline<TResult> ProcessAsyncWith<TResult>(Func<IFeatureProcessingPipeline<T>, string, Task<TResult>> processor)
         {
             return new ExecutionPipline<TResult>((n) =>
             {
@@ -231,18 +222,6 @@ namespace LinqInfer.Learning.Features
 
                 return res;
             }, (x, o) => true);
-        }
-
-        /// <summary>
-        /// Specifies where output should be stored
-        /// </summary>
-        /// <param name="store"></param>
-        [Obsolete]
-        public FeatureProcessingPipeline<T> OutputResultsTo(IBlobStore store)
-        {
-            _outputs.Add(store);
-
-            return this;
         }
 
         /// <summary>
@@ -251,30 +230,32 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public IFeatureProcessingPipeline<T> NormaliseData()
         {
-            var fe = FeatureExtractor;
-
-            if (fe.IsNormalising && !_featureExtractor.NormalisationCompleted)
+            try
             {
-                fe.NormaliseUsing(_data);
+                return CentreFeatures().ScaleFeatures(new Range(1, 0));
             }
+            catch (Exception ex)
+            {
+                DebugOutput.Log(ex);
 
-            return this;
+                DebugOutput.Log(ExtractColumnVectors());
+
+                throw;
+            }
         }
 
         /// <summary>
         /// Extracts vectors from the dataset
         /// </summary>
-        public IEnumerable<ColumnVector1D> ExtractVectors()
+        public IEnumerable<IVector> ExtractVectors()
         {
             var fe = FeatureExtractor;
-
-            NormaliseData();
 
             foreach (var batch in _data.Chunk())
             {
                 foreach (var item in batch)
                 {
-                    yield return fe.ExtractColumnVector(item);
+                    yield return fe.ExtractIVector(item);
                 }
             }
         }
@@ -282,15 +263,13 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Extracts object vector pairs in batches
         /// </summary>
-        public IEnumerable<IList<ObjectVector<T>>> ExtractBatches(int batchSize = 1000)
+        public IEnumerable<IList<ObjectVectorPair<T>>> ExtractBatches(int batchSize = 1000)
         {
             var fe = FeatureExtractor;
 
-            NormaliseData();
-
             foreach (var batch in _data.Chunk(batchSize))
             {
-                yield return batch.Select(b => new ObjectVector<T>(b, fe.ExtractColumnVector(b))).ToList();
+                yield return batch.Select(b => new ObjectVectorPair<T>(b, fe.ExtractIVector(b))).ToList();
             }
         }
 
@@ -301,12 +280,17 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new BinaryVectorDocument();
 
-            foreach(var vec in (maxRows.HasValue ? ExtractVectors().Take(maxRows.Value) : ExtractVectors()))
+            foreach(var vec in (maxRows.HasValue ? ExtractColumnVectors().Take(maxRows.Value) : ExtractColumnVectors()))
             {
                 doc.Vectors.Add(vec);
             }
 
             return doc;
+        }
+
+        internal IEnumerable<ColumnVector1D> ExtractColumnVectors()
+        {
+            return ExtractVectors().Select(v => v.ToColumnVector());
         }
     }
 }

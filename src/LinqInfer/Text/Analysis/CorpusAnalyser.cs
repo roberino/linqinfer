@@ -57,6 +57,7 @@ namespace LinqInfer.Text.Analysis
                 var term = Terms.Single(t => t.Index == index);
 
                 results[term] = row
+                    .ToColumnVector()
                     .IndexedValues
                     .Where(v => v.Value >= minCovariance)
                     .ToDictionary(v => Terms.Single(t => t.Index == v.Key), v => v.Value);
@@ -75,28 +76,13 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        //public IEnumerable<string[]> Trigrams
-        //{
-        //    get
-        //    {
-        //        foreach (var term in _index.Terms)
-        //        {
-        //            var following = _markovChain.GetFrequencies(term);
-
-        //            foreach (var prior in _markovChain.GetPriorFrequencies(term))
-        //            {
-        //            }
-        //        }
-        //    }
-        //}
-
         private Matrix Analyse(IEnumerable<TokenisedTextDocument> samples)
         {
             foreach (var sample in samples) Append(sample);
 
             _featureExtractor = _index.CreateVectorExtractor(_vectorSize, false);
 
-            return new Matrix(samples.Select(s => _featureExtractor.ExtractColumnVector(s.Tokens)));
+            return new Matrix(samples.Select(s => _featureExtractor.ExtractIVector(s.Tokens).ToColumnVector()));
         }
 
         private void Append(TokenisedTextDocument document)

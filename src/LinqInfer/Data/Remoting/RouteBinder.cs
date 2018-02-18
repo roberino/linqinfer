@@ -21,6 +21,19 @@ namespace LinqInfer.Data.Remoting
         public IUriRoute Route { get; private set; }
 
         /// <summary>
+        /// Creates a new binder for a specific method
+        /// </summary>
+        public RouteBinder UsingMethod(Verb method)
+        {
+            return new RouteBinder(new UriRoute(Route.BaseUri, Route.Template, method), _routes, _binder);
+        }
+
+        public void ToMany(Action<RouteBinder> bindAction)
+        {
+            bindAction(this);
+        }
+
+        /// <summary>
         /// Binds the route to an async function
         /// </summary>
         /// <typeparam name="TArg">The argument type</typeparam>

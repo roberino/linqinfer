@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -6,17 +7,21 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveBayesNormalClassifier<T> : IByteClassifier<T>, IFloatingPointClassifier<T>, IAssistedLearning<T, byte>, IAssistedLearning<T, double>
+    internal class NaiveBayesNormalClassifier<T> : 
+        IByteClassifier<T>, 
+        IFloatingPointClassifier<T>, 
+        IAssistedLearningProcessor<T, byte>, 
+        IAssistedLearningProcessor<T, double>
     {
-        private readonly Dictionary<T, List<InputAggregator>> netData;
+        private readonly Dictionary<T, List<NaiveInputSampler>> netData;
         private readonly int vectorSize;
-        private readonly Func<InputAggregator> neuronGenerator;
+        private readonly Func<NaiveInputSampler> neuronGenerator;
 
-        public NaiveBayesNormalClassifier(int vectorSize, Func<InputAggregator> neuronGenerator = null)
+        public NaiveBayesNormalClassifier(int vectorSize, Func<NaiveInputSampler> neuronGenerator = null)
         {
             this.vectorSize = vectorSize;
-            this.neuronGenerator = neuronGenerator ?? (() => new InputAggregator());
-            netData = new Dictionary<T, List<InputAggregator>>();
+            this.neuronGenerator = neuronGenerator ?? (() => new NaiveInputSampler());
+            netData = new Dictionary<T, List<NaiveInputSampler>>();
         }
 
         public ClassifyResult<T> ClassifyAsBestMatch(byte[] data)
@@ -38,12 +43,10 @@ namespace LinqInfer.Learning.Classification
 
         public double Train(T dataClass, double[] sample)
         {
-            Contract.Assert(sample != null);
-            Contract.Assert(sample.Length == vectorSize);
+            ArgAssert.AssertNonNull(sample, nameof(sample));
+            ArgAssert.AssertEquals(sample.Length, vectorSize, nameof(vectorSize));
 
-            List<InputAggregator> neurons;
-
-            if (!netData.TryGetValue(dataClass, out neurons))
+            if (!netData.TryGetValue(dataClass, out List<NaiveInputSampler> neurons))
             {
                 netData[dataClass] = neurons = Enumerable.Range(0, vectorSize).Select(n => neuronGenerator()).ToList();
             }

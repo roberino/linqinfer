@@ -470,6 +470,16 @@ namespace LinqInfer.Maths
             return new Fraction(-y.Numerator, y.Denominator);
         }
 
+        public static implicit operator double(Fraction x)
+        {
+            return x.Value;
+        }
+
+        public static implicit operator Fraction(Tuple<int, int> tuple)
+        {
+            return new Fraction(tuple.Item1, tuple.Item2);
+        }
+
         internal static Fraction Multiply(Fraction x, Fraction y, bool approx = false)
         {
             if (x.IsZero || y.IsZero) return Zero;

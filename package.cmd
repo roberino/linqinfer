@@ -1,13 +1,8 @@
 rem build main lib
 
-dotnet restore "src\LinqInfer\LinqInfer-dotnetcore.csproj"
-dotnet build "src\LinqInfer\LinqInfer-dotnetcore.csproj"
-dotnet pack "src\LinqInfer\LinqInfer-dotnetcore.csproj" --output ..\..\artifacts
-
-rem build aspnet core lib
-
-dotnet restore "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj"
-dotnet build "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj"
-dotnet pack "src\LinqInfer.AspNetCore\LinqInfer.AspNetCore.csproj" --output ..\..\artifacts
+dotnet restore LinqInfer.sln
+dotnet build LinqInfer.sln
+dotnet pack "src\LinqInfer\LinqInfer.csproj" --output ..\..\artifacts
+dotnet pack "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj" --output ..\..\artifacts
 
 PAUSE

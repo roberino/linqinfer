@@ -129,9 +129,7 @@ namespace LinqInfer.Data.Remoting
 
         private void ValidateContextAndAppendDebugInfo(IOwinContext c, MethodInfo innerMethod, Type argType, Type resultType)
         {
-            object expectedResponseType;
-
-            if (c.TryGetValue("ext.ExpectedResponseType", out expectedResponseType))
+            if (c.TryGetValue("ext.ExpectedResponseType", out object expectedResponseType))
             {
                 if (expectedResponseType is Type && !((Type)expectedResponseType).GetTypeInf().IsAssignableFrom(resultType))
                 {
@@ -181,7 +179,7 @@ namespace LinqInfer.Data.Remoting
             {
                 prop = p,
                 index = i++,
-                val = ParamsToPrimative(p.PropertyType, context, p.Name)
+                val = ParamsToPrimative(p.PropertyType, context, p.Name, true)
             }).ToList();
 
             var missing = values.Where(v => !v.val.Item2).ToList();
@@ -191,7 +189,7 @@ namespace LinqInfer.Data.Remoting
                 throw new ArgumentException("Parameter(s) not found: " + string.Join(",", missing.Select(m => m.prop.Name)));
             }
 
-            if (!instanceFromBody && !properties.All(p => p.CanWrite))
+            if (!instanceFromBody && properties.All(p => !p.CanWrite))
             {
                 if (missing.Count == values.Count) return instance;
 
@@ -202,7 +200,14 @@ namespace LinqInfer.Data.Remoting
                     conarg[prop.index] = prop.prop.GetValue(instance);
                 }
 
-                instance = (T)Activator.CreateInstance(type, conarg);
+                try
+                {
+                    instance = (T)Activator.CreateInstance(type, conarg);
+                }
+                catch (MissingMethodException)
+                {
+                    throw new ArithmeticException("Can't find suitable constructor for " + type.Name);
+                }
             }
             else
             {
@@ -252,16 +257,22 @@ namespace LinqInfer.Data.Remoting
             return (T)val.Item1;
         }
 
-        private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name)
+        private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name, bool ignoreCase = false)
         {
-            object val;
 
-            if (context.TryGetValue("route." + name, out val))
+            if (context.TryGetValue("route." + name, out object val))
             {
                 return new Tuple<object, bool>(Convert.ChangeType(val, type), true);
             }
             else
             {
+                if (ignoreCase)
+                {
+                    var key = context.Keys.FirstOrDefault(k => k.Equals("route." + name, StringComparison.OrdinalIgnoreCase));
+
+                    if (key != null) return new Tuple<object, bool>(Convert.ChangeType(context[key], type), true);
+                }
+
                 var nblType = type.GetNullableTypeType();
 
                 return new Tuple<object, bool>(null, nblType != null);

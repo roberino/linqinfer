@@ -23,7 +23,7 @@ namespace LinqInfer.Utility
         public static void LogVerbose(string msgFormat, params object[] args)
         {
             if (!VerboseOn) return;
-            Log(string.Format(msgFormat, args), true);
+            Log(string.Format(msgFormat, args));
         }
 
         public static void Log<T>(IEnumerable<T> objs)

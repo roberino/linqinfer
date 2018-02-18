@@ -21,5 +21,10 @@ namespace LinqInfer.Learning.Features
         {
             return new ColumnVector1D(base.ExtractVector(obj));
         }
+
+        public IVector ExtractIVector(TInput obj)
+        {
+            return ExtractColumnVector(obj);
+        }
     }
 }

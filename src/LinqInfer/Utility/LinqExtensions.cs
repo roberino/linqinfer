@@ -1,13 +1,133 @@
-﻿using System;
+﻿using LinqInfer.Data.Pipes;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        /// <summary>
+        /// Returns true if all members of an enumeration
+        /// satisfy a predicate function which takes an
+        /// item index and an item.
+        /// e.g. {'a', 'b', 'c'}.All((n, x) => x == (char)((byte)'a' + n))
+        /// </summary>
+        public static bool All<T>(this IEnumerable<T> items, Func<int, T, bool> predicate)
+        {
+            int i = 0;
+            foreach (var x in items)
+            {
+                if (!predicate(i++, x)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if all members of an enumeration
+        /// satisfy a predicate function which takes an
+        /// item index and an item.
+        /// e.g. {'a', 'b', 'c'}.All((n, x) => x == (char)((byte)'a' + n))
+        /// </summary>
+        public static bool AllEqual<T>(this IEnumerable<T> items, Func<int, T> comparisonFunc)
+        {
+            int i = 0;
+            foreach (var x in items)
+            {
+                if (!comparisonFunc(i++).Equals(x)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Converts an enumeration into an async enumerator
+        /// </summary>
+        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
+        {
+            return From.Enumerable(values, batchSize);
+        }
+
+        /// <summary>
+        /// Converts an enumeration of batch loading tasks
+        /// into an async enumerable object
+        /// </summary>
+        /// <typeparam name="T">The type of each item in a batch of data</typeparam>
+        /// <param name="batchLoader">An enumeration of tasks to load data</param>
+        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        {
+            return From.EnumerableTasks(batchLoader);
+        }
+
+        /// <summary>
+        /// Iterates over an enumeration of values and applies a function returning the results of the function
+        /// </summary>
+        public static IList<O> ForEach<I, O>(this IEnumerable<I> values, Func<I, O> func)
+        {
+            var len = values is IList<I> ? ((IList<I>)values).Count : 16;
+            var results = new List<O>(len);
+
+            foreach (var v in values)
+            {
+                results.Add(func(v));
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Zips together two enumerables, returning when the end of both have been reached. If one enumerable contains less items
+        /// than the other then the default value is returned. E.g.
+        /// [1,2,3].ZipAll([1,2], (x,y) => [x,y]) = [[1,1],[2,2],[3,0]]
+        /// OR using references:
+        /// ["1","2","3"].ZipAll(["1","2"], (x,y) => [x,y]) = [["1","1"],["2","2"],["3",null]]
+        /// </summary>
+        public static IEnumerable<O> ZipAll<T1, T2, O>(this IEnumerable<T1> items1, IEnumerable<T2> items2, Func<T1, T2, O> resultSelector)
+        {
+            var e1 = items1.GetEnumerator();
+            var e2 = items2.GetEnumerator();
+            var e1cont = true;
+            var e2cont = true;
+
+            T1 item1;
+            T2 item2;
+
+            try
+            {
+                while (e1cont || e2cont)
+                {
+                    if (e1cont)
+                    {
+                        e1cont = e1.MoveNext();
+                        item1 = e1cont ? e1.Current : default(T1);
+                    }
+                    else
+                    {
+                        item1 = default(T1);
+                    }
+
+                    if (e2cont)
+                    {
+                        e2cont = e2.MoveNext();
+                        item2 = e2cont ? e2.Current : default(T2);
+                    }
+                    else
+                    {
+                        item2 = default(T2);
+                    }
+
+                    if (e1cont || e2cont) yield return resultSelector(item1, item2);
+                }
+            }
+            finally
+            {
+                e1.Dispose();
+                e2.Dispose();
+            }
+        }
+
         /// <summary>
         /// Returns a distinct list of items using the comparison functions
         /// </summary>

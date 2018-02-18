@@ -24,9 +24,9 @@ namespace LinqInfer.Learning.Features
         int Index { get; }
 
         /// <summary>
-        /// The distribution model of the feature type
+        /// The vector model of the feature
         /// </summary>
-        DistributionModel Model { get; }
+        FeatureVectorModel Model { get; }
 
         /// <summary>
         /// The raw type code of the feature
@@ -40,7 +40,7 @@ namespace LinqInfer.Learning.Features
         public int Index { get; set; }
         public string Key { get; set; }
         public string Label { get; set; }
-        public DistributionModel Model { get; set; }
+        public FeatureVectorModel Model { get; set; }
 
         public override string ToString()
         {
@@ -58,7 +58,7 @@ namespace LinqInfer.Learning.Features
                     .ToArray();
         }
 
-        public static IFeature[] CreateDefaults(IEnumerable<string> labels, DistributionModel model = DistributionModel.Unknown)
+        public static IFeature[] CreateDefaults(IEnumerable<string> labels, FeatureVectorModel model = FeatureVectorModel.Magnitudinal)
         {
             Contract.Assert(labels != null && labels.Any());
 

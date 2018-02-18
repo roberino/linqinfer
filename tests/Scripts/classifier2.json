@@ -1,0 +1,6 @@
+{
+	"transform": "map(64,100)",
+	"maxVectorSize": 128,
+	"classAttributeName": "cls",
+	"errorTolerance": 0.1
+}

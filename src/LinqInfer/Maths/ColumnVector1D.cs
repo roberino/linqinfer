@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -18,13 +19,18 @@ namespace LinqInfer.Maths
         {
         }
 
-        public ColumnVector1D(double[] values) : base(values)
+        public ColumnVector1D(params double[] values) : base(values)
         {
         }
 
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
         {
         }
+
+        /// <summary>
+        /// Returns true if all values are zero
+        /// </summary>
+        public bool IsZero => _values.All(x => x == 0d);
 
         /// <summary>
         /// Returns a 1 column matrix
@@ -132,15 +138,45 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the exponential for each value as a new vector.
+        /// </summary>
+        public ColumnVector1D Exp()
+        {
+            return new ColumnVector1D(_values.Select(v => Math.Exp(v)).ToArray());
+        }
+
+        /// <summary>
+        /// Returns the natural logarithm for each value as a new vector.
+        /// </summary>
+        /// <returns></returns>
+        public ColumnVector1D Log()
+        {
+            return new ColumnVector1D(_values.Select(v => Math.Log(v)).ToArray());
+        }
+
+        /// <summary>
+        /// Returns the values negated
+        /// </summary>
+        /// <returns></returns>
+        public ColumnVector1D Negate()
+        {
+            return new ColumnVector1D(_values.Select(v => -v).ToArray());
+        }
+
+        /// <summary>
         /// Normalises each element over the sum (default) or the length of all values.
+        /// When bySum=false, the vector returned is the unit vector.
         /// </summary>
         /// <returns>A new normalised vector</returns>
         public ColumnVector1D Normalise(bool bySum = true)
         {
-            var t = bySum ? Sum() : EuclideanLength;
+            var t = bySum ? Sum : EuclideanLength;
             return new ColumnVector1D(_values.Select(x => x / t).ToArray());
         }
 
+        /// <summary>
+        /// Returns the Cosine Distance between this vector and another.
+        /// </summary>
         public double CosineDistance(ColumnVector1D other)
         {
             var dotp = DotProduct(other);
@@ -172,6 +208,14 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a single column matrix
+        /// </summary>
+        public Matrix ToMatrix()
+        {
+            return new Matrix(_values.Select(v => new[] { v }));
+        }
+
+        /// <summary>
         /// Creates a new column vector with the supplied values
         /// </summary>
         public static ColumnVector1D Create(params double[] values)
@@ -181,7 +225,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator -(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
             int i = 0;
 
@@ -190,7 +234,7 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator +(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
             var newValues = new double[v1.Size];
             var v1a = v1._values;
@@ -204,20 +248,36 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(newValues);
         }
 
-        public static ColumnVector1D operator *(ColumnVector1D v1, ColumnVector1D v2)
+        public static ColumnVector1D operator +(ColumnVector1D v, double s)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            var newValues = new double[v.Size];
+            var va = v._values;
 
-            var newValues = new double[v1.Size];
-            var v1a = v1._values;
-            var v2a = v2._values;
-
-            for (int i = 0; i < v1a.Length; i++)
+            for (int i = 0; i < va.Length; i++)
             {
-                newValues[i] = v1a[i] * v2a[i];
+                newValues[i] = va[i] + s;
             }
 
             return new ColumnVector1D(newValues);
+        }
+
+        public static ColumnVector1D operator *(ColumnVector1D v1, ColumnVector1D v2)
+        {
+            return new ColumnVector1D(((Vector)v1) * ((Vector)v2));
+        }
+
+        public static Matrix operator *(ColumnVector1D v, Matrix m)
+        {
+            Contract.Requires(v.Size == m.Height);
+
+            var rows = new List<Vector>();
+
+            for (var i = 0; i < m.Height; i++)
+            {
+                rows.Add(v * m.Rows[i].ToColumnVector());
+            }
+
+            return new Matrix(rows);
         }
 
         public static ColumnVector1D operator /(ColumnVector1D v1, ColumnVector1D v2)
@@ -237,6 +297,11 @@ namespace LinqInfer.Maths
         public static ColumnVector1D operator *(ColumnVector1D v1, double y)
         {
             return new ColumnVector1D(v1._values.Select(x => x * y).ToArray());
+        }
+
+        public static implicit operator ColumnVector1D(double[] values)
+        {
+            return new ColumnVector1D(values);
         }
 
         public override string ToString()

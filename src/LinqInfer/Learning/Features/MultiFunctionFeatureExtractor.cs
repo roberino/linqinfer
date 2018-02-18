@@ -19,13 +19,9 @@ namespace LinqInfer.Learning.Features
         private FloatingPointFilteringFeatureExtractor<T> _filter;
         private FloatingPointTransformingFeatureExtractor<T> _transformation;
 
-        private bool _normalisationCompleted;
-        private bool _normalisationOff;
-
         internal MultiFunctionFeatureExtractor(IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             _featureExtractor = featureExtractor ?? _objExtractor.CreateFeatureExtractor<T>();
-            _normalisationCompleted = false;
         }
 
         /// <summary>
@@ -62,26 +58,6 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public bool NormalisationCompleted
-        {
-            get
-            {
-                return _normalisationCompleted;
-            }
-        }
-
-        public bool IsNormalising
-        {
-            get
-            {
-                return !_normalisationOff && FeatureExtractor.IsNormalising;
-            }
-            set
-            {
-                _normalisationOff = true;
-            }
-        }
-
         /// <summary>
         /// Filters features by property
         /// </summary>
@@ -94,8 +70,6 @@ namespace LinqInfer.Learning.Features
             if (ps.SelectedProperties.Any())
             {
                 FilterFeatures(f => ps.SelectedProperties.Contains(f.Label));
-
-                _normalisationCompleted = false;
             }
         }
 
@@ -110,8 +84,6 @@ namespace LinqInfer.Learning.Features
             }
 
             _filter = new FloatingPointFilteringFeatureExtractor<T>(_featureExtractor, featureFilter);
-
-            _normalisationCompleted = false;
         }
 
         /// <summary>
@@ -132,17 +104,17 @@ namespace LinqInfer.Learning.Features
 
         public ColumnVector1D ExtractColumnVector(T obj)
         {
-            return FeatureExtractor.ExtractColumnVector(obj);
-        }
-
-        public double[] NormaliseUsing(IEnumerable<T> samples)
-        {
-            return FeatureExtractor.NormaliseUsing(samples);
+            return FeatureExtractor.ExtractIVector(obj).ToColumnVector();
         }
 
         public double[] ExtractVector(T obj)
         {
             return FeatureExtractor.ExtractVector(obj);
+        }
+
+        public IVector ExtractIVector(T obj)
+        {
+            return FeatureExtractor.ExtractIVector(obj);
         }
 
         /// <summary>
@@ -178,7 +150,7 @@ namespace LinqInfer.Learning.Features
                 }
             }
 
-            if (data.PropertyOrDefault("HasTransformation", false))
+            if (hasTr)
             {
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_filter ?? _featureExtractor);
 

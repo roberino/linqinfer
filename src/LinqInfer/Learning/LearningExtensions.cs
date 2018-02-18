@@ -38,10 +38,7 @@ namespace LinqInfer.Learning
             var extractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
-
-            if(extractor.IsNormalising)
-                extractor.NormaliseUsing(trainingData);
-
+            
             classifierPipe.Train(trainingData, classf);
 
             return x => classifierPipe.Classify(x).ToDistribution();

@@ -59,38 +59,3 @@ var classifier = trainingSet
                 .Execute();
 
 ```
-
-### Remoting
-
-Because training can be CPU intensive, it might be useful to delegate the work. 
-The remoting extensions can create multilayer network training servers and clients to
-delegate the work over a number of processes.
-
-#### Examples
-
-```cs
-
-// import LinqInfer.Learning.Classification.Remoting
-
-// Set up a server (create a separate application)
-
-using (var fbs = new FileBlobStore())
-{
-    using (var server = serverEndpoint.CreateMultilayerNeuralNetworkServer(fbs))
-    {
-        server.Start();
-
-        Console.Read();
-    }
-}
-
-// Create a client
-
-using (var client = serverEndpoint.CreateMultilayerNeuralNetworkClient())
-{
-	var trainingSet = data.CreatePipeline().AsTrainingSet(x => x.x > 10 ? 'a' : 'b');
-
-	var uriAndClassifier = await client.CreateClassifier(trainingSet, true);
-}
-
-```

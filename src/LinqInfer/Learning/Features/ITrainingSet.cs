@@ -10,10 +10,10 @@ namespace LinqInfer.Learning.Features
         where TClass : IEquatable<TClass>
     {
         Expression<Func<TInput, TClass>> ClassifyingExpression { get; }
-        FeatureProcessingPipeline<TInput> FeaturePipeline { get; }
+        IFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
         ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        IEnumerable<IList<ObjectVector<TClass>>> ExtractInputClassBatches(int batchSize = 1000);
-        IEnumerable<IList<Tuple<ColumnVector1D, ColumnVector1D>>> ExtractInputOutputVectorBatches(int batchSize = 1000);
+        IEnumerable<TrainingPair<TInput, TClass>> ExtractTrainingObjects();
+        IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractTrainingVectorBatches(int batchSize = 1000);
     }
 }

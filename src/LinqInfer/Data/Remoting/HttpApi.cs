@@ -6,11 +6,6 @@ namespace LinqInfer.Data.Remoting
     {
         private readonly IOwinApplication _serverHost;
 
-        public HttpApi(IObjectSerialiser serialiser, int port, string host = "localhost")
-            : this(serialiser, new HttpApplicationHost(null, port, host))
-        {
-        }
-
         public HttpApi(IObjectSerialiser serialiser, IOwinApplication host) : base(serialiser, host, host.BaseEndpoint)
         {
             _serverHost = host;

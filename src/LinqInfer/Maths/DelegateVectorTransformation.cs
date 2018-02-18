@@ -24,9 +24,9 @@ namespace LinqInfer.Maths
 
         public int OutputSize { get; private set; }
 
-        public Vector Apply(Vector vector)
+        public IVector Apply(IVector vector)
         {
-            return _transformation(vector);
+            return _transformation(vector.ToColumnVector());
         }
     }
 }

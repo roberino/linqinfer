@@ -6,13 +6,14 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.IO;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Maths
 {
     /// <summary>
-    /// Represents a 1 dimensional column vector
+    /// Represents vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IEquatable<Vector>, IJsonExportable
+    public class Vector : IEnumerable<double>, IMutableVector, IJsonExportable
     {
         protected readonly double[] _values;
 
@@ -30,6 +31,8 @@ namespace LinqInfer.Maths
 
         public Vector(double[] values)
         {
+            ArgAssert.AssertNonNull(values, nameof(values));
+
             _values = values;
             Refresh();
         }
@@ -42,10 +45,21 @@ namespace LinqInfer.Maths
         /// Returns a vector where each element is 1
         /// </summary>
         /// <param name="size">The size of the vector</param>
-        /// <returns>A new <see cref="ColumnVector1D"/></returns>
+        /// <returns>A new <see cref="Vector"/></returns>
         public static Vector VectorOfOnes(int size)
         {
-            return new Vector(Enumerable.Range(0, size).Select(n => 1d).ToArray());
+            return UniformVector(size, 1d);
+        }
+
+        /// <summary>
+        /// Returns a vector where each element is a uniform value
+        /// </summary>
+        /// <param name="size">The size of the vector</param>
+        /// <param name="value">The value of each element</param>
+        /// <returns>A new <see cref="Vector"/></returns>
+        public static Vector UniformVector(int size, double value)
+        {
+            return new Vector(Enumerable.Range(0, size).Select(n => value).ToArray());
         }
 
         /// <summary>
@@ -67,6 +81,21 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns the vector size. This remains constant for the lifetime of the vector.
+        /// </summary>
+        public int Size => _values.Length;
+
+        /// <summary>
+        /// Returns the average of all values
+        /// </summary>
+        public double Mean => _values.Average();
+
+        /// <summary>
+        /// Returns the maximum of all values
+        /// </summary>
+        public double Max => _values.Max();
+
+        /// <summary>
         /// Returns a dictionary of indexes and values
         /// </summary>
         public IDictionary<int, double> IndexedValues
@@ -77,6 +106,11 @@ namespace LinqInfer.Maths
                 return _values.ToDictionary(_ => i++, v => v);
             }
         }
+
+        /// <summary>
+        /// Returns the sum of all values
+        /// </summary>
+        public double Sum => _values.Sum();
 
         /// <summary>
         /// Applies a function over all values in the vector, modifying each value.
@@ -105,12 +139,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Returns the sum of all values.
+        /// Shifts each value by substracting the provided value
         /// </summary>
-        /// <returns>A double</returns>
-        public double Sum()
+        public Vector Shift(double value)
         {
-            return _values.Sum();
+            return new Vector(_values.Select(v => v - value).ToArray());
         }
 
         /// <summary>
@@ -133,17 +166,6 @@ namespace LinqInfer.Maths
         public float[] ToSingleArray()
         {
             return _values.Select(v => (float)v).ToArray();
-        }
-
-        /// <summary>
-        /// Returns the vector size. This remains constant for the lifetime of the vector.
-        /// </summary>
-        public int Size
-        {
-            get
-            {
-                return _values.Length;
-            }
         }
 
         /// <summary>
@@ -188,22 +210,11 @@ namespace LinqInfer.Maths
             return total / (_values.Length - (isSampleData ? 1 : 0));
         }
 
-        /// <summary>
-        /// Returns the average of all values
-        /// </summary>
-        public double Mean
-        {
-            get
-            {
-                return _values.Average();
-            }
-        }
-
         public double DotProduct(Vector other)
         {
             var v = this * other;
 
-            return v.Sum();
+            return v.Sum;
         }
 
         public bool IsOrthogonalTo(Vector other)
@@ -241,11 +252,18 @@ namespace LinqInfer.Maths
 
         public static Vector operator *(Vector v1, Vector v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            ArgAssert.AssertEquals(v1.Size, v2.Size, nameof(v1.Size));
 
-            int i = 0;
+            var newValues = new double[v1.Size];
+            var v1a = v1._values;
+            var v2a = v2._values;
 
-            return new Vector(v1._values.Select(x => x * v2._values[i++]).ToArray());
+            for (int i = 0; i < v1a.Length; i++)
+            {
+                newValues[i] = v1a[i] * v2a[i];
+            }
+
+            return new ColumnVector1D(newValues);
         }
 
         public static Vector operator /(Vector v1, Vector v2)
@@ -265,6 +283,59 @@ namespace LinqInfer.Maths
         public static Vector operator *(Vector v1, double y)
         {
             return new Vector(v1._values.Select(x => x * y).ToArray());
+        }
+
+        /// <summary>
+        /// Multiplies the vector by the matrix
+        /// </summary>
+        public IVector MultiplyBy(Matrix matrix)
+        {
+            return matrix * this;
+        }
+
+        public IVector MultiplyBy(IVector vector)
+        {
+            if (vector is Vector v)
+            {
+                return v * this;
+            }
+
+            return vector.MultiplyBy(this);
+        }
+
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // 1, 2, 3 * x a
+            //           y b
+            //           z c
+            // = [1x + 2y + 3z, 1a + 2b + 3c]
+
+            var result = new double[matrix.Width];
+            var j = 0;
+
+            foreach (var row in matrix.Rows)
+            {
+                var rowVals = row.ToColumnVector().GetUnderlyingArray();
+
+                for (var i = 0; i < rowVals.Length; i++)
+                {
+                    result[i] += _values[j] * rowVals[i];
+                }
+
+                j++;
+            }
+
+            return new Vector(result);
+        }
+
+        public double DotProduct(IVector vector)
+        {
+            return MultiplyBy(vector).Sum;
+        }
+
+        public virtual ColumnVector1D ToColumnVector()
+        {
+            return this as ColumnVector1D ?? new ColumnVector1D(this);
         }
 
         public override string ToString()
@@ -382,13 +453,13 @@ namespace LinqInfer.Maths
         /// </summary>
         public override bool Equals(object obj)
         {
-            return Equals(obj as ColumnVector1D);
+            return obj is Vector ? Equals(new ColumnVector1D((Vector)obj)) : Equals(obj as IVector);
         }
 
         /// <summary>
         /// Returns true if an other vector is structually equal to this vector
         /// </summary>
-        public bool Equals(Vector other)
+        public bool Equals(IVector other)
         {
             if (other == null) return false;
 
@@ -396,9 +467,12 @@ namespace LinqInfer.Maths
 
             if (Size != other.Size) return false;
 
-            int i = 0;
+            if (other is Vector)
+            {
+                return StructuralComparisons.StructuralEqualityComparer.Equals(_values, ((Vector)other)._values);
+            }
 
-            return _values.All(x => x == other._values[i++]);
+            return other.Equals(this);
         }
 
         internal double[] GetUnderlyingArray()
@@ -406,11 +480,14 @@ namespace LinqInfer.Maths
             return _values;
         }
 
+        internal void DetachEvents()
+        {
+            Modified = null;
+        }
+
         protected virtual void Refresh()
         {
-            var ev = Modified;
-
-            if (ev != null) ev.Invoke(this, EventArgs.Empty);
+            Modified?.Invoke(this, EventArgs.Empty);
         }
     }
 }

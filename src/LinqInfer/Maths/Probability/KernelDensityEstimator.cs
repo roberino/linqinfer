@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LinqInfer.Utility;
+using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
@@ -8,7 +8,7 @@ namespace LinqInfer.Maths.Probability
     /// <summary>
     /// 1 dimentional KDE
     /// </summary>
-    internal class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>, IDensityEstimationStrategy<ColumnVector1D>
+    internal class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>
     {
         private readonly Func<IQueryable<Fraction>, Func<Fraction, Fraction>> _kernelFact;
         private readonly float _bandwidth;
@@ -16,9 +16,7 @@ namespace LinqInfer.Maths.Probability
         public KernelDensityEstimator(
             float bandwidth = 0.2F)
         {
-            Contract.Requires(bandwidth > 0);
-
-            _bandwidth = bandwidth;
+            _bandwidth = (float)ArgAssert.AssertGreaterThanZero(bandwidth, nameof(bandwidth));
 
             _kernelFact = (s) =>
             {
@@ -61,29 +59,6 @@ namespace LinqInfer.Maths.Probability
 
                 return Fraction.Divide(normR, max, true);
             });
-        }
-
-        public Func<ColumnVector1D, Fraction> Evaluate(IQueryable<ColumnVector1D> sample)
-        {
-            var f = Functions.MultiVariateNormalKernel(sample, _bandwidth);
-            return x => Fraction.ApproximateRational(f(x));
-        }
-
-        public IDictionary<ColumnVector1D, double> CreateMultiVariateDistribution(IQueryable<ColumnVector1D> sample, int binCount = 10)
-        {
-            return CreateMultiVariateDistributionInternal(sample, binCount).ToDictionary(v => v.Key, v => v.Value);
-        }
-
-        private IEnumerable<KeyValuePair<ColumnVector1D, double>> CreateMultiVariateDistributionInternal(IQueryable<ColumnVector1D> sample, int binCount = 10)
-        {
-            var f = Functions.MultiVariateNormalKernel(sample, _bandwidth);
-            var min = sample.MinOfEachDimension();
-            var max = sample.MaxOfEachDimension();
-            
-            foreach(var item in min.Range(max, binCount))
-            {
-                yield return new KeyValuePair<ColumnVector1D, double>(item, f(item));
-            }
         }
     }
 }

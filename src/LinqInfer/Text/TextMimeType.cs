@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using LinqInfer.Utility;
 
 namespace LinqInfer.Text
 {

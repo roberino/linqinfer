@@ -4,6 +4,6 @@
     {
         int InputSize { get; }
         int OutputSize { get; }
-        Vector Apply(Vector vector);
+        IVector Apply(IVector vector);
     }
 }

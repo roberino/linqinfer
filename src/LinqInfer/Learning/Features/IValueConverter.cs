@@ -10,4 +10,8 @@ namespace LinqInfer.Learning.Features
         bool CanConvert(Type type);
         double Convert(object value);
     }
+
+    public interface IDefaultValueConverter : IValueConverter
+    {
+    }
 }

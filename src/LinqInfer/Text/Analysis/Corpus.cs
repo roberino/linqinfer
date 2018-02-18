@@ -1,6 +1,6 @@
 ﻿using LinqInfer.Data;
-using LinqInfer.Maths.Graphs;
-using System;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    public sealed class Corpus : IBinaryPersistable
+    public sealed class Corpus : IBinaryPersistable, ICorpus
     {
         private readonly IList<IToken> _tokens;
 
@@ -27,6 +27,11 @@ namespace LinqInfer.Text.Analysis
             _tokens.Add(token);
         }
 
+        public IAsyncEnumerator<IToken> ReadBlocksAsync()
+        {
+            return ReadBlocksAsyncInternal().AsAsyncEnumerator();
+        }
+
         public IEnumerable<IToken> Words
         {
             get
@@ -43,107 +48,11 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        public Task<WeightedGraph<string, double>> ExportWordGraph(string word, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
-        {
-            return ExportWordGraph(t => string.Equals(t.Text, word, StringComparison.OrdinalIgnoreCase), maxFollowingConnections, store);
-        }
-
-        public async Task<WeightedGraph<string, double>> ExportWordGraph(Func<IToken, bool> targetTokenFunc, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
-        {
-            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
-
-            foreach (var block in Blocks)
-            {
-                int i = -1;
-                IToken last = null;
-                WeightedGraphNode<string, double> currentNode = null;
-
-                foreach (var token in block.Where(t => t.Type == TokenType.Word))
-                {
-                    if (i > -1)
-                    {
-                        currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
-
-                        i++;
-
-                        if (i == maxFollowingConnections)
-                        {
-                            i = -1;
-                            currentNode = null;
-                        }
-                    }
-                    else
-                    {
-                        if (targetTokenFunc(token))
-                        {
-                            i = 0;
-
-                            if (last != null)
-                            {
-                                currentNode = await graph.FindOrCreateVertexAsync(last.Text.ToLower());
-                                currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
-                            }
-                            else
-                            {
-                                currentNode = await graph.FindOrCreateVertexAsync(token.Text.ToLower());
-                            }
-
-                            var attribs = await currentNode.GetAttributesAsync();
-
-                            attribs["IsTarget"] = true;
-                        }
-                    }
-
-                    last = token;
-                }
-            }
-
-            await graph.SaveAsync();
-
-            return graph;
-        }
-
         public IEnumerable<IEnumerable<IToken>> Blocks
         {
             get
             {
-                var currentBlock = new List<IToken>();
-                int spaceCount = 0;
-                int i = 0;
-                TokenType lastType = TokenType.Null;
-
-                foreach(var word in _tokens)
-                {
-                    if (word.Type == TokenType.Word || word.Type == TokenType.Number)
-                    {
-                        currentBlock.Add(new Token(word.Text, i++, TokenType.Word));
-                        spaceCount = 0;
-                    }
-                    else
-                    {
-                        if (word.Type == TokenType.SentenceEnd || spaceCount > 1 || ((lastType == TokenType.Word || lastType == TokenType.Number) && word.Type == TokenType.Symbol && (word.Text == ";" || word.Text == ",")))
-                        {
-                            if (currentBlock.Any())
-                            {
-                                yield return currentBlock.ToList();
-
-                                currentBlock.Clear();
-                            }
-                            spaceCount = 0;
-                        }
-                        else
-                        {
-                            if(word.Type == TokenType.Space)
-                            {
-                                spaceCount++;
-                            }
-                        }
-                    }
-
-                    lastType = word.Type;
-                }
-
-                if (currentBlock.Any()) yield return currentBlock.ToList();
+                return new BlockReader().ReadBlocks(_tokens);
             }
         }
 
@@ -178,6 +87,14 @@ namespace LinqInfer.Text.Analysis
 
                     writer.WriteLine(".");
                 }
+            }
+        }
+
+        private IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
+        {
+            foreach (var block in Blocks)
+            {
+                yield return Task.FromResult((IList<IToken>)block.ToList());
             }
         }
     }

@@ -63,13 +63,15 @@ namespace LinqInfer.Data.Remoting
                 case "GET":
                     return Verb.Get;
                 case "PUT":
-                    return Verb.Create;
+                    return Verb.Put;
                 case "POST":
-                    return Verb.Update;
+                    return Verb.Post;
                 case "DELETE":
                     return Verb.Delete;
                 case "OPTIONS":
                     return Verb.Options;
+                case "PATCH":
+                    return Verb.Patch;
                 default:
                     return Verb.Default;
             }
@@ -77,15 +79,7 @@ namespace LinqInfer.Data.Remoting
 
         public static string TranslateVerb(Verb verb)
         {
-            switch (verb)
-            {
-                case Verb.Create:
-                    return "PUT";
-                case Verb.Update:
-                    return "POST";
-                case Verb.Default:
-                    return "GET";
-            }
+            if (verb == Verb.Default) return "GET";
 
             return verb.ToString().ToUpper();
         }

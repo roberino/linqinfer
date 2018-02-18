@@ -2,6 +2,8 @@
 using LinqInfer.Utility;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning
 {
@@ -32,21 +34,53 @@ namespace LinqInfer.Learning
             _parameters.Validate();
         }
 
+        public Task<FeatureMap<T>> MapAsync(IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
+        {
+            HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline.FeatureExtractor);
+
+            return MapAsync(outputNodes, pipeline, cancellationToken);
+        }
+
         public FeatureMap<T> Map(IFeatureProcessingPipeline<T> pipeline)
         {
-            HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline);
-
-            var iterationsMax = pipeline.Data.Count() * _parameters.TrainingEpochs;
-
+            HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline.FeatureExtractor);
+            
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {
-                Run(pipeline, outputNodes, i, iterationsMax, i == _parameters.TrainingEpochs - 1);
+                Run(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1);
             }
 
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
         }
 
-        private void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, int iterationsMax, bool append)
+        internal async Task<FeatureMap<T>> MapAsync(HashSet<ClusterNode<T>> outputNodes, IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
+        {
+            for (int i = 0; i < _parameters.TrainingEpochs; i++)
+            {
+                await RunAsync(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1, cancellationToken);
+            }
+
+            return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
+        }
+
+        private async Task RunAsync(IAsyncFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append, CancellationToken cancellationToken)
+        {
+            await pipeline
+                   .ExtractBatches()
+                   .ProcessUsing(b =>
+                   {
+                       foreach (var v in b.Items)
+                       {
+                           if (cancellationToken.IsCancellationRequested) return;
+
+                           var bestMatch = outputNodes.OrderBy(n => n.CalculateDifference(v)).FirstOrDefault();
+
+                           bestMatch.AdjustForIteration(outputNodes, v, iteration, append);
+                       }
+                   }, cancellationToken);
+        }
+
+        private void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append)
         {
             foreach (var batch in pipeline.ExtractBatches())
             {
@@ -62,13 +96,13 @@ namespace LinqInfer.Learning
             }
         }
 
-        protected virtual HashSet<ClusterNode<T>> SetupOutputNodes(IFeatureProcessingPipeline<T> pipeline)
+        internal HashSet<ClusterNode<T>> SetupOutputNodes(IFloatingPointFeatureExtractor<T> featureExtractor)
         {
             return new HashSet<ClusterNode<T>>(
                     Enumerable
                         .Range(0, _parameters.NumberOfOutputNodes)
                         .Select(n =>
-                            new ClusterNode<T>(pipeline.FeatureExtractor, _parameters.WeightInitialiser(n, pipeline.FeatureExtractor.VectorSize), _parameters)));
+                            new ClusterNode<T>(featureExtractor, _parameters.WeightInitialiser(n, featureExtractor.VectorSize), _parameters)));
         }
     }
 }

@@ -1,19 +1,20 @@
 ﻿using LinqInfer.Maths;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
     internal class PrincipalComponentAnalysis
     {
-        private readonly IFeatureDataSource _sampleFeatureSet;
+        private readonly IEnumerable<IVector> _sampleFeatureSet;
 
-        /// <summary>
-        /// Creates a new PrincipalComponentAnalysis
-        /// for a given feature data source
-        /// </summary>
-        /// <param name="sampleFeatureSet">The set of features</param>
         public PrincipalComponentAnalysis(IFeatureDataSource sampleFeatureSet)
+        {
+            _sampleFeatureSet = sampleFeatureSet.ExtractVectors();
+        }
+
+        public PrincipalComponentAnalysis(IEnumerable<IVector> sampleFeatureSet)
         {
             _sampleFeatureSet = sampleFeatureSet;
         }
@@ -25,7 +26,7 @@ namespace LinqInfer.Learning.Features
         /// <returns>A <see cref="Tuple{T1, T2}"/> of values</returns>
         public Tuple<Vector, Matrix> GetEigenvalueDecomposition(int sampleSize = 100)
         {
-            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Take(sampleSize));
+            var matrix = new Matrix(_sampleFeatureSet.Select(v => v.ToColumnVector()).Take(sampleSize));
 
             return GetEigenvalueDecomposition(matrix);
         }
@@ -43,7 +44,7 @@ namespace LinqInfer.Learning.Features
         {
             var tx = CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
 
-            return v => tx.Apply(new ColumnVector1D(v)).GetUnderlyingArray();
+            return v => tx.Apply(new ColumnVector1D(v)).ToColumnVector().GetUnderlyingArray();
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace LinqInfer.Learning.Features
         /// <returns>A <see cref="IVectorTransformation"/></returns>
         public IVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
         {
-            var matrix = new Matrix(_sampleFeatureSet.ExtractVectors().Take(sampleSize));
+            var matrix = new Matrix(_sampleFeatureSet.Select(v => v.ToColumnVector()).Take(sampleSize));
             var mean = matrix.MeanVector;
             var eigenDecom = GetEigenvalueDecomposition(matrix);
 

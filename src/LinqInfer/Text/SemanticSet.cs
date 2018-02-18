@@ -1,14 +1,14 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    public class SemanticSet : ISemanticSet, IXmlExportable, IXmlImportable
+    public class SemanticSet : IImportableExportableSemanticSet
     {
         private readonly IDictionary<string, int> _words;
         private readonly Lazy<IDictionary<int, string>> _wordset;
@@ -63,7 +63,7 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns the last id
         /// </summary>
-        public int MaxId { get { return _words.Max(w => w.Value); } }
+        public int MaxId { get { return _words.Any() ? _words.Max(w => w.Value) : -1; } }
 
         /// <summary>
         /// Returns the count of the words in the set
@@ -165,6 +165,26 @@ namespace LinqInfer.Text
             {
                 _words[element.Attribute("text").Value] = int.Parse(element.Attribute("id").Value);
             }
+        }
+
+        public static IImportableExportableSemanticSet FromXmlStream(Stream xml)
+        {
+            var sset = new SemanticSet(new HashSet<string>());
+            var xmlDoc = XDocument.Load(xml);
+            sset.ImportXml(xmlDoc);
+            return sset;
+        }
+
+        public static implicit operator SemanticSet(string words)
+        {
+            var set = new HashSet<string>();
+
+            foreach(var word in new Tokeniser().Tokenise(words))
+            {
+                if (!set.Contains(word.Text.ToLowerInvariant())) set.Add(word.Text.ToLowerInvariant());
+            }
+
+            return new SemanticSet(set);
         }
     }
 }

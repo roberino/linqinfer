@@ -38,7 +38,7 @@ namespace LinqInfer.Maths.Graphs
             int i = 1;
             int a = 1;
 
-            foreach (var vertex in await graph.FindAllVertexesAsync())
+            foreach (var vertex in (await graph.FindAllVertexesAsync()).OrderBy(v => v.Label))
             {
                 idLookup[vertex.Label] = i;
 
