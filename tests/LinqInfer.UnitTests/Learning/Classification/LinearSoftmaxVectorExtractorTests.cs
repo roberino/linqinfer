@@ -21,7 +21,7 @@ namespace LinqInfer.Tests.Learning.Classification
         }
 
         [Test]
-        public void Train_WhenGivenSample_ThenWeightsUpdated()
+        public void Train_WhenGivenSample_ThenErrorGtZero()
         {
             var sample1 = new OneOfNVector(5, 3);
             var targetOutput = new OneOfNVector(3, 1);
@@ -31,6 +31,26 @@ namespace LinqInfer.Tests.Learning.Classification
             var error = lsve.Train(sample1, targetOutput);
 
             Assert.That(error, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Train_WhenTrainedAndSampleEvaluatedAgain_ThenErrorIsReduced()
+        {
+            var sample1 = new OneOfNVector(5, 3);
+            var targetOutput = new OneOfNVector(3, 1);
+
+            var lsve = new LinearSoftmaxVectorExtractor(sample1.Size, targetOutput.Size, 2);
+
+            var error0 = lsve.CalculateError(sample1, targetOutput);
+
+            foreach (var x in Enumerable.Range(0, 100))
+            {
+                lsve.Train(sample1, targetOutput);
+            }
+
+            var error1 = lsve.CalculateError(sample1, targetOutput);
+
+            Assert.That(error0, Is.GreaterThan(error1));
         }
     }
 }

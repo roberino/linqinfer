@@ -42,6 +42,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var doc = new BinaryVectorDocument();
 
+            doc.SetType<NetworkSpecification>();
             doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
             doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
 

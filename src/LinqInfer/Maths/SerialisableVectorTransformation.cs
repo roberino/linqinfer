@@ -1,11 +1,12 @@
 ﻿using LinqInfer.Data;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Maths
 {
-    public sealed class SerialisableVectorTransformation : IExportableAsVectorDocument, IImportableAsVectorDocument, IVectorTransformation
+    public sealed class SerialisableVectorTransformation : ISerialisableVectorTransformation, IEquatable<SerialisableVectorTransformation>
     {
         private readonly IList<VectorOperation> _operations;
 
@@ -83,6 +84,29 @@ namespace LinqInfer.Maths
             }
 
             return doc;
+        }
+
+        public bool Equals(SerialisableVectorTransformation other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            if (!(InputSize == other.InputSize && OutputSize == other.OutputSize)) return false;
+
+            if (_operations.Count != other._operations.Count) return false;
+
+            return _operations.Zip(other._operations, (x, y) => x.Equals(y)).All(x => x);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SerialisableVectorTransformation);
+        }
+
+        public override int GetHashCode()
+        {
+            return string.Join("/", _operations.Select(o => o.GetHashCode().ToString())).GetHashCode();
         }
     }
 }

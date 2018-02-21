@@ -118,7 +118,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var layerSpecs = LayerSizes
                 .Where(x => x > 0)
-                .Select(x => new LayerSpecification(x, Activator, InitialWeightRange));
+                .Select(x => new LayerSpecification(x, Activator, LossFunctions.Default, InitialWeightRange));
 
             return new NetworkSpecification(this, layerSpecs.ToArray());
         }

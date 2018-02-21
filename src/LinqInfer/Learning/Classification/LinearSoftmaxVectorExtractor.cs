@@ -62,17 +62,22 @@ namespace LinqInfer.Learning.Classification
 
         public double Train(IVector input, IVector targetOutput)
         {
-            var lAndD = CalculateError(input, targetOutput);
+            var lAndD = CalculateLossAndDerivative(input, targetOutput);
 
             UpdateWeights1(lAndD.Gradient, lAndD.HiddenOutput);
             UpdateWeights0(lAndD);
 
-            return -lAndD.Cost.Sum;
+            return -lAndD.Loss.Sum;
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
             _learningRate = rateAdjustment(_learningRate);
+        }
+
+        public double CalculateError(IVector input, IVector targetOutput)
+        {
+            return -CalculateLossAndDerivative(input, targetOutput).Loss.Sum;
         }
 
         private IVector[] EvaluateInternal(IVector input)
@@ -83,12 +88,12 @@ namespace LinqInfer.Learning.Classification
             return new[] { v1, v2, _softmax.Apply(v2) };
         }
 
-        private LossAndDerivative CalculateError(IVector input, IVector targetOutput)
+        private LossAndDerivative CalculateLossAndDerivative(IVector input, IVector targetOutput)
         {
             var result = EvaluateInternal(input);
             var actualOutput = result.Last();
 
-            var cost = targetOutput.MultiplyBy(actualOutput.ToColumnVector().Log()).ToColumnVector();
+            var loss = targetOutput.MultiplyBy(actualOutput.ToColumnVector().Log()).ToColumnVector();
 
             var error = actualOutput.ToColumnVector() - targetOutput.ToColumnVector();
 
@@ -96,7 +101,7 @@ namespace LinqInfer.Learning.Classification
 
             return new LossAndDerivative()
             {
-                Cost = cost,
+                Loss = loss,
                 Gradient = error,
                 dW = dW,
                 HiddenOutput = result.First()
@@ -133,7 +138,7 @@ namespace LinqInfer.Learning.Classification
         {
             public ColumnVector1D Gradient;
             public IVector HiddenOutput;
-            public IVector Cost;
+            public IVector Loss;
             public Matrix dW;
             public double dB;
         }

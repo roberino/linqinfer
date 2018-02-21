@@ -11,31 +11,58 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     internal class NetworkLayer : ILayer
     {
         private readonly IList<INeuron> _neurons;
-
         private readonly Func<int, IList<INeuron>> _neuronsFactory;
+        private readonly LayerSpecification _spec;
 
-        public NetworkLayer(int inputVectorSize, int neuronCount, ActivatorFunc activator, Func<int, INeuron> neuronFactory = null)
+        public NetworkLayer(
+            int inputVectorSize,
+            int neuronCount,
+            ActivatorFunc activator,
+            ILossFunction lossFunction,
+            Func<int, INeuron> neuronFactory = null)
+            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, new Range(1, -1)))
         {
-            var nf = neuronFactory ?? (n => new NeuronBase(n));
+        }
+
+        public NetworkLayer(int inputVectorSize, LayerSpecification specification)
+        {
+            _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
+
+            var nf = specification.NeuronFactory;
 
             _neuronsFactory = new Func<int, IList<INeuron>>((c) =>
             {
                 return Enumerable.Range(1, c).Select(n =>
                 {
                     var nx = nf(inputVectorSize);
-                    nx.Activator = activator.Activator;
+                    nx.Activator = specification.Activator.Activator;
                     return nx;
                 }).ToList();
             });
 
-            _neurons = _neuronsFactory(neuronCount);
+            _neurons = _neuronsFactory(specification.LayerSize);
 
-            Activator = activator;
+            InputVectorSize = inputVectorSize;
         }
 
-        private NetworkLayer(IEnumerable<INeuron> neurons)
+        public event EventHandler<ColumnVector1DEventArgs> Calculation;
+        
+        public INetworkSignalFilter Successor { get; set; }
+
+        public int InputVectorSize { get; }
+
+        public int Size => _neurons.Count;
+
+        public ActivatorFunc Activator => _spec.Activator;
+
+        public ILossFunction LossFunction => _spec.LossFunction;
+
+        public INeuron this[int index]
         {
-            _neurons = neurons.ToList();
+            get
+            {
+                return _neurons[index];
+            }
         }
 
         public virtual IVector Process(IVector input)
@@ -74,30 +101,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neurons.ForEach(func);
         }
 
-        public INetworkSignalFilter Successor { get; set; }
-
-        public int Size => _neurons.Count;
-
-        public ActivatorFunc Activator { get; }
-
-        public INeuron this[int index]
-        {
-            get
-            {
-                return _neurons[index];
-            }
-        }
-
         private void OnCalculate(ColumnVector1D vector)
         {
-            var ev = Calculation;
-
-            if (ev != null) ev.Invoke(this, new ColumnVector1DEventArgs(vector));
+            Calculation?.Invoke(this, new ColumnVector1DEventArgs(vector));
         }
 
         public ILayer Clone(bool deep)
         {
-            var layer = new NetworkLayer(_neurons.Select(n => n.Clone(deep)));
+            var layer = new NetworkLayer(InputVectorSize, _neurons.Count, Activator, LossFunction);
+
+            layer._neurons.Clear();
+
+            foreach(var neuron in _neurons)
+            {
+                layer._neurons.Add(neuron.Clone(deep));
+            }
 
             if (layer.Successor != null)
             {
@@ -117,6 +135,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             layerDoc.Properties["Size"] = Size.ToString();
 
+            layerDoc.Children.Add(_spec.ToVectorDocument());
+
             foreach (var neuron in _neurons)
             {
                 layerDoc.Vectors.Add(neuron.Export());
@@ -134,7 +154,5 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 neuron.Import(data.Vectors[i++].ToColumnVector());
             }
         }
-
-        public event EventHandler<ColumnVector1DEventArgs> Calculation;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Utility
 {
-    public sealed class Factory<TResult, TArgs> : IFactory<TResult, TArgs>
+    public sealed class Factory<TArgs, TResult> : IFactory<TResult, TArgs>
     {
         private readonly Func<TArgs, TResult> _factoryFunc;
 
@@ -16,9 +16,9 @@ namespace LinqInfer.Utility
             return _factoryFunc(parameters);
         }
 
-        public static implicit operator Factory<TResult, TArgs>(Func<TArgs, TResult> factoryFunc)
+        public static implicit operator Factory<TArgs, TResult>(Func<TArgs, TResult> factoryFunc)
         {
-            return new Factory<TResult, TArgs>(factoryFunc);
+            return new Factory<TArgs, TResult>(factoryFunc);
         }
     }
 }

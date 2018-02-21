@@ -11,9 +11,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     public interface ILayer : INetworkSignalFilter, ICloneableObject<ILayer>
     {
         /// <summary>
-        /// The size of the layer (e.g. number of neurons)
+        /// The size of the vector which the layer can receive
+        /// </summary>
+        int InputVectorSize { get; }
+
+        /// <summary>
+        /// The size of the layer (i.e. number of neurons)
         /// </summary>
         int Size { get; }
+
+        /// <summary>
+        /// Gets the function used to calculate errors
+        /// </summary>
+        ILossFunction LossFunction { get; }
 
         /// <summary>
         /// Gets a neuron by index

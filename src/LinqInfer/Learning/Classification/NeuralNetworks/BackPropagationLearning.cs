@@ -78,9 +78,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     lastError = layer.ForEachNeuron((n, k) =>
                     {
-                        var e = targetOutput[k] - n.Output;
-                        error += e * e;
-                        return e * layer.Activator.Derivative(n.Output);
+                        var errAndLoss = layer.LossFunction.Calculate(n.Output, targetOutput[k]);
+                        error += errAndLoss.Loss;
+                        return errAndLoss.PredictionError * layer.Activator.Derivative(n.Output);
                     });
                 }
                 else

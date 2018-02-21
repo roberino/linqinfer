@@ -18,13 +18,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 doc.Properties["_" + prop.Key] = prop.Value;
             }
 
-            doc.Properties["Activator"] = network.Parameters.Activator.Name;
-            doc.Properties["ActivatorParameter"] = network.Parameters.Activator.Parameter.ToString();
-            doc.Properties["InitialWeightRangeMin"] = network.Parameters.InitialWeightRange.Min.ToString();
-            doc.Properties["InitialWeightRangeMax"] = network.Parameters.InitialWeightRange.Max.ToString();
-            doc.Properties["LearningRate"] = network.Parameters.LearningRate.ToString();
+            doc.Version = 2;
 
             doc.Properties["Label"] = "Network";
+
+            doc.WriteChildObject(network.Specification);
 
             int i = 0;
 
@@ -44,10 +42,27 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetwork Import(BinaryVectorDocument doc)
         {
-            return CreateFromVectorDocument(doc);
+            return CreateFromVectorDocumentV1(doc);
         }
 
-        private static MultilayerNetwork CreateFromVectorDocument(BinaryVectorDocument doc)
+        private static MultilayerNetwork CreateFromVectorDocumentV2(BinaryVectorDocument doc)
+        {
+            var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
+            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
+
+            var network = new MultilayerNetwork(spec, properties);
+
+            int i = 1;
+
+            foreach (var layer in network.Layers)
+            {
+                layer.Import(doc.Children[i++]);
+            }
+
+            return network;
+        }
+
+        private static MultilayerNetwork CreateFromVectorDocumentV1(BinaryVectorDocument doc)
         {
             var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
             var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();

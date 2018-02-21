@@ -106,6 +106,11 @@ namespace LinqInfer.Data
             Properties["TypeName"] = type.Name;
         }
 
+        public BinaryVectorDocument FindChild<T>()
+        {
+            return QueryChildren(new { AssemblyQualifiedName = typeof(T).AssemblyQualifiedName }).FirstOrDefault();
+        }
+
         public IDictionary<string, string> Properties
         {
             get
@@ -120,6 +125,29 @@ namespace LinqInfer.Data
             {
                 return _blobs;
             }
+        }
+
+        public IEnumerable<BinaryVectorDocument> QueryChildren(object propertyQuery)
+        {
+            var query = propertyQuery.ToDictionary();
+
+            return Children.Where(c =>
+            {
+                bool found = true;
+
+                foreach (var q in query)
+                {
+                    if (c.Properties.TryGetValue(q.Key, out string v) && v == q.Value?.ToString())
+                    {
+                        continue;
+                    }
+
+                    found = false;
+                    break;
+                }
+
+                return found;
+            });
         }
 
         public bool HasProperty(string name)
@@ -212,14 +240,18 @@ namespace LinqInfer.Data
             return PropertyOrDefault(propName, defaultValue);
         }
 
-        internal void SetPropertyFromExpression(Expression<Func<object>> expression)
+        internal void SetPropertyFromExpression(Expression<Func<object>> expression, object value = null)
         {
             var propName = LinqExtensions.GetPropertyName(expression);
-            var value = expression.Compile().Invoke();
 
-            if (value != null)
+            if (value == null)
             {
-                Properties[propName] = value.ToString();
+                value = expression.Compile().Invoke();
+
+                if (value != null)
+                {
+                    Properties[propName] = value.ToString();
+                }
             }
         }
 
@@ -259,7 +291,7 @@ namespace LinqInfer.Data
             throw new NotSupportedException();
         }
 
-        internal void WriteChildObject(object obj)
+        internal void WriteChildObject(object obj, object attributes = null)
         {
             if (obj == null) return;
 
@@ -272,9 +304,11 @@ namespace LinqInfer.Data
                 {
                     var childDoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
 
+                    SetProperties(childDoc, attributes);
+
                     childDoc.Properties["TypeName"] = childType.Name;
                     childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
-
+                    
                     Children.Add(childDoc);
                 }
                 else
@@ -282,6 +316,8 @@ namespace LinqInfer.Data
                     if (obj is IBinaryPersistable)
                     {
                         var childDoc = new BinaryVectorDocument();
+
+                        SetProperties(childDoc, attributes);
 
                         childDoc.Properties["TypeName"] = childType.Name;
                         childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
@@ -351,6 +387,19 @@ namespace LinqInfer.Data
             if (ValidateOnImport && Checksum != checksum)
             {
                 throw new ArgumentException("Invalid or corrupted data");
+            }
+        }
+
+        private void SetProperties(BinaryVectorDocument doc, object obj)
+        {
+            if (obj != null)
+            {
+                var data = obj.ToDictionary();
+
+                foreach (var item in data)
+                {
+                    doc.Properties[item.Key] = item.Value.ToString();
+                }
             }
         }
 

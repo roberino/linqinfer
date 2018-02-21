@@ -9,18 +9,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         public NetworkBuilderContext()
         {
-            NeuronFactory = new Factory<INeuron, NeuronParameters>(p => new NeuronBase(p.Size, p.InitialWeightRange)
+            NeuronFactory = new Factory<NeuronParameters, INeuron>(p => new NeuronBase(p.Size, p.InitialWeightRange)
             {
                 Activator = p.Activator.Activator
             });
 
-            ActivatorFactory = new Factory<ActivatorFunc, string>(a =>
+            ActivatorFactory = new Factory<string, ActivatorFunc>(a =>
             {
                 var args = ParseActivatorArgs(a);
                 return Activators.Create(args.Item1, args.Item2);
             });
 
-            ActivatorFormatter = new Factory<string, ActivatorFunc>(a => $"{a.Name}({a.Parameter})");
+            ActivatorFormatter = new Factory<ActivatorFunc, string>(a => $"{a.Name}({a.Parameter})");
+
+            LossFunctionFactory = new Factory<string, ILossFunction>(LossFunctions.Parse);
         }
 
         public NetworkBuilderContext(IFactory<INeuron, NeuronParameters> neuronFactory, IFactory<ActivatorFunc, string> activatorFactory, IFactory<string, ActivatorFunc> activatorFormatter)
@@ -33,6 +35,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IFactory<INeuron, NeuronParameters> NeuronFactory { get; }
         public IFactory<ActivatorFunc, string> ActivatorFactory { get; }
         public IFactory<string, ActivatorFunc> ActivatorFormatter { get; }
+        public IFactory<ILossFunction, string> LossFunctionFactory { get; }
 
         private static Tuple<string, double> ParseActivatorArgs(string args)
         {
