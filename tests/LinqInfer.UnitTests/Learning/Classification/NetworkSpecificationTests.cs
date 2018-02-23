@@ -20,6 +20,23 @@ namespace LinqInfer.UnitTests.Learning.Classification
             Assert.That(doc.Children.Count, Is.EqualTo(2));
         }
 
+        [Test]
+        public void ToVectorDocument_WhenGivenSingleLayerSpec_ThenCorrectInputVectorSizeReturnedWhenImported()
+        {
+            var spec = new NetworkSpecification(new LearningParameters(),
+                  16,
+                  new LayerSpecification(4,
+                  Activators.Threshold(),
+                  LossFunctions.CrossEntropy,
+                  new Range()));
+
+            var doc = spec.ToVectorDocument();
+
+            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+
+            Assert.That(spec2.InputVectorSize, Is.EqualTo(16));
+            Assert.That(spec2.Layers.Single().LayerSize, Is.EqualTo(4));
+        }
 
         [Test]
         public void ToVectorDocument_WhenGivenSpecWithOutputTransformation_ThenValidDocReturned()

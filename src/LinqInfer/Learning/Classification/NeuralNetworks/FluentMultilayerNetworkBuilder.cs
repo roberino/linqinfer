@@ -1,32 +1,71 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkTrainingContextFactory<TClass> where TClass : IEquatable<TClass>
+    public sealed class FluentMultilayerNetworkBuilder
     {
-        private int _currentId;
+        private readonly IList<LayerSpecification> _layers;
+        private readonly Range _defaultWeightRange;
+        private LearningParameters _learningParams;
+        private LayerSpecification _output;
+        private int _inputVectorSize;
 
-        public MultilayerNetworkTrainingContextFactory()
+        internal FluentMultilayerNetworkBuilder(int inputVectorSize, int outputVectorSize)
         {
-            _currentId = 0;
+            _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
+
+            ArgAssert.AssertGreaterThanZero(outputVectorSize, nameof(outputVectorSize));
+
+            _defaultWeightRange = new Range(0.05, -0.05);
+            _learningParams = new LearningParameters();
+            _layers = new List<LayerSpecification>();
+            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Default, _defaultWeightRange);
         }
 
-        public IClassifierTrainingContext<NetworkParameters> Create(MultilayerNetwork network)
+        public FluentMultilayerNetworkBuilder WithLearningParameters(LearningParameters learningParameters)
         {
-            return new MlnTrainingContext(() => ++_currentId, network);
+            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+
+            _learningParams = learningParameters;
+
+            return this;
         }
 
-        public IClassifierTrainingContext<NetworkParameters> Create(NetworkParameters parameters)
+        public FluentMultilayerNetworkBuilder AddHiddenLayer(LayerSpecification layer)
         {
-            return new MlnTrainingContext(() => ++_currentId, parameters);
+            _layers.Add(layer);
+            return this;
         }
 
-        [DebuggerDisplay("{AverageError}:{Parameters}")]
-        private class MlnTrainingContext : IClassifierTrainingContext<NetworkParameters>
+        public FluentMultilayerNetworkBuilder AddHiddenSigmoidLayer(int layerSize)
+        {
+            return AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Default, new Range(0.05, -0.05)));
+        }
+
+        public FluentMultilayerNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
+        {
+            _output =  new LayerSpecification(_output.LayerSize, activator, lossFunction, initialWeightRange.GetValueOrDefault(_defaultWeightRange));
+            
+            return this;
+        }
+
+        public IClassifierTrainingContext<NetworkSpecification> Build()
+        {
+            var spec = new NetworkSpecification(_learningParams,
+                _inputVectorSize, _layers.Concat(new[] { _output }).ToArray());
+
+            int id = 1;
+
+            return new MlnCtx(() => Interlocked.Increment(ref id), spec);
+        }
+
+        private class MlnCtx : IClassifierTrainingContext<NetworkSpecification>
         {
             private readonly MultilayerNetwork _network;
             private readonly IAssistedLearningProcessor _rawLearningProcessor;
@@ -36,7 +75,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             private double? _error;
             private int _trainingCounter;
 
-            public MlnTrainingContext(Func<int> idFunc, NetworkParameters parameters)
+            public MlnCtx(Func<int> idFunc, NetworkSpecification parameters)
             {
                 _network = new MultilayerNetwork(parameters);
 
@@ -49,29 +88,29 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Parameters = parameters;
             }
 
-            public MlnTrainingContext(Func<int> idFunc, MultilayerNetwork network)
+            public MlnCtx(Func<int> idFunc, MultilayerNetwork network)
             {
                 _network = network;
 
                 var bpa = new BackPropagationLearning(_network);
-                
+
                 _idFunc = idFunc;
 
                 Id = idFunc();
-                Parameters = network.Parameters;
+                Parameters = network.Specification;
             }
 
-            public int Id { get; private set; }
+            public int Id { get; }
 
             public int IterationCounter { get; set; }
 
-            public IVectorClassifier Output { get { return _network; } }
+            public IVectorClassifier Output => _network;
 
-            public NetworkParameters Parameters { get; private set; }
+            public NetworkSpecification Parameters { get; }
 
-            public double? CumulativeError { get { return _error; } }
+            public double? CumulativeError => _error;
 
-            public double? AverageError { get { return _error.HasValue && _trainingCounter > 0 ? _error / _trainingCounter : null; } }
+            public double? AverageError => _error.HasValue && _trainingCounter > 0 ? _error / _trainingCounter : null;
 
             public double? RateOfErrorChange
             {
@@ -130,9 +169,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError, Parameters);
             }
 
-            public IClassifierTrainingContext<NetworkParameters> Clone(bool deep)
+            public IClassifierTrainingContext<NetworkSpecification> Clone(bool deep)
             {
-                return new MlnTrainingContext(_idFunc, _network.Clone(true))
+                return new MlnCtx(_idFunc, _network.Clone(true))
                 {
                     _error = _error,
                     _lastError = _lastError,

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class NetworkSpecification : IExportableAsVectorDocument
+    public sealed class NetworkSpecification : IExportableAsVectorDocument, IEquatable<NetworkSpecification>
     {
         public NetworkSpecification(LearningParameters learningParameters, params LayerSpecification[] layers)
         {
@@ -19,16 +19,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Layers = layers.ToList();
         }
 
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, LayerSpecification outputLayer)
+        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params LayerSpecification[] layers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertNonNull(outputLayer, nameof(outputLayer));
+            ArgAssert.AssertGreaterThanZero(layers.Length, nameof(layers.Length));
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
             LearningParameters = learningParameters;
             InputVectorSize = inputVectorSize;
-            OutputVectorSize = outputLayer.LayerSize;
-            Layers = new List<LayerSpecification>() { outputLayer };
+            OutputVectorSize = layers.Last().LayerSize;
+            Layers = layers.ToList();
         }
 
         public LearningParameters LearningParameters { get; }
@@ -45,6 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.SetType<NetworkSpecification>();
             doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
             doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
+            doc.SetPropertyFromExpression(() => InputVectorSize);
 
             foreach (var child in Layers)
             {
@@ -60,7 +61,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var ctx = context ?? new NetworkBuilderContext();
             var learningRate = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.LearningRate, 0.01);
-            var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01); 
+            var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
+            var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
             var layers = doc.Children.Select(c => LayerSpecification.FromVectorDocument(c, ctx)).ToArray();
 
@@ -69,6 +71,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 LearningRate = learningRate,
                 MinimumError = minimumError
             };
+
+            if (layers.Length == 1) return new NetworkSpecification(learningParams, inputVectorSize, layers.Single());
 
             return new NetworkSpecification(learningParams, layers);
         }
@@ -94,6 +98,27 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 LearningRate = LearningParameters.LearningRate,
                 MinimumError = LearningParameters.MinimumError
             };
+        }
+
+        public bool Equals(NetworkSpecification other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            var docA = ToVectorDocument();
+            var docB = other.ToVectorDocument();
+
+            return docA.Equals(docB);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NetworkSpecification);
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)ToVectorDocument().Checksum;
         }
     }
 }

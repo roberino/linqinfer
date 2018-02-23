@@ -42,6 +42,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetwork Import(BinaryVectorDocument doc)
         {
+            if (doc.Version == 2) return CreateFromVectorDocumentV2(doc);
+
             return CreateFromVectorDocumentV1(doc);
         }
 

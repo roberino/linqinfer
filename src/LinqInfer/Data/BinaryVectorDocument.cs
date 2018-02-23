@@ -14,7 +14,7 @@ namespace LinqInfer.Data
     /// General purpose document for serialising vector and general object data.
     /// The document supports serialising as XML and to a binary stream
     /// </summary>
-    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable
+    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<BinaryVectorDocument>
     {
         private const string PropertiesName = "PROP";
         private const string BlobName = "BLOB";
@@ -253,6 +253,10 @@ namespace LinqInfer.Data
                     Properties[propName] = value.ToString();
                 }
             }
+            else
+            {
+                Properties[propName] = value.ToString();
+            }
         }
 
         internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null, bool ignoreIfMissing = false)
@@ -300,7 +304,7 @@ namespace LinqInfer.Data
 
             if (tc == TypeCode.Object)
             {
-                if (obj is IExportableAsVectorDocument && obj is IImportableAsVectorDocument)
+                if (obj is IExportableAsVectorDocument)
                 {
                     var childDoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
 
@@ -566,6 +570,31 @@ namespace LinqInfer.Data
             {
                 child.Write(writer, level + 1);
             }
+        }
+
+        public bool Equals(BinaryVectorDocument other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Checksum != other.Checksum) return false;
+
+            var xml1 = ExportAsXml();
+            var xml2 = other.ExportAsXml();
+
+            xml1.Root.Attribute("exported").Remove();
+            xml2.Root.Attribute("exported").Remove();
+
+            return string.Equals(xml1.ToString(), xml2.ToString());
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BinaryVectorDocument);
+        }
+
+        public override int GetHashCode()
+        {
+            return ExportAsXml().ToString().GetHashCode();
         }
     }
 }
