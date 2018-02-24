@@ -14,7 +14,7 @@ namespace LinqInfer.Data
     /// General purpose document for serialising vector and general object data.
     /// The document supports serialising as XML and to a binary stream
     /// </summary>
-    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable
+    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<BinaryVectorDocument>
     {
         private const string PropertiesName = "PROP";
         private const string BlobName = "BLOB";
@@ -102,8 +102,22 @@ namespace LinqInfer.Data
         {
             var type = instance?.GetType() ?? typeof(T);
 
-            Properties["AssemblyQualifiedName"] = type.AssemblyQualifiedName;
-            Properties["TypeName"] = type.Name;
+            SetType(type);
+        }
+
+        internal void SetType(Type type)
+        {
+            Properties[nameof(AssemblyQualifiedName)] = type.AssemblyQualifiedName;
+            Properties[nameof(TypeName)] = type.Name;
+        }
+
+        internal string AssemblyQualifiedName => PropertyOrDefault(nameof(AssemblyQualifiedName), string.Empty);
+
+        internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
+
+        public BinaryVectorDocument FindChild<T>()
+        {
+            return QueryChildren(new { AssemblyQualifiedName = typeof(T).AssemblyQualifiedName }).FirstOrDefault();
         }
 
         public IDictionary<string, string> Properties
@@ -120,6 +134,29 @@ namespace LinqInfer.Data
             {
                 return _blobs;
             }
+        }
+
+        public IEnumerable<BinaryVectorDocument> QueryChildren(object propertyQuery)
+        {
+            var query = propertyQuery.ToDictionary();
+
+            return Children.Where(c =>
+            {
+                bool found = true;
+
+                foreach (var q in query)
+                {
+                    if (c.Properties.TryGetValue(q.Key, out string v) && v == q.Value?.ToString())
+                    {
+                        continue;
+                    }
+
+                    found = false;
+                    break;
+                }
+
+                return found;
+            });
         }
 
         public bool HasProperty(string name)
@@ -212,12 +249,20 @@ namespace LinqInfer.Data
             return PropertyOrDefault(propName, defaultValue);
         }
 
-        internal void SetPropertyFromExpression(Expression<Func<object>> expression)
+        internal void SetPropertyFromExpression(Expression<Func<object>> expression, object value = null)
         {
             var propName = LinqExtensions.GetPropertyName(expression);
-            var value = expression.Compile().Invoke();
 
-            if (value != null)
+            if (value == null)
+            {
+                value = expression.Compile().Invoke();
+
+                if (value != null)
+                {
+                    Properties[propName] = value.ToString();
+                }
+            }
+            else
             {
                 Properties[propName] = value.ToString();
             }
@@ -227,7 +272,7 @@ namespace LinqInfer.Data
         {
             var tname = (type ?? typeof(T)).GetTypeInf().Name;
 
-            var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
+            var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.TypeName == tname);
 
             if (childNode == null && !ignoreIfMissing) throw new FormatException("Child object not found : " + tname);
 
@@ -259,22 +304,23 @@ namespace LinqInfer.Data
             throw new NotSupportedException();
         }
 
-        internal void WriteChildObject(object obj)
+        internal void WriteChildObject(object obj, object attributes = null)
         {
             if (obj == null) return;
 
-            var childType = obj.GetType().GetTypeInf();
-            var tc = Type.GetTypeCode(obj.GetType());
+            var childType = obj.GetType();
+            var tc = Type.GetTypeCode(childType);
 
             if (tc == TypeCode.Object)
             {
-                if (obj is IExportableAsVectorDocument && obj is IImportableAsVectorDocument)
+                if (obj is IExportableAsVectorDocument)
                 {
                     var childDoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
 
-                    childDoc.Properties["TypeName"] = childType.Name;
-                    childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
+                    SetProperties(childDoc, attributes);
 
+                    childDoc.SetType(childType);
+                    
                     Children.Add(childDoc);
                 }
                 else
@@ -283,8 +329,8 @@ namespace LinqInfer.Data
                     {
                         var childDoc = new BinaryVectorDocument();
 
-                        childDoc.Properties["TypeName"] = childType.Name;
-                        childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
+                        SetProperties(childDoc, attributes);
+                        childDoc.SetType(childType);                        
                         childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
 
                         Children.Add(childDoc);
@@ -351,6 +397,19 @@ namespace LinqInfer.Data
             if (ValidateOnImport && Checksum != checksum)
             {
                 throw new ArgumentException("Invalid or corrupted data");
+            }
+        }
+
+        private void SetProperties(BinaryVectorDocument doc, object obj)
+        {
+            if (obj != null)
+            {
+                var data = obj.ToDictionary();
+
+                foreach (var item in data)
+                {
+                    doc.Properties[item.Key] = item.Value.ToString();
+                }
             }
         }
 
@@ -517,6 +576,31 @@ namespace LinqInfer.Data
             {
                 child.Write(writer, level + 1);
             }
+        }
+
+        public bool Equals(BinaryVectorDocument other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Checksum != other.Checksum) return false;
+
+            var xml1 = ExportAsXml();
+            var xml2 = other.ExportAsXml();
+
+            xml1.Root.Attribute("exported").Remove();
+            xml2.Root.Attribute("exported").Remove();
+
+            return string.Equals(xml1.ToString(), xml2.ToString());
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BinaryVectorDocument);
+        }
+
+        public override int GetHashCode()
+        {
+            return ExportAsXml().ToString().GetHashCode();
         }
     }
 }

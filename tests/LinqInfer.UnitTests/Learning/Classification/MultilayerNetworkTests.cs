@@ -1,5 +1,9 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+﻿using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Maths;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,8 +65,37 @@ namespace LinqInfer.Tests.Learning.Classification
             LogVerbose(xml.ToString());
         }
 
+
         [Test]
-        public void Save_And_Load()
+        public void WhenGivenNetworkFromSpecification_ThenCanExportAndImport()
+        {
+            var lp = new LearningParameters();
+            var spec = new NetworkSpecification(lp,
+                16,
+                new LayerSpecification(4,
+                Activators.Threshold(),
+                LossFunctions.CrossEntropy,
+                new Range()));
+
+            var attribs = new Dictionary<string, string>()
+            {
+                ["x"] = "123"
+            };
+
+            var network = new MultilayerNetwork(spec, attribs);
+
+            var doc = network.ToVectorDocument();
+
+            Console.Write(doc.ExportAsXml().ToString());
+
+            var network2 = MultilayerNetwork.CreateFromVectorDocument(doc);
+
+            Assert.That(network.Parameters, Is.Not.Null);
+            Assert.That(network.Specification.Equals(network2.Specification));
+        }
+
+        [Test]
+        public void WhenGivenNetworkFromParams_ThenCanSaveAndLoad()
         {
             var parameters = new NetworkParameters(new int[] { 2, 8, 4 })
             {

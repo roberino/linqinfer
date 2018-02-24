@@ -8,8 +8,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     public class NeuronBase : INeuron
     {
         private ColumnVector1D _weights;
-        
-        private Func<double, double> _activator;
 
         private NeuronBase(ColumnVector1D weights, Func<double, double> activator, bool firstWeightIsBias = false)
         {
@@ -22,36 +20,33 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 _weights = weights;
             }
-            _activator = activator;
+
+            Activator = activator;
         }
 
         public NeuronBase(int inputVectorSize)
         {
-            Bias = 0; // -0.3 + Functions.RandomDouble(0.6);
+            Bias = 0;
             _weights = Functions.RandomVector(inputVectorSize, -0.7, 0.7);
         }
 
         public NeuronBase(int inputVectorSize, Range range)
         {
             Bias = 0;
-            _weights = Functions.RandomVector(inputVectorSize, range);
+            _weights = range.Size == 0 ?
+                Vector.UniformVector(inputVectorSize, 0).ToColumnVector() :
+                Functions.RandomVector(inputVectorSize, range);
         }
 
-        public Func<double, double> Activator { get { return _activator; } set { _activator = value; } }
+        public double this[int index] => _weights[index];
 
-        public int Size { get { return _weights.Size; } }
+        public int Size => _weights.Size;
+
+        public Func<double, double> Activator { get; set; }
 
         public double Output { get; protected set; }
 
         public double Bias { get; protected set; }
-
-        public double this[int index]
-        {
-            get
-            {
-                return _weights[index];
-            }
-        }
 
         public virtual void Adjust(Func<double, int, double> func)
         {
@@ -72,26 +67,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _weights = _weights.RemoveValuesAt(indexes);
         }
 
-        public object Clone()
-        {
-            return Clone(true);
-        }
+        public object Clone() => Clone(true);
 
         public INeuron Clone(bool deep)
         {
-            var clone = new NeuronBase(_weights.Clone(true), _activator);
-
-            clone.Bias = Bias;
-            clone.Output = Output;
-
-            return clone;
+            return new NeuronBase(_weights.Clone(true), Activator)
+            {
+                Bias = Bias,
+                Output = Output
+            };
         }
 
-        public ColumnVector1D Export()
-        {
-            return new ColumnVector1D(new[] { Bias }.Concat(_weights).ToArray());
-        }
-
+        public ColumnVector1D Export() => new ColumnVector1D(new[] { Bias }.Concat(_weights).ToArray());
+        
         public void Import(ColumnVector1D data)
         {
             Contract.Assert(data != null);

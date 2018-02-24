@@ -99,7 +99,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Transforms the output
         /// </summary>
-        public IVectorTransformation OutputTransformation { get; internal set; }
+        public ISerialisableVectorTransformation OutputTransformation { get; internal set; }
 
         /// <summary>
         /// Gets the Layer size including the input and output layers
@@ -118,7 +118,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var layerSpecs = LayerSizes
                 .Where(x => x > 0)
-                .Select(x => new LayerSpecification(x, Activator, InitialWeightRange));
+                .Select(x => new LayerSpecification(x, Activator, LossFunctions.Default, InitialWeightRange));
 
             return new NetworkSpecification(this, layerSpecs.ToArray());
         }

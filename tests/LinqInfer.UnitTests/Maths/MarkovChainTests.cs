@@ -140,6 +140,7 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        [Category("BuildOmit")]
         public void AddCharSequence_Simulate()
         {
             var mkc = new DiscreteMarkovChain<char>(2);

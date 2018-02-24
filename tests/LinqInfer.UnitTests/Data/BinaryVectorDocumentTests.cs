@@ -113,6 +113,27 @@ namespace LinqInfer.Tests.Data
                 Assert.That(doc.Vectors[1][1], Is.EqualTo(3.9));
             }
         }
+
+        [Test]
+        public void Equals_WhenGivenIdenticalDocs_ThenIsTrue()
+        {
+            var doc1 = CreateTestDoc();
+            var doc2 = CreateTestDoc();
+
+            Assert.That(doc1.Equals(doc2));
+        }
+
+        [Test]
+        public void Equals_WhenGivenDifferentDocs_ThenIsFalse()
+        {
+            var doc1 = CreateTestDoc();
+            var doc2 = CreateTestDoc();
+
+            doc2.Children.Add(CreateTestDoc());
+
+            Assert.That(doc1.Equals(doc2), Is.False);
+        }
+
         private BinaryVectorDocument CreateTestDoc()
         {
             var doc = new BinaryVectorDocument();

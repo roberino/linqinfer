@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using NUnit.Framework;
 using System.Linq;
 using System.Threading;
@@ -10,13 +11,18 @@ namespace LinqInfer.Tests.Learning
     public class MlnExtensionsTests
     {
         [Test]
-        public async Task AttachMultilayerNetworkClassifier_WhenTrainingSetRun_ReturnsClassifier()
+        public async Task BuildAndAttachMultilayerNetworkClassifier_WhenCustomSpecification_ThenReturnsClassifier()
         {
             var pipeline = AsyncPipelineExtensionsTests.CreatePipeline();
 
             var trainingSet = pipeline.AsTrainingSet(p => p.Category, "a", "b");
 
-            var classifier = trainingSet.AttachMultilayerNetworkClassifier(c => c.LearningRate = 0.15, 2);
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(builder =>
+            {
+                builder
+                .AddHiddenSigmoidLayer(6)
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.Default);
+            });
 
             await trainingSet.RunAsync(CancellationToken.None);
 

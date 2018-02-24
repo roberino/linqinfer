@@ -10,6 +10,16 @@ namespace LinqInfer.Utility
     {
         private static readonly Type nullableType = typeof(Nullable<>);
 
+        public static IDictionary<string, object> ToDictionary(this object obj)
+        {
+            return obj
+                .GetType()
+                .GetTypeInfo()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead)
+                .ToDictionary(k => k.Name, v => v.GetValue(obj));
+        }
+
         public static IEnumerable<Type> FindTypesFromSameAssembly<T>(this object obj, Func<Type, bool> predicate = null)
         {
             return obj.GetType().GetTypeInf().Assembly.FindTypes<T>(predicate);

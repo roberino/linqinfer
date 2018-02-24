@@ -1,13 +1,19 @@
-﻿namespace LinqInfer.Maths
+﻿using LinqInfer.Data;
+
+namespace LinqInfer.Maths
 {
-    public class Softmax : IVectorTransformation
+    public class Softmax : ISerialisableVectorTransformation
     {
+        internal Softmax()
+        {
+        }
+
         public Softmax(int vectorSize)
         {
             InputSize = vectorSize;
         }
 
-        public int InputSize { get; }
+        public int InputSize { get; private set; }
 
         public int OutputSize => InputSize;
 
@@ -24,6 +30,21 @@
             var exp = shifted.Exp();
 
             return exp / exp.Sum;
+        }
+
+        public void FromVectorDocument(BinaryVectorDocument doc)
+        {
+            InputSize = doc.PropertyOrDefault(() => InputSize, 0);
+        }
+
+        public BinaryVectorDocument ToVectorDocument()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.SetType(this);
+            doc.SetPropertyFromExpression(() => InputSize);
+
+            return doc;
         }
     }
 }

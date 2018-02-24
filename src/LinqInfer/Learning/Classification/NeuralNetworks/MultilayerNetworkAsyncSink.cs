@@ -12,7 +12,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         : IBuilderSink<TrainingPair<IVector, IVector>, IVectorClassifier>
         where TInput : class where TClass : IEquatable<TClass>
     {
-        private readonly IClassifierTrainingContext<NetworkParameters> _trainingContext;
+        private readonly IClassifierTrainer _trainingContext;
         private readonly Func<int, double, bool> _haltingFunction;
 
         public MultilayerNetworkAsyncSink(NetworkParameters parameters, Func<int, double, bool> haltingFunction)
@@ -20,6 +20,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var factory = new MultilayerNetworkTrainingContextFactory<TClass>();
 
             _trainingContext = factory.Create(parameters);
+            _haltingFunction = haltingFunction;
+        }
+
+        public MultilayerNetworkAsyncSink(IClassifierTrainer trainer, Func<int, double, bool> haltingFunction)
+        {
+            var factory = new MultilayerNetworkTrainingContextFactory<TClass>();
+
+            _trainingContext = trainer;
             _haltingFunction = haltingFunction;
         }
 

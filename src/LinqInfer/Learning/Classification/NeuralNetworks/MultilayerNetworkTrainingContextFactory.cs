@@ -17,16 +17,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IClassifierTrainingContext<NetworkParameters> Create(MultilayerNetwork network)
         {
-            return new MlnTrainngContext(() => ++_currentId, network);
+            return new MlnTrainingContext(() => ++_currentId, network);
         }
 
         public IClassifierTrainingContext<NetworkParameters> Create(NetworkParameters parameters)
         {
-            return new MlnTrainngContext(() => ++_currentId, parameters);
+            return new MlnTrainingContext(() => ++_currentId, parameters);
         }
 
         [DebuggerDisplay("{AverageError}:{Parameters}")]
-        private class MlnTrainngContext : IClassifierTrainingContext<NetworkParameters>
+        private class MlnTrainingContext : IClassifierTrainingContext<NetworkParameters>
         {
             private readonly MultilayerNetwork _network;
             private readonly IAssistedLearningProcessor _rawLearningProcessor;
@@ -36,7 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             private double? _error;
             private int _trainingCounter;
 
-            public MlnTrainngContext(Func<int> idFunc, NetworkParameters parameters)
+            public MlnTrainingContext(Func<int> idFunc, NetworkParameters parameters)
             {
                 _network = new MultilayerNetwork(parameters);
 
@@ -49,7 +49,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Parameters = parameters;
             }
 
-            public MlnTrainngContext(Func<int> idFunc, MultilayerNetwork network)
+            public MlnTrainingContext(Func<int> idFunc, MultilayerNetwork network)
             {
                 _network = network;
 
@@ -132,7 +132,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             public IClassifierTrainingContext<NetworkParameters> Clone(bool deep)
             {
-                return new MlnTrainngContext(_idFunc, _network.Clone(true))
+                return new MlnTrainingContext(_idFunc, _network.Clone(true))
                 {
                     _error = _error,
                     _lastError = _lastError,
@@ -143,6 +143,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             public object Clone()
             {
                 return Clone(true);
+            }
+
+            public void AdjustLearningRate(Func<double, double> rateAdjustment)
+            {
+                _network.Specification.LearningParameters.LearningRate = rateAdjustment(_network.Specification.LearningParameters.LearningRate);
             }
         }
     }

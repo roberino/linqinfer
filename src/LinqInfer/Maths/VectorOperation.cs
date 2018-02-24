@@ -1,11 +1,12 @@
 ﻿using LinqInfer.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Maths
 {
-    public sealed class VectorOperation : IExportableAsVectorDocument, IImportableAsVectorDocument
+    public sealed class VectorOperation : IExportableAsVectorDocument, IImportableAsVectorDocument, IEquatable<VectorOperation>
     {
         private readonly IList<ColumnVector1D> _parameters;
 
@@ -90,6 +91,29 @@ namespace LinqInfer.Maths
         private Vector AsVector() => _parameters[0];
 
         private Matrix AsMatrix() => new Matrix(_parameters);
+
+        public bool Equals(VectorOperation other)
+        {
+            if (other == null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            if (!(InputSize == other.InputSize && OutputSize == other.OutputSize && Operation == other.Operation)) return false;
+
+            if (_parameters.Count != other._parameters.Count) return false;
+
+            return _parameters.Zip(other._parameters, (x, y) => x.Equals(y)).All(x => x);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as VectorOperation);
+        }
+
+        public override int GetHashCode()
+        {
+            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_parameters.Select(p => p.GetHashCode()).Concat(new[] { (int)Operation }).ToArray());
+        }
     }
 
     public enum VectorOperationType

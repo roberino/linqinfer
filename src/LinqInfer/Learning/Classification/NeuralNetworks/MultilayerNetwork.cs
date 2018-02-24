@@ -163,12 +163,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 if (i == 0)
                 {
-                    next = new NetworkLayer(_specification.InputVectorSize, layer.LayerSize, layer.Activator, layer.NeuronFactory);
+                    next = new NetworkLayer(_specification.InputVectorSize, layer);
                     _rootLayer = next;
                 }
                 else
                 {
-                    next = new NetworkLayer(lastLayer.Size, layer.LayerSize, layer.Activator, layer.NeuronFactory);
+                    next = new NetworkLayer(lastLayer.Size, layer);
                     lastLayer.Successor = next;
                 }
 
