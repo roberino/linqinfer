@@ -15,16 +15,18 @@ namespace LinqInfer.Learning
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="trainingSet">A asyncronous training set</param>
+        /// <param name="networkBuilder">A delegate which builds the network specification</param>
         public static IDynamicClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            Action<NetworkParameters> config = null,
-            params int[] hiddenLayerSizes) where TInput : class where TClass : IEquatable<TClass>
+            Action<FluentNetworkBuilder> networkBuilder) where TInput : class where TClass : IEquatable<TClass>
         {
-            var parameters = NetworkParameters.Sigmoidal(new[] { trainingSet.FeaturePipeline.FeatureExtractor.VectorSize }.Concat(hiddenLayerSizes).Concat(new[] { trainingSet.OutputMapper.VectorSize }).ToArray());
+            var builder = new FluentNetworkBuilder(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
 
-            config?.Invoke(parameters);
+            networkBuilder?.Invoke(builder);
 
-            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(parameters, (n, e) => true);
+            var trainingContext = builder.Build();
+
+            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(trainingContext, (n, e) => e <= trainingContext.Parameters.LearningParameters.MinimumError);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);

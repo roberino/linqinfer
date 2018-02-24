@@ -5,12 +5,12 @@ using System.Linq;
 namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
-    public class FluentMultilayerNetworkBuilderTests
+    public class FluentNetworkBuilderTests
     {
         [Test]
         public void WhenGivenDefaults_ThenBuildsWithoutError()
         {
-            var builder = new FluentMultilayerNetworkBuilder(8, 4);
+            var builder = new FluentNetworkBuilder(8, 4);
 
             var trainingNetwork = builder.Build();
 
@@ -18,9 +18,21 @@ namespace LinqInfer.UnitTests.Learning.Classification
         }
 
         [Test]
+        public void WhenLearningParamsProvided_ThenSetCorrectlyInSpec()
+        {
+            var spec = new FluentNetworkBuilder(8, 4)
+                .ConfigureLearningParameters(0.12d, 0.33d)
+                .Build()
+                .Parameters;
+
+            Assert.That(spec.LearningParameters.LearningRate, Is.EqualTo(0.12d));
+            Assert.That(spec.LearningParameters.MinimumError, Is.EqualTo(0.33d));
+        }
+
+        [Test]
         public void WhenHiddenSigmoidLayersAdded_ThenBuildsWithoutError()
         {
-            var trainingNetwork = new FluentMultilayerNetworkBuilder(8, 4)
+            var trainingNetwork = new FluentNetworkBuilder(8, 4)
                 .AddHiddenSigmoidLayer(16)
                 .Build();
 
@@ -34,7 +46,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenOutputLayerConfigured_ThenActivatorAndLossFunctionCustomised()
         {
-            var network = new FluentMultilayerNetworkBuilder(8, 4)
+            var network = new FluentNetworkBuilder(8, 4)
                 .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
                 .Build()
                 .Output as MultilayerNetwork;

@@ -8,7 +8,15 @@ using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class FluentMultilayerNetworkBuilder
+    internal static class FluentMultilayerNetworkBuilderExtensions
+    {
+        public static IClassifierTrainingContext<NetworkSpecification> Build(this IFluentNetworkBuilder specificationBuilder)
+        {
+            return ((FluentNetworkBuilder)specificationBuilder).Build();
+        }
+    }
+
+    public sealed class FluentNetworkBuilder : IFluentNetworkBuilder
     {
         private readonly IList<LayerSpecification> _layers;
         private readonly Range _defaultWeightRange;
@@ -16,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private LayerSpecification _output;
         private int _inputVectorSize;
 
-        internal FluentMultilayerNetworkBuilder(int inputVectorSize, int outputVectorSize)
+        internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
         {
             _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
@@ -28,7 +36,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Default, _defaultWeightRange);
         }
 
-        public FluentMultilayerNetworkBuilder WithLearningParameters(LearningParameters learningParameters)
+        public IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError)
+        {
+            return ConfigureLearningParameters(new LearningParameters() { LearningRate = learningRate, MinimumError = minimumError });
+        }
+
+        public IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
 
@@ -37,18 +50,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public FluentMultilayerNetworkBuilder AddHiddenLayer(LayerSpecification layer)
+        public IFluentNetworkBuilder AddHiddenLayer(LayerSpecification layer)
         {
             _layers.Add(layer);
             return this;
         }
 
-        public FluentMultilayerNetworkBuilder AddHiddenSigmoidLayer(int layerSize)
+        public IFluentNetworkBuilder AddHiddenSigmoidLayer(int layerSize)
         {
             return AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Default, new Range(0.05, -0.05)));
         }
 
-        public FluentMultilayerNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
+        public IFluentNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
         {
             _output =  new LayerSpecification(_output.LayerSize, activator, lossFunction, initialWeightRange.GetValueOrDefault(_defaultWeightRange));
             
