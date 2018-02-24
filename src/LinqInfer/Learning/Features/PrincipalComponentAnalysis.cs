@@ -52,8 +52,8 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="numberOfDimensions">The maximum number of dimensions to return</param>
         /// <param name="sampleSize">The sample size to use in the analysis</param>
-        /// <returns>A <see cref="IVectorTransformation"/></returns>
-        public IVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
+        /// <returns>A <see cref="ISerialisableVectorTransformation"/></returns>
+        public ISerialisableVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
         {
             var matrix = new Matrix(_sampleFeatureSet.Select(v => v.ToColumnVector()).Take(sampleSize));
             var mean = matrix.MeanVector;

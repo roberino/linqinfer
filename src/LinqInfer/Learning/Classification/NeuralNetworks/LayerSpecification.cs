@@ -8,6 +8,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class LayerSpecification : IExportableAsVectorDocument
     {
+        private ISerialisableVectorTransformation _outputTransformation;
+
         public LayerSpecification(
             int layerSize, 
             ActivatorFunc activator, 
@@ -49,7 +51,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Transforms the output
         /// </summary>
-        public SerialisableVectorTransformation OutputTransformation { get; set; }
+        public ISerialisableVectorTransformation OutputTransformation
+        {
+            get { return _outputTransformation; }
+            set
+            {
+                if (value != null && value.InputSize != LayerSize)
+                {
+                    throw new ArgumentException(nameof(value.InputSize));
+                }
+                _outputTransformation = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the initial weight range used to initialise neurons
@@ -92,11 +105,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var activator = context.ActivatorFactory.Create(activatorStr);
             var lossFunc = context.LossFunctionFactory.Create(lossFuncStr);
 
-            SerialisableVectorTransformation outputTransform = null;
+            ISerialisableVectorTransformation outputTransform = null;
 
-            if (doc.Children.Count > 0 && doc.QueryChildren(new { Property = nameof(OutputTransformation) }).Any())
+            if (doc.Children.Count > 0)
             {
-                outputTransform = doc.ReadChildObject(new SerialisableVectorTransformation());
+                var query = doc.QueryChildren(new { Property = nameof(OutputTransformation) }).SingleOrDefault();
+
+                if (query != null)
+                {
+                    outputTransform = doc.ReadChildObject(context.TransformationFactory.Create(query.TypeName));
+                }
             }
 
             return new LayerSpecification(layerSize, activator, lossFunc, new Range(initRangeMax, initRangeMin))

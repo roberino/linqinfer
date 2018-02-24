@@ -1,4 +1,5 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -23,19 +24,32 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             ActivatorFormatter = new Factory<ActivatorFunc, string>(a => $"{a.Name}({a.Parameter})");
 
             LossFunctionFactory = new Factory<string, ILossFunction>(LossFunctions.Parse);
+
+            TransformationFactory = new Factory<string, ISerialisableVectorTransformation>(s =>
+            {
+                if (s == nameof(Softmax)) return new Softmax();
+
+                return new SerialisableVectorTransformation();
+            });
         }
 
-        public NetworkBuilderContext(IFactory<INeuron, NeuronParameters> neuronFactory, IFactory<ActivatorFunc, string> activatorFactory, IFactory<string, ActivatorFunc> activatorFormatter)
+        public NetworkBuilderContext(
+            IFactory<INeuron, NeuronParameters> neuronFactory, 
+            IFactory<ActivatorFunc, string> activatorFactory, 
+            IFactory<string, ActivatorFunc> activatorFormatter,
+            IFactory<ISerialisableVectorTransformation, string> transformationFactory)
         {
             NeuronFactory = neuronFactory;
             ActivatorFactory = activatorFactory;
             ActivatorFormatter = activatorFormatter;
+            TransformationFactory = transformationFactory;
         }
 
         public IFactory<INeuron, NeuronParameters> NeuronFactory { get; }
         public IFactory<ActivatorFunc, string> ActivatorFactory { get; }
         public IFactory<string, ActivatorFunc> ActivatorFormatter { get; }
         public IFactory<ILossFunction, string> LossFunctionFactory { get; }
+        public IFactory<ISerialisableVectorTransformation, string> TransformationFactory { get; }
 
         private static Tuple<string, double> ParseActivatorArgs(string args)
         {

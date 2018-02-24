@@ -9,5 +9,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError);
         IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters);
         IFluentNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null);
+        IFluentNetworkBuilder TransformOutput(ISerialisableVectorTransformation transformation);
     }
 }

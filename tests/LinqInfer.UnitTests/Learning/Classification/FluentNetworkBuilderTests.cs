@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Maths;
 using NUnit.Framework;
 using System.Linq;
 
@@ -52,8 +53,19 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 .Output as MultilayerNetwork;
 
             Assert.That(network.Specification.Layers.Count, Is.EqualTo(1));
-            Assert.That(network.Specification.Layers.Single().Activator.Name, Is.EqualTo(Activators.Sigmoid().Name));
+            Assert.That(network.Specification.Layers.Single().Activator.Name, Is.EqualTo(Activators.None().Name));
             Assert.That(network.Specification.Layers.Single().LossFunction, Is.SameAs(LossFunctions.CrossEntropy));
+        }
+
+        [Test]
+        public void WhenOutputTransformationConfigured_ThenActivatorAndLossFunctionCustomised()
+        {
+            var network = new FluentNetworkBuilder(8, 4)
+                .TransformOutput(new Softmax(4))
+                .Build()
+                .Output as MultilayerNetwork;
+
+            Assert.That(network.Specification.Layers.Single().OutputTransformation.GetType().Name, Is.EqualTo(nameof(Softmax)));
         }
     }
 }

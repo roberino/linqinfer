@@ -43,7 +43,10 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            var transform = new SerialisableVectorTransformation(new Matrix(new[] { new[] { 1d, 6d, 5d }, new[] { 11d, 23d, 123.3d } }));
+            var transform = new SerialisableVectorTransformation(new 
+                Matrix(new[] {
+                    new[] { 1d, 5d },
+                    new[] { 11d, 123.3d } }));
 
             spec.Layers.Last().OutputTransformation = transform;
 

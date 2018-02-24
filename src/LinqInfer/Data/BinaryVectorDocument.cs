@@ -102,9 +102,18 @@ namespace LinqInfer.Data
         {
             var type = instance?.GetType() ?? typeof(T);
 
-            Properties["AssemblyQualifiedName"] = type.AssemblyQualifiedName;
-            Properties["TypeName"] = type.Name;
+            SetType(type);
         }
+
+        internal void SetType(Type type)
+        {
+            Properties[nameof(AssemblyQualifiedName)] = type.AssemblyQualifiedName;
+            Properties[nameof(TypeName)] = type.Name;
+        }
+
+        internal string AssemblyQualifiedName => PropertyOrDefault(nameof(AssemblyQualifiedName), string.Empty);
+
+        internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
 
         public BinaryVectorDocument FindChild<T>()
         {
@@ -263,7 +272,7 @@ namespace LinqInfer.Data
         {
             var tname = (type ?? typeof(T)).GetTypeInf().Name;
 
-            var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.HasProperty("TypeName") && c.Properties["TypeName"] == tname);
+            var childNode = index.HasValue ? Children[index.Value] : Children.SingleOrDefault(c => c.TypeName == tname);
 
             if (childNode == null && !ignoreIfMissing) throw new FormatException("Child object not found : " + tname);
 
@@ -299,8 +308,8 @@ namespace LinqInfer.Data
         {
             if (obj == null) return;
 
-            var childType = obj.GetType().GetTypeInf();
-            var tc = Type.GetTypeCode(obj.GetType());
+            var childType = obj.GetType();
+            var tc = Type.GetTypeCode(childType);
 
             if (tc == TypeCode.Object)
             {
@@ -310,8 +319,7 @@ namespace LinqInfer.Data
 
                     SetProperties(childDoc, attributes);
 
-                    childDoc.Properties["TypeName"] = childType.Name;
-                    childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
+                    childDoc.SetType(childType);
                     
                     Children.Add(childDoc);
                 }
@@ -322,9 +330,7 @@ namespace LinqInfer.Data
                         var childDoc = new BinaryVectorDocument();
 
                         SetProperties(childDoc, attributes);
-
-                        childDoc.Properties["TypeName"] = childType.Name;
-                        childDoc.Properties["QualifiedTypeName"] = childType.AssemblyQualifiedName;
+                        childDoc.SetType(childType);                        
                         childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
 
                         Children.Add(childDoc);

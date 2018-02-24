@@ -38,6 +38,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IList<LayerSpecification> Layers { get; }
 
+        public LayerSpecification OutputLayer => Layers.Last();
+
         public BinaryVectorDocument ToVectorDocument()
         {
             var doc = new BinaryVectorDocument();

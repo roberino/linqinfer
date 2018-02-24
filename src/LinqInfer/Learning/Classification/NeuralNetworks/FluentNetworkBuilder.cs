@@ -63,8 +63,23 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IFluentNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
         {
-            _output =  new LayerSpecification(_output.LayerSize, activator, lossFunction, initialWeightRange.GetValueOrDefault(_defaultWeightRange));
-            
+            var tx = _output.OutputTransformation;
+
+            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
+            {
+                OutputTransformation = tx
+            };
+
+            return this;
+        }
+
+        public IFluentNetworkBuilder TransformOutput(ISerialisableVectorTransformation transformation)
+        {
+            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.InitialWeightRange)
+            {
+                OutputTransformation = transformation
+            };
+
             return this;
         }
 
