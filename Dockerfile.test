@@ -15,4 +15,4 @@ WORKDIR ./build
 RUN ./build-docker.sh
 
 WORKDIR ../
-RUN dotnet test ./tests/LinqInfer.Tests/LinqInfer.Tests.csproj --filter TestCategory!=BuildOmit
+RUN dotnet test ./tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj --filter TestCategory!=BuildOmit
