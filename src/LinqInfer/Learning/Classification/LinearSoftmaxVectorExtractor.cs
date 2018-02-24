@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
+    internal sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
     {
         private readonly Matrix _weights0;
         private readonly ColumnVector1D _bias0;
@@ -140,7 +139,6 @@ namespace LinqInfer.Learning.Classification
             public IVector HiddenOutput;
             public IVector Loss;
             public Matrix dW;
-            public double dB;
         }
     }
 }
