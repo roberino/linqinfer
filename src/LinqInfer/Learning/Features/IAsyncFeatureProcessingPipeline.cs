@@ -24,6 +24,6 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Preprocesses the data with the vector transformation
         /// </summary>
-        IAsyncFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation);
+        IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation);
     }
 }

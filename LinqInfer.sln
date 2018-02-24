@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Microservices.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer", "src\LinqInfer\LinqInfer.csproj", "{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Tests", "tests\LinqInfer.Tests\LinqInfer.Tests.csproj", "{68C15886-4430-49DA-A07F-783220D644B1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E-47AC-49B9-A991-E89ED5C863D5}"
 	ProjectSection(SolutionItems) = preProject
 		.travis.yml = .travis.yml
@@ -32,6 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{55C85CF2-3ECB-4E90-B5CB-60E7AC8D06B0}"
 	ProjectSection(SolutionItems) = preProject
+		docs\async-pipelines.md = docs\async-pipelines.md
 		LICENSE = LICENSE
 		docs\neural-networks.md = docs\neural-networks.md
 		README.md = README.md
@@ -45,7 +44,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{0F16
 		build\test-dotnet.sh = build\test-dotnet.sh
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.TextCrawler", "src\LinqInfer.TextCrawler\LinqInfer.TextCrawler.csproj", "{F7C1E6B2-906F-4B68-83CA-847AA341D10F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.TextCrawler", "src\LinqInfer.TextCrawler\LinqInfer.TextCrawler.csproj", "{F7C1E6B2-906F-4B68-83CA-847AA341D10F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.UnitTests", "tests\LinqInfer.UnitTests\LinqInfer.UnitTests.csproj", "{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.IntegrationTests", "tests\LinqInfer.IntegrationTests\LinqInfer.IntegrationTests.csproj", "{300FD62F-8A3C-401B-84AE-592F978C6DB9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CB31A68F-767E-4D9C-9C28-DD97DE757791}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1FDA159C-6FAB-46FA-BC24-21736A48A986}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,20 +76,31 @@ Global
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68C15886-4430-49DA-A07F-783220D644B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68C15886-4430-49DA-A07F-783220D644B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68C15886-4430-49DA-A07F-783220D644B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68C15886-4430-49DA-A07F-783220D644B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F7C1E6B2-906F-4B68-83CA-847AA341D10F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F7C1E6B2-906F-4B68-83CA-847AA341D10F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7C1E6B2-906F-4B68-83CA-847AA341D10F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7C1E6B2-906F-4B68-83CA-847AA341D10F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{300FD62F-8A3C-401B-84AE-592F978C6DB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{300FD62F-8A3C-401B-84AE-592F978C6DB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{300FD62F-8A3C-401B-84AE-592F978C6DB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{300FD62F-8A3C-401B-84AE-592F978C6DB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
+		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
+		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
+		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
 		{0F16B826-860A-4124-88C7-DA3FDEAAF9D8} = {748B717E-47AC-49B9-A991-E89ED5C863D5}
+		{F7C1E6B2-906F-4B68-83CA-847AA341D10F} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
+		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
+		{300FD62F-8A3C-401B-84AE-592F978C6DB9} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {37958736-31B5-4708-B641-737A0D069293}

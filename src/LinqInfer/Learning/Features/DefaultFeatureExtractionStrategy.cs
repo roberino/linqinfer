@@ -20,12 +20,12 @@ namespace LinqInfer.Learning.Features
                 propertyExtractor.ConversionFunction != null;
         }
 
-        public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder(Properties);
         }
 
-        private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
+        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
             private readonly IList<PropertyExtractor<T>> _properties;
 

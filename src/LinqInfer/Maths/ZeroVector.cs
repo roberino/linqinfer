@@ -46,6 +46,13 @@ namespace LinqInfer.Maths
             return new ZeroVector(Size);
         }
 
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            ArgAssert.AssertEquals(Size, matrix.Height, nameof(matrix.Height));
+
+            return new ZeroVector(matrix.Width);
+        }
+
         public byte[] ToByteArray()
         {
             return BitConverter.GetBytes(Size);

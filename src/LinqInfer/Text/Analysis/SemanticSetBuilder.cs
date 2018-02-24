@@ -26,7 +26,7 @@ namespace LinqInfer.Text.Analysis
             await pipe.RunAsync(cancellationToken);
         }
 
-        public ISemanticSet Build()
+        public IImportableExportableSemanticSet Build()
         {
             return new SemanticSet(new HashSet<string>(_sink.Words.OrderByDescending(w => w.Value).Select(w => w.Key)));
         }

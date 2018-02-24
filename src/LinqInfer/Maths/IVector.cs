@@ -38,12 +38,18 @@ namespace LinqInfer.Maths
         IVector MultiplyBy(IVector vector);
 
         /// <summary>
+        /// Returns the vector (as a row matrix) multiplied
+        /// by the matrix (V X M)
+        /// </summary>
+        IVector HorizontalMultiply(IMatrix matrix);
+
+        /// <summary>
         /// Returns the dot product of this vector and another
         /// </summary>
         double DotProduct(IVector vector);
 
         /// <summary>
-        /// Converts the vector to a column vector
+        /// Converts or casts the vector as a column vector
         /// </summary>
         /// <returns></returns>
         ColumnVector1D ToColumnVector();

@@ -11,9 +11,9 @@ using LinqInfer.Utility;
 namespace LinqInfer.Maths
 {
     /// <summary>
-    /// Represents a 1 dimensional column vector
+    /// Represents vector
     /// </summary>
-    public class Vector : IEnumerable<double>, IVector, IJsonExportable
+    public class Vector : IEnumerable<double>, IMutableVector, IJsonExportable
     {
         protected readonly double[] _values;
 
@@ -295,9 +295,37 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(IVector vector)
         {
-            if (vector is ColumnVector1D) return vector.ToColumnVector() * this;
+            if (vector is Vector v)
+            {
+                return v * this;
+            }
 
             return vector.MultiplyBy(this);
+        }
+
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // 1, 2, 3 * x a
+            //           y b
+            //           z c
+            // = [1x + 2y + 3z, 1a + 2b + 3c]
+
+            var result = new double[matrix.Width];
+            var j = 0;
+
+            foreach (var row in matrix.Rows)
+            {
+                var rowVals = row.ToColumnVector().GetUnderlyingArray();
+
+                for (var i = 0; i < rowVals.Length; i++)
+                {
+                    result[i] += _values[j] * rowVals[i];
+                }
+
+                j++;
+            }
+
+            return new Vector(result);
         }
 
         public double DotProduct(IVector vector)
@@ -444,7 +472,7 @@ namespace LinqInfer.Maths
                 return StructuralComparisons.StructuralEqualityComparer.Equals(_values, ((Vector)other)._values);
             }
 
-            return other.Equals((IVector)this);
+            return other.Equals(this);
         }
 
         internal double[] GetUnderlyingArray()
@@ -452,11 +480,14 @@ namespace LinqInfer.Maths
             return _values;
         }
 
+        internal void DetachEvents()
+        {
+            Modified = null;
+        }
+
         protected virtual void Refresh()
         {
-            var ev = Modified;
-
-            if (ev != null) ev.Invoke(this, EventArgs.Empty);
+            Modified?.Invoke(this, EventArgs.Empty);
         }
     }
 }

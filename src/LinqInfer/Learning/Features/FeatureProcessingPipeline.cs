@@ -182,7 +182,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public IFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        public IFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
 
@@ -230,7 +230,18 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public IFeatureProcessingPipeline<T> NormaliseData()
         {
-            return CentreFeatures().ScaleFeatures(new Range(1, 0));
+            try
+            {
+                return CentreFeatures().ScaleFeatures(new Range(1, 0));
+            }
+            catch (Exception ex)
+            {
+                DebugOutput.Log(ex);
+
+                DebugOutput.Log(ExtractColumnVectors());
+
+                throw;
+            }
         }
 
         /// <summary>

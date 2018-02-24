@@ -21,12 +21,12 @@ namespace LinqInfer.Text.VectorExtraction
             _tokeniser = tokeniser;
         }
 
-        public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder(Properties, _maxVectorSize, _tokeniser);
         }
 
-        private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
+        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
             private readonly int _maxVectorSize;
             private readonly DocumentIndex _index;

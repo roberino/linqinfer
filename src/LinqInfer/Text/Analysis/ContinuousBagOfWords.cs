@@ -1,43 +1,54 @@
 ﻿using LinqInfer.Utility;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    public class ContinuousBagOfWords : IEnumerable<SyntacticContext>
+    public class ContinuousBagOfWords
     {
         private readonly IEnumerable<IToken> _tokens;
-        private readonly ISemanticSet _targetVocabulary;
         private readonly ISemanticSet _widerVocabulary;
-        private readonly int _padding;
 
-        internal ContinuousBagOfWords(IEnumerable<IToken> tokens, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int paddingSize = 1)
+        internal ContinuousBagOfWords(IEnumerable<IToken> tokens, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null)
         {
-            ArgAssert.AssertGreaterThanZero(paddingSize, nameof(paddingSize));
+            _tokens = ArgAssert.AssertNonNull(tokens, nameof(tokens));
 
-            _tokens = tokens;
-            _targetVocabulary = targetVocabulary;
+            TargetVocabulary = ArgAssert.AssertNonNull(targetVocabulary, nameof(targetVocabulary));
+
             _widerVocabulary = widerVocabulary;
-            _padding = paddingSize;
         }
 
-        public IEnumerator<SyntacticContext> GetEnumerator()
+        public ISemanticSet WiderVocabulary => _widerVocabulary ?? TargetVocabulary;
+
+        public ISemanticSet TargetVocabulary { get; }
+
+        public IEnumerable<BiGram> GetBiGrams(int padding = 2)
         {
-            return Stream(_tokens).GetEnumerator();
+            return GetNGrams(padding)
+                .SelectMany(
+                    c => c
+                        .ContextualWords
+                        .Select(
+                            w => new BiGram(w.Text.ToLower(), c.TargetWord.Text.ToLower())));
         }
 
-        private IEnumerable<SyntacticContext> Stream(IEnumerable<IToken> tokens)
+        public IEnumerable<SyntacticContext> GetNGrams(int padding = 2)
         {
-            var bufferSize = _padding * 2 + 1;
+            ArgAssert.AssertGreaterThanZero(padding, nameof(padding));
+
+            return GetNGrams(_tokens, padding);
+        }
+
+        private IEnumerable<SyntacticContext> GetNGrams(IEnumerable<IToken> tokens, int padding)
+        {
+            var bufferSize = padding * 2 + 1;
             var buffer = new IToken[bufferSize];
 
             SyntacticContext nextContext = null;
 
             foreach (var token in tokens)
             {
-                nextContext = MoveNext(buffer);
+                nextContext = MoveNext(buffer, padding);
 
                 if (nextContext != null)
                 {
@@ -49,23 +60,23 @@ namespace LinqInfer.Text.Analysis
                 Enqueue(buffer, token);
             }
 
-            nextContext = MoveNext(buffer);
+            nextContext = MoveNext(buffer, padding);
 
             if (nextContext != null) yield return nextContext;
         }
 
-        private SyntacticContext MoveNext(IToken[] buffer)
+        private SyntacticContext MoveNext(IToken[] buffer, int padding)
         {
             if (IsFull(buffer))
             {
-                var targ = buffer[_padding];
+                var targ = buffer[padding];
 
-                if (_targetVocabulary.IsDefined(targ.Text.ToLowerInvariant()))
+                if (TargetVocabulary.IsDefined(targ.Text.ToLowerInvariant()))
                 {
                     var context = new SyntacticContext()
                     {
                         TargetWord = targ,
-                        ContextualWords = Extract(buffer)
+                        ContextualWords = Extract(buffer, padding)
                     };
 
                     if (_widerVocabulary != null)
@@ -80,14 +91,14 @@ namespace LinqInfer.Text.Analysis
             return null;
         }
 
-        private IToken[] Extract(IToken[] buffer)
+        private IToken[] Extract(IToken[] buffer, int padding)
         {
-            var context = new IToken[_padding * 2];
+            var context = new IToken[padding * 2];
             var c = 0;
 
             for (var i = 0; i < buffer.Length; i++)
             {
-                if(i != _padding)
+                if(i != padding)
                 {
                     context[c++] = buffer[i];
                 }
@@ -120,11 +131,6 @@ namespace LinqInfer.Text.Analysis
                 buffer[i - 1] = buffer[i];
             }
             buffer[buffer.Length - 1] = null;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
         }
     }
 }

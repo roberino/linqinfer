@@ -90,7 +90,7 @@ namespace LinqInfer.Learning.Features
         /// Preprocesses the data with the supplied transformation
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
-        public void PreprocessWith(IVectorTransformation transformation)
+        public void PreprocessWith(ISerialisableVectorTransformation transformation)
         {
             if (_transformation == null)
             {

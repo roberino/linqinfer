@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -8,12 +7,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Maths
 {
-    public sealed class MinMaxMeanVector
+    public sealed class MinMaxMeanVector : MinMaxVector
     {
-        public MinMaxMeanVector(IVector min, IVector max, IVector mean)
+        public MinMaxMeanVector(IVector min, IVector max, IVector mean) : base(min, max)
         {
-            Min = ArgAssert.AssertNonNull(min, nameof(min));
-            Max = ArgAssert.AssertNonNull(max, nameof(max));
             Mean = ArgAssert.AssertNonNull(mean, nameof(mean));
 
             if (min.Size != max.Size && max.Size != mean.Size)
@@ -21,17 +18,13 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Inconsistent sized vectors");
             }
 
-            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(min), nameof(max));
-            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(mean), nameof(max));
+            DebugOutput.Log($"min:{min.ToColumnVector().ToCsv()}");
+            DebugOutput.Log($"max:{max.ToColumnVector().ToCsv()}");
+            DebugOutput.Log($"mean:{mean.ToColumnVector().ToCsv()}");
+
+            ArgAssert.Assert(() => mean.GreaterThanOrEqualElements(min), $"{nameof(mean)} < {nameof(min)}");
+            ArgAssert.Assert(() => max.GreaterThanOrEqualElements(mean), $"{nameof(max)} < {nameof(mean)}");
         }
-
-        public MinMaxMeanVector(IVector min, IVector max) : this(min, max, Vector.UniformVector(min.Size, 0))
-        {
-        }
-
-        public IVector Min { get; }
-
-        public IVector Max { get; }
 
         public IVector Mean { get; }
 
@@ -83,7 +76,7 @@ namespace LinqInfer.Maths
 
             foreach (var val in values)
             {
-                if (min == null)
+                if (counter == 0)
                 {
                     min = new ColumnVector1D(val.ToColumnVector().ToDoubleArray());
                     max = new ColumnVector1D(val.ToColumnVector().ToDoubleArray());

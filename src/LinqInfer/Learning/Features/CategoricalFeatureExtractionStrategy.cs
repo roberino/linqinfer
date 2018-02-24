@@ -15,12 +15,12 @@ namespace LinqInfer.Learning.Features
             return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == FeatureVectorModel.Categorical;
         }
 
-        public override IBuilder<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder(Properties);
         }
 
-        private class Builder : IBuilder<T, IFloatingPointFeatureExtractor<T>>
+        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
             private readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
 

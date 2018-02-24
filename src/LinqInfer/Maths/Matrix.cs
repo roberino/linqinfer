@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,23 +14,25 @@ namespace LinqInfer.Maths
     /// Represents a matrix of floating point numbers
     /// with various methods for supporting matrix operations
     /// </summary>
-    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument, IJsonExportable
+    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument, IJsonExportable, IMatrix
     {
         private Lazy<Vector> _mean;
         private Lazy<Matrix> _covariance;
+        protected readonly IList<Vector> _rows;
 
         public Matrix(IEnumerable<Vector> rows)
         {
-            var rowList = rows.ToList();
+            _rows = rows.ToList();
 
-            if (rowList.Count == 0 || rowList.Select(r => r.Size).Distinct().Count() != 1)
+            if (_rows.Count == 0 || _rows.Select(r => r.Size).Distinct().Count() != 1)
             {
                 throw new ArgumentException("Invalid sizes");
             }
 
-            Rows = rowList;
+            Rows = new IndexableEnumerable<IVector>(_rows);
+            Columns = new IndexableEnumerable<IVector>(GetColumns());
 
-            foreach (var r in rowList)
+            foreach (var r in _rows)
             {
                 r.Modified += (s, e) =>
                 {
@@ -71,7 +74,7 @@ namespace LinqInfer.Maths
         {
             var mu = MeanVector;
 
-            return new Matrix(Rows.Select(v => v - mu));
+            return new Matrix(_rows.Select(v => v - mu));
         }
 
         /// <summary>
@@ -94,21 +97,15 @@ namespace LinqInfer.Maths
         /// </summary>
         public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
 
-        public IList<Vector> Rows { get; }
+        /// <summary>
+        /// Returns the rows of the matrix
+        /// </summary>
+        public IIndexableEnumerable<IVector> Rows { get; }
 
         /// <summary>
         /// Returns the columns of the matrix as vectors
         /// </summary>
-        public IEnumerable<ColumnVector1D> Columns
-        {
-            get
-            {
-                for (int i = 0; i < Width; i++)
-                {
-                    yield return new ColumnVector1D(Column(i).ToArray());
-                }
-            }
-        }
+        public IIndexableEnumerable<IVector> Columns { get; }
 
         public IEnumerable<double> Column(int index)
         {
@@ -167,7 +164,7 @@ namespace LinqInfer.Maths
 
             for (int y = 0; y < Height; y++)
             {
-                var xv = Rows[y].GetUnderlyingArray();
+                var xv = _rows[y].GetUnderlyingArray();
 
                 for (int x = 0; x < xv.Length; x++)
                 {
@@ -217,7 +214,7 @@ namespace LinqInfer.Maths
         {
             for (int y = 0; y < Rows.Count; y++)
             {
-                var row = Rows[y].GetUnderlyingArray();
+                var row = ((Vector)Rows[y]).GetUnderlyingArray();
 
                 for (int x = 0; x < row.Length; x++)
                 {
@@ -228,13 +225,49 @@ namespace LinqInfer.Maths
 
         public void Apply(Func<int, int, double, double> valueFunc)
         {
-            for (int y = 0; y < Rows.Count; y++)
+            for (int y = 0; y < _rows.Count; y++)
             {
-                Rows[y].Apply((v, x) => valueFunc(x, y, v));
+                _rows[y].Apply((v, x) => valueFunc(x, y, v));
             }
 
             Setup();
             OnModify();
+        }
+
+        internal Matrix ConcatRows(params Vector[] rows)
+        {
+            foreach(var row in rows)
+            {
+                _rows.Add(row);
+            }
+
+            Setup();
+            OnModify();
+
+            return this;
+        }
+
+        internal void Overwrite(Matrix other)
+        {
+            foreach (var row in _rows)
+            {
+                row.DetachEvents();
+            }
+
+            _rows.Clear();
+
+            foreach(var row in other._rows)
+            {
+                _rows.Add(row);
+            }
+
+            Setup();
+            OnModify();
+        }
+
+        public static Matrix Create(params Vector[] rows)
+        {
+            return new Matrix(rows);
         }
 
         public static Matrix DiagonalMatrix(Func<int, double> valueFactory, int size)
@@ -251,11 +284,6 @@ namespace LinqInfer.Maths
             return new Matrix(data);
         }
 
-        public static Matrix Create(params Vector[] rows)
-        {
-            return new Matrix(rows);
-        }
-
         public static Matrix DiagonalMatrix(Vector values)
         {
             var a = values.GetUnderlyingArray();
@@ -265,6 +293,11 @@ namespace LinqInfer.Maths
         public static Matrix IdentityMatrix(int size)
         {
             return DiagonalMatrix(_ => 1, size);
+        }
+
+        public static Matrix RandomMatrix(int width, int height, Range range)
+        {
+            return new Matrix(Enumerable.Range(0, height).Select(n => Functions.RandomVector(width, range)));
         }
 
         internal static Matrix Multiply(Matrix a, Matrix b)
@@ -286,14 +319,26 @@ namespace LinqInfer.Maths
         {
             AssertDimensionalEquivalence(m1, m2);
 
-            return new Matrix(m1.Rows.Zip(m2.Rows, (r1, r2) => r1 - r2));
+            return new Matrix(m1._rows.Zip(m2._rows, (r1, r2) => r1 - r2));
         }
 
         public static Matrix operator +(Matrix m1, Matrix m2)
         {
             AssertDimensionalEquivalence(m1, m2);
 
-            return new Matrix(m1.Rows.Zip(m2.Rows, (r1, r2) => r1 + r2));
+            return new Matrix(m1._rows.Zip(m2._rows, (r1, r2) => r1 + r2));
+        }
+
+        public static Matrix operator *(double v, Matrix m2)
+        {
+            var newRows = new List<Vector>();
+
+            foreach (var row in m2._rows)
+            {
+                newRows.Add(row * v);
+            }
+
+            return new Matrix(newRows);
         }
 
         public static Matrix operator *(Matrix m1, Matrix m2)
@@ -320,7 +365,7 @@ namespace LinqInfer.Maths
 
                 for (int i = 0; i < m1.Height; i++)
                 {
-                    double[] m1Rowi = m1.Rows[i].GetUnderlyingArray();
+                    double[] m1Rowi = m1._rows[i].GetUnderlyingArray();
                     double s = 0;
 
                     for (int k = 0; k < m1.Width; k++)
@@ -360,7 +405,7 @@ namespace LinqInfer.Maths
         {
             var data = new List<double[]>(m.Height);
 
-            foreach (var r in m.Rows.Select(r => r.GetUnderlyingArray()))
+            foreach (var r in m._rows.Select(r => r.GetUnderlyingArray()))
             {
                 var row = new double[m.Width];
 
@@ -375,7 +420,7 @@ namespace LinqInfer.Maths
 
         public IEnumerator<Vector> GetEnumerator()
         {
-            return Rows.GetEnumerator();
+            return _rows.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -400,7 +445,7 @@ namespace LinqInfer.Maths
             var x = new double[Height][];
             var i = 0;
 
-            foreach (var r in Rows)
+            foreach (var r in _rows)
             {
                 x[i] = r.GetUnderlyingArray();
                 i++;
@@ -411,7 +456,7 @@ namespace LinqInfer.Maths
 
         public void WriteAsCsv(TextWriter output, char delimitter = ',', int precision = 8)
         {
-            foreach (var vect in Rows)
+            foreach (var vect in _rows)
             {
                 output.WriteLine(vect.ToCsv(delimitter, precision));
             }
@@ -419,7 +464,7 @@ namespace LinqInfer.Maths
 
         public override string ToString()
         {
-            return Rows.Aggregate(new StringBuilder(), (s, v) => s.AppendLine('|' + v.ToCsv(2) + '|')).ToString();
+            return _rows.Aggregate(new StringBuilder(), (s, v) => s.AppendLine('|' + v.ToCsv(2) + '|')).ToString();
         }
 
         internal Matrix SelectRows(params int[] rowIndexes)
@@ -429,7 +474,7 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Invalid rows");
             }
 
-            return new Matrix(rowIndexes.Select(y => Rows[y]));
+            return new Matrix(rowIndexes.Select(y => _rows[y]));
         }
 
         internal Matrix SelectColumns(params int[] columnIndexes)
@@ -439,7 +484,7 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Invalid columns");
             }
 
-            return new Matrix(Rows.Select(v =>
+            return new Matrix(_rows.Select(v =>
             {
                 var a = v.GetUnderlyingArray();
                 return new Vector(columnIndexes.Select(i => a[i]).ToArray());
@@ -448,7 +493,7 @@ namespace LinqInfer.Maths
 
         internal Matrix ChopColumns(int columnIndex)
         {
-            return new Matrix(Rows.Select(v => v.Split(columnIndex).First()));
+            return new Matrix(_rows.Select(v => v.Split(columnIndex).First()));
         }
 
         internal static double[][] CreateArray(int width, int height)
@@ -471,7 +516,7 @@ namespace LinqInfer.Maths
         private void Setup()
         {
             _mean = new Lazy<Vector>(() =>
-                Rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
+                _rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
 
             _covariance = new Lazy<Matrix>(CalculateCovarianceMatrix);
         }
@@ -533,7 +578,7 @@ namespace LinqInfer.Maths
         {
             var doc = new BinaryVectorDocument();
 
-            foreach (var vect in Rows)
+            foreach (var vect in _rows)
             {
                 doc.Vectors.Add(new ColumnVector1D(vect));
             }
@@ -543,14 +588,14 @@ namespace LinqInfer.Maths
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
-            Rows.Clear();
+            _rows.Clear();
 
             foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector()))
             {
-                Rows.Add(vect);
+                _rows.Add(vect);
             }
 
-            foreach (var r in Rows)
+            foreach (var r in _rows)
             {
                 r.Modified += (s, e) =>
                 {
@@ -569,7 +614,7 @@ namespace LinqInfer.Maths
 
             bool isFirst = true;
 
-            foreach(var vect in Rows)
+            foreach (var vect in _rows)
             {
                 if (isFirst)
                 {
@@ -584,6 +629,14 @@ namespace LinqInfer.Maths
             }
 
             output.WriteLine("]");
+        }
+
+        private IEnumerable<ColumnVector1D> GetColumns()
+        {
+            for (int i = 0; i < Width; i++)
+            {
+                yield return new ColumnVector1D(Column(i).ToArray());
+            }
         }
     }
 }

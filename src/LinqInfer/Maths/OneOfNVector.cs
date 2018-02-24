@@ -44,14 +44,31 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(Matrix matrix)
         {
-            var result = new double[Size];
+            if (ActiveIndex.HasValue)
+            {
+                return new ColumnVector1D(matrix.Column(ActiveIndex.Value).ToArray());
+            }
+            else
+            {
+                return new ZeroVector(matrix.Height);
+            }
+        }
+
+        public IVector HorizontalMultiply(IMatrix matrix)
+        {
+            // 0, 0, 1 * x a
+            //           y b
+            //           z c
+            // = [z, c]
+
+            ArgAssert.AssertEquals(matrix.Height, Size, nameof(matrix.Height));
 
             if (ActiveIndex.HasValue)
             {
-                result[ActiveIndex.Value] = matrix.ColumnSum(ActiveIndex.Value);
+                return matrix.Rows[ActiveIndex.Value];
             }
 
-            return new ColumnVector1D(result);
+            return new ZeroVector(matrix.Width);
         }
 
         public IVector MultiplyBy(IVector vector)

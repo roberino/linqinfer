@@ -13,6 +13,8 @@ namespace LinqInfer.Data.Pipes
         private readonly IList<Func<T, bool>> _filters;
         private readonly long? _limit;
 
+        private bool _isDisposed;
+
         public AsyncEnumerator(
             IEnumerable<Task<IList<T>>> batchLoader, 
             long? estimatedTotalCount = null,
@@ -25,6 +27,8 @@ namespace LinqInfer.Data.Pipes
 
             EstimatedTotalCount = estimatedTotalCount;
         }
+
+        public event EventHandler Disposing;
 
         public long? EstimatedTotalCount { get; }
 
@@ -168,6 +172,15 @@ namespace LinqInfer.Data.Pipes
             }
 
             return filtered.ToList();
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+                Disposing?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 }

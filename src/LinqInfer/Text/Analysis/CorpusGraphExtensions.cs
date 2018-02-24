@@ -1,70 +1,30 @@
-﻿using LinqInfer.Maths.Graphs;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Maths.Graphs;
 using System;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
     public static class CorpusGraphExtensions
     {
-        public static Task<WeightedGraph<string, double>> ExportWordGraph(this ICorpus corpus, string word, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
+        public static Task<WeightedGraph<string, double>> ExportWordGraphAsync(this ICorpus corpus, string word, CancellationToken cancellationToken, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
         {
-            return ExportWordGraph(corpus, t => string.Equals(t.Text, word, StringComparison.OrdinalIgnoreCase), maxFollowingConnections, store);
+            return ExportWordGraphAsync(corpus, t => string.Equals(t.Text, word, StringComparison.OrdinalIgnoreCase), cancellationToken, maxFollowingConnections, store);
         }
 
-        public static async Task<WeightedGraph<string, double>> ExportWordGraph(this ICorpus corpus, Func<IToken, bool> targetTokenFunc, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null)
+        public static async Task<WeightedGraph<string, double>> ExportWordGraphAsync(this ICorpus corpus, Func<IToken, bool> targetTokenFunc, CancellationToken cancellationToken, int maxFollowingConnections = 1, IWeightedGraphStore<string, double> store = null, int maxVerticeCount = 1000)
         {
-            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
+            var pipe = corpus.ReadBlocksAsync().CreatePipe();
+            var builder = new GraphSink(targetTokenFunc, maxFollowingConnections, maxVerticeCount, store);
 
-            foreach (var block in corpus.Blocks)
-            {
-                int i = -1;
-                IToken last = null;
-                WeightedGraphNode<string, double> currentNode = null;
+            var attachedBuilder = pipe.Attach(builder);
 
-                foreach (var token in block.Where(t => t.Type == TokenType.Word))
-                {
-                    if (i > -1)
-                    {
-                        currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
+            await attachedBuilder.Pipe.RunAsync(cancellationToken);
+            
+            await attachedBuilder.Output.SaveAsync();
 
-                        i++;
-
-                        if (i == maxFollowingConnections)
-                        {
-                            i = -1;
-                            currentNode = null;
-                        }
-                    }
-                    else
-                    {
-                        if (targetTokenFunc(token))
-                        {
-                            i = 0;
-
-                            if (last != null)
-                            {
-                                currentNode = await graph.FindOrCreateVertexAsync(last.Text.ToLower());
-                                currentNode = await currentNode.ConnectToOrModifyWeightAsync(token.Text.ToLower(), 1, x => x++);
-                            }
-                            else
-                            {
-                                currentNode = await graph.FindOrCreateVertexAsync(token.Text.ToLower());
-                            }
-
-                            var attribs = await currentNode.GetAttributesAsync();
-
-                            attribs["IsTarget"] = true;
-                        }
-                    }
-
-                    last = token;
-                }
-            }
-
-            await graph.SaveAsync();
-
-            return graph;
+            return attachedBuilder.Output;
         }
     }
 }

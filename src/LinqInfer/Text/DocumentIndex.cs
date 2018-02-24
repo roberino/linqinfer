@@ -290,7 +290,7 @@ namespace LinqInfer.Text
                         new XElement("term",
                             new XAttribute("text", f.Key),
                             new XAttribute("frequency", f.Value.Count),
-                            KeyPairToString(f.Value.DocFrequencies)))));
+                            KeyPairToNode(f.Value.DocFrequencies)))));
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace LinqInfer.Text
             foreach (var element in xml.Root.Elements().Where(e => e.Name.LocalName == "term"))
             {
                 _frequencies[element.Attribute("text").Value] = new TermDocumentFrequencyMap(
-                    StringToKeyPairs(element.Value).ToDictionary(k => k.Key, v => v.Value),
+                    NodeToKeyPairs(element).ToDictionary(k => k.Key, v => v.Value),
                         long.Parse(element.Attribute("frequency").Value));
             }
         }
@@ -479,28 +479,17 @@ namespace LinqInfer.Text
             }
         }
 
-        private string KeyPairToString(IEnumerable<KeyValuePair<string, int>> pairs)
+        private IEnumerable<XElement> KeyPairToNode(IEnumerable<KeyValuePair<string, int>> pairs)
         {
-            var sb = new StringBuilder();
-
-            foreach(var kp in pairs)
-            {
-                sb.Append(kp.Key + ":" + kp.Value + ",");
-            }
-
-            return sb.ToString();
+            return pairs
+                    .Select(
+                        p => new XElement("ref",
+                               new XAttribute("f", p.Value), p.Key));
         }
 
-        private IEnumerable<KeyValuePair<string, int>> StringToKeyPairs(string data)
+        private IEnumerable<KeyValuePair<string, int>> NodeToKeyPairs(XElement data)
         {
-            foreach (var item in data.Split(','))
-            {
-                var i = item.LastIndexOf(':');
-
-                if (i < 0) yield break;
-
-                yield return new KeyValuePair<string, int>(item.Substring(0, i), int.Parse(item.Substring(i + 1)));
-            }
+            return data.Elements().Select(e => new KeyValuePair<string, int>(e.Value, int.Parse(e.Attribute("f").Value)));
         }
 
         private class TermDocumentFrequencyMap : IBinaryPersistable

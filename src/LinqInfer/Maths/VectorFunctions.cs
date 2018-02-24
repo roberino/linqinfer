@@ -38,7 +38,7 @@ namespace LinqInfer.Maths
         /// Creates a transformation to scale a vector 
         /// so that values fall between a min max range
         /// </summary>
-        public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxMeanVector minMax, Range? range = null)
+        public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxVector minMax, Range? range = null)
         {
             if (!range.HasValue) range = new Range(1, -1);
 
@@ -59,7 +59,7 @@ namespace LinqInfer.Maths
         {
             ArgAssert.AssertEquals(a.Size, b.Size, nameof(a.Size));
 
-            return a.ToColumnVector().Zip(b.ToColumnVector(), (x, y) => x >= y).All(x => x);
+            return a.ToColumnVector().Zip(b.ToColumnVector(), (ax, bx) => ax >= bx).All(x => x);
         }
 
         public static ColumnVector1D MaxOfEachDimension<T>(this IEnumerable<T> values) where T : IVector

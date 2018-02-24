@@ -121,7 +121,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A feature pipeline</param>
         /// <param name="classf">A classifying expression</param>
         /// <returns>A training set</returns>
-        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this FeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
+        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this IFeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
             where TInput : class
             where TClass : IEquatable<TClass>
         {

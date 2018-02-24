@@ -10,14 +10,14 @@ namespace LinqInfer.Learning.Features
     internal class FloatingPointTransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>, IExportableAsVectorDocument, IImportableAsVectorDocument
     {
         private readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
-        private readonly List<IVectorTransformation> _transformations;
+        private readonly List<ISerialisableVectorTransformation> _transformations;
 
         private IList<IFeature> _transformedFeatures;
 
-        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, IVectorTransformation transformation = null)
+        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, ISerialisableVectorTransformation transformation = null)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
-            _transformations = new List<IVectorTransformation>();
+            _transformations = new List<ISerialisableVectorTransformation>();
 
             if (transformation != null) _transformations.Add(transformation);
         }
@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Features
 
         public int VectorSize { get { return _transformations.Any() ? _transformations.Last().OutputSize : _baseFeatureExtractor.VectorSize; } }
 
-        public void AddTransform(IVectorTransformation transformation)
+        public void AddTransform(ISerialisableVectorTransformation transformation)
         {
             var last = _transformations.LastOrDefault();
 

@@ -3,6 +3,7 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +12,28 @@ namespace LinqInfer.Learning
 {
     public static class AsyncPipelineExtensions
     {
-        public static Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
-            this IAsyncEnumerator<TInput> asyncEnumerator,
-            params IFeatureExtractionStrategy<TInput>[] strategies)
-            where TInput : class
+        /// <summary>
+        /// Using principal component analysis, reduces the least significant features
+        /// keeping a specified number of features (dimensions)
+        /// </summary>
+        /// <param name="numberOfDimensions">The (max) number of features to retain</param>
+        /// <param name="sampleSize">The size of the sample to use for analysis</param>
+        /// <returns>The feature processing pipeline with the transform applied</returns>
+        public static async Task<IAsyncFeatureProcessingPipeline<T>> PrincipalComponentReductionAsync<T>(this IAsyncFeatureProcessingPipeline<T> asyncFeatureProcessingPipeline, int numberOfDimensions, int sampleSize = 100)
+            where T : class
         {
-            return BuildPipelineAsync(asyncEnumerator, CancellationToken.None, strategies);
+            var samples = await asyncFeatureProcessingPipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None, sampleSize);
+
+            var pca = new PrincipalComponentAnalysis(samples.Select(s => s.Vector));
+
+            var pp = pca.CreatePrincipalComponentTransformer(numberOfDimensions, sampleSize);
+
+            return asyncFeatureProcessingPipeline.PreprocessWith(pp);
         }
 
+        /// <summary>
+        /// Builds an asyncronous pipeline, given a number of feature extractor strategies
+        /// </summary>
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             CancellationToken cancellationToken,
@@ -32,6 +47,9 @@ namespace LinqInfer.Learning
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, fe);
         }
 
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor
+        /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             IFloatingPointFeatureExtractor<TInput> featureExtractor)
@@ -40,6 +58,9 @@ namespace LinqInfer.Learning
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
         }
 
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor function
+        /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             Func<TInput, IVector> featureExtractorFunction,

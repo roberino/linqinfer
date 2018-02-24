@@ -21,6 +21,8 @@ namespace LinqInfer.Data.Pipes
 
         public IEnumerable<IAsyncSink<T>> Sinks => _sinks;
 
+        public event EventHandler Disposing;
+
         public IAsyncPipe<T> RegisterSinks(params IAsyncSink<T>[] sinks)
         {
             _sinks.AddRange(sinks);
@@ -45,12 +47,19 @@ namespace LinqInfer.Data.Pipes
                         return;
                     }
 
+                    DebugOutput.Log($"Processing batch: {b}");
+
                     var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 
                     await Task.WhenAll(tasks);
 
                 }, cancellationToken);
             }
+        }
+
+        public void Dispose()
+        {
+            Disposing?.Invoke(this, EventArgs.Empty);
         }
     }
 }

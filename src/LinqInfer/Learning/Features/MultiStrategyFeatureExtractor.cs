@@ -37,13 +37,9 @@ namespace LinqInfer.Learning.Features
 
         public void FromVectorDocument(BinaryVectorDocument doc)
         {
-            foreach (var item in doc
-                   .Children
-                   .Zip(
-                       _featureExtractionStrategies,
-                       (c, s) => new { strat = s, child = c }))
+            for (var i = 0; i < _featureExtractionStrategies.Length; i++)
             {
-                item.child.ReadChildObject(item.strat);
+                doc.ReadChildObject(_featureExtractionStrategies[i], i);
             }
         }
 

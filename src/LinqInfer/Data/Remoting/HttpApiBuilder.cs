@@ -209,7 +209,7 @@ namespace LinqInfer.Data.Remoting
         {
             if (ex is ArgumentException && context.Response.Header.StatusCode.HasValue)
             {
-                context.Response.CreateStatusResponse(context.Response.Header.StatusCode.Value);
+                context.Response.CreateStatusResponse(400);
                 return Task.FromResult(true);
             }
             return Task.FromResult(false);

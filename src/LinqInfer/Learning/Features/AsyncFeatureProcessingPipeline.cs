@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
@@ -39,7 +40,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public IAsyncFeatureProcessingPipeline<T> PreprocessWith(IVectorTransformation transformation)
+        public IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
 

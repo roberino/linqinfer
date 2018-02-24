@@ -34,16 +34,11 @@ namespace LinqInfer.Learning
             _parameters.Validate();
         }
 
-        public async Task<FeatureMap<T>> MapAsync(IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
+        public Task<FeatureMap<T>> MapAsync(IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
         {
             HashSet<ClusterNode<T>> outputNodes = SetupOutputNodes(pipeline.FeatureExtractor);
 
-            for (int i = 0; i < _parameters.TrainingEpochs; i++)
-            {
-                await RunAsync(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1, cancellationToken);
-            }
-
-            return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
+            return MapAsync(outputNodes, pipeline, cancellationToken);
         }
 
         public FeatureMap<T> Map(IFeatureProcessingPipeline<T> pipeline)
@@ -53,6 +48,16 @@ namespace LinqInfer.Learning
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {
                 Run(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1);
+            }
+
+            return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
+        }
+
+        internal async Task<FeatureMap<T>> MapAsync(HashSet<ClusterNode<T>> outputNodes, IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
+        {
+            for (int i = 0; i < _parameters.TrainingEpochs; i++)
+            {
+                await RunAsync(pipeline, outputNodes, i, i == _parameters.TrainingEpochs - 1, cancellationToken);
             }
 
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
@@ -91,7 +96,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        protected virtual HashSet<ClusterNode<T>> SetupOutputNodes(IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal HashSet<ClusterNode<T>> SetupOutputNodes(IFloatingPointFeatureExtractor<T> featureExtractor)
         {
             return new HashSet<ClusterNode<T>>(
                     Enumerable
