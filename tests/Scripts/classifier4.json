@@ -1,0 +1,7 @@
+{
+	"transform": "",
+	"keyTerms": ["numbers", "people", "graph", "religious", "mathematics", "socialist", "negative", "faith", "rights"],
+	"maxVectorSize": 200,
+	"classAttributeName": "cls",
+	"errorTolerance": 0.02
+}

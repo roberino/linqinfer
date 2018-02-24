@@ -1,0 +1,6 @@
+{
+	"transform": "norm()|pca(100,100)",
+	"maxVectorSize": 1000,
+	"classAttributeName": "cls",
+	"errorTolerance": 0.1
+}
