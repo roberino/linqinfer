@@ -18,4 +18,4 @@ WORKDIR ../
 
 # ENV VAR? ${LOCAL_IP_AND_PORT}
 
-CMD dotnet run -f netcoreapp1.1 -p ./tests/LinqInfer.AspNetCoreTestHarness/LinqInfer.AspNetCoreTestHarness.csproj -- http://0.0.0.0:8083/
+CMD dotnet run -f netcoreapp2.0 -p ./tests/LinqInfer.AspNetCoreTestHarness/LinqInfer.AspNetCoreTestHarness.csproj -- http://0.0.0.0:8083/
