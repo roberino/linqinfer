@@ -24,7 +24,7 @@ namespace LinqInfer.Learning
                 {
                     var err = classifier.Train(b.Items, parameters.MinimumError, 1);
 
-                    return err > parameters.MinimumError;
+                    return !parameters.EvaluateHaltingFunction(b.BatchNumber, err);
                 });
 
             return classifier;

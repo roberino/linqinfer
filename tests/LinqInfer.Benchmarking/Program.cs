@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using System;
 
 namespace LinqInfer.Benchmarking
 {
@@ -6,7 +7,13 @@ namespace LinqInfer.Benchmarking
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<MatrixBenchmarks>();
+            var report1 = BenchmarkRunner.Run<MatrixBenchmarks>();
+            var report2 = BenchmarkRunner.Run<MultilayerNetworkBenchmarks>();
+
+            foreach(var result in report1.Reports)
+            {
+                Console.WriteLine(result.GenerateResult.ArtifactsPaths);
+            }
         }
 
         private static void TestManual()

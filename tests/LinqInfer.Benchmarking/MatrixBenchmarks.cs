@@ -1,10 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Exporters;
 using BenchmarkDotNet.Running;
 using LinqInfer.Maths;
-using System.Diagnostics;
 
 namespace LinqInfer.Benchmarking
 {
+    [HtmlExporter]
+    [CsvExporter]
+    [MarkdownExporter]
     public class MatrixBenchmarks
     {
         private Matrix _matrix1;

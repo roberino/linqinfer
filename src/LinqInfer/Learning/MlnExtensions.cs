@@ -26,7 +26,7 @@ namespace LinqInfer.Learning
 
             var trainingContext = builder.Build();
 
-            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(trainingContext, (n, e) => e <= trainingContext.Parameters.LearningParameters.MinimumError);
+            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(trainingContext, trainingContext.Parameters.LearningParameters.HaltingFunction);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
