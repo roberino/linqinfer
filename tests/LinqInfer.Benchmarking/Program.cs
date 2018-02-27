@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using System;
+using System.Linq;
 
 namespace LinqInfer.Benchmarking
 {
@@ -7,16 +8,18 @@ namespace LinqInfer.Benchmarking
     {
         static void Main(string[] args)
         {
+            TestNetManual();
+
             var report1 = BenchmarkRunner.Run<MatrixBenchmarks>();
             var report2 = BenchmarkRunner.Run<MultilayerNetworkBenchmarks>();
 
-            foreach(var result in report1.Reports)
+            foreach(var result in report1.Reports.Concat(report2.Reports))
             {
-                Console.WriteLine(result.GenerateResult.ArtifactsPaths);
+                Console.WriteLine(result.GenerateResult.ArtifactsPaths.RootArtifactsFolderPath);
             }
         }
 
-        private static void TestManual()
+        private static void TestMatrixManual()
         {
             var test = new MatrixBenchmarks()
             {
@@ -26,6 +29,19 @@ namespace LinqInfer.Benchmarking
 
             test.Setup();
             test.Matrix_Multiply();
+        }
+
+        private static void TestNetManual()
+        {
+            var test = new MultilayerNetworkBenchmarks()
+            {
+                Activator = "Sigmoid",
+                LayerSize = 8,
+                NumberOfHiddenLayers = 1
+            };
+
+            test.Setup();
+            test.AttachMultilayerNetworkClassifier_Run();
         }
     }
 }

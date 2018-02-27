@@ -72,6 +72,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public NetworkParameters Parameters => _parameters;
 
+        public IEnumerable<Matrix> ExportData()
+        {
+            return ForEachLayer(l => l.ExportData(), false);
+        }
+
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
             VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null)

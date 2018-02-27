@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
-        
+
         public INetworkSignalFilter Successor { get; set; }
 
         public int InputVectorSize { get; }
@@ -57,6 +57,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ILossFunction LossFunction => _spec.LossFunction;
 
+        internal bool ParallelProcess { get; set; }
+
         public INeuron this[int index]
         {
             get
@@ -65,11 +67,38 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
+        public Matrix ExportData()
+        {
+            var vectors = _neurons.Select(n => n.Export());
+            return new Matrix(vectors);
+        }
+
         public virtual IVector Process(IVector input)
         {
-            var outputVect = _neurons.Any() ? new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray()) : input;
+            IVector outputVector;
 
-            return (Successor == null) ? outputVect : Successor.Process(outputVect);
+            if (_neurons.Any())
+            {
+                if (ParallelProcess)
+                {
+                    var outputItems = _neurons.AsParallel().ForEach(n =>
+                    {
+                        return n.Evaluate(input);
+                    });
+
+                    outputVector = new ColumnVector1D(outputItems.ToArray());
+                }
+                else
+                {
+                    outputVector = new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray());
+                }
+            }
+            else
+            {
+                outputVector = input;
+            }
+
+            return (Successor == null) ? outputVector : Successor.Process(outputVector);
         }
 
         public void Grow(int numberOfNewNeurons = 1)

@@ -31,6 +31,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Layers = layers.ToList();
         }
 
+        public NetworkSpecification(int inputVectorSize, params LayerSpecification[] layers) : this(new LearningParameters(), inputVectorSize, layers)
+        {
+        }
+
         public LearningParameters LearningParameters { get; }
 
         public int InputVectorSize { get; }

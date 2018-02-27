@@ -16,20 +16,30 @@ namespace LinqInfer.Benchmarking
         public static IQueryable<DataItem> GetDataSet()
         {
             return LinearClassA()
-                .Select(x => new DataItem()
+                .Select(v => new DataItem()
                 {
-                    X = x[0],
-                    Y = x[0],
+                    X = v[0],
+                    Y = v[1],
                     ClassName = "A"
                 })
-                 .Concat(LinearClassA().Select(x => new DataItem()
+                 .Concat(LinearClassB().Select(v => new DataItem()
                  {
-                     X = x[0],
-                     Y = x[0],
-                     ClassName = "A"
+                     X = v[0],
+                     Y = v[1],
+                     ClassName = "B"
                  }))
                  .RandomOrder()
                  .AsQueryable();
+        }
+
+        public static DataItem TestCaseA()
+        {
+            return new DataItem()
+            {
+                 X = -1.8923,
+                 Y = -2.12315,
+                 ClassName = "?"
+            };
         }
 
         public static List<double[]> LinearClassA()

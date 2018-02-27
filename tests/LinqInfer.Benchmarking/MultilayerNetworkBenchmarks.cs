@@ -41,11 +41,10 @@ namespace LinqInfer.Benchmarking
 
         private async Task CreateAsync()
         {
-            var pipeline = await _dataSet
+            var trainingSet = await _dataSet
                   .AsAsyncEnumerator()
-                  .BuildPipelineAsync(CancellationToken.None);
-
-            var trainingSet = pipeline.AsTrainingSet(x => x.ClassName);
+                  .BuildPipelineAsync(CancellationToken.None)
+                  .AsTrainingSetAsync(x => x.ClassName, CancellationToken.None);
 
             var network = trainingSet.AttachMultilayerNetworkClassifier(p =>
             {
@@ -59,6 +58,9 @@ namespace LinqInfer.Benchmarking
             });
 
             await trainingSet.RunAsync(CancellationToken.None);
+
+            var test = TestCaseA();
+            var results = network.Classify(test).ToArray();
         }
     }
 }

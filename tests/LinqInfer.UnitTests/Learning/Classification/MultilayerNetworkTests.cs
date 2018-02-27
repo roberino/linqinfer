@@ -17,27 +17,27 @@ namespace LinqInfer.Tests.Learning.Classification
         public void CreateNewInstance_IsCorrectlyInitialised()
         {
             var parameters = new NetworkParameters(new int[] { 2, 8, 4 });
-            var network = new MultilayerNetwork(parameters);
+            var network = SetupTestNetwork(parameters);
 
             Assert.That(network.Parameters, Is.SameAs(parameters));
             Assert.That(network.LastLayer, Is.SameAs(network.Layers.Last()));
-            //Assert.That(network.Layers.Count(), Is.EqualTo(2));
-
-            network.ForEachLayer(l =>
-            {
-                l.ForEachNeuron((n, i) =>
-                {
-                    n.Adjust((w, k) => w * 0.1);
-
-                    return 0d;
-                });
-
-                return 1;
-            });
 
             network.PruneInputs(1);
 
             Assert.That(network.Parameters.InputVectorSize, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void WhenDataExport_TheMatrixReturnedPerLayer()
+        {
+            var parameters = new NetworkSpecification(8, new LayerSpecification(4));
+            var network = SetupTestNetwork(parameters);
+
+            var weights = network.ExportData().ToList();
+
+            Assert.That(weights.Count, Is.EqualTo(1));
+            Assert.That(weights[0].Width, Is.EqualTo(9)); // input size + bias
+            Assert.That(weights[0].Height, Is.EqualTo(4));
         }
 
         [Test]
@@ -158,6 +158,39 @@ namespace LinqInfer.Tests.Learning.Classification
                     return 0;
                 }).ToList();
             }
+        }
+
+        private MultilayerNetwork SetupTestNetwork(NetworkSpecification specification)
+        {
+            var network = new MultilayerNetwork(specification);
+
+            AdjustData(network);
+
+            return network;
+        }
+
+        private MultilayerNetwork SetupTestNetwork(NetworkParameters parameters)
+        {
+            var network = new MultilayerNetwork(parameters);
+
+            AdjustData(network);
+
+            return network;
+        }
+
+        private void AdjustData(MultilayerNetwork network)
+        {
+            network.ForEachLayer(l =>
+            {
+                l.ForEachNeuron((n, i) =>
+                {
+                    n.Adjust((w, k) => w * 0.1);
+
+                    return 0d;
+                });
+
+                return 1;
+            });
         }
     }
 }

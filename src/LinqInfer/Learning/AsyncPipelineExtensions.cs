@@ -90,6 +90,7 @@ namespace LinqInfer.Learning
             return pipeline;
         }
 
+        /// <summary>
         /// Creates a training set from an async feature pipeline
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
@@ -105,7 +106,31 @@ namespace LinqInfer.Learning
             where TInput : class
             where TClass : IEquatable<TClass>
         {
-            var outputMapper = new OutputMapperFactory<TInput, TClass>().Create(outputs);
+            var omf = new OutputMapperFactory<TInput, TClass>();
+            var outputMapper = omf.Create(outputs);
+
+            return new AsyncTrainingSet<TInput, TClass>(pipeline, classf, outputMapper);
+        }
+
+
+        /// <summary>
+        /// Creates a training set from an async feature pipeline
+        /// </summary>
+        /// <typeparam name="TInput">The input type</typeparam>
+        /// <typeparam name="TClass">The classification type</typeparam>
+        /// <param name="pipeline">A feature pipeline task</param>
+        /// <param name="classf">A classifying expression (which will be used to find outputs by sampling the data)</param>
+        /// <returns>A training set</returns>
+        public static async Task<IAsyncTrainingSet<TInput, TClass>> AsTrainingSetAsync<TInput, TClass>(
+            this Task<IAsyncFeatureProcessingPipeline<TInput>> pipelineTask,
+            Expression<Func<TInput, TClass>> classf,
+            CancellationToken cancellationToken)
+            where TInput : class
+            where TClass : IEquatable<TClass>
+        {
+            var pipeline = await pipelineTask;
+            var omf = new OutputMapperFactory<TInput, TClass>();
+            var outputMapper = await omf.CreateAsync(pipeline, classf, cancellationToken);
 
             return new AsyncTrainingSet<TInput, TClass>(pipeline, classf, outputMapper);
         }

@@ -28,6 +28,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
         }
 
+        public LayerSpecification(
+            int layerSize,
+            ActivatorFunc activator = null,
+            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Default, new Range(0.01, -0.01))
+        {
+        }
+
         /// <summary>
         /// The number of neurons in each layer
         /// </summary>

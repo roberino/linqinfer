@@ -58,9 +58,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         void Prune(Func<INeuron, bool> predicate);
 
         /// <summary>
-        /// Exports the raw data
+        /// Exports the raw data and properties
         /// </summary>
         BinaryVectorDocument Export();
+
+        /// <summary>
+        /// Exports the raw data
+        /// </summary>
+        Matrix ExportData();
 
         /// <summary>
         /// Imports raw data
