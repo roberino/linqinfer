@@ -17,4 +17,4 @@ RUN ./build-docker.sh
 
 WORKDIR ../
 RUN dotnet test ./tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj --filter TestCategory!=BuildOmit
-RUN dotnet run -c Release -p ./tests/LinqInfer.Benchmarking
+RUN dotnet ./tests/LinqInfer.Benchmarking/bin/Release/netcoreapp2.0/LinqInfer.Benchmarking.dll
