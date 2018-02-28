@@ -57,8 +57,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ILossFunction LossFunction => _spec.LossFunction;
 
-        internal bool ParallelProcess { get; set; }
-
         public INeuron this[int index]
         {
             get
@@ -79,7 +77,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             if (_neurons.Any())
             {
-                if (ParallelProcess)
+                if (_spec.ParallelProcess)
                 {
                     var outputItems = _neurons.AsParallel().ForEach(n =>
                     {
@@ -164,7 +162,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             layerDoc.Properties["Size"] = Size.ToString();
 
-            layerDoc.Children.Add(_spec.ToVectorDocument());
+            // layerDoc.Children.Add(_spec.ToVectorDocument());
 
             foreach (var neuron in _neurons)
             {

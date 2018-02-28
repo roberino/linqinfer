@@ -15,6 +15,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             ActivatorFunc activator, 
             ILossFunction lossFunction,
             Range initialWeightRange,
+            bool parallelProcess = false,
             Func<int, INeuron> neuronFactory = null)
         {
             ArgAssert.AssertGreaterThanZero(layerSize, nameof(layerSize));
@@ -25,6 +26,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Activator = activator;
             LossFunction = lossFunction;
             InitialWeightRange = initialWeightRange;
+            ParallelProcess = parallelProcess;
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
         }
 
@@ -39,6 +41,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// The number of neurons in each layer
         /// </summary>
         public int LayerSize { get; }
+
+        /// <summary>
+        /// When true, the layer should use a parallel processing model
+        /// </summary>
+        public bool ParallelProcess { get; }
 
         /// <summary>
         /// Returns a factory function for creating new neurons

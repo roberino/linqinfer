@@ -10,13 +10,13 @@ namespace LinqInfer.Benchmarking
         {
             TestNetManual();
 
-            var report1 = BenchmarkRunner.Run<MatrixBenchmarks>();
+            // var report1 = BenchmarkRunner.Run<MatrixBenchmarks>();
             var report2 = BenchmarkRunner.Run<MultilayerNetworkBenchmarks>();
 
-            foreach(var result in report1.Reports.Concat(report2.Reports))
-            {
-                Console.WriteLine(result.GenerateResult.ArtifactsPaths.RootArtifactsFolderPath);
-            }
+            //foreach(var result in report1.Reports.Concat(report2.Reports))
+            //{
+            //    Console.WriteLine(result.GenerateResult.ArtifactsPaths.RootArtifactsFolderPath);
+            //}
         }
 
         private static void TestMatrixManual()

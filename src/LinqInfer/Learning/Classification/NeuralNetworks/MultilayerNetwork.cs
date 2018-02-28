@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
         private NetworkSpecification _specification;
-        private bool initd;
+        private bool _initd;
 
         public MultilayerNetwork(Stream input)
         {
@@ -33,7 +33,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _rootLayer = n._rootLayer;
             _parameters = n._parameters;
             _properties = n._properties;
-            initd = true;
+            _initd = true;
         }
 
         public MultilayerNetwork(NetworkParameters parameters, IDictionary<string, string> properties = null)
@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _specification = parameters.ToSpecification();
             _properties = properties ?? new Dictionary<string, string>();
 
-            initd = false;
+            _initd = false;
         }
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
@@ -55,7 +55,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _specification = specification;
             _properties = properties ?? new Dictionary<string, string>();
 
-            initd = false;
+            _initd = false;
         }
 
         private MultilayerNetwork(NetworkParameters parameters, INetworkSignalFilter rootLayer)
@@ -63,7 +63,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _parameters = parameters;
             _rootLayer = rootLayer;
             _specification = parameters.ToSpecification();
-            initd = true;
+            _initd = true;
         }
 
         public IDictionary<string, string> Properties => _properties;
@@ -180,14 +180,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 lastLayer = next;
             }
 
-            initd = true;
+            _initd = true;
         }
 
         public ILayer LastLayer { get { return Layers.Reverse().First(); } }
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
-            if (!initd) InitialiseLayers();
+            if (!_initd) InitialiseLayers();
 
             return (reverse ? Layers.Reverse() : Layers).ForEach(func);
         }
@@ -197,7 +197,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public IVector Evaluate(IVector input)
         {
-            if (!initd) InitialiseLayers();
+            if (!_initd) InitialiseLayers();
 
             var res = _rootLayer.Process(input);
 
@@ -234,7 +234,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             get
             {
-                if (!initd) InitialiseLayers();
+                if (!_initd) InitialiseLayers();
 
                 var next = _rootLayer as ILayer;
 

@@ -27,11 +27,14 @@ namespace LinqInfer.Benchmarking
         [Params(1, 2, 3)]
         public int NumberOfHiddenLayers { get; set; }
 
-        [Params(2, 4)]
+        [Params(2, 4, 16, 32)]
         public int LayerSize { get; set; }
 
-        [Params("Sigmoid")]
+        [Params(nameof(Activators.Sigmoid), nameof(Activators.HyperbolicTangent))]
         public string Activator { get; set; }
+
+        [Params(false, true)]
+        public bool ParallelProcess { get; set; }
 
         [Benchmark]
         public void AttachMultilayerNetworkClassifier_Run()
@@ -53,7 +56,9 @@ namespace LinqInfer.Benchmarking
                     p.AddHiddenLayer(new LayerSpecification(
                         LayerSize,
                         Activators.Create(Activator, 1),
-                        LossFunctions.Default, new Range(1, -1)));
+                        LossFunctions.Default, 
+                        new Range(1, -1),
+                        ParallelProcess));
                 }
             });
 
