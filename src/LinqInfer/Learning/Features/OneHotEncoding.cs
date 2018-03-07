@@ -27,8 +27,8 @@ namespace LinqInfer.Learning.Features
         public BitVector Encode(IEnumerable<T> categories)
         {
             var indexes = new List<int>();
-            
-            foreach(var cat in categories)
+
+            foreach (var cat in categories)
             {
                 if (Lookup.TryGetValue(cat, out int index))
                 {

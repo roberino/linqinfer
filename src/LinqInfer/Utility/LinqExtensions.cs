@@ -10,6 +10,20 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static T[] ToArray<T>(this IEnumerable<T> values, int size)
+        {
+            var arr = new T[size];
+            int i = 0;
+
+            foreach (var item in values)
+            {
+                arr[i++] = item;
+                if (i == arr.Length) break;
+            }
+
+            return arr;
+        }
+
         /// <summary>
         /// Returns true if all members of an enumeration
         /// satisfy a predicate function which takes an

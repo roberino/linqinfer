@@ -16,7 +16,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         IExportableAsVectorDocument, 
         IImportableAsVectorDocument, 
         IHasNetworkTopology,
-        IVectorClassifier
+        IVectorClassifier,
+        ISerialisableVectorTransformation
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -199,11 +200,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             if (!_initd) InitialiseLayers();
 
-            var res = _rootLayer.Process(input);
+            return _rootLayer.Process(input);
+        }
 
-            if (_parameters.OutputTransformation == null) return res;
-
-            return _parameters.OutputTransformation.Apply(res.ToColumnVector()).ToColumnVector();
+        /// <summary>
+        /// Transforms the vector (same as evaluate)
+        /// </summary>
+        public IVector Apply(IVector vector)
+        {
+            return Evaluate(vector);
         }
 
         /// <summary>
@@ -246,6 +251,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
             }
         }
+
+        public int InputSize => throw new NotImplementedException();
+
+        public int OutputSize => throw new NotImplementedException();
 
         public void Save(Stream output)
         {

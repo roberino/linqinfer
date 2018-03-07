@@ -89,7 +89,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         private NetworkSpecification CreateSut()
         {
-            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Default, new Range(0.4, -0.3));
+            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Square, new Range(0.4, -0.3));
             var layer2 = new LayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, new Range(0.4, -0.3));
             var spec = new NetworkSpecification(new LearningParameters(), layer1, layer2);
 

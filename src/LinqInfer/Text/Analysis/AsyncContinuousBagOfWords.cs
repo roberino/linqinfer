@@ -37,11 +37,7 @@ namespace LinqInfer.Text.Analysis
                 c => c
                     .ContextualWords
                     .Select(w =>
-                    new BiGram()
-                    {
-                        Input = w.Text,
-                        Output = c.TargetWord.Text
-                    }));
+                    new BiGram(w.NormalForm(), c.TargetWord.NormalForm())));
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;

@@ -33,7 +33,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public LayerSpecification(
             int layerSize,
             ActivatorFunc activator = null,
-            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Default, new Range(0.01, -0.01))
+            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Square, new Range(0.01, -0.01))
         {
         }
 

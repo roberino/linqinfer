@@ -54,14 +54,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var output = _network.Evaluate(inputVector);
 
+            Validate(output, inputVector, targetOutput);
+
             var errors = CalculateError(output, targetOutput);
 
             Adjust(errors.Item1);
 
-            return errors.Item2 / 2; // Math.Sqrt(errors.Item2);
+            return errors.Item2;
         }
 
-        protected virtual Tuple<ColumnVector1D[], double> CalculateError(IVector actualOutput, IVector targetOutput)
+        protected virtual Tuple<Vector[], double> CalculateError(IVector actualOutput, IVector targetOutput)
         {
             // network
             //    -- layers[]
@@ -69,19 +71,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             //              -- weights[]
 
             ILayer lastLayer = null;
-            ColumnVector1D lastError = null;
+            Vector lastError = null;
             double error = 0;
 
             var errors = _network.ForEachLayer((layer) =>
             {
                 if (lastError == null)
                 {
-                    lastError = layer.ForEachNeuron((n, k) =>
-                    {
-                        var errAndLoss = layer.LossFunction.Calculate(n.Output, targetOutput[k]);
-                        error += errAndLoss.Loss;
-                        return errAndLoss.PredictionError * layer.Activator.Derivative(n.Output);
-                    });
+                    var errAndLoss = layer.LossFunction.Calculate(layer.LastOutput, targetOutput);
+                    
+                    error += errAndLoss.Loss.Sum;
+
+                    lastError = errAndLoss.PredictionError.Calculate(layer.LastOutput, (e, o) => e * layer.Activator.Derivative(o));
                 }
                 else
                 {
@@ -101,10 +102,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 return lastError;
             }).Reverse().ToArray();
 
-            return new Tuple<ColumnVector1D[], double>(errors, error);
+            return new Tuple<Vector[], double>(errors, error);
         }
 
-        protected virtual void Adjust(ColumnVector1D[] errors)
+        protected virtual void Adjust(Vector[] errors)
         {
             ILayer previousLayer = null;
             var i = 0;
@@ -135,6 +136,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
         {
             return currentWeightValue + (_learningRate * ((_momentum * currentWeightValue) + ((1.0 - _momentum) * (error * previousLayerOutput))));
+        }
+
+        private void Validate(IVector output, IVector inputVector, IVector targetOutput)
+        {
+#if DEBUG
+            if (output.ToColumnVector().Any(x => x == double.NaN))
+            {
+                var ex = new CalculationException();
+
+                ex.Dump.VectorData[nameof(inputVector)] = inputVector;
+                ex.Dump.VectorData[nameof(targetOutput)] = targetOutput;
+                ex.Dump.VectorData[nameof(output)] = output;
+
+                throw ex;
+            }
+#endif
         }
     }
 }

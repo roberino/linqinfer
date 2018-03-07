@@ -10,6 +10,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal static class FluentMultilayerNetworkBuilderExtensions
     {
+        public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        {
+            return specificationBuilder.
+                AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
+
+        }
+
+        public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
+        {
+            return specificationBuilder
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
+                .TransformOutput(x => new Softmax(x));
+        }
+
         public static IClassifierTrainingContext<NetworkSpecification> Build(this IFluentNetworkBuilder specificationBuilder)
         {
             return ((FluentNetworkBuilder)specificationBuilder).Build();
@@ -33,7 +47,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
             _layers = new List<LayerSpecification>();
-            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Default, _defaultWeightRange);
+            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, _defaultWeightRange);
         }
 
         public IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError)
@@ -56,11 +70,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder AddHiddenSigmoidLayer(int layerSize)
-        {
-            return AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Default, new Range(0.05, -0.05)));
-        }
-
         public IFluentNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
         {
             var tx = _output.OutputTransformation;
@@ -78,6 +87,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.InitialWeightRange)
             {
                 OutputTransformation = transformation
+            };
+
+            return this;
+        }
+
+        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableVectorTransformation> transformationFactory)
+        {
+            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.InitialWeightRange)
+            {
+                OutputTransformation = transformationFactory(_output.LayerSize)
             };
 
             return this;

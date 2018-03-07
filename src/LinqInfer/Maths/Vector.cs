@@ -210,6 +210,20 @@ namespace LinqInfer.Maths
             return total / (_values.Length - (isSampleData ? 1 : 0));
         }
 
+        public Vector Calculate(IVector other, Func<double, double, double> calculation)
+        {
+            ArgAssert.AssertEquals(other.Size, Size, nameof(Size));
+
+            var result = new double[Size];
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                result[i] = calculation(_values[i], other[i]);
+            }
+
+            return new Vector(result);
+        }
+
         public double DotProduct(Vector other)
         {
             var v = this * other;

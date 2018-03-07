@@ -12,7 +12,7 @@ namespace LinqInfer.Text.Analysis
         {
             var data = cbow.GetNGrams().SelectMany(c =>
                     c.ContextualWords
-                    .Select(w => new BiGram() { Input = w.Text, Output = c.TargetWord.Text })
+                    .Select(w => new BiGram(w.NormalForm(), c.TargetWord.NormalForm()))
                    )
                    .Take(sampleSize);
 

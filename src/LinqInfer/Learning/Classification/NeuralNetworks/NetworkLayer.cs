@@ -43,6 +43,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _neurons = _neuronsFactory(specification.LayerSize);
 
             InputVectorSize = inputVectorSize;
+
+            LastOutput = Vector.UniformVector(_neurons.Count, 0);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
@@ -56,6 +58,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public ActivatorFunc Activator => _spec.Activator;
 
         public ILossFunction LossFunction => _spec.LossFunction;
+
+        public IVector LastOutput { get; internal set; }
 
         public INeuron this[int index]
         {
@@ -84,17 +88,24 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                         return n.Evaluate(input);
                     });
 
-                    outputVector = new ColumnVector1D(outputItems.ToArray());
+                    outputVector = new ColumnVector1D(outputItems.ToArray(outputItems.Count));
                 }
                 else
                 {
-                    outputVector = new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray());
+                    outputVector = new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray(_neurons.Count));
                 }
             }
             else
             {
                 outputVector = input;
             }
+
+            if (_spec.OutputTransformation != null)
+            {
+                outputVector = _spec.OutputTransformation.Apply(outputVector);
+            }
+
+            LastOutput = outputVector;
 
             return (Successor == null) ? outputVector : Successor.Process(outputVector);
         }
@@ -118,7 +129,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
         {
             int i = 0;
-            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray());
+            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray(_neurons.Count));
             OnCalculate(result);
             return result;
         }

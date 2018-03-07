@@ -37,6 +37,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         ActivatorFunc Activator { get; }
 
         /// <summary>
+        /// Gets the last output as a vector
+        /// </summary>
+        IVector LastOutput { get; }
+
+        /// <summary>
         /// Applies a function over each neuron supplying the neuron as a parameter
         /// </summary>
         IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func);

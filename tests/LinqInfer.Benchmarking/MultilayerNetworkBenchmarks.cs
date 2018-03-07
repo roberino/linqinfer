@@ -56,7 +56,7 @@ namespace LinqInfer.Benchmarking
                     p.AddHiddenLayer(new LayerSpecification(
                         LayerSize,
                         Activators.Create(Activator, 1),
-                        LossFunctions.Default, 
+                        LossFunctions.Square, 
                         new Range(1, -1),
                         ParallelProcess));
                 }
