@@ -17,6 +17,15 @@ namespace LinqInfer.Data.Pipes
             return new PipeOutput<T, O>(pipe, builder.Output);
         }
 
+        public static PipeOutput<T, IPipeStatistics> TrackStatistics<T>(this IAsyncPipe<T> pipe)
+        {
+            var stats = new StatisticSink<T>();
+
+            pipe.RegisterSinks(stats);
+
+            return new PipeOutput<T, IPipeStatistics>(pipe, stats);
+        }
+
         public static IEnumerable<S> GetSinks<T, S>(this IAsyncPipe<T> pipe) where S : IAsyncSink<T>
         {
             return pipe.Sinks.Where(s => s is S).Cast<S>();

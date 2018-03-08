@@ -1,10 +1,13 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,14 +34,32 @@ namespace LinqInfer.IntegrationTests.Text
 
         private void ThenClassifierCanClassifyWords(string word)
         {
+            var doc = _classifier.ToVectorDocument();
+
             var result = _classifier.Classify(new BiGram(word));
 
             Assert.That(result.Any());
+
+            foreach(var item in result.OrderByDescending(x => x.Score))
+            {
+                Console.WriteLine($"{item.ClassType} = {item.Score}");
+            }
         }
 
         private async Task WhenTrainingProcedureIsRun(int epochs = 1)
         {
-            await _trainingSet.RunAsync(CancellationToken.None, epochs);
+            var tokenSource = new CancellationTokenSource();
+
+            tokenSource.CancelAfter(TimeSpan.FromSeconds(30));
+
+            var stats = _trainingSet.TrackStatistics();
+            
+            await _trainingSet.RunAsync(tokenSource.Token, epochs);
+
+            Console.WriteLine($"Items received: {stats.Output.ItemsReceived}");
+            Console.WriteLine($"Batches received: {stats.Output.BatchesReceived}");
+            Console.WriteLine($"Average items per second: {stats.Output.AverageItemsPerSecond}");
+            Console.WriteLine($"Average batches per second: {stats.Output.AverageBatchesPerSecond}");
         }
 
         private void WhenSoftmaxNetworkClassifierAttached(int hiddenLayerSize = 64)

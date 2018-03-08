@@ -13,7 +13,7 @@ namespace LinqInfer.Data.Pipes
             ItemsLoader = itemsLoader;
             IsLast = isLast;
             BatchNumber = batchNum;
-            _items = new Lazy<IList<T>>(() => ItemsLoader.GetAwaiter().GetResult());
+            _items = new Lazy<IList<T>>(() => ItemsLoader.ConfigureAwait(false).GetAwaiter().GetResult());
         }
 
         public Task<IList<T>> ItemsLoader { get; }
