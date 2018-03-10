@@ -78,11 +78,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 if (lastError == null)
                 {
-                    var errAndLoss = layer.LossFunction.Calculate(layer.LastOutput, targetOutput);
+                    var errAndLoss = layer.LossFunction.Calculate(layer.LastOutput, targetOutput, layer.Activator.Derivative);
                     
                     error += errAndLoss.Loss.Sum;
 
-                    lastError = errAndLoss.PredictionError.Calculate(layer.LastOutput, (e, o) => e * layer.Activator.Derivative(o));
+                    lastError = errAndLoss.DerivativeError;
                 }
                 else
                 {

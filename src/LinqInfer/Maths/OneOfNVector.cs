@@ -73,7 +73,14 @@ namespace LinqInfer.Maths
 
         public IVector MultiplyBy(IVector vector)
         {
+            return MultiplyBy(vector, null);
+        }
+
+        internal IVector MultiplyBy(IVector vector, Func<double, double> valueTransform)
+        {
             ArgAssert.AssertEquals(vector.Size, Size, nameof(Size));
+
+            valueTransform = valueTransform ?? (x => x);
 
             if (vector is OneOfNVector) return ((OneOfNVector)vector) * this;
             if (vector is BitVector) return ((BitVector)vector).MultiplyBy(this);
@@ -82,7 +89,7 @@ namespace LinqInfer.Maths
 
             if (ActiveIndex.HasValue)
             {
-                result[ActiveIndex.Value] = vector[ActiveIndex.Value];
+                result[ActiveIndex.Value] = valueTransform(vector[ActiveIndex.Value]);
 
                 return new ColumnVector1D(result);
             }

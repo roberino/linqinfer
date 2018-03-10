@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// When true, the layer should use a parallel processing model
         /// </summary>
-        public bool ParallelProcess { get; }
+        public bool ParallelProcess { get; internal set; }
 
         /// <summary>
         /// Returns a factory function for creating new neurons

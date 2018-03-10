@@ -24,6 +24,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 .TransformOutput(x => new Softmax(x));
         }
 
+        public static IFluentNetworkBuilder ParallelProcess(this IFluentNetworkBuilder specificationBuilder)
+        {
+            return ((FluentNetworkBuilder)specificationBuilder).ConfigureLayers(l => l.ParallelProcess = true);
+        }
+
         public static IClassifierTrainingContext<NetworkSpecification> Build(this IFluentNetworkBuilder specificationBuilder)
         {
             return ((FluentNetworkBuilder)specificationBuilder).Build();
@@ -36,6 +41,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private readonly Range _defaultWeightRange;
         private LearningParameters _learningParams;
         private LayerSpecification _output;
+        private Action<LayerSpecification> _layerAction;
         private int _inputVectorSize;
 
         internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
@@ -48,6 +54,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _learningParams = new LearningParameters();
             _layers = new List<LayerSpecification>();
             _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, _defaultWeightRange);
+        }
+
+        internal IFluentNetworkBuilder ConfigureLayers(Action<LayerSpecification> layerAction)
+        {
+            _layerAction = layerAction;
+
+            return this;
         }
 
         public IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError)
@@ -104,6 +117,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IClassifierTrainingContext<NetworkSpecification> Build()
         {
+            if (_layerAction != null)
+            {
+                foreach (var layer in _layers)
+                {
+                    _layerAction(layer);
+                }
+                _layerAction(_output);
+            }
+
             var spec = new NetworkSpecification(_learningParams,
                 _inputVectorSize, _layers.Concat(new[] { _output }).ToArray());
 

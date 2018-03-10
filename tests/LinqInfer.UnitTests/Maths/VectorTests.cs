@@ -30,5 +30,37 @@ namespace LinqInfer.Tests.Maths
 
             Assert.That(result.Size, Is.EqualTo(2));
         }
+
+        [Test]
+        public void Calculate_WhenSingleVector_ThenExpectedResultReturned()
+        {
+            var vect1 = new Vector(new[] { 1.1, 3.3, 9.72 });
+            var vect2 = new Vector(new[] { 5.4, 9, 1.2 });
+
+            var result = vect1.Calculate(vect2, (x, y) => x * y * 3.3);
+
+            int i = 0;
+
+            foreach (var val in vect1)
+            {
+                Assert.That(result[i], Is.EqualTo(val * vect2[i] * 3.3));
+                i++;
+            }
+        }
+
+        [Test]
+        public void CrossCalculate_WhenMultipleVectors_ThenExpectedResultReturned()
+        {
+            var vect1 = new Vector(new[] { 1.1, 3.3, 9.72 });
+            var vect2 = new Vector(new[] { 5.4, 9, 1.2 });
+            var vect3 = new Vector(new[] { 0.7, 0.8, 12.4 });
+
+            var result = vect1.CrossCalculate((v, va) =>
+            {
+                return new[] { v * va[0], v * va[1] };
+            }, vect2, vect3);
+
+            Assert.That(result.Length, Is.EqualTo(2));
+        }
     }
 }

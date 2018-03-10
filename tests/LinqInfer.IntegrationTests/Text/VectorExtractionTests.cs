@@ -36,6 +36,15 @@ namespace LinqInfer.IntegrationTests.Text
         {
             var doc = _classifier.ToVectorDocument();
 
+            using (var fs = File.OpenWrite(@"c:\dev\nn.xml"))
+            {
+                doc.ExportAsXml().Save(fs);
+            }
+            using (var fs = File.OpenWrite(@"c:\dev\nn.dat"))
+            {
+                doc.Save(fs);
+            }
+
             var result = _classifier.Classify(new BiGram(word));
 
             Assert.That(result.Any());
@@ -66,7 +75,9 @@ namespace LinqInfer.IntegrationTests.Text
         {
             _classifier = _trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
-                b.AddHiddenLayer(new LayerSpecification(hiddenLayerSize, Activators.None(), LossFunctions.Square))
+                b
+                .ParallelProcess()
+                .AddHiddenLayer(new LayerSpecification(hiddenLayerSize, Activators.None(), LossFunctions.Square))
                 .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
                 .TransformOutput(x => new Softmax(x));
             });
