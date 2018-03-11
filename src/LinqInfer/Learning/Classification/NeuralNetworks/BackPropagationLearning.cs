@@ -80,7 +80,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     var errAndLoss = layer.LossFunction.Calculate(layer.LastOutput, targetOutput, layer.Activator.Derivative);
                     
-                    error += errAndLoss.Loss.Sum;
+                    error += errAndLoss.Loss;
 
                     lastError = errAndLoss.DerivativeError;
                 }

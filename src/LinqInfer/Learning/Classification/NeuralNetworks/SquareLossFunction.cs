@@ -13,7 +13,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return new ErrorAndLossVectors()
             {
-                Loss = error.Sq(),
+                Loss = error.Sq().Sum,
                 DerivativeError = dw
             };
         }
@@ -33,7 +33,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return new ErrorAndLossVectors()
             {
-                Loss = error.Sq(),
+                Loss = error.Sq().Sum,
                 DerivativeError = error
             };
         }

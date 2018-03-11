@@ -4,7 +4,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public struct ErrorAndLossVectors
     {
-        public Vector Loss { get; set; }
+        public double Loss { get; set; }
         public Vector DerivativeError { get; set; }
     }
 }
