@@ -29,7 +29,7 @@ namespace LinqInfer.TextCrawler
             return index;
         }
 
-        public IAsyncPipe<SyntacticContext> CreatePipe(Uri uri, CancellationToken cancellationToken, ISemanticSet vocabulary)
+        public IAsyncPipe<BiGram> CreatePipe(Uri uri, CancellationToken cancellationToken, ISemanticSet vocabulary)
         {
             var httpServices = new HttpDocumentServices();
 
@@ -40,7 +40,7 @@ namespace LinqInfer.TextCrawler
 
             var cbow = corpus.CreateAsyncContinuousBagOfWords(vocab);
 
-            var pipe = cbow.GetNGramSource().CreatePipe();
+            var pipe = cbow.GetBiGramSource().CreatePipe();
             
             pipe.Disposing += (s, e) => httpServices.Dispose();
 

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using LinqInfer.Data;
+using LinqInfer.Utility;
+using System;
 
 namespace LinqInfer.Learning.Classification
 {
-    public class LearningParameters
+    public class LearningParameters : ICloneableObject<LearningParameters>
     {
         private Func<int, double, bool> _haltingFunction;
 
@@ -20,6 +22,11 @@ namespace LinqInfer.Learning.Classification
         /// Gets or sets the minimum error
         /// </summary>
         public double MinimumError { get; set; } = 0.005f;
+
+        /// <summary>
+        /// Used by some algorithms to control the pace of change
+        /// </summary>
+        public double Momentum { get; set; } = 0.05;
 
         /// <summary>
         /// Gets or sets the maximum iterations
@@ -42,9 +49,33 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
+        public virtual LearningParameters Clone(bool deep)
+        {
+            return CloneInto(new LearningParameters());
+        }
+
+        internal T CloneInto<T>(T newParameters)
+            where T : LearningParameters
+        {
+            newParameters.HaltingFunction = HaltingFunction;
+            newParameters.LearningRate = LearningRate;
+            newParameters.MaxIterations = MaxIterations;
+            newParameters.MinimumError = MinimumError;
+            newParameters.Momentum = Momentum;
+
+            return newParameters;
+        }
+
         public bool EvaluateHaltingFunction(int iteration, double currentError)
         {
             return _haltingFunction(iteration, currentError);
+        }
+
+        internal virtual void Validate()
+        {
+            ArgAssert.AssertGreaterThanZero(Momentum, nameof(Momentum));
+            ArgAssert.AssertGreaterThanZero(MinimumError, nameof(MinimumError));
+            ArgAssert.AssertGreaterThanZero(LearningRate, nameof(LearningRate));
         }
 
         private void SetDefaultHaltingFunction()

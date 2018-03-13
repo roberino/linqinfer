@@ -30,8 +30,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new ActivatorFunc()
             {
                 Name = nameof(None),
-                Activator = x => s * x,
-                Derivative = x => s,
+                Activator = x => x,
+                Derivative = x => 1,
                 Parameter = s,
                 Create = (p) => None(p)
             };

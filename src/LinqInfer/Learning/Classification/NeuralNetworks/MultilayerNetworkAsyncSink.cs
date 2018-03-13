@@ -21,23 +21,36 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             _trainingContext = trainer;
             _haltingFunction = haltingFunction;
+
+            Reset();
         }
 
         public IVectorClassifier Classifier => _trainingContext.Output;
 
-        public bool CanReceive => true;
+        public bool CanReceive { get; private set; }
 
         public IVectorClassifier Output => _trainingContext.Output;
 
-        public Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
+        public void Reset()
         {
-            return Task.Factory.StartNew(() =>
+            CanReceive = true;
+        }
+
+        public async Task ReceiveAsync(IBatch<TrainingPair<IVector, IVector>> dataBatch, CancellationToken cancellationToken)
+        {
+            bool halt = false;
+
+            await Task.Factory.StartNew(() =>
             {
                 _trainingContext.Train(dataBatch.Items, (n, e) =>
                 {
-                    return _haltingFunction(n, e) || cancellationToken.IsCancellationRequested;
+                    halt = _haltingFunction(n, e);
+
+                    return halt || cancellationToken.IsCancellationRequested;
                 });
             });
+
+            CanReceive = !halt;
         }
     }
 }

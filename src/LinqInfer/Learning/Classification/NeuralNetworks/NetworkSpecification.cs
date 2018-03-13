@@ -85,6 +85,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         internal void Validate()
         {
+            LearningParameters.Validate();
         }
 
         internal NetworkParameters ToParameters()

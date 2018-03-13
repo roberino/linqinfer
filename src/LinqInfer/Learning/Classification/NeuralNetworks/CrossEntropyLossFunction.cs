@@ -37,21 +37,23 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         protected override ErrorAndLossVectors CalculateOneOfN(ColumnVector1D actualOutput, OneOfNVector targetOutput, Func<double, double> derivative)
         {
-            var logLoss = targetOutput.MultiplyBy(actualOutput, y => -Math.Log(y));
+            double logLoss = 0;
+
             var error = actualOutput.Clone(true);
 
             error.Apply((y, i) =>
             {
                 if (i == targetOutput.ActiveIndex)
                 {
-                    return (y - 1) * derivative(y);
+                    logLoss = -Math.Log(y);
+                    return (1 - y) * derivative(y);
                 }
-                return y * derivative(y);
+                return -y * derivative(y);
             });
 
             return new ErrorAndLossVectors()
             {
-                Loss = logLoss.Sum,
+                Loss = logLoss,
                 DerivativeError = error
             };
         }

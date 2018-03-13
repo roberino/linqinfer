@@ -63,10 +63,11 @@ namespace LinqInfer.IntegrationTests.Text
 
             var stats = _trainingSet.TrackStatistics();
             
-            await _trainingSet.RunAsync(tokenSource.Token, epochs);
+            await stats.Pipe.RunAsync(tokenSource.Token, epochs);
 
-            Console.WriteLine($"Items received: {stats.Output.ItemsReceived}");
+            Console.WriteLine($"Elapsed: {stats.Output.Elapsed}");
             Console.WriteLine($"Batches received: {stats.Output.BatchesReceived}");
+            Console.WriteLine($"Items received: {stats.Output.ItemsReceived}");
             Console.WriteLine($"Average items per second: {stats.Output.AverageItemsPerSecond}");
             Console.WriteLine($"Average batches per second: {stats.Output.AverageBatchesPerSecond}");
         }
@@ -77,9 +78,13 @@ namespace LinqInfer.IntegrationTests.Text
             {
                 b
                 .ParallelProcess()
+                .ConfigureLearningParameters(p =>
+                {
+                    p.LearningRate = 0.2;
+                    p.Momentum = 0.1;
+                })
                 .AddHiddenLayer(new LayerSpecification(hiddenLayerSize, Activators.None(), LossFunctions.Square))
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
-                .TransformOutput(x => new Softmax(x));
+                .AddSoftmaxOutput();
             });
         }
 

@@ -13,15 +13,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private double _learningRate;
         protected readonly double _momentum;
 
-        public BackPropagationLearning(MultilayerNetwork network, double momentum = 0.05)
+        public BackPropagationLearning(MultilayerNetwork network)
         {
             network.Specification.Validate();
 
-            Contract.Assert(momentum >= 0 && momentum <= 1);
-
             _network = network;
             _learningRate = network.Specification.LearningParameters.LearningRate;
-            _momentum = momentum;
+            _momentum = network.Specification.LearningParameters.Momentum;
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)

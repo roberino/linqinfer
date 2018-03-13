@@ -1,6 +1,5 @@
 assembly-versioning-scheme: MajorMinorPatch
 mode: ContinuousDeployment
-next-version: 4.0.2-beta
 branches: {}
 ignore:
   sha: []

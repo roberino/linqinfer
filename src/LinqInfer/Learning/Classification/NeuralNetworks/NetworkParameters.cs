@@ -196,7 +196,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return "[" + string.Join(",", LayerSizes.Select(x => x.ToString())) + "]";
         }
 
-        public void Validate()
+        internal override void Validate()
         {
             if (LearningRate <= 0 && LearningRate > 1) throw new ArgumentException("Invalid learning rate");
             if (InitialWeightRange.Size == 0) throw new ArgumentException("Invalid weight range");
@@ -205,6 +205,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             if (InputVectorSize <= 0) throw new ArgumentException("Invalid input size");
             if (OutputVectorSize <= 0) throw new ArgumentException("Invalid output size");
             if (OutputTransformation != null && OutputTransformation.InputSize != OutputVectorSize) throw new ArgumentException("Invalid output transformation input size");
+
+            base.Validate();
         }
 
         public override string ToString()
@@ -243,13 +245,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         /// <param name="deep">N/A</param>
         /// <returns>A new <see cref="NetworkParameters"/></returns>
-        public NetworkParameters Clone(bool deep)
+        public new NetworkParameters Clone(bool deep)
         {
-            return new NetworkParameters(LayerSizes, Activator)
+            return CloneInto(new NetworkParameters(LayerSizes, Activator)
             {
                 InitialWeightRange = InitialWeightRange,
-                LearningRate = LearningRate
-            };
+                LearningRate = LearningRate,
+
+            });
         }
 
         /// <summary>

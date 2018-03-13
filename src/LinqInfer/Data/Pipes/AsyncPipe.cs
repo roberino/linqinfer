@@ -33,6 +33,8 @@ namespace LinqInfer.Data.Pipes
         {
             ArgAssert.AssertGreaterThanZero(epochs, nameof(epochs));
 
+            var pipelineInstance = Guid.NewGuid().ToString("N");
+
             for (var i = 0; i < epochs; i++)
             {
                 if (!_sinks.Any(s => s.CanReceive))
@@ -42,14 +44,18 @@ namespace LinqInfer.Data.Pipes
 
                 await Source.ProcessUsing(async b =>
                 {
-                    if (!_sinks.Any(s => s.CanReceive))
+                    var activeSinks = _sinks.Where(s => s.CanReceive).ToList();
+
+                    if (!activeSinks.Any())
                     {
                         return;
                     }
 
-                    DebugOutput.Log($"Processing batch: {b}");
+                    DebugOutput.Log($"{pipelineInstance} Processing batch {b} with {activeSinks.Count} active sinks");
 
-                    var tasks = _sinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
+                    var tasks = activeSinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
+
+                    DebugOutput.Log($"Running {tasks.Count} tasks");
 
                     await Task.WhenAll(tasks);
 

@@ -552,6 +552,21 @@ namespace LinqInfer.Maths
             return other.Equals(this);
         }
 
+        internal void Overwrite(IEnumerable<double> values)
+        {
+            int i = 0;
+
+            foreach (var value in values)
+            {
+                _values[i++] = value;
+            }
+        }
+
+        internal void Overwrite(double[] values)
+        {
+            Array.Copy(values, _values, _values.Length);
+        }
+
         internal double[] GetUnderlyingArray()
         {
             return _values;

@@ -63,14 +63,24 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError)
+        public IFluentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config)
         {
-            return ConfigureLearningParameters(new LearningParameters() { LearningRate = learningRate, MinimumError = minimumError });
+            var lp = _learningParams.Clone(true);
+
+            config(lp);
+
+            lp.Validate();
+
+            _learningParams = lp;
+
+            return this;
         }
 
         public IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+
+            learningParameters.Validate();
 
             _learningParams = learningParameters;
 

@@ -32,8 +32,11 @@ namespace LinqInfer.Data.Pipes
 
         public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
         {
+            DebugOutput.Log($"Stats Batch {dataBatch.BatchNumber}");
+
             if (!_sw.IsRunning)
             {
+                DebugOutput.Log("Starting stats");
                 _sw.Start();
             }
 
@@ -42,6 +45,7 @@ namespace LinqInfer.Data.Pipes
 
             if (dataBatch.IsLast)
             {
+                DebugOutput.Log("Stoping stats");
                 _sw.Stop();
             }
 
