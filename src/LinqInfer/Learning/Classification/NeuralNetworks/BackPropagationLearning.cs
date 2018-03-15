@@ -10,21 +10,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     internal class BackPropagationLearning : IAssistedLearningProcessor
     {
         private readonly MultilayerNetwork _network;
-        private double _learningRate;
-        protected readonly double _momentum;
 
         public BackPropagationLearning(MultilayerNetwork network)
         {
             network.Specification.Validate();
 
             _network = network;
-            _learningRate = network.Specification.LearningParameters.LearningRate;
-            _momentum = network.Specification.LearningParameters.Momentum;
         }
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
-            _learningRate = rateAdjustment(_learningRate);
+            _network.ForEachLayer(l => l.WeightUpdateRule.AdjustLearningRate(rateAdjustment)).ToList();
         }
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingSet, double errorThreshold = 0)
@@ -119,7 +115,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     n.Adjust((w, k) =>
                     {
                         var prevOutput = previousLayer == null || k < 0 ? 1 : previousLayer[k].Output;
-                        return ExecuteUpdateRule(w, error, prevOutput);
+
+                        var wp = new WeightUpdateParameters()
+                        {
+                            CurrentWeightValue = w,
+                            Error = error,
+                            PreviousLayerOutput = prevOutput
+                        };
+
+                        return layer.WeightUpdateRule.Execute(wp);
                     });
 
                     return 0;
@@ -129,11 +133,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 return update;
             }, false);
-        }
-
-        protected virtual double ExecuteUpdateRule(double currentWeightValue, double error, double previousLayerOutput)
-        {
-            return currentWeightValue + (_learningRate * ((_momentum * currentWeightValue) + ((1.0 - _momentum) * (error * previousLayerOutput))));
         }
 
         private void Validate(IVector output, IVector inputVector, IVector targetOutput)

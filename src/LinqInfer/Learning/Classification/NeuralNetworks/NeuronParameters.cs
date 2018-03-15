@@ -4,7 +4,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NeuronParameters
     {
-        public NeuronParameters(int size, ActivatorFunc activator, Range initialWeightRange)
+        public NeuronParameters(int size, IActivatorFunction activator, Range initialWeightRange)
         {
             Size = size;
             Activator = activator;
@@ -12,7 +12,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public int Size { get; }
-        public ActivatorFunc Activator { get; }
+        public IActivatorFunction Activator { get; }
         public Range InitialWeightRange { get; }
     }
 }

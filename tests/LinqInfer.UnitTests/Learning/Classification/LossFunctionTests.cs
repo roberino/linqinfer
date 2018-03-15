@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var ce = LossFunctions.CrossEntropy;
 
-            var e = ce.Calculate(actual, target, x => x);
+            var e = ce.Calculate(actual, target, x => 1);
 
             Assert.That(e.Loss, Is.GreaterThan(0));
             Assert.That(e.DerivativeError.Sum, Is.LessThan(0));
@@ -33,7 +33,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var ce = LossFunctions.CrossEntropy;
 
-            var e = ce.Calculate(actual, target, x => x);
+            var e = ce.Calculate(actual, target, x => 1);
 
             Assert.That(e.Loss, Is.GreaterThan(0));
             Assert.That(e.DerivativeError.Sum, Is.LessThan(0));

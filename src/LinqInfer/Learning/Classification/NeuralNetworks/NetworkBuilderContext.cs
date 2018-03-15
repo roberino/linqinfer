@@ -15,13 +15,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Activator = p.Activator.Activator
             });
 
-            ActivatorFactory = new Factory<string, ActivatorFunc>(a =>
+            ActivatorFactory = new Factory<string, IActivatorFunction>(a =>
             {
                 var args = ParseActivatorArgs(a);
                 return Activators.Create(args.Item1, args.Item2);
             });
 
-            ActivatorFormatter = new Factory<ActivatorFunc, string>(a => $"{a.Name}({a.Parameter})");
+            ActivatorFormatter = new Factory<IActivatorFunction, string>(a => $"{a.Name}({a.Parameter})");
 
             LossFunctionFactory = new Factory<string, ILossFunction>(LossFunctions.Parse);
 
@@ -35,8 +35,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public NetworkBuilderContext(
             IFactory<INeuron, NeuronParameters> neuronFactory, 
-            IFactory<ActivatorFunc, string> activatorFactory, 
-            IFactory<string, ActivatorFunc> activatorFormatter,
+            IFactory<IActivatorFunction, string> activatorFactory, 
+            IFactory<string, IActivatorFunction> activatorFormatter,
             IFactory<ISerialisableVectorTransformation, string> transformationFactory)
         {
             NeuronFactory = neuronFactory;
@@ -46,9 +46,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public IFactory<INeuron, NeuronParameters> NeuronFactory { get; }
-        public IFactory<ActivatorFunc, string> ActivatorFactory { get; }
-        public IFactory<string, ActivatorFunc> ActivatorFormatter { get; }
+        public IFactory<IActivatorFunction, string> ActivatorFactory { get; }
+        public IFactory<string, IActivatorFunction> ActivatorFormatter { get; }
         public IFactory<ILossFunction, string> LossFunctionFactory { get; }
+        public IFactory<IWeightUpdateRule, string> WeightUpdateRuleFactory { get; }
         public IFactory<ISerialisableVectorTransformation, string> TransformationFactory { get; }
 
         private static Tuple<string, double> ParseActivatorArgs(string args)

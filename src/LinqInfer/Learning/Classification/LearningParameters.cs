@@ -6,6 +6,8 @@ namespace LinqInfer.Learning.Classification
 {
     public class LearningParameters : ICloneableObject<LearningParameters>
     {
+        internal const double DefaultLearningRate = 0.1f;
+
         private Func<int, double, bool> _haltingFunction;
 
         public LearningParameters()
@@ -16,7 +18,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Gets or sets the learning rate
         /// </summary>
-        public double LearningRate { get; set; } = 0.1f;
+        public double LearningRate { get; set; } = DefaultLearningRate;
 
         /// <summary>
         /// Gets or sets the minimum error

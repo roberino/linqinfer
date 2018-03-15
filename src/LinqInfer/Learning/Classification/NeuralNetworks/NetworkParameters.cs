@@ -8,6 +8,7 @@ using System.Linq;
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
+    /// Obsolete: Use NetworkSpecification
     /// Used to specify the parameters that are used to create a new neural network architecture.
     /// The parameters define the input, output and hidden layer sizes as well as the activator
     /// and learning rate.
@@ -20,7 +21,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <param name="inputVectorSize">The input vector size</param>
         /// <param name="outputSize">The output vector size</param>
         /// <param name="activator">A optional activator function (default is Sigmoid)</param>
-        public NetworkParameters(int inputVectorSize, int outputSize, ActivatorFunc activator = null)
+        public NetworkParameters(int inputVectorSize, int outputSize, IActivatorFunction activator = null)
         {
             Activator = activator ?? Activators.Sigmoid();
             InitialWeightRange = new Range(0.7, -0.7);
@@ -33,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         /// <param name="layerSizes">The layer sizes including the input and output size</param>
         /// <param name="activator">A optional activator function (default is Sigmoid)</param>
-        public NetworkParameters(int[] layerSizes, ActivatorFunc activator = null)
+        public NetworkParameters(int[] layerSizes, IActivatorFunction activator = null)
         {
             Contract.Requires(layerSizes != null && layerSizes.Length > 1);
 
@@ -94,7 +95,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator function
         /// </summary>
-        public ActivatorFunc Activator { get; internal set; }
+        public IActivatorFunction Activator { get; internal set; }
 
         /// <summary>
         /// Transforms the output
@@ -118,7 +119,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var layerSpecs = LayerSizes
                 .Where(x => x > 0)
-                .Select(x => new LayerSpecification(x, Activator, LossFunctions.Square, InitialWeightRange));
+                .Select(x => new LayerSpecification(x, Activator, LossFunctions.Square, DefaultWeightUpdateRule.Create(LearningRate), InitialWeightRange));
 
             if (OutputTransformation != null)
             {
@@ -146,7 +147,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return newParams;
         }
 
-        private ActivatorFunc Breed(ActivatorFunc a, ActivatorFunc b)
+        private IActivatorFunction Breed(IActivatorFunction a, IActivatorFunction b)
         {
             if (string.Equals(a.Name, b.Name))
             {

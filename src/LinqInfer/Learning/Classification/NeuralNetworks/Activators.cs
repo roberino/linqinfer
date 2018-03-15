@@ -7,25 +7,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public static class Activators
     {
-        public static IEnumerable<ActivatorFunc> All()
+        public static IEnumerable<IActivatorFunction> All()
         {
             yield return Sigmoid();
             yield return Threshold();
             yield return HyperbolicTangent();
         }
 
-        public static ActivatorFunc Create(string name, double parameter)
+        public static IActivatorFunction Create(string name, double parameter)
         {
             var type = typeof(Activators).GetTypeInfo();
 
-            return (ActivatorFunc)type
+            return (IActivatorFunction)type
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .Where(m => m.Name == name && m.GetParameters().Length == 1)
                 .FirstOrDefault()
                 .Invoke(null, new object[] { parameter });
         }
 
-        public static ActivatorFunc None(double s = 1)
+        public static IActivatorFunction None(double s = 1)
         {
             return new ActivatorFunc()
             {
@@ -37,7 +37,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        public static ActivatorFunc Sigmoid(double alpha = 2)
+        public static IActivatorFunction Sigmoid(double alpha = 2)
         {
             return new ActivatorFunc()
             {
@@ -49,7 +49,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        public static ActivatorFunc HyperbolicTangent(double nv = 0)
+        public static IActivatorFunction HyperbolicTangent(double nv = 0)
         {
             var e = Math.E;
             return new ActivatorFunc()
@@ -62,7 +62,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        public static ActivatorFunc Threshold(double threshold = 0.5)
+        public static IActivatorFunction Threshold(double threshold = 0.5)
         {
             return new ActivatorFunc()
             {

@@ -18,10 +18,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public NetworkLayer(
             int inputVectorSize,
             int neuronCount,
-            ActivatorFunc activator,
+            IActivatorFunction activator,
             ILossFunction lossFunction,
             Func<int, INeuron> neuronFactory = null)
-            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, new Range(1, -1)))
+            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), new Range(1, -1)))
         {
         }
 
@@ -56,9 +56,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int Size => _neurons.Count;
 
-        public ActivatorFunc Activator => _spec.Activator;
+        public IActivatorFunction Activator => _spec.Activator;
 
         public ILossFunction LossFunction => _spec.LossFunction;
+
+        public IWeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
         public IVector LastOutput => _output;
 

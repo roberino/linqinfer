@@ -21,20 +21,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         int Size { get; }
 
         /// <summary>
+        /// Gets the activator used for the layer
+        /// </summary>
+        IActivatorFunction Activator { get; }
+
+        /// <summary>
         /// Gets the function used to calculate errors
         /// </summary>
         ILossFunction LossFunction { get; }
+
+        /// <summary>
+        /// Gets the function for updating weights
+        /// </summary>
+        IWeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Gets a neuron by index
         /// </summary>
         /// <param name="index">The zero base index</param>
         INeuron this[int index] { get; }
-
-        /// <summary>
-        /// Gets the activator used for the layer
-        /// </summary>
-        ActivatorFunc Activator { get; }
 
         /// <summary>
         /// Gets the last output as a vector

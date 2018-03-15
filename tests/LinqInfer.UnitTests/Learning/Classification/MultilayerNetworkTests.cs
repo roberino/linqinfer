@@ -75,6 +75,7 @@ namespace LinqInfer.Tests.Learning.Classification
                 new LayerSpecification(4,
                 Activators.Threshold(),
                 LossFunctions.CrossEntropy,
+                DefaultWeightUpdateRule.Create(),
                 new Range()));
 
             var attribs = new Dictionary<string, string>()

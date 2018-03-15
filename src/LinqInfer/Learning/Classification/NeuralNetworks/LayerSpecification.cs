@@ -12,8 +12,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification(
             int layerSize, 
-            ActivatorFunc activator, 
+            IActivatorFunction activator, 
             ILossFunction lossFunction,
+            IWeightUpdateRule weightUpdateRule,
             Range initialWeightRange,
             bool parallelProcess = false,
             Func<int, INeuron> neuronFactory = null)
@@ -25,6 +26,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             LayerSize = layerSize;
             Activator = activator;
             LossFunction = lossFunction;
+            WeightUpdateRule = weightUpdateRule;
             InitialWeightRange = initialWeightRange;
             ParallelProcess = parallelProcess;
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
@@ -32,8 +34,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification(
             int layerSize,
-            ActivatorFunc activator = null,
-            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Square, new Range(0.01, -0.01))
+            IActivatorFunction activator = null,
+            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Square, DefaultWeightUpdateRule.Create(), new Range(0.01, -0.01))
         {
         }
 
@@ -60,7 +62,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator function
         /// </summary>
-        public ActivatorFunc Activator { get; }
+        public IActivatorFunction Activator { get; }
+
+        /// <summary>
+        /// Gets a function for updating weights
+        /// </summary>
+        public IWeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Transforms the output
@@ -90,6 +97,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.SetPropertyFromExpression(() => LayerSize);
             doc.SetPropertyFromExpression(() => Activator);
             doc.SetPropertyFromExpression(() => LossFunction, LossFunction.GetType().Name);
+            doc.SetPropertyFromExpression(() => WeightUpdateRule, WeightUpdateRule.Export());
 
             doc.Properties["InitialWeightRangeMin"] = InitialWeightRange.Min.ToString();
             doc.Properties["InitialWeightRangeMax"] = InitialWeightRange.Max.ToString();
@@ -112,12 +120,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var layerSize = doc.PropertyOrDefault(() => layer.LayerSize, 0);
             var activatorStr = doc.PropertyOrDefault(() => layer.Activator, string.Empty);
             var lossFuncStr = doc.PropertyOrDefault(() => layer.LossFunction, string.Empty);
+            var weightUpdateRuleStr = doc.PropertyOrDefault(() => layer.WeightUpdateRule, string.Empty);
 
             var initRangeMin = doc.PropertyOrDefault("InitialWeightRangeMin", 0.0d);
             var initRangeMax = doc.PropertyOrDefault("InitialWeightRangeMax", 0.0d);
 
             var activator = context.ActivatorFactory.Create(activatorStr);
             var lossFunc = context.LossFunctionFactory.Create(lossFuncStr);
+            var wuRule = context.WeightUpdateRuleFactory.Create(weightUpdateRuleStr);
 
             ISerialisableVectorTransformation outputTransform = null;
 
@@ -131,7 +141,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
             }
 
-            return new LayerSpecification(layerSize, activator, lossFunc, new Range(initRangeMax, initRangeMin))
+            return new LayerSpecification(layerSize, activator, lossFunc, wuRule, new Range(initRangeMax, initRangeMin))
             {
                 OutputTransformation = outputTransform
             };
