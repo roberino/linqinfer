@@ -59,7 +59,7 @@ namespace LinqInfer.IntegrationTests.Text
         {
             var tokenSource = new CancellationTokenSource();
 
-            tokenSource.CancelAfter(TimeSpan.FromSeconds(30));
+            tokenSource.CancelAfter(TimeSpan.FromSeconds(60));
 
             var stats = _trainingSet.TrackStatistics();
             

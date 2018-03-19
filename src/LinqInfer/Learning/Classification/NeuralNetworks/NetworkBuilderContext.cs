@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Linq;
@@ -31,18 +32,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 return new SerialisableVectorTransformation();
             });
+
+            WeightUpdateRuleFactory = new FunctionFormatter().CreateFactory<IWeightUpdateRule, DefaultWeightUpdateRule>();
         }
 
         public NetworkBuilderContext(
             IFactory<INeuron, NeuronParameters> neuronFactory, 
             IFactory<IActivatorFunction, string> activatorFactory, 
             IFactory<string, IActivatorFunction> activatorFormatter,
-            IFactory<ISerialisableVectorTransformation, string> transformationFactory)
+            IFactory<ISerialisableVectorTransformation, string> transformationFactory,
+            IFactory<IWeightUpdateRule, string> weightUpdateRuleFactory)
         {
             NeuronFactory = neuronFactory;
             ActivatorFactory = activatorFactory;
             ActivatorFormatter = activatorFormatter;
             TransformationFactory = transformationFactory;
+            WeightUpdateRuleFactory = weightUpdateRuleFactory;
         }
 
         public IFactory<INeuron, NeuronParameters> NeuronFactory { get; }

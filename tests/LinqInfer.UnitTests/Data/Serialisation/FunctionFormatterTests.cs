@@ -31,20 +31,20 @@ namespace LinqInfer.UnitTests.Data.Serialisation
         }
 
         [Test]
-        public void BindToStaticMethod_WhenGivenInput_ThenFunctionInvoked()
+        public void Create_WhenGivenStaticMethod_ThenCanBeCreated()
         {
             var formatter = new FunctionFormatter();
 
             var input = "CreateNew(5,3)";
 
-            var instance = formatter.BindToStaticFactoryMethod<Func1>(input);
+            var instance = formatter.Create<Func1>(input);
 
             Assert.That(instance.X, Is.EqualTo(5));
             Assert.That(instance.Y, Is.EqualTo(3));
         }
 
         [Test]
-        public void Bind_WhenGivenInputAndMethodSelector_ThenFunctionInvoked()
+        public void Bind_WhenGivenInstance_ThenFunctionInvoked()
         {
             var formatter = new FunctionFormatter();
 

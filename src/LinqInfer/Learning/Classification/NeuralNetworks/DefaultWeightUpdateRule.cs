@@ -1,4 +1,5 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Utility;
 using System;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -8,7 +9,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private readonly double _momentum;
         private double _learningRate;
 
-        private DefaultWeightUpdateRule(double learningRate, double momentum)
+        public DefaultWeightUpdateRule(double learningRate, double momentum)
         {
             _learningRate = ArgAssert.AssertBetweenZeroAndOneUpperInclusive(learningRate, nameof(learningRate));
             _momentum = ArgAssert.AssertBetweenZeroAndOneUpperInclusive(momentum, nameof(momentum));
@@ -39,7 +40,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public string Export()
         {
-            return $"{nameof(DefaultWeightUpdateRule)}({_learningRate},{_momentum})";
+            return new FunctionFormatter().Format(this, _learningRate, _momentum);
         }
 
         public override string ToString()

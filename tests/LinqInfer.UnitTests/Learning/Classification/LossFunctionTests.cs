@@ -20,7 +20,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var e = ce.Calculate(actual, target, x => 1);
 
             Assert.That(e.Loss, Is.GreaterThan(0));
-            Assert.That(e.DerivativeError.Sum, Is.LessThan(0));
+            Assert.That(e.DerivativeError.Sum, Is.AtMost(0.0001));
+            Assert.That(e.DerivativeError.Sum, Is.AtLeast(-0.0001));
         }
 
         [Test]
@@ -36,7 +37,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var e = ce.Calculate(actual, target, x => 1);
 
             Assert.That(e.Loss, Is.GreaterThan(0));
-            Assert.That(e.DerivativeError.Sum, Is.LessThan(0));
+            Assert.That(e.DerivativeError.Sum, Is.AtMost(0.0001));
+            Assert.That(e.DerivativeError.Sum, Is.AtLeast(-0.0001));
         }
     }
 }

@@ -10,13 +10,15 @@ namespace LinqInfer.Data.Serialisation
     internal sealed class FunctionFormatter
     {
         public IFactory<TResult, string> CreateFactory<TResult>()
+            where TResult : class
         {
-            return new Factory<TResult>(this);
+            return new Factory<TResult, TResult>(this);
         }
 
-        public TInstance BindToStaticFactoryMethod<TInstance>(string formattedFunction) where TInstance : class
+        public IFactory<TResult, string> CreateFactory<TResult, TProvider>()
+            where TProvider : class, TResult
         {
-            return Bind<TInstance, TInstance>(formattedFunction, null, GetMethodSelector(BindingFlags.Public | BindingFlags.Static));
+            return new Factory<TResult, TProvider>(this);
         }
 
         public TOutput BindToStaticMethod<TInstance, TOutput>(string formattedFunction) where TInstance : class
@@ -45,20 +47,32 @@ namespace LinqInfer.Data.Serialisation
             return (TOutput)method.Invoke(instance, parameters);
         }
 
-        public T Create<T>(string formattedFunction)
+        public T Create<T>(string formattedFunction) where T : class
         {
+            var type = typeof(T);
+            
             var paramInfo = Parse(formattedFunction);
 
-            MethodBase ctr = typeof(T)
+            if (!string.Equals(type.Name, paramInfo.Name))
+            {
+                return BindToStaticFactoryMethod<T>(formattedFunction);
+            }
+
+            ConstructorInfo ctr = type
                 .GetTypeInfo()
                 .GetConstructors()
                 .FirstOrDefault(c => c.GetParameters().Length == paramInfo.Parameters.Count);
 
             if (ctr == null) throw new ArgumentException("No matching constructor found");
-            
+
             var parameters = Bind(paramInfo.Parameters, ctr.GetParameters());
 
-            return (T)ctr.Invoke(null, parameters);
+            return (T)ctr.Invoke(parameters);
+        }
+
+        public string Format<T>(T instance, params object[] parameters)
+        {
+            return Format(instance, x => parameters);
         }
 
         public string Format<T>(T instance, Func<T, IEnumerable<object>> parameterSelector, string name = null)
@@ -70,7 +84,7 @@ namespace LinqInfer.Data.Serialisation
             sb.Append("(");
 
 
-            foreach(var p in parameterSelector(instance))
+            foreach (var p in parameterSelector(instance))
             {
                 if (!first)
                 {
@@ -87,6 +101,11 @@ namespace LinqInfer.Data.Serialisation
             sb.Append(")");
 
             return sb.ToString();
+        }
+
+        internal TInstance BindToStaticFactoryMethod<TInstance>(string formattedFunction) where TInstance : class
+        {
+            return Bind<TInstance, TInstance>(formattedFunction, null, GetMethodSelector(BindingFlags.Public | BindingFlags.Static));
         }
 
         private Func<Type, string, MethodInfo> GetMethodSelector(BindingFlags bindingFlags)
@@ -150,7 +169,9 @@ namespace LinqInfer.Data.Serialisation
             public string Name { get; set; }
         }
 
-        private class Factory<TResult> : IFactory<TResult, string>
+        private class Factory<TResult, TProvider> 
+            : IFactory<TResult, string> 
+            where TProvider : class, TResult
         {
             private readonly FunctionFormatter _formatter;
 
@@ -161,7 +182,7 @@ namespace LinqInfer.Data.Serialisation
 
             public TResult Create(string parameters)
             {
-                return _formatter.Create<TResult>(parameters);
+                return _formatter.Create<TProvider>(parameters);
             }
         }
     }
