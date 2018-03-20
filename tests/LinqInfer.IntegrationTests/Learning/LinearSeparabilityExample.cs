@@ -66,6 +66,14 @@ namespace LinqInfer.IntegrationTests.Learning
                 .AddHiddenLayer(new LayerSpecification(4, Activators.None(), LossFunctions.Square))
                 .AddSoftmaxOutput();
             });
+
+            await trainingSet.RunAsync(CancellationToken.None);
+
+            var score = classifier.ClassificationAccuracyPercentage(ctest0);
+
+            Console.WriteLine(score);
+
+            Assert.That(score, Is.GreaterThan(0));
         }
 
         [Test]

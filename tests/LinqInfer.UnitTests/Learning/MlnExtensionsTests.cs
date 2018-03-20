@@ -61,5 +61,27 @@ namespace LinqInfer.Tests.Learning
 
             Assert.That(results.Count(), Is.GreaterThan(0));
         }
+
+        [Test]
+        public void ToMultilayerNetworkClassifier_UsingParametersSimpleSample_ClassifiesAsExpected()
+        {
+            var classifier = TestData
+                .CreatePirates()
+                .AsQueryable()
+                .CreatePipeline()
+                .AsTrainingSet(p => p.Age > 25 ? "old" : "young")
+                .ToMultilayerNetworkClassifier(8)
+                .Execute();
+
+            var results = classifier.Classify(new TestData.Pirate()
+            {
+                Gold = 120,
+                Age = 5,
+                IsCaptain = false,
+                Ships = 1
+            });
+
+            Assert.That(results.Count(), Is.GreaterThan(0));
+        }
     }
 }

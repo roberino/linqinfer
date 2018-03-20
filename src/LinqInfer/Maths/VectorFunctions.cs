@@ -22,12 +22,12 @@ namespace LinqInfer.Maths
             var mean = minMaxAndMean.Mean.ToColumnVector();
             var adjustedMin = minMaxAndMean.Min.ToColumnVector() - mean;
             var adjustedMax = minMaxAndMean.Max.ToColumnVector() - mean - adjustedMin;
-            var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
-            var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
+            var scaleValue = adjustedMax / range.Value.Size;
+            var targetMin = Vector.UniformVector(adjustedMax.Size, -range.Value.Min);
 
             var centre = new VectorOperation(VectorOperationType.Subtract, mean + adjustedMin);
             var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
-            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
+            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, targetMin);
 
             var transform = new SerialisableVectorTransformation(centre, scale, rangeTranspose);
 
