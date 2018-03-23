@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification
     {
         internal const double DefaultLearningRate = 0.1f;
 
-        private Func<int, double, bool> _haltingFunction;
+        private Func<LearningParameters, int, double, bool> _haltingFunction;
 
         public LearningParameters()
         {
@@ -35,7 +35,7 @@ namespace LinqInfer.Learning.Classification
         /// </summary>
         public int? MaxIterations { get; set; }
 
-        public Func<int, double, bool> HaltingFunction
+        public Func<LearningParameters, int, double, bool> HaltingFunction
         {
             get { return _haltingFunction; }
             set
@@ -70,7 +70,7 @@ namespace LinqInfer.Learning.Classification
 
         public bool EvaluateHaltingFunction(int iteration, double currentError)
         {
-            return _haltingFunction(iteration, currentError);
+            return _haltingFunction(this, iteration, currentError);
         }
 
         internal virtual void Validate()
@@ -82,7 +82,7 @@ namespace LinqInfer.Learning.Classification
 
         private void SetDefaultHaltingFunction()
         {
-            _haltingFunction = (n, e) => (MaxIterations.HasValue && n >= MaxIterations.Value) || e <= MinimumError;
+            _haltingFunction = (p, n, e) => (p.MaxIterations.HasValue && n >= p.MaxIterations.Value) || e <= p.MinimumError;
         }
     }
 }

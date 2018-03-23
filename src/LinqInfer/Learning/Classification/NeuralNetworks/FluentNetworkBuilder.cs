@@ -138,7 +138,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var spec = new NetworkSpecification(_learningParams,
                 _inputVectorSize, _layers.Concat(new[] { _output }).ToArray());
-
+            
             int id = 1;
 
             return new MlnCtx(() => Interlocked.Increment(ref id), spec);

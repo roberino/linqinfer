@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -53,6 +54,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var errors = CalculateError(output, targetOutput);
 
             Adjust(errors.Item1);
+
+            DebugOutput.LogVerbose("Error = {0}", errors.Item2);
+            // DebugOutput.LogVerbose("Target = {0} Actual={1}", targetOutput, output);
 
             return errors.Item2;
         }
@@ -123,7 +127,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                             PreviousLayerOutput = prevOutput
                         };
 
-                        return layer.WeightUpdateRule.Execute(wp);
+                        var wu = layer.WeightUpdateRule.Execute(wp);
+
+                        // DebugOutput.Log($"w = {wu} => error = {wp.Error} previous output = {wp.PreviousLayerOutput}, w = {wp.CurrentWeightValue}");
+
+                        return wu;
                     });
 
                     return 0;

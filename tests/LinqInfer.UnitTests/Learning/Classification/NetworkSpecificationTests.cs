@@ -21,6 +21,24 @@ namespace LinqInfer.UnitTests.Learning.Classification
         }
 
         [Test]
+        public void HaltingFunction_WhenGivenSpec_ThenValidDocReturned()
+        {
+            var spec = CreateSut();
+
+            spec.LearningParameters.MinimumError = 0.1;
+
+            var halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.09);
+
+            Assert.True(halt);
+
+            spec.LearningParameters.MinimumError = 0.5;
+
+            halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.4);
+
+            Assert.True(halt);
+        }
+
+        [Test]
         public void ToVectorDocument_WhenGivenSingleLayerSpec_ThenCorrectInputVectorSizeReturnedWhenImported()
         {
             var spec = new NetworkSpecification(new LearningParameters(),

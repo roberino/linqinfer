@@ -21,8 +21,11 @@ namespace LinqInfer.IntegrationTests.Learning
             var dataX1 = Functions.NormalRandomDataset(0.6, 78);
             var dataY0 = Functions.NormalRandomDataset(2, 98);
             var dataY1 = Functions.NormalRandomDataset(7, 12);
+
             var testX0 = Functions.NormalRandomDataset(3, 10);
             var testY0 = Functions.NormalRandomDataset(2, 98);
+            var testX1 = Functions.NormalRandomDataset(0.6, 78);
+            var testY1 = Functions.NormalRandomDataset(7, 12);
 
             var c0 = dataX0.Zip(dataY0, (x, y) => new
             {
@@ -31,12 +34,23 @@ namespace LinqInfer.IntegrationTests.Learning
                 cls = "C0"
             });
 
-            var ctest0 = testX0.Zip(testY0, (x, y) => new
+            var testSet = testX0.Zip(testY0, (x, y) => new
             {
                 x = x,
                 y = y,
                 cls = "C0"
-            }).AsQueryable().CreatePipeline().AsTrainingSet(x => x.cls);
+            }).Concat(testX1.Zip(testY1, (x, y) => new
+            {
+                x = x,
+                y = y,
+                cls = "C1"
+            }))
+            .RandomOrder()
+            .AsQueryable()
+            .CreatePipeline()
+            .CentreFeatures()
+            .ScaleFeatures(new Range(1, -1))
+            .AsTrainingSet(x => x.cls);
 
             var c1 = dataX1.Zip(dataY1, (x, y) => new
             {
@@ -46,6 +60,7 @@ namespace LinqInfer.IntegrationTests.Learning
             });
 
             var pipeline = await c0.Concat(c1)
+                .RandomOrder()
                 .AsQueryable()
                 .AsAsyncEnumerator()
                 .BuildPipelineAsync(CancellationToken.None);
@@ -55,13 +70,15 @@ namespace LinqInfer.IntegrationTests.Learning
             var trainingSet = pipeline
                 .AsTrainingSet(c => c.cls, "C0", "C1");
 
-            var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
+            var classifier = trainingSet
+                .AttachMultilayerNetworkClassifier(b =>
             {
                 b.ParallelProcess()
                 .ConfigureLearningParameters(p =>
                 {
-                    p.LearningRate = 0.2;
+                    p.LearningRate = 0.005;
                     p.Momentum = 0.1;
+                    p.MinimumError = 0.01;
                 })
                 .AddHiddenLayer(new LayerSpecification(4, Activators.None(), LossFunctions.Square))
                 .AddSoftmaxOutput();
@@ -69,58 +86,7 @@ namespace LinqInfer.IntegrationTests.Learning
 
             await trainingSet.RunAsync(CancellationToken.None);
 
-            var score = classifier.ClassificationAccuracyPercentage(ctest0);
-
-            Console.WriteLine(score);
-
-            Assert.That(score, Is.GreaterThan(0));
-        }
-
-        [Test]
-        public void Normal_LinearSeparableTwoClass_ExampleDataSet_ToMulti()
-        {
-            var dataX0 = Functions.NormalRandomDataset(3, 10);
-            var dataX1 = Functions.NormalRandomDataset(0.6, 78);
-            var dataY0 = Functions.NormalRandomDataset(2, 98);
-            var dataY1 = Functions.NormalRandomDataset(7, 12);
-            var testX0 = Functions.NormalRandomDataset(3, 10);
-            var testY0 = Functions.NormalRandomDataset(2, 98);
-
-            var c0 = dataX0.Zip(dataY0, (x, y) => new
-            {
-                x = x,
-                y = y,
-                cls = "C0"
-            });
-
-            var ctest0 = testX0.Zip(testY0, (x, y) => new
-            {
-                x = x,
-                y = y,
-                cls = "C0"
-            }).AsQueryable().CreatePipeline().AsTrainingSet(x => x.cls);
-
-            var c1 = dataX1.Zip(dataY1, (x, y) => new
-            {
-                x = x,
-                y = y,
-                cls = "C1"
-            });
-
-            var pipeline = c0.Concat(c1)
-                .AsQueryable()
-                .CreatePipeline(v => new[] { v.x, v.y }, 2)
-                .CentreFeatures()
-                .ScaleFeatures();
-            
-            var classifier = pipeline
-                .AsTrainingSet(c => c.cls)
-                .ToMultilayerNetworkClassifier()
-                .Execute();
-
-            Console.Write("Classifier created");
-           
-            var score = classifier.ClassificationAccuracyPercentage(ctest0);
+            var score = classifier.ClassificationAccuracyPercentage(testSet);
 
             Console.WriteLine(score);
 
