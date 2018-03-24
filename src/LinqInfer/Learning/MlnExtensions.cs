@@ -16,7 +16,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The classification type</typeparam>
         /// <param name="trainingSet">A asyncronous training set</param>
         /// <param name="networkBuilder">A delegate which builds the network specification</param>
-        public static IDynamicClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
+        public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
             Action<FluentNetworkBuilder> networkBuilder) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -46,7 +46,7 @@ namespace LinqInfer.Learning
         /// - the function takes the current fittest network, an interation index, and the elapsed time as parameters and
         /// return a true to indicate the training should stop</param>
         /// <returns></returns>
-        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+        public static ExecutionPipline<INetworkClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this ITrainingSet<TInput, TClass> trainingSet,
             float errorTolerance = 0.1f,
             Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<NetworkParameters>, double> fitnessFunction = null,
@@ -65,7 +65,7 @@ namespace LinqInfer.Learning
         /// <param name="trainingSet">A training set</param>
         /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
         /// <returns>An executable object which produces a classifier</returns>
-        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+        public static ExecutionPipline<INetworkClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this ITrainingSet<TInput, TClass> trainingSet,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -81,7 +81,7 @@ namespace LinqInfer.Learning
         /// <param name="learningRate">The learning rate (rate of neuron weight adjustment when training)</param>
         /// <param name="hiddenLayers">The number of neurons in each respective hidden layer</param>
         /// <returns>An executable object which produces a classifier</returns>
-        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+        public static ExecutionPipline<INetworkClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this ITrainingSet<TInput, TClass> trainingSet,
             double learningRate = 0.1d,
             params int[] hiddenLayers) where TInput : class where TClass : IEquatable<TClass>
@@ -115,7 +115,7 @@ namespace LinqInfer.Learning
         /// <param name="trainingSet">A set of training data</param>
         /// <param name="trainingStrategy">A implementation of a multilayer network training strategy</param>
         /// <returns></returns>
-        public static ExecutionPipline<IDynamicClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
+        public static ExecutionPipline<INetworkClassifier<TClass, TInput>> ToMultilayerNetworkClassifier<TInput, TClass>(
             this ITrainingSet<TInput, TClass> trainingSet,
             IAsyncMultilayerNetworkTrainingStrategy<TClass, TInput> trainingStrategy) where TInput : class where TClass : IEquatable<TClass>
         {
@@ -135,7 +135,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
         /// <param name="featureExtractor">An optional feature extractor</param>
-        public static IDynamicClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+        public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(featureExtractor);

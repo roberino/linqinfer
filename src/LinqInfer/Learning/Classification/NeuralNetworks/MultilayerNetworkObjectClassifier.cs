@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -37,6 +38,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public ClassifierStats Statistics { get; private set; }
+
+        public ISerialisableVectorTransformation VectorTransformation => _network;
 
         public void Load(Stream input)
         {

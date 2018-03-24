@@ -1,13 +1,10 @@
 ﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +15,7 @@ namespace LinqInfer.IntegrationTests.Text
     public class VectorExtractionTests
     {
         private IAsyncTrainingSet<BiGram, string> _trainingSet;
-        private IDynamicClassifier<string, BiGram> _classifier;
+        private INetworkClassifier<string, BiGram> _classifier;
 
         [Test]
         public async Task WhenGivenCbow_ThenClassifierCanBeConstructed()
@@ -35,16 +32,7 @@ namespace LinqInfer.IntegrationTests.Text
         private void ThenClassifierCanClassifyWords(string word)
         {
             var doc = _classifier.ToVectorDocument();
-
-            using (var fs = File.OpenWrite(@"c:\dev\nn.xml"))
-            {
-                doc.ExportAsXml().Save(fs);
-            }
-            using (var fs = File.OpenWrite(@"c:\dev\nn.dat"))
-            {
-                doc.Save(fs);
-            }
-
+                                    
             var result = _classifier.Classify(new BiGram(word));
 
             Assert.That(result.Any());
@@ -95,7 +83,7 @@ namespace LinqInfer.IntegrationTests.Text
             var keyTerms = await corpus.ExtractKeyTermsAsync(CancellationToken.None);
             
             var cbow = corpus.CreateAsyncContinuousBagOfWords(keyTerms);
-
+            
             _trainingSet = cbow.AsBiGramAsyncTrainingSet();
 
             return _trainingSet;
