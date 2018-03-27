@@ -50,19 +50,21 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Retrieves a double value by index
         /// </summary>
-        public double this[int index]
-        {
-            get
-            {
-                var mask = (byte)(1 << (index % 8));
-                return (_data[index / 8] & mask) == 0 ? 0 : 1;
-            }
-        }
+        public double this[int index] => ByteAt(index);
 
         /// <summary>
         /// Retrieves a value by index
         /// </summary>
         public bool ValueAt(int index) => this[index] != 0;
+
+        /// <summary>
+        /// Retrieves a value as a byte by index
+        /// </summary>
+        public byte ByteAt(int index)
+        {
+            var mask = (byte)(1 << (index % 8));
+            return (_data[index / 8] & mask) == 0 ? (byte)0 : (byte)1;
+        }
 
         public IEnumerator<bool> GetEnumerator()
         {
@@ -183,6 +185,18 @@ namespace LinqInfer.Maths
             Array.Copy(_data, 0, arr, len.Length, _data.Length);
 
             return arr;
+        }
+
+        public uint[] ToUnsignedIntegerArray()
+        {
+            var result = new uint[Size];
+
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = ByteAt(i);
+            }
+
+            return result;
         }
 
         public static BitVector FromByteArray(byte[] data)

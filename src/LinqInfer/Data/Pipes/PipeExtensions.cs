@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Data.Pipes
@@ -8,6 +9,13 @@ namespace LinqInfer.Data.Pipes
         public static IAsyncPipe<T> CreatePipe<T>(this IAsyncEnumerator<T> asyncEnumerator)
         {
             return new AsyncPipe<T>(asyncEnumerator);
+        }
+
+        public static PipeOutput<TInput, IDictionary<TAggregationKey, TAggregation>> AttachAggregator<TInput, TAggregationKey, TAggregation>(this IAsyncPipe<TInput> pipe, Func<TInput, KeyValuePair<TAggregationKey, TAggregation>> keySelector, Func<TAggregation, TAggregation, TAggregation> aggregator)
+        {
+            var asyncAgg = new AsyncAggregator<TInput, TAggregationKey, TAggregation>(keySelector, aggregator);
+
+            return pipe.Attach(asyncAgg);
         }
 
         public static PipeOutput<T, O> Attach<T, O> (this IAsyncPipe<T> pipe, IBuilderSink<T, O> builder)

@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
@@ -15,6 +17,11 @@ namespace LinqInfer.Data.Pipes
             await asyncPipe.RunAsync(cancellationToken);
 
             return sink;
+        }
+
+        internal static IBatch<T> ToBatch<T>(this IEnumerable<T> items)
+        {
+            return new AsyncBatch<T>(Task.FromResult<IList<T>>(items.ToList()), true, 0);
         }
     }
 }
