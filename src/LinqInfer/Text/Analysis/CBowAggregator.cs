@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
@@ -33,46 +34,105 @@ namespace LinqInfer.Text.Analysis
 
         public IAsyncEnumerator<SyntacticContext> Cbow { get; }
 
-        public async Task<IAsyncTrainingSet<WordVector, string>> GetTrainingSetAync(CancellationToken cancellationToken)
+        public async Task<IDictionary<string, WordVector>> AggregateVectorsAync(CancellationToken cancellationToken)
         {
             var aggregation = Cbow
                 .CreatePipe()
-                .AttachAggregator(c => new KeyValuePair<string, uint[]>(c.TargetWord.Text.ToLowerInvariant(), Extract(c)), Aggregate);
+                .AttachAggregator(c => new KeyValuePair<string, WordVectAggregation>(c.TargetWord.Text.ToLowerInvariant(), Extract(c)), Aggregate);
 
             await aggregation.Pipe.RunAsync(cancellationToken);
 
-            var data = From.Enumerable(aggregation.Output).TransformEachItem(kv => new WordVector(kv.Key, CreateVector(kv.Value)));
+            var results = aggregation.Output.Select(kv => new WordVector(kv.Key, kv.Value.Count, CreateVector(kv.Value))).ToDictionary(v => v.Word);
 
-            return data.CreatePipeline(w => w.Vector, _encoding.VectorSize)
-                 .AsTrainingSet(w => w.Word, aggregation.Output.Keys.ToArray());
+            return results;
         }
 
-        private IVector CreateVector(uint[] values)
+        public async Task<IAsyncTrainingSet<WordVector, string>> GetTrainingSetAync(CancellationToken cancellationToken)
         {
-            var dvalues = new double[values.Length];
+            var aggregation = await AggregateVectorsAync(cancellationToken);
 
-            Array.Copy(values, dvalues, values.Length);
+            var data = From.Enumerable(aggregation.Values);
 
-            return new Vector(dvalues);
+            var pipeline = data.CreatePipeline(w =>
+                  w.Vector.Size == 0 ? _encoding.Encode(w.Word) : w.Vector,
+                _encoding.VectorSize);
+
+            pipeline = await pipeline.CentreAndScaleAsync(new Range(1, -1));
+
+            return pipeline
+                 .AsTrainingSet(w => w.Word, aggregation.Keys.ToArray());
         }
 
-        private uint[] Extract(SyntacticContext context)
+        public async Task<IDictionary<string, IVector>> ExtractVectorsAsync(CancellationToken cancellationToken, int vectorSize)
+        {
+            var trainingSet = await GetTrainingSetAync(cancellationToken);
+
+            void NetworkBuilder(FluentNetworkBuilder b)
+            {
+                b
+               .ParallelProcess()
+               .ConfigureLearningParameters(p =>
+               {
+                   p.LearningRate = 0.2;
+                   p.Momentum = 0.1;
+               })
+               .AddHiddenLayer(new LayerSpecification(vectorSize, Activators.None(), LossFunctions.Square))
+               .AddSoftmaxOutput();
+            };
+
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(NetworkBuilder);
+
+            await trainingSet.RunAsync(cancellationToken);
+
+            var doc = classifier.ToVectorDocument();
+
+            var mln = doc.GetChildDoc<MultilayerNetwork>();
+
+            return trainingSet
+                  .OutputMapper
+                  .FeatureMetadata
+                  .Zip(mln.Children.Last().Vectors, (f, v) => new { f, v })
+                  .ToDictionary(x => x.f.Label, v => v.v);
+        }
+
+        private IVector CreateVector(WordVectAggregation aggregate)
+        {
+            var dvalues = new double[aggregate.Vector.Length];
+
+            Array.Copy(aggregate.Vector, dvalues, aggregate.Vector.Length);
+
+            var v = new Vector(dvalues);
+
+            //v.Apply(x => x / aggregate.Count);
+
+            return v;
+        }
+
+        private WordVectAggregation Extract(SyntacticContext context)
         {
             var total = new uint[_encoding.VectorSize];
 
             var vector = _encoding.Encode(context.ContextualWords.Select(x => x.Text.ToLowerInvariant()));
 
-            return vector.ToUnsignedIntegerArray();
+            return new WordVectAggregation() { Vector = vector.ToUnsignedIntegerArray(), Count = 1 };
         }
 
-        private uint[] Aggregate(uint[] v1, uint[] v2)
+        private WordVectAggregation Aggregate(WordVectAggregation v1, WordVectAggregation v2)
         {
-            for (var i = 0; i < v1.Length; i++)
+            for (var i = 0; i < v1.Vector.Length; i++)
             {
-                v1[i] += v2[i];
+                v1.Vector[i] += v2.Vector[i];
             }
 
+            v1.Count += v2.Count;
+
             return v1;
+        }
+
+        private class WordVectAggregation
+        {
+            public uint[] Vector { get; set; }
+            public long Count { get; set; }
         }
     }
 }

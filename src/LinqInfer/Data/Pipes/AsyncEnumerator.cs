@@ -34,6 +34,8 @@ namespace LinqInfer.Data.Pipes
 
         public IEnumerable<Task<IList<T>>> Items => _batchLoader;
 
+        public bool SkipEmptyBatches { get; set; }
+
         public IAsyncEnumerator<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
         {
             var tx = _batchLoader.Select(t =>
@@ -124,9 +126,11 @@ namespace LinqInfer.Data.Pipes
 
             Batch<T> next = null;
 
+            var skipOn = SkipEmptyBatches;
+
             foreach (var batchTask in _batchLoader)
             {
-                if (next != null)
+                if (next != null && (!skipOn || next.Items.Count > 0))
                 {
                     if(!(await processor(next))) return false;
                 }

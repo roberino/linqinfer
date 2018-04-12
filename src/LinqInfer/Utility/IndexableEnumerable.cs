@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LinqInfer.Utility
 {
-    internal sealed class IndexableEnumerable<T> : IIndexableEnumerable<T>
+    internal sealed class IndexableEnumerable<T> : IIndexedEnumerable<T>
     {
         private readonly IEnumerable<T> _values;
         private readonly Func<int, T> _indexFunction;

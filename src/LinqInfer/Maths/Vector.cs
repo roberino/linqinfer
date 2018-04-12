@@ -29,7 +29,7 @@ namespace LinqInfer.Maths
             Refresh();
         }
 
-        public Vector(double[] values)
+        public Vector(params double[] values)
         {
             ArgAssert.AssertNonNull(values, nameof(values));
 

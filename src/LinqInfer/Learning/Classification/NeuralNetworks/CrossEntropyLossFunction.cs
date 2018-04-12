@@ -7,26 +7,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         protected override ErrorAndLossVectors CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative)
         {
-            //var result = ao.CrossCalculate(targetOutput, (y, t) =>
-            //{
-            //    var e = t - y;
-
-            //    return new[]
-            //    {
-            //        -(t * Math.Log(y)),
-            //        e * derivative(y)
-            //    };
-            //}, 2);
-
-            //return new ErrorAndLossVectors()
-            //{
-            //    Loss = result[0],
-            //    DerivativeError = result[1]
-            //};
-
             var loss = targetOutput.MultiplyBy(actualOutput.ToColumnVector().Log());
             var error = targetOutput.ToColumnVector() - actualOutput.ToColumnVector();
-            var dw = error.Calculate(actualOutput, (e, o) => e * derivative(o));
+            var dw = error.Calculate(actualOutput, (e, o) => -e * derivative(o));
 
             return new ErrorAndLossVectors()
             {

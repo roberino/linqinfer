@@ -31,9 +31,17 @@ namespace LinqInfer.Learning.Classification
         public double Momentum { get; set; } = 0.05;
 
         /// <summary>
-        /// Gets or sets the maximum iterations
+        /// Gets or sets the maximum iterations (used by the standard halting function)
         /// </summary>
         public int? MaxIterations { get; set; }
+
+        /// <summary>
+        /// Prevents the process from halting
+        /// </summary>
+        public void NeverHalt()
+        {
+            HaltingFunction = (x, n, e) => false;
+        }
 
         public Func<LearningParameters, int, double, bool> HaltingFunction
         {

@@ -11,7 +11,7 @@ namespace LinqInfer.Text.Http
         public int BatchSize { get; set; } = 10;
         public Func<Uri, bool> LinkFilter { get; set; } = _ => true;
         public Func<HttpDocument, bool> DocumentFilter { get; set; } = _ => true;
-        public int MaxNumberOfDocuments { get; set; } = 50;
+        public int MaxNumberOfDocuments { get; set; } = 150;
         public Func<XElement, XElement> TargetElement { get; set; } = x => x;
 
         internal HttpDocumentCrawlerOptions CreateValid()

@@ -9,6 +9,38 @@ namespace LinqInfer.Tests.Probability
     public class ColumnVector1DTests
     {
         [Test]
+        public void CosineDistance_WhenGivenSameVector_ThenReturnsZero()
+        {
+            var vect1 = new ColumnVector1D(5, 2, 7);
+
+            var dist = vect1.CosineDistance(vect1);
+
+            Assert.That(dist, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CosineDistance_WhenGivenSameValues_ThenReturnsZero()
+        {
+            var vect1 = new ColumnVector1D(5, 2, 7);
+            var vect2 = new ColumnVector1D(5, 2, 7);
+
+            var dist = vect1.CosineDistance(vect2);
+
+            Assert.That(dist, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CosineDistance_WhenGivenTwoVectors_ThenReturnsCorrectValue()
+        {
+            var vect1 = new ColumnVector1D(-4, 2, 7);
+            var vect2 = new ColumnVector1D(-8, 12, 4);
+
+            var dist = vect1.CosineDistance(vect2);
+
+            Assert.That(dist, Is.EqualTo(0.32433607530782382));
+        }
+
+        [Test]
         public void HorizontalMultiply_WhenGivenMultiColMatrix_ThenExpectedVectorReturned()
         {
             var v1 = new ColumnVector1D(3d, 4.1d, 8d);

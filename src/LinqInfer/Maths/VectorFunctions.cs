@@ -8,6 +8,15 @@ namespace LinqInfer.Maths
     public static class VectorFunctions
     {
         /// <summary>
+        /// Creates a labelled matrix from a dictionary of string / vector pairs
+        /// </summary>
+        public static LabelledMatrix<string> ToMatrix(this IDictionary<string, IVector> vectorDictionary)
+        {
+            int i = 0;
+            return new LabelledMatrix<string>(new Matrix(vectorDictionary.Values.Select(v => v.ToColumnVector())), vectorDictionary.Keys.ToDictionary(k => k, v => i++));
+        }
+
+        /// <summary>
         /// Creates a transformation to centre and scale a vector
         /// so that values are centred around a mean and scaled between a
         /// min and a max

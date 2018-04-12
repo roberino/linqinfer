@@ -161,6 +161,29 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
+        public void CosineSimularityMatrix_WhenGivenMatrix_ThenReturnsSquareMatrixOfSameWidth()
+        {
+            var m1 = Matrix.RandomMatrix(10, 25, new Range(10, -10));
+
+            var dm = m1.CosineSimularityMatrix;
+
+            Assert.That(dm.Width, Is.EqualTo(10));
+            Assert.That(dm.Height, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void CosineSimularityMatrix_WhenGivenMatrix_ThenReturnsExpectedValues()
+        {
+            var m1 = Matrix.RandomMatrix(2, 3, new Range(10, -10));
+
+            var dm = m1.CosineSimularityMatrix;
+
+            var r01 = m1.Rows[0].ToColumnVector().CosineDistance(m1.Rows[1].ToColumnVector());
+            
+            Assert.That(dm[0, 1], Is.EqualTo(r01));
+        }
+
+        [Test]
         public void MultiplicationOperator_OfRowMatrixAndColumnMatrix()
         {
             var m1 = new Matrix(new[]
@@ -177,12 +200,9 @@ namespace LinqInfer.Tests.Maths
             });
 
             var mm = m2 * m1;
-            //var mm1 = Matrix.Multiply(m1, m2);
-            //var mm2 = Matrix.Multiply(m2, m1);
 
             Assert.That(mm, Is.Not.Null);
         }
-
 
         [Test]
         public void MultiplicationOperator_OfColumnMatrixAndRowMatrix()

@@ -1,6 +1,8 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using LinqInfer.Text.VectorExtraction;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +34,16 @@ namespace LinqInfer.Text.Analysis
             var trainingSet = await aggreg.GetTrainingSetAync(cancellationToken);
 
             return trainingSet;
+        }
+
+        public static async Task<IDictionary<string, IVector>> ExtractVectorsAsync(this IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        {
+            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
+        }
+
+        public static async Task<IDictionary<string, IVector>> ExtractVectorsAsync(this IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        {
+            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }
 
         public static ITrainingSet<SyntacticContext, string> AsNGramTrainingSet(this ContinuousBagOfWords cbow, int contextPadding = 2)

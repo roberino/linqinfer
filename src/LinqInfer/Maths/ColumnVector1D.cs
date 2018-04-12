@@ -11,7 +11,7 @@ namespace LinqInfer.Maths
     /// <summary>
     /// Represents a 1 dimensional column vector
     /// </summary>
-    public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>
+    public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>, IDisposable
     {
         private Lazy<double> _euclideanLength;
 
@@ -26,6 +26,8 @@ namespace LinqInfer.Maths
         public ColumnVector1D(float[] values) : this(values.Select(x => (double)x).ToArray())
         {
         }
+
+        internal event EventHandler Disposing;
 
         /// <summary>
         /// Returns true if all values are zero
@@ -179,13 +181,22 @@ namespace LinqInfer.Maths
         /// </summary>
         public double CosineDistance(ColumnVector1D other)
         {
+            if (ReferenceEquals(this, other)) return 0;
+
             var dotp = DotProduct(other);
 
             var denom = EuclideanLength * other.EuclideanLength;
 
             if (denom == 0) return 1;
 
-            return 1 - (dotp / denom);
+            var d = 1 - (dotp / denom);
+
+            if(d < 0.0000001)
+            {
+                if (other.Equals(this)) return 0;
+            }
+
+            return d;
         }
 
         /// <summary>
@@ -373,6 +384,11 @@ namespace LinqInfer.Maths
         protected override void Refresh()
         {
             _euclideanLength = new Lazy<double>(() => Math.Sqrt(_values.Select(x => x * x).Sum()));
+        }
+
+        public void Dispose()
+        {
+            Disposing?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -11,8 +11,6 @@ namespace LinqInfer.Learning.Features
     {
         private readonly Func<T, IVector> _vectorFunc;
 
-        private readonly int _vectorSize;
-
         public DelegatingFloatingPointFeatureExtractor(Func<T, double[]> vectorFunc, int vectorSize, string[] featureLabels)
             : this(vectorFunc, vectorSize, featureLabels == null ? null : Feature.CreateDefaults(featureLabels))
         {
@@ -26,22 +24,16 @@ namespace LinqInfer.Learning.Features
         public DelegatingFloatingPointFeatureExtractor(Func<T, IVector> vectorFunc, int vectorSize, IFeature[] metadata = null)
         {
             _vectorFunc = vectorFunc;
-            _vectorSize = vectorSize;
+            VectorSize = vectorSize;
 
-            FeatureMetadata = metadata ?? Feature.CreateDefaults(_vectorSize);
+            FeatureMetadata = metadata ?? Feature.CreateDefaults(VectorSize);
 
             IndexLookup = FeatureMetadata.ToDictionary(k => k.Label, v => v.Index);
 
-            if (IndexLookup.Count != _vectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
+            if (IndexLookup.Count != VectorSize) throw new ArgumentException("Mismatch between labels count and vector size");
         }
 
-        public int VectorSize
-        {
-            get
-            {
-                return _vectorSize;
-            }
-        }
+        public int VectorSize { get; }
 
         public IDictionary<string, int> IndexLookup { get; private set; }
 
@@ -80,7 +72,7 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new BinaryVectorDocument();
 
-            doc.Properties["VectorSize"] = _vectorSize.ToString();
+            doc.Properties[nameof(VectorSize)] = VectorSize.ToString();
 
             return doc;
         }
@@ -91,7 +83,7 @@ namespace LinqInfer.Learning.Features
             {
                 var nv = doc.Vectors.First();
 
-                if (nv.Size != _vectorSize)
+                if (nv.Size != VectorSize)
                 {
                     throw new ArgumentException("Invalid vector size");
                 }

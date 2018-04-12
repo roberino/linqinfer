@@ -6,6 +6,7 @@ namespace LinqInfer.Data.Pipes
 {
     public interface IAsyncEnumerator<T> : IAsyncSource<T>
     {
+        bool SkipEmptyBatches { get; set; }
         IEnumerable<Task<IList<T>>> Items { get; }
         Task<bool> ProcessUsing(Func<IBatch<T>, bool> processor);
         IAsyncEnumerator<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer);
