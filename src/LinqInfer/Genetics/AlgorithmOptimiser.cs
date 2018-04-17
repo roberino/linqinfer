@@ -14,11 +14,9 @@ namespace LinqInfer.Genetics
     /// </summary>
     public sealed class AlgorithmOptimiser
     {
-        private readonly AlgorithmParameterSet _parameters;
-
         public AlgorithmOptimiser()
         {
-            _parameters = new AlgorithmParameterSet();
+            Parameters = new AlgorithmParameterSet();
         }
 
         /// <summary>
@@ -26,13 +24,13 @@ namespace LinqInfer.Genetics
         /// </summary>
         public void Reset()
         {
-            _parameters.Reset();
+            Parameters.Reset();
         }
 
         /// <summary>
         /// Returns parameters which have been defined for the algorithm
         /// </summary>
-        public AlgorithmParameterSet Parameters { get { return _parameters; } }
+        public AlgorithmParameterSet Parameters { get; }
 
         /// <summary>
         /// Invokes a function over a number of iterations seeking optimal parameters
@@ -44,9 +42,9 @@ namespace LinqInfer.Genetics
         {
             foreach (var n in Enumerable.Range(1, iterations))
             {
-                var score = algorithm(_parameters);
+                var score = algorithm(Parameters);
 
-                if (!_parameters.SetOutcome(score, n))
+                if (!Parameters.SetOutcome(score, n))
                 {
                     break;
                 }
@@ -54,7 +52,7 @@ namespace LinqInfer.Genetics
                 // if (iterations == n) DebugOutput.Log(score);
             }
 
-            return _parameters.OptimalParameters;
+            return Parameters.OptimalParameters;
         }
 
         public sealed class AlgorithmParameterSet

@@ -71,7 +71,7 @@ namespace LinqInfer.Text.Http
 
                 var vectors = await trainingSet.ExtractVectorsAsync(cancellationToken, 8);
 
-                return vectors.ToMatrix();
+                return vectors;
             }
         }
 

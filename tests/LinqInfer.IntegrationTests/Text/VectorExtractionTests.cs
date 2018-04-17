@@ -2,10 +2,12 @@
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
+using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,18 +21,6 @@ namespace LinqInfer.IntegrationTests.Text
         private INetworkClassifier<string, BiGram> _classifier;
 
         [Test]
-        public async Task WhenGivenCbow_ThenClassifierCanBeConstructed()
-        {
-            await GivenAnAsyncTextTrainingSet();
-
-            WhenSoftmaxNetworkClassifierAttached();
-
-            await WhenTrainingProcedureIsRun();
-
-            ThenClassifierCanClassifyWords("bold");
-        }
-
-        [Test]
         public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
         {
             await GivenAnAsyncTextTrainingSet();
@@ -39,38 +29,11 @@ namespace LinqInfer.IntegrationTests.Text
         }
 
         [Test]
-        public async Task WhenGivenAggregatedSet_ThenClassifierCanBeConstructed()
+        public async Task WhenGivenAggregatedSet_ThenVectorsCanBeExtracted()
         {
             await GivenAnAggregatedAsyncTrainingSet();
             
             await ThenAggrVectorsCanBeExtracted();
-        }
-
-        private void ThenClassifierCanClassifyWords(string word)
-        {
-            var doc = _classifier.ToVectorDocument();
-                                    
-            var result = _classifier.Classify(new BiGram(word));
-
-            Assert.That(result.Any());
-
-            foreach(var item in result.OrderByDescending(x => x.Score))
-            {
-                Console.WriteLine($"{item.ClassType} = {item.Score}");
-            }
-        }
-
-        private async Task WhenTrainingProcedureIsRun(int epochs = 1)
-        {
-            var tokenSource = new CancellationTokenSource();
-
-            tokenSource.CancelAfter(TimeSpan.FromSeconds(60));
-
-            var stats = _bigramTrainingSet.TrackStatistics();
-            
-            await stats.Pipe.RunAsync(tokenSource.Token, epochs);
-
-            LogPipeStats(stats.Output);
         }
 
         private void LogPipeStats(IPipeStatistics stats)
@@ -82,42 +45,24 @@ namespace LinqInfer.IntegrationTests.Text
             Console.WriteLine($"Average batches per second: {stats.AverageBatchesPerSecond}");
         }
 
-        private void WhenSoftmaxNetworkClassifierAttached(int hiddenLayerSize = 64)
-        {
-            void NetworkBuilder(FluentNetworkBuilder b)
-            {
-                b
-               .ParallelProcess()
-               .ConfigureLearningParameters(p =>
-               {
-                   p.LearningRate = 0.2;
-                   p.Momentum = 0.1;
-               })
-               .AddHiddenLayer(new LayerSpecification(hiddenLayerSize, Activators.None(), LossFunctions.Square))
-               .AddSoftmaxOutput();
-            }
-
-            _classifier = _bigramTrainingSet?.AttachMultilayerNetworkClassifier(NetworkBuilder);
-
-        }
-
         private async Task ThenAggrVectorsCanBeExtracted()
         {
-            var vects = await _aggTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
+            var vects = await _aggTrainingSet.ExtractVectorsAsync(
+                CancellationToken.None, 64);
 
-            foreach(var kv in vects)
-            {
-                Console.WriteLine($"{kv.Key}, {kv.Value.ToColumnVector().ToCsv()}");
-            }
+            await vects.WriteAsCsvAsync(Console.Out);
         }
 
         private async Task ThenBigramVectorsCanBeExtracted()
         {
             var vects = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
 
-            foreach (var kv in vects)
+            await vects.WriteAsCsvAsync(Console.Out);
+
+            using (var fs = File.OpenWrite(@"C:\dev\vect.csv"))
+            using (var writer = new StreamWriter(fs))
             {
-                Console.WriteLine($"{kv.Key}, {kv.Value.ToColumnVector().ToCsv()}");
+                await vects.LabelledCosineSimularityMatrix.WriteAsCsvAsync(writer);
             }
         }
 
@@ -138,11 +83,20 @@ namespace LinqInfer.IntegrationTests.Text
         {
             var corpus = CorpusDataSource.GetCorpus();
 
-            var keyTerms = await corpus.ExtractKeyTermsAsync(CancellationToken.None);
+            var targetWords = new HashSet<string>(new [] { "good", "bad", "ugly", "pretty",
+                "man", "woman", "king", "queen", "animal", "child", "goat",
+                "clean", "dirty", "filthy", "pure", "female", "male", "big", "small",
+                "strong", "weak", "health", "sick", "empire", "president",
+                "pain", "pleasure", "boy", "girl", "hot", "cold", "white", "black",
+                "big", "small" });
+
+            var targetVocab = new SemanticSet(targetWords);
             
-            var cbow = corpus.CreateAsyncContinuousBagOfWords(keyTerms);
+            var cbow = corpus.CreateAsyncContinuousBagOfWords(targetVocab, new EnglishDictionary());
             
             _bigramTrainingSet = cbow.AsBiGramAsyncTrainingSet();
+
+            await Task.Delay(0);
 
             return _bigramTrainingSet;
         }

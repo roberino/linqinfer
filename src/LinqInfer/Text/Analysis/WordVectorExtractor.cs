@@ -14,7 +14,7 @@ namespace LinqInfer.Text.Analysis
 {
     internal class WordVectorExtractor
     {
-        public async Task<IDictionary<string, IVector>> ExtractVectorsAsync(IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public async Task<LabelledMatrix<string>> ExtractVectorsAsync(IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(NetworkBuilder(vectorSize));
 
@@ -28,10 +28,11 @@ namespace LinqInfer.Text.Analysis
                   .OutputMapper
                   .FeatureMetadata
                   .Zip(mln.Children.Last().Vectors, (f, v) => new { f, v })
-                  .ToDictionary(x => x.f.Label, v => v.v);
+                  .ToDictionary(x => x.f.Label, v => v.v)
+                  .ToMatrix();
         }
 
-        public async Task<IDictionary<string, IVector>> ExtractVectorsAsync(IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public async Task<LabelledMatrix<string>> ExtractVectorsAsync(IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(NetworkBuilder(vectorSize));
 
@@ -45,7 +46,8 @@ namespace LinqInfer.Text.Analysis
                   .OutputMapper
                   .FeatureMetadata
                   .Zip(mln.Children.Last().Vectors, (f, v) => new { f, v })
-                  .ToDictionary(x => x.f.Label, v => v.v);
+                  .ToDictionary(x => x.f.Label, v => v.v)
+                  .ToMatrix();
         }
 
         Action<FluentNetworkBuilder> NetworkBuilder(int vectorSize)
