@@ -19,9 +19,9 @@ namespace LinqInfer.Maths
 
         public int Width => _row.Size;
 
-        public IIndexableEnumerable<IVector> Columns => new IndexableEnumerable<IVector>(_row.ToColumnVector().GetUnderlyingArray().Select(v => new ColumnVector1D(v)));
+        public IIndexedEnumerable<IVector> Columns => new IndexableEnumerable<IVector>(_row.ToColumnVector().GetUnderlyingArray().Select(v => new ColumnVector1D(v)));
 
-        public IIndexableEnumerable<IVector> Rows { get; }
+        public IIndexedEnumerable<IVector> Rows { get; }
 
         public IVector Multiply(IVector c)
         {

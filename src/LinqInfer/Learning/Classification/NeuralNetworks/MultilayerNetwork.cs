@@ -16,7 +16,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         IExportableAsVectorDocument, 
         IImportableAsVectorDocument, 
         IHasNetworkTopology,
-        IVectorClassifier
+        IVectorClassifier,
+        ISerialisableVectorTransformation
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -24,7 +25,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private INetworkSignalFilter _rootLayer;
         private NetworkParameters _parameters;
         private NetworkSpecification _specification;
-        private bool initd;
+        private bool _initd;
 
         public MultilayerNetwork(Stream input)
         {
@@ -33,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _rootLayer = n._rootLayer;
             _parameters = n._parameters;
             _properties = n._properties;
-            initd = true;
+            _initd = true;
         }
 
         public MultilayerNetwork(NetworkParameters parameters, IDictionary<string, string> properties = null)
@@ -44,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _specification = parameters.ToSpecification();
             _properties = properties ?? new Dictionary<string, string>();
 
-            initd = false;
+            _initd = false;
         }
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
@@ -55,7 +56,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _specification = specification;
             _properties = properties ?? new Dictionary<string, string>();
 
-            initd = false;
+            _initd = false;
         }
 
         private MultilayerNetwork(NetworkParameters parameters, INetworkSignalFilter rootLayer)
@@ -63,7 +64,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _parameters = parameters;
             _rootLayer = rootLayer;
             _specification = parameters.ToSpecification();
-            initd = true;
+            _initd = true;
         }
 
         public IDictionary<string, string> Properties => _properties;
@@ -71,6 +72,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public NetworkSpecification Specification => _specification;
 
         public NetworkParameters Parameters => _parameters;
+
+        public IEnumerable<Matrix> ExportData()
+        {
+            return ForEachLayer(l => l.ExportData(), false);
+        }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
             VisualSettings visualSettings = null,
@@ -175,14 +181,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 lastLayer = next;
             }
 
-            initd = true;
+            _initd = true;
         }
 
         public ILayer LastLayer { get { return Layers.Reverse().First(); } }
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
-            if (!initd) InitialiseLayers();
+            if (!_initd) InitialiseLayers();
 
             return (reverse ? Layers.Reverse() : Layers).ForEach(func);
         }
@@ -192,13 +198,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public IVector Evaluate(IVector input)
         {
-            if (!initd) InitialiseLayers();
+            if (!_initd) InitialiseLayers();
 
-            var res = _rootLayer.Process(input);
+            return _rootLayer.Process(input);
+        }
 
-            if (_parameters.OutputTransformation == null) return res;
-
-            return _parameters.OutputTransformation.Apply(res.ToColumnVector()).ToColumnVector();
+        /// <summary>
+        /// Transforms the vector (same as evaluate)
+        /// </summary>
+        public IVector Apply(IVector vector)
+        {
+            return Evaluate(vector);
         }
 
         /// <summary>
@@ -229,7 +239,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             get
             {
-                if (!initd) InitialiseLayers();
+                if (!_initd) InitialiseLayers();
 
                 var next = _rootLayer as ILayer;
 
@@ -241,6 +251,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
             }
         }
+
+        public int InputSize => throw new NotImplementedException();
+
+        public int OutputSize => throw new NotImplementedException();
 
         public void Save(Stream output)
         {

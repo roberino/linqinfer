@@ -2,12 +2,38 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using static LinqInfer.Tests.TestData;
 
 namespace LinqInfer.Tests.Data
 {
     [TestFixture]
     public class BinaryVectorDocumentTests
     {
+        [Test]
+        public void SetType_WhenSetToClass_ThenLcTypeNameUsedAsRootElementName()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.SetType<Pirate>();
+
+            var xml = doc.ExportAsXml();
+
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo(nameof(Pirate).ToLower()));
+        }
+
+        [Test]
+        public void SetType_WhenSetToGeneric_ThenGenericNameUsedWithoutArgs()
+        {
+            var doc = new BinaryVectorDocument();
+
+            doc.SetType<Dictionary<string, int>>();
+
+            var xml = doc.ExportAsXml();
+
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo("dictionary"));
+        }
+
         [Test]
         public void Checksum_ChangesWhenDataChanges()
         {

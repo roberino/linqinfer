@@ -7,8 +7,8 @@ namespace LinqInfer.Maths
         int Height { get; }
         int Width { get; }
 
-        IIndexableEnumerable<IVector> Columns { get; }
-        IIndexableEnumerable<IVector> Rows { get; }
+        IIndexedEnumerable<IVector> Columns { get; }
+        IIndexedEnumerable<IVector> Rows { get; }
 
         IVector Multiply(IVector c);
     }

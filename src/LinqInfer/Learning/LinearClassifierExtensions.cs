@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning
 {
-    public static class LinearClassifierExtensions
+    internal static class LinearClassifierExtensions
     {
         public static async Task<LinearSoftmaxClassifier> CreateLinearClassifier<TInput, TClass>
             (this IAsyncTrainingSet<TInput, TClass> trainingSet, Action<LearningParameters> config = null)
@@ -24,7 +24,7 @@ namespace LinqInfer.Learning
                 {
                     var err = classifier.Train(b.Items, parameters.MinimumError, 1);
 
-                    return err > parameters.MinimumError;
+                    return !parameters.EvaluateHaltingFunction(b.BatchNumber, err);
                 });
 
             return classifier;

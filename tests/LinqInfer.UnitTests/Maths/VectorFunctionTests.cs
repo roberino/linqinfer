@@ -1,5 +1,7 @@
 ﻿using LinqInfer.Maths;
 using NUnit.Framework;
+using System;
+using System.Linq;
 
 namespace LinqInfer.Tests.Maths
 {
@@ -43,6 +45,26 @@ namespace LinqInfer.Tests.Maths
             Assert.That(output[0], Is.EqualTo(1d));
             Assert.That(output[1], Is.EqualTo(1d / 4d));
             Assert.That(output[2], Is.EqualTo(5d / 6d));
+        }
+
+        [Test]
+        public void CreateCentreAndScaleTransformation_ThenScalesAsExpected()
+        {
+            var vect0 = ColumnVector1D.Create(1, 5, 12.3);
+            var vect1 = ColumnVector1D.Create(14.1, 5.5, 11);
+            var vect2 = ColumnVector1D.Create(-4, 2, 2.3);
+
+            var minMaxMean = new[] { vect0, vect1, vect2 }.MinMaxAndMeanOfEachDimension();
+
+            var transform = minMaxMean.CreateCentreAndScaleTransformation();
+            
+            var transformedVects = new[] { transform.Apply(vect0), transform.Apply(vect1), transform.Apply(vect2) };
+            var minMaxMeanT = transformedVects.MinMaxAndMeanOfEachDimension();
+            var maxT = minMaxMeanT.Max.ToColumnVector();
+            var minT = minMaxMeanT.Min.ToColumnVector();
+
+            Assert.That(maxT.All(v => Math.Round(v, 6) == 1d), Is.True);
+            Assert.That(minT.All(v => Math.Round(v, 6) == -1d), Is.True);
         }
 
         [Test]

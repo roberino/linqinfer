@@ -13,14 +13,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private readonly IList<INeuron> _neurons;
         private readonly Func<int, IList<INeuron>> _neuronsFactory;
         private readonly LayerSpecification _spec;
+        private Vector _output;
 
         public NetworkLayer(
             int inputVectorSize,
             int neuronCount,
-            ActivatorFunc activator,
+            IActivatorFunction activator,
             ILossFunction lossFunction,
             Func<int, INeuron> neuronFactory = null)
-            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, new Range(1, -1)))
+            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), new Range(1, -1)))
         {
         }
 
@@ -43,19 +44,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _neurons = _neuronsFactory(specification.LayerSize);
 
             InputVectorSize = inputVectorSize;
+
+            _output = Vector.UniformVector(_neurons.Count, 0);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
-        
+
         public INetworkSignalFilter Successor { get; set; }
 
         public int InputVectorSize { get; }
 
         public int Size => _neurons.Count;
 
-        public ActivatorFunc Activator => _spec.Activator;
+        public IActivatorFunction Activator => _spec.Activator;
 
         public ILossFunction LossFunction => _spec.LossFunction;
+
+        public IWeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
+
+        public IVector LastOutput => _output;
 
         public INeuron this[int index]
         {
@@ -65,11 +72,41 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
+        public Matrix ExportData()
+        {
+            var vectors = _neurons.Select(n => n.Export());
+            return new Matrix(vectors);
+        }
+
         public virtual IVector Process(IVector input)
         {
-            var outputVect = _neurons.Any() ? new ColumnVector1D(_neurons.Select(n => n.Evaluate(input)).ToArray()) : input;
+            if (_neurons.Any())
+            {
+                if (_spec.ParallelProcess)
+                {
+                    var outputItems = _neurons.AsParallel().ForEach(n =>
+                    {
+                        return n.Evaluate(input);
+                    });
 
-            return (Successor == null) ? outputVect : Successor.Process(outputVect);
+                    _output.Overwrite(outputItems);
+                }
+                else
+                {
+                    _output.Overwrite(_neurons.Select(n => n.Evaluate(input)));
+                }
+            }
+            else
+            {
+                _output.Overwrite(input.ToColumnVector());
+            }
+
+            if (_spec.OutputTransformation != null)
+            {
+                _output.Overwrite(_spec.OutputTransformation.Apply(_output).ToColumnVector().GetUnderlyingArray());
+            }
+
+            return (Successor == null) ? _output : Successor.Process(_output);
         }
 
         public void Grow(int numberOfNewNeurons = 1)
@@ -91,7 +128,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
         {
             int i = 0;
-            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray());
+            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray(_neurons.Count));
             OnCalculate(result);
             return result;
         }
@@ -134,8 +171,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var layerDoc = new BinaryVectorDocument();
 
             layerDoc.Properties["Size"] = Size.ToString();
-
-            layerDoc.Children.Add(_spec.ToVectorDocument());
 
             foreach (var neuron in _neurons)
             {

@@ -29,7 +29,7 @@ namespace LinqInfer.Maths
             Refresh();
         }
 
-        public Vector(double[] values)
+        public Vector(params double[] values)
         {
             ArgAssert.AssertNonNull(values, nameof(values));
 
@@ -208,6 +208,83 @@ namespace LinqInfer.Maths
             }
 
             return total / (_values.Length - (isSampleData ? 1 : 0));
+        }
+
+        /// <summary>
+        /// Runs a function over the values in each vector,
+        /// returning a new vector
+        /// i.e. add : (v1, v2) => v1 + v2
+        /// </summary>
+        public Vector Calculate(IVector other, Func<double, double, double> calculation)
+        {
+            ArgAssert.AssertEquals(other.Size, Size, nameof(Size));
+
+            var result = new double[Size];
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                result[i] = calculation(_values[i], other[i]);
+            }
+
+            return new Vector(result);
+        }
+
+        internal Vector[] CrossCalculate(Func<double, double[], double[]> func, params IVector[] others)
+        {
+            foreach (var v in others) ArgAssert.AssertEquals(Size, v.Size, nameof(Size));
+
+            return CrossCalculate(func, others.Length, others);
+        }
+
+        internal Vector[] CrossCalculate(IVector other, Func<double, double, double[]> func, int numberOfVectorsReturned)
+        {
+            var results = new List<double[]>(numberOfVectorsReturned);
+
+            for (int j = 0; j < numberOfVectorsReturned; j++)
+            {
+                results.Add(new double[Size]);
+            }
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                var res = func(this[i], other[i]);
+
+                for (int j = 0; j < numberOfVectorsReturned; j++)
+                {
+                    results[j][i] = res[j];
+                }
+            }
+
+            return results.Select(r => new Vector(r)).ToArray();
+        }
+
+        internal Vector[] CrossCalculate(Func<double, double[], double[]> func, int numberOfVectorsReturned, params IVector[] others)
+        {
+            var buffer = new double[others.Length];
+
+            var results = new List<double[]>(numberOfVectorsReturned);
+
+            for (int j = 0; j < numberOfVectorsReturned; j++)
+            {
+                results.Add(new double[Size]);
+            }
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                for (int j = 0; j < others.Length; j++)
+                {
+                    buffer[j] = others[j][i];
+                }
+
+                var res = func(this[i], buffer);
+
+                for (int j = 0; j < numberOfVectorsReturned; j++)
+                {
+                    results[j][i] = res[j];
+                }
+            }
+
+            return results.Select(r => new Vector(r)).ToArray();
         }
 
         public double DotProduct(Vector other)
@@ -473,6 +550,21 @@ namespace LinqInfer.Maths
             }
 
             return other.Equals(this);
+        }
+
+        internal void Overwrite(IEnumerable<double> values)
+        {
+            int i = 0;
+
+            foreach (var value in values)
+            {
+                _values[i++] = value;
+            }
+        }
+
+        internal void Overwrite(double[] values)
+        {
+            Array.Copy(values, _values, _values.Length);
         }
 
         internal double[] GetUnderlyingArray()

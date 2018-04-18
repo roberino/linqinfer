@@ -10,6 +10,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal static class FluentMultilayerNetworkBuilderExtensions
     {
+        public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        {
+            return specificationBuilder.
+                AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
+
+        }
+
+        public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
+        {
+            return specificationBuilder
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
+                .TransformOutput(x => new Softmax(x));
+        }
+
+        public static IFluentNetworkBuilder ParallelProcess(this IFluentNetworkBuilder specificationBuilder)
+        {
+            return ((FluentNetworkBuilder)specificationBuilder).ConfigureLayers(l => l.ParallelProcess = true);
+        }
+
         public static IClassifierTrainingContext<NetworkSpecification> Build(this IFluentNetworkBuilder specificationBuilder)
         {
             return ((FluentNetworkBuilder)specificationBuilder).Build();
@@ -22,6 +41,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private readonly Range _defaultWeightRange;
         private LearningParameters _learningParams;
         private LayerSpecification _output;
+        private Action<LayerSpecification> _layerAction;
         private int _inputVectorSize;
 
         internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
@@ -33,17 +53,34 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
             _layers = new List<LayerSpecification>();
-            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Default, _defaultWeightRange);
+            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), _defaultWeightRange);
         }
 
-        public IFluentNetworkBuilder ConfigureLearningParameters(double learningRate, double minimumError)
+        internal IFluentNetworkBuilder ConfigureLayers(Action<LayerSpecification> layerAction)
         {
-            return ConfigureLearningParameters(new LearningParameters() { LearningRate = learningRate, MinimumError = minimumError });
+            _layerAction = layerAction;
+
+            return this;
+        }
+
+        public IFluentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config)
+        {
+            var lp = _learningParams.Clone(true);
+
+            config(lp);
+
+            lp.Validate();
+
+            _learningParams = lp;
+
+            return this;
         }
 
         public IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+
+            learningParameters.Validate();
 
             _learningParams = learningParameters;
 
@@ -56,16 +93,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder AddHiddenSigmoidLayer(int layerSize)
-        {
-            return AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Default, new Range(0.05, -0.05)));
-        }
-
-        public IFluentNetworkBuilder ConfigureOutputLayer(ActivatorFunc activator, ILossFunction lossFunction, Range? initialWeightRange = null)
+        public IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null)
         {
             var tx = _output.OutputTransformation;
 
-            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
+            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
             {
                 OutputTransformation = tx
             };
@@ -75,7 +107,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IFluentNetworkBuilder TransformOutput(ISerialisableVectorTransformation transformation)
         {
-            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.InitialWeightRange)
+            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
                 OutputTransformation = transformation
             };
@@ -83,11 +115,30 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
+        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableVectorTransformation> transformationFactory)
+        {
+            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
+            {
+                OutputTransformation = transformationFactory(_output.LayerSize)
+            };
+
+            return this;
+        }
+
         public IClassifierTrainingContext<NetworkSpecification> Build()
         {
+            if (_layerAction != null)
+            {
+                foreach (var layer in _layers)
+                {
+                    _layerAction(layer);
+                }
+                _layerAction(_output);
+            }
+
             var spec = new NetworkSpecification(_learningParams,
                 _inputVectorSize, _layers.Concat(new[] { _output }).ToArray());
-
+            
             int id = 1;
 
             return new MlnCtx(() => Interlocked.Increment(ref id), spec);

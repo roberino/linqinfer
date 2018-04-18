@@ -1,7 +1,10 @@
-﻿namespace LinqInfer.Learning.Classification.NeuralNetworks
+﻿using LinqInfer.Maths;
+using System;
+
+namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public interface ILossFunction
     {
-        ErrorAndLoss Calculate(double actualOutput, double targetOutput);
+        ErrorAndLossVectors Calculate(IVector actualOutput, IVector targetOutput, Func<double, double> derivative);
     }
 }

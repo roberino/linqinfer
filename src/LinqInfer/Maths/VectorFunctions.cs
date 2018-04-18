@@ -8,6 +8,15 @@ namespace LinqInfer.Maths
     public static class VectorFunctions
     {
         /// <summary>
+        /// Creates a labelled matrix from a dictionary of string / vector pairs
+        /// </summary>
+        public static LabelledMatrix<string> ToMatrix(this IDictionary<string, IVector> vectorDictionary)
+        {
+            int i = 0;
+            return new LabelledMatrix<string>(new Matrix(vectorDictionary.Values.Select(v => v.ToColumnVector())), vectorDictionary.Keys.ToDictionary(k => k, v => i++));
+        }
+
+        /// <summary>
         /// Creates a transformation to centre and scale a vector
         /// so that values are centred around a mean and scaled between a
         /// min and a max
@@ -22,12 +31,12 @@ namespace LinqInfer.Maths
             var mean = minMaxAndMean.Mean.ToColumnVector();
             var adjustedMin = minMaxAndMean.Min.ToColumnVector() - mean;
             var adjustedMax = minMaxAndMean.Max.ToColumnVector() - mean - adjustedMin;
-            var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
-            var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
+            var scaleValue = adjustedMax / range.Value.Size;
+            var targetMin = Vector.UniformVector(adjustedMax.Size, -range.Value.Min);
 
             var centre = new VectorOperation(VectorOperationType.Subtract, mean + adjustedMin);
             var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
-            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
+            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, targetMin);
 
             var transform = new SerialisableVectorTransformation(centre, scale, rangeTranspose);
 

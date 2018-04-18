@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using LinqInfer.Text.VectorExtraction;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,25 @@ namespace LinqInfer.Text.Analysis
             var cbow = new ContinuousBagOfWords(corpus.Words, targetVocabulary, widerVocabulary);
 
             return cbow;
+        }
+
+        public static async Task<IAsyncTrainingSet<WordVector, string>> CreateAggregatedTrainingSetAsync(this AsyncContinuousBagOfWords cbow, CancellationToken cancellationToken, int contextPadding = 2)
+        {
+            var aggreg = new CBowAggregator(cbow.GetNGramSource(contextPadding), cbow.WiderVocabulary);
+
+            var trainingSet = await aggreg.GetTrainingSetAync(cancellationToken);
+
+            return trainingSet;
+        }
+
+        internal static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        {
+            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
+        }
+
+        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        {
+            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }
 
         public static ITrainingSet<SyntacticContext, string> AsNGramTrainingSet(this ContinuousBagOfWords cbow, int contextPadding = 2)

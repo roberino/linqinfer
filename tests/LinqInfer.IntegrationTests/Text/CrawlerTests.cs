@@ -39,8 +39,6 @@ namespace LinqInfer.IntegrationTests.Text
                 var graph = await corpus.ExportWordGraphAsync(word, CancellationToken.None);
 
                 var gexf = await graph.ExportAsGexfAsync();
-
-                // gexf.Save($"c:\\git\\wiki-{word}.gexf");
             }
         }
 
@@ -62,8 +60,6 @@ namespace LinqInfer.IntegrationTests.Text
                 Console.WriteLine(cosineSim);
 
                 var gexf = await graph.ExportAsGexfAsync();
-
-                // gexf.Save($"c:\\git\\wiki-multi.gexf");
             }
         }
     }

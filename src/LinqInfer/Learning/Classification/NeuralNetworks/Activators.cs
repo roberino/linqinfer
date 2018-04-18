@@ -7,41 +7,41 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public static class Activators
     {
-        public static IEnumerable<ActivatorFunc> All()
+        public static IEnumerable<IActivatorFunction> All()
         {
             yield return Sigmoid();
             yield return Threshold();
-            // yield return HyperbolicTangent();
+            yield return HyperbolicTangent();
         }
 
-        public static ActivatorFunc Create(string name, double parameter)
+        public static IActivatorFunction Create(string name, double parameter)
         {
             var type = typeof(Activators).GetTypeInfo();
 
-            return (ActivatorFunc)type
+            return (IActivatorFunction)type
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .Where(m => m.Name == name && m.GetParameters().Length == 1)
                 .FirstOrDefault()
                 .Invoke(null, new object[] { parameter });
         }
 
-        public static ActivatorFunc None(double s = 1)
+        public static IActivatorFunction None(double s = 1)
         {
             return new ActivatorFunc()
             {
-                Name = "None",
-                Activator = x => s * x,
-                Derivative = x => s,
+                Name = nameof(None),
+                Activator = x => x,
+                Derivative = x => 1,
                 Parameter = s,
                 Create = (p) => None(p)
             };
         }
 
-        public static ActivatorFunc Sigmoid(double alpha = 2)
+        public static IActivatorFunction Sigmoid(double alpha = 2)
         {
             return new ActivatorFunc()
             {
-                Name = "Sigmoid",
+                Name = nameof(Sigmoid),
                 Activator = x => (1 / (1 + Math.Exp(-alpha * x))),
                 Derivative = x => (alpha * x * (1 - x)),
                 Parameter = alpha,
@@ -49,24 +49,24 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        public static ActivatorFunc HyperbolicTangent(double alpha = 2)
+        public static IActivatorFunction HyperbolicTangent(double nv = 0)
         {
             var e = Math.E;
             return new ActivatorFunc()
             {
-                Name = "Tanh",
+                Name = nameof(HyperbolicTangent),
                 Activator = x => (Math.Pow(e, x) - Math.Pow(e, -x)) / (Math.Pow(e, x) + Math.Pow(e, -x)),
-                Derivative = x => 0, // TODO
-                Parameter = alpha,
-                Create = (p) => Sigmoid(p)
+                Derivative = x => Math.Pow(2, 2 / (Math.Pow(e, x) + Math.Pow(e, -x))),
+                Parameter = 0,
+                Create = (p) => HyperbolicTangent(p)
             };
         }
 
-        public static ActivatorFunc Threshold(double threshold = 0.5)
+        public static IActivatorFunction Threshold(double threshold = 0.5)
         {
             return new ActivatorFunc()
             {
-                Name = "Threshold",
+                Name = nameof(Threshold),
                 Activator = x => x > threshold ? 1 : 0,
                 Derivative = x => 0,
                 Parameter = threshold,

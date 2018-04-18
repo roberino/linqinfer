@@ -172,7 +172,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 _nwpf = new NetworkParameterFactory(vectorSize, outputSize, learningRate);
             }
 
-            public IEnumerable<IClassifierTrainingContext<NetworkParameters>> GeneratePipelines(ActivatorFunc activator)
+            public IEnumerable<IClassifierTrainingContext<NetworkParameters>> GeneratePipelines(IActivatorFunction activator)
             {
                 return _nwpf.GenerateParameters(activator).Select(_trainingContextFactory);
             }

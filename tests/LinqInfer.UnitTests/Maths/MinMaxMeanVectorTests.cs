@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Maths;
 using NUnit.Framework;
 using System;
+using System.Linq;
 
 namespace LinqInfer.Tests.Maths
 {

@@ -21,6 +21,24 @@ namespace LinqInfer.UnitTests.Learning.Classification
         }
 
         [Test]
+        public void HaltingFunction_WhenGivenSpec_ThenValidDocReturned()
+        {
+            var spec = CreateSut();
+
+            spec.LearningParameters.MinimumError = 0.1;
+
+            var halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.09);
+
+            Assert.True(halt);
+
+            spec.LearningParameters.MinimumError = 0.5;
+
+            halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.4);
+
+            Assert.True(halt);
+        }
+
+        [Test]
         public void ToVectorDocument_WhenGivenSingleLayerSpec_ThenCorrectInputVectorSizeReturnedWhenImported()
         {
             var spec = new NetworkSpecification(new LearningParameters(),
@@ -28,6 +46,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                   new LayerSpecification(4,
                   Activators.Threshold(),
                   LossFunctions.CrossEntropy,
+                  DefaultWeightUpdateRule.Create(),
                   new Range()));
 
             var doc = spec.ToVectorDocument();
@@ -89,8 +108,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         private NetworkSpecification CreateSut()
         {
-            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Default, new Range(0.4, -0.3));
-            var layer2 = new LayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, new Range(0.4, -0.3));
+            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Square, DefaultWeightUpdateRule.Create(), new Range(0.4, -0.3));
+            var layer2 = new LayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, DefaultWeightUpdateRule.Create(), new Range(0.4, -0.3));
             var spec = new NetworkSpecification(new LearningParameters(), layer1, layer2);
 
             spec.LearningParameters.MinimumError = 0.999;

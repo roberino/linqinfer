@@ -1,9 +1,11 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Learning;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Tests.Text.Analysis
@@ -11,6 +13,7 @@ namespace LinqInfer.Tests.Text.Analysis
     [TestFixture]
     public class AnalysisExtensionsTests
     {
+        private const int _numberOfCorpusItems = 22;
         private readonly Corpus _testCorpus;
         private readonly ISemanticSet _testVocab;
 
@@ -44,7 +47,7 @@ namespace LinqInfer.Tests.Text.Analysis
                 .ProcessUsing(p =>
                 {
                     Assert.That(counter, Is.EqualTo(p.BatchNumber));
-                    Assert.That(p.Items.Count, Is.EqualTo(22));
+                    Assert.That(p.Items.Count, Is.EqualTo(_numberOfCorpusItems));
 
                     counter++;
 
@@ -55,6 +58,20 @@ namespace LinqInfer.Tests.Text.Analysis
         }
 
         [Test]
+        public async Task CreateAggregatedTrainingSetAsync_ReturnsTrainingSet()
+        {
+            var ct = CancellationToken.None;
+
+            var trainingSet = await _testCorpus
+                .CreateAsyncContinuousBagOfWords(_testVocab)
+                .CreateAggregatedTrainingSetAsync(ct);
+
+            var vects = await trainingSet.Source.ToMemoryAsync(ct);
+
+            Assert.That(vects.Count, Is.EqualTo(_numberOfCorpusItems));
+        }
+
+        [Test]
         public void CreateContinuousBagOfWordsTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
         {
             var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
@@ -62,7 +79,7 @@ namespace LinqInfer.Tests.Text.Analysis
             var trainingBatches = trainingData.ExtractTrainingVectorBatches();
 
             Assert.That(trainingBatches.Count(), Is.EqualTo(1));
-            Assert.That(trainingBatches.First().Count, Is.EqualTo(22)); // (26 - 4) * 4));
+            Assert.That(trainingBatches.First().Count, Is.EqualTo(_numberOfCorpusItems)); // (26 - 4) * 4));
         }
 
         [Test]
@@ -70,7 +87,7 @@ namespace LinqInfer.Tests.Text.Analysis
         {
             var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
 
-            Assert.That(cbow.GetNGrams().Count(), Is.EqualTo(26 - 4));
+            Assert.That(cbow.GetNGrams().Count(), Is.EqualTo(_numberOfCorpusItems));
 
             char c = 'c';
 

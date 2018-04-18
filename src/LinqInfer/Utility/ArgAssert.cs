@@ -45,6 +45,16 @@ namespace LinqInfer.Utility
             return value;
         }
 
+        public static double AssertBetweenZeroAndOneUpperInclusive(double value, string name, string message = null)
+        {
+            if (value <= 0 || value > 1)
+            {
+                throw (message == null) ? new ArgumentOutOfRangeException(name) : new ArgumentOutOfRangeException(name, message);
+            }
+
+            return value;
+        }
+
         public static int AssertGreaterThanOrEqualToZero(int value, string name)
         {
             if (value < 0)

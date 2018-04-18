@@ -26,12 +26,13 @@ Feature extraction is key to many of the classification algorithms.
 
 Feature pipelines represent a pipeline of feature data which can be 
 transformed and pumped into various forms. There are a few mechanisms
-for reducing the dimensionality of the input data, such as principle component analysis and custom transformations.
+for reducing the dimensionality of the input data, such as principle component 
+analysis and custom transformations.
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
 
-Feature pipelines come in asynchronous and synchronous flavours. 
+Feature pipelines come in [asynchronous](docs/async-pipelines.md) and synchronous flavours. 
 
 Async pipelines support a more complex, batch orientated processing model
 which allows for parallel processing of data.

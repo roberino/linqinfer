@@ -13,36 +13,6 @@ namespace LinqInfer.IntegrationTests.Learning
     public class PipelineExtensionsTests
     {
         [Test]
-        public void ToSofm_WithoutSupplingRadius()
-        {
-            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
-            var pipeline = data.CreatePipeline();
-            var map = pipeline.ToSofm(3).Execute();
-
-            foreach (var m in map)
-            {
-                Console.WriteLine("{0} - {1}", m.Key, m.Count());
-            }
-        }
-
-        [Test]
-        public async Task ToSofm_WithAnInitialRadius()
-        {
-            var data = Enumerable.Range(1, 10).Select(n => Functions.RandomVector(2)).ToList().AsQueryable();
-            var pipeline = data.CreatePipeline();
-            var map = pipeline.ToSofm(3, 0.2f, 0.1f, 100).Execute();
-
-            foreach (var m in map)
-            {
-                Console.WriteLine("{0} - {1}", m.Key, m.Count());
-            }
-
-            var xml = await (await map.ExportNetworkTopologyAsync()).ExportAsGexfAsync();
-
-            Console.Write(xml);
-        }
-
-        [Test]
         public void ToNaiveBayesClassifier_SimpleSample_ClassifiesAsExpected()
         {
             var pirateSample = CreatePirates().ToList();
@@ -110,30 +80,6 @@ namespace LinqInfer.IntegrationTests.Learning
             Assert.That(classResults2.ClassType == xor2.Output);
             Assert.That(classResults3.ClassType == xor3.Output);
             Assert.That(classResults4.ClassType == xor4.Output);
-        }
-
-        [Test]
-        public void ToMultilayerNetworkClassifier_UsingParametersSimpleSample_ClassifiesAsExpected()
-        {
-            var pirateSample = CreatePirates().ToList();
-            var pipeline = pirateSample.AsQueryable().CreatePipeline();
-            var classifier = pipeline
-                .AsTrainingSet(p => p.Age > 25 ? "old" : "young")
-                .ToMultilayerNetworkClassifier(8)
-                .Execute();
-
-            var results = classifier.Classify(new Pirate()
-            {
-                Gold = 120,
-                Age = 5,
-                IsCaptain = false,
-                Ships = 1
-            });
-
-            foreach (var cls in results)
-            {
-                Console.WriteLine(cls);
-            }
         }
 
         [Test]

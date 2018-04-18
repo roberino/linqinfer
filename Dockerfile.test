@@ -4,6 +4,7 @@ FROM microsoft/dotnet:2.0.4-sdk-2.1.3
 
 WORKDIR /app
 
+COPY ./artifacts /app/artifacts
 COPY ./build /app/build
 COPY ./src /app/src
 COPY ./tests /app/tests
@@ -16,3 +17,4 @@ RUN ./build-docker.sh
 
 WORKDIR ../
 RUN dotnet test ./tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj --filter TestCategory!=BuildOmit
+RUN dotnet ./tests/LinqInfer.Benchmarking/bin/Release/netcoreapp2.0/LinqInfer.Benchmarking.dll

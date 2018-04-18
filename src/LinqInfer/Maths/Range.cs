@@ -19,12 +19,12 @@ namespace LinqInfer.Maths
         /// <summary>
         /// The minimum (inclusive) value
         /// </summary>
-        public double Min { get; private set; }
+        public double Min { get; }
 
         /// <summary>
         /// The maximum (inclusive) value
         /// </summary>
-        public double Max { get; private set; }
+        public double Max { get; }
 
         /// <summary>
         /// The size of the range
@@ -39,6 +39,7 @@ namespace LinqInfer.Maths
         {
             return value >= Min && value <= Max;
         }
+
         public override string ToString()
         {
             return string.Format("{0:0.00} - {1:0.00}", Min, Max);

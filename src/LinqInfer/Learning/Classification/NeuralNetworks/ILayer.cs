@@ -21,9 +21,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         int Size { get; }
 
         /// <summary>
+        /// Gets the activator used for the layer
+        /// </summary>
+        IActivatorFunction Activator { get; }
+
+        /// <summary>
         /// Gets the function used to calculate errors
         /// </summary>
         ILossFunction LossFunction { get; }
+
+        /// <summary>
+        /// Gets the function for updating weights
+        /// </summary>
+        IWeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Gets a neuron by index
@@ -32,9 +42,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         INeuron this[int index] { get; }
 
         /// <summary>
-        /// Gets the activator used for the layer
+        /// Gets the last output as a vector
         /// </summary>
-        ActivatorFunc Activator { get; }
+        IVector LastOutput { get; }
 
         /// <summary>
         /// Applies a function over each neuron supplying the neuron as a parameter
@@ -58,9 +68,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         void Prune(Func<INeuron, bool> predicate);
 
         /// <summary>
-        /// Exports the raw data
+        /// Exports the raw data and properties
         /// </summary>
         BinaryVectorDocument Export();
+
+        /// <summary>
+        /// Exports the raw data
+        /// </summary>
+        Matrix ExportData();
 
         /// <summary>
         /// Imports raw data

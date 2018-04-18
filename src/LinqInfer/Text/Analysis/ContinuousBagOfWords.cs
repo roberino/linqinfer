@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,7 +30,7 @@ namespace LinqInfer.Text.Analysis
                     c => c
                         .ContextualWords
                         .Select(
-                            w => new BiGram(w.Text.ToLower(), c.TargetWord.Text.ToLower())));
+                            w => new BiGram(w.NormalForm(), c.TargetWord.NormalForm())));
         }
 
         public IEnumerable<SyntacticContext> GetNGrams(int padding = 2)
@@ -71,7 +72,7 @@ namespace LinqInfer.Text.Analysis
             {
                 var targ = buffer[padding];
 
-                if (TargetVocabulary.IsDefined(targ.Text.ToLowerInvariant()))
+                if (TargetVocabulary.IsDefined(targ.NormalForm()))
                 {
                     var context = new SyntacticContext()
                     {
@@ -81,7 +82,7 @@ namespace LinqInfer.Text.Analysis
 
                     if (_widerVocabulary != null)
                     {
-                        context.ContextualWords = context.ContextualWords.Where(w => _widerVocabulary.IsDefined(w.Text.ToLowerInvariant())).ToArray();
+                        context.ContextualWords = context.ContextualWords.Where(w => _widerVocabulary.IsDefined(w.NormalForm())).ToArray();
                     }
 
                     return context;

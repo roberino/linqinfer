@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Maths;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
@@ -25,5 +26,12 @@ namespace LinqInfer.Learning.Features
         /// Preprocesses the data with the vector transformation
         /// </summary>
         IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation);
+
+        /// <summary>
+        /// Centres and scales the data
+        /// </summary>
+        /// <param name="range"></param>
+        /// <returns></returns>
+        Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Range? range = null);
     }
 }

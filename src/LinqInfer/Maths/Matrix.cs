@@ -18,6 +18,7 @@ namespace LinqInfer.Maths
     {
         private Lazy<Vector> _mean;
         private Lazy<Matrix> _covariance;
+        private Lazy<Matrix> _cosineSimularity;
         protected readonly IList<Vector> _rows;
 
         public Matrix(IEnumerable<Vector> rows)
@@ -60,12 +61,17 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns a mean of each dimension
         /// </summary>
-        public Vector MeanVector { get { return _mean.Value; } }
+        public Vector MeanVector=> _mean.Value;
 
         /// <summary>
         /// Returns the covariance matrix
         /// </summary>
-        public Matrix CovarianceMatrix { get { return _covariance.Value; } }
+        public Matrix CovarianceMatrix => _covariance.Value;
+
+        /// <summary>
+        /// Returns the cosine distance between each row in the matrix
+        /// </summary>
+        public Matrix CosineSimularityMatrix => _cosineSimularity.Value;
 
         /// <summary>
         /// Returns a new matrix with the mean subtracted from the x values
@@ -80,32 +86,32 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Gets the y dimension of the matrix
         /// </summary>
-        public int Height { get { return Rows.Count; } }
+        public int Height => Rows.Count;
 
         /// <summary>
         /// Gets the x dimension of the matrix
         /// </summary>
-        public int Width { get { return Rows.Count == 0 ? 0 : Rows[0].Size; } }
+        public int Width => Rows.Count == 0 ? 0 : Rows[0].Size;
 
         /// <summary>
         /// Returns true if the width and height are equal
         /// </summary>
-        public bool IsSquare { get { return Width == Height; } }
+        public bool IsSquare => Width == Height;
 
         /// <summary>
         /// Returns the value at the row and column index
         /// </summary>
-        public double this[int rowIndex, int colIndex] { get { return Rows[rowIndex][colIndex]; } }
+        public double this[int rowIndex, int colIndex] => Rows[rowIndex][colIndex];
 
         /// <summary>
         /// Returns the rows of the matrix
         /// </summary>
-        public IIndexableEnumerable<IVector> Rows { get; }
+        public IIndexedEnumerable<IVector> Rows { get; }
 
         /// <summary>
         /// Returns the columns of the matrix as vectors
         /// </summary>
-        public IIndexableEnumerable<IVector> Columns { get; }
+        public IIndexedEnumerable<IVector> Columns { get; }
 
         public IEnumerable<double> Column(int index)
         {
@@ -127,6 +133,9 @@ namespace LinqInfer.Maths
             return total;
         }
 
+        /// <summary>
+        /// Returns the variance of a row
+        /// </summary>
         public double Variance(int x, bool isSampleData = true)
         {
             var mu_x = MeanVector[x];
@@ -135,15 +144,13 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
-        /// Returns the covariance of two elements
+        /// Returns the covariance of two rows
         /// </summary>
         public double Covariance(int x, int y, bool isSampleData = true)
         {
             var mu_x = MeanVector[x];
             var mu_y = MeanVector[y];
-
-            // return Rows.Select(v => (v[x] - mu_x) * (v[y] - mu_y)).Sum() / (Height - (isSampleData ? 1 : 0));
-
+            
             double t = 0;
 
             foreach (var v in Rows)
@@ -153,6 +160,11 @@ namespace LinqInfer.Maths
 
             return t / (Height - (isSampleData ? 1 : 0));
         }
+
+        /// <summary>
+        /// Returns the cosine distance between two rows
+        /// </summary>
+        public double CosineDistance(int x, int y) => Rows[y].ToColumnVector().CosineDistance(Rows[x].ToColumnVector());
 
         /// <summary>
         /// Transposes the matrix into a new matrix
@@ -428,7 +440,7 @@ namespace LinqInfer.Maths
             return Rows.GetEnumerator();
         }
 
-        public bool Equals(Matrix other)
+        public virtual bool Equals(Matrix other)
         {
             if (!DimensionallyEquivalent(other)) return false;
 
@@ -454,7 +466,7 @@ namespace LinqInfer.Maths
             return x;
         }
 
-        public void WriteAsCsv(TextWriter output, char delimitter = ',', int precision = 8)
+        public virtual void WriteAsCsv(TextWriter output, char delimitter = ',', int precision = 8)
         {
             foreach (var vect in _rows)
             {
@@ -519,39 +531,57 @@ namespace LinqInfer.Maths
                 _rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
 
             _covariance = new Lazy<Matrix>(CalculateCovarianceMatrix);
+
+            _cosineSimularity = new Lazy<Matrix>(CalculateCosineSimularityMatrix);
         }
 
         private Matrix CalculateCovarianceMatrix()
         {
+            var data = new List<double[]>(Width);
+
+            foreach (var d in Enumerable.Range(0, Width))
+            {
+                var row = new double[Width];
+
+                foreach (var x in Enumerable.Range(0, Width))
+                {
+                    if (x == d)
+                    {
+                        row[x] = Variance(x);
+                    }
+                    else
+                    {
+                        row[x] = Covariance(x, d);
+                    }
+                }
+
+                data.Add(row);
+            }
+
+            return new Matrix(data);
+        }
+
+        private Matrix CalculateCosineSimularityMatrix()
+        {
             var data = new List<double[]>();
 
-            if (Height == 1)
+            foreach (var d in Enumerable.Range(0, Width))
             {
-                foreach (var d in Enumerable.Range(0, Width))
-                {
-                    data.Add(Enumerable.Range(0, Width).Select(_ => 0d).ToArray());
-                }
-            }
-            else
-            {
-                foreach (var d in Enumerable.Range(0, Width))
-                {
-                    var row = new double[Width];
+                var row = new double[Width];
 
-                    foreach (var x in Enumerable.Range(0, Width))
+                foreach (var x in Enumerable.Range(0, Width))
+                {
+                    if (x == d)
                     {
-                        if (x == d)
-                        {
-                            row[x] = Variance(x);
-                        }
-                        else
-                        {
-                            row[x] = Covariance(x, d);
-                        }
+                        row[x] = 0;
                     }
-
-                    data.Add(row);
+                    else
+                    {
+                        row[x] = CosineDistance(x, d);
+                    }
                 }
+
+                data.Add(row);
             }
 
             return new Matrix(data);
@@ -574,7 +604,7 @@ namespace LinqInfer.Maths
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public virtual BinaryVectorDocument ToVectorDocument()
         {
             var doc = new BinaryVectorDocument();
 
@@ -586,7 +616,7 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public virtual void FromVectorDocument(BinaryVectorDocument doc)
         {
             _rows.Clear();
 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LinqInfer.Data
@@ -21,17 +22,14 @@ namespace LinqInfer.Data
         private const string DataName = "DATA";
         private const string ChildrenName = "CLRN";
 
-        private readonly IDictionary<string, string> _properties;
-        private readonly IDictionary<string, byte[]> _blobs;
-        private readonly IList<IVector> _vectorData;
-        private readonly IList<BinaryVectorDocument> _children;
+        private string _rootName;
 
         public BinaryVectorDocument()
         {
-            _properties = new ConstrainableDictionary<string, string>(v => v != null);
-            _blobs = new Dictionary<string, byte[]>();
-            _vectorData = new List<IVector>();
-            _children = new List<BinaryVectorDocument>();
+            Properties = new ConstrainableDictionary<string, string>(v => v != null);
+            Blobs = new Dictionary<string, byte[]>();
+            Vectors = new List<IVector>();
+            Children = new List<BinaryVectorDocument>();
 
             Version = 1;
             Timestamp = DateTime.UtcNow;
@@ -79,17 +77,17 @@ namespace LinqInfer.Data
 
                 checksum ^= Version;
 
-                foreach(var prop in _properties)
+                foreach(var prop in Properties)
                 {
                     checksum ^= prop.Key.GetHashCode() ^ prop.Value.GetHashCode();
                 }
 
-                foreach(var val in _vectorData)
+                foreach(var val in Vectors)
                 {
                     checksum ^= val.GetHashCode();
                 }
 
-                foreach (var cld in _children)
+                foreach (var cld in Children)
                 {
                     checksum ^= cld.Checksum;
                 }
@@ -109,6 +107,20 @@ namespace LinqInfer.Data
         {
             Properties[nameof(AssemblyQualifiedName)] = type.AssemblyQualifiedName;
             Properties[nameof(TypeName)] = type.Name;
+
+            try
+            {
+                var n = type.Name;
+                var i = n.IndexOf('`');
+
+                if (i > -1)
+                {
+                    n = n.Substring(0, i);
+                }
+
+                _rootName = XmlConvert.VerifyName(n)?.ToLowerInvariant();
+            }
+            catch (XmlException) { }
         }
 
         internal string AssemblyQualifiedName => PropertyOrDefault(nameof(AssemblyQualifiedName), string.Empty);
@@ -117,24 +129,12 @@ namespace LinqInfer.Data
 
         public BinaryVectorDocument FindChild<T>()
         {
-            return QueryChildren(new { AssemblyQualifiedName = typeof(T).AssemblyQualifiedName }).FirstOrDefault();
+            return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
         }
 
-        public IDictionary<string, string> Properties
-        {
-            get
-            {
-                return _properties;
-            }
-        }
+        public IDictionary<string, string> Properties { get;  }
 
-        public IDictionary<string, byte[]> Blobs
-        {
-            get
-            {
-                return _blobs;
-            }
-        }
+        public IDictionary<string, byte[]> Blobs { get; }
 
         public IEnumerable<BinaryVectorDocument> QueryChildren(object propertyQuery)
         {
@@ -161,14 +161,14 @@ namespace LinqInfer.Data
 
         public bool HasProperty(string name)
         {
-            return _properties.ContainsKey(name);
+            return Properties.ContainsKey(name);
         }
 
         public T PropertyOrDefault<T>(string key, T defaultValue)
         {
             string val;
 
-            if (_properties.TryGetValue(key, out val))
+            if (Properties.TryGetValue(key, out val))
             {
                 if (typeof(T).GetTypeInf().IsEnum)
                 {
@@ -188,13 +188,7 @@ namespace LinqInfer.Data
             return defaultValue;
         }
 
-        public IList<IVector> Vectors
-        {
-            get
-            {
-                return _vectorData;
-            }
-        }
+        public IList<IVector> Vectors { get; private set; }
 
         public BinaryVectorDocument AddChild()
         {
@@ -203,13 +197,7 @@ namespace LinqInfer.Data
             return doc;
         }
 
-        public IList<BinaryVectorDocument> Children
-        {
-            get
-            {
-                return _children;
-            }
-        }
+        public IList<BinaryVectorDocument> Children { get; private set; }
 
         public void Load(Stream input)
         {
@@ -363,7 +351,7 @@ namespace LinqInfer.Data
 
             actions[PropertiesName] = (n, r) =>
             {
-                _properties[r.ReadString()] = r.ReadString();
+                Properties[r.ReadString()] = r.ReadString();
             };
 
             actions[DataName] = (n, r) =>
@@ -371,7 +359,7 @@ namespace LinqInfer.Data
                 var len = r.ReadInt32();
                 var vect = ColumnVector1D.FromByteArray(r.ReadBytes(len));
 
-                _vectorData.Add(vect);
+                Vectors.Add(vect);
             };
 
             actions[BlobName] = (n, r) =>
@@ -380,7 +368,7 @@ namespace LinqInfer.Data
                 var len = r.ReadInt32();
                 var blob = r.ReadBytes(len);
 
-                _blobs[key] = blob;
+                Blobs[key] = blob;
             };
 
             actions[ChildrenName] = (n, r) =>
@@ -389,7 +377,7 @@ namespace LinqInfer.Data
 
                 child.Read(r, level + 1);
 
-                _children.Add(child);
+                Children.Add(child);
             };
 
             ReadSections(reader, n => actions[n]);
@@ -417,41 +405,43 @@ namespace LinqInfer.Data
         {
             var date = DateTime.UtcNow;
 
-            var doc = new XDocument(new XElement(isRoot ? "doc" : "node",
+            var en = _rootName ?? (isRoot ? "doc" : "node");
+
+            var doc = new XDocument(new XElement(en,
                 new XAttribute("version", Version),
                 new XAttribute("checksum", Checksum)));
 
             if (isRoot) doc.Root.Add(new XAttribute("exported", date));
 
-            if (_properties.Any())
+            if (Properties.Any())
             {
                 var propsNode = new XElement(PropertiesName.ToLower(),
-                    _properties.Select(p => new XElement("property",
+                    Properties.Select(p => new XElement("property",
                         new XAttribute("key", p.Key),
                         new XAttribute("value", p.Value))));
 
                 doc.Root.Add(propsNode);
             }
 
-            if (_vectorData.Any())
+            if (Vectors.Any())
             {
                 var dataNode = new XElement(DataName.ToLower(),
-                    _vectorData.Select(v => new XElement("vector", 
+                    Vectors.Select(v => new XElement("vector", 
                     VectorSerialiser.Serialize(v, base64v))));
                 doc.Root.Add(dataNode);
             }
 
-            if (_blobs.Any())
+            if (Blobs.Any())
             {
                 var blobsNode = new XElement(BlobName.ToLower() + "s",
-                    _blobs.Select(b => new XElement(BlobName.ToLower(),
+                    Blobs.Select(b => new XElement(BlobName.ToLower(),
                         new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
                 doc.Root.Add(blobsNode);
             }
 
-            if (_children.Any())
+            if (Children.Any())
             {
-                var childrenNode = new XElement(ChildrenName.ToLower(), _children.Select(c => c.ExportAsXml(false, base64v).Root));
+                var childrenNode = new XElement(ChildrenName.ToLower(), Children.Select(c => c.ExportAsXml(false, base64v).Root));
 
                 doc.Root.Add(childrenNode);
             }
@@ -494,19 +484,19 @@ namespace LinqInfer.Data
 
             foreach (var prop in ChildElements(rootNode, PropertiesName).Where(e => e.Name.LocalName == "property" && e.HasAttributes))
             {
-                _properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
+                Properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
             }
 
             foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == "vector"))
             {
                 var vd = VectorSerialiser.Deserialize(vect.Value, VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
 
-                _vectorData.Add(vd);
+                Vectors.Add(vd);
             }
             
             foreach (var blob in ChildElements(rootNode, BlobName + "s").Where(e => e.Name.LocalName == BlobName.ToLower()))
             {
-                _blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
+                Blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
             }
 
             foreach (var child in ChildElements(rootNode, ChildrenName))
@@ -515,7 +505,7 @@ namespace LinqInfer.Data
 
                 cdoc.ImportXml(child);
 
-                _children.Add(cdoc);
+                Children.Add(cdoc);
             }
 
             if (ValidateOnImport && Checksum != checksum)
@@ -541,18 +531,18 @@ namespace LinqInfer.Data
             writer.Write(date.ToBinary());
 
             writer.Write(PropertiesName);
-            writer.Write(_properties.Count);
+            writer.Write(Properties.Count);
 
-            foreach(var prop in _properties)
+            foreach(var prop in Properties)
             {
                 writer.Write(prop.Key);
                 writer.Write(prop.Value);
             }
 
             writer.Write(DataName);
-            writer.Write(_vectorData.Count);
+            writer.Write(Vectors.Count);
 
-            foreach (var data in _vectorData)
+            foreach (var data in Vectors)
             {
                 var ba = data.ToByteArray();
                 writer.Write(ba.Length);
@@ -560,9 +550,9 @@ namespace LinqInfer.Data
             }
 
             writer.Write(BlobName);
-            writer.Write(_blobs.Count);
+            writer.Write(Blobs.Count);
 
-            foreach(var blob in _blobs)
+            foreach(var blob in Blobs)
             {
                 writer.Write(blob.Key);
                 writer.Write(blob.Value.Length);
@@ -570,9 +560,9 @@ namespace LinqInfer.Data
             }
 
             writer.Write(ChildrenName);
-            writer.Write(_children.Count);
+            writer.Write(Children.Count);
 
-            foreach(var child in _children)
+            foreach(var child in Children)
             {
                 child.Write(writer, level + 1);
             }

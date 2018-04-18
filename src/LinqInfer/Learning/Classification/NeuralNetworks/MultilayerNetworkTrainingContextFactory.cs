@@ -97,11 +97,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 _network.PruneInputs(inputIndexes);
             }
 
-            public double Train(IVector outputVector, IVector sampleVector)
+            public double Train(IVector inputVector, IVector outputVector)
             {
                 if (!_error.HasValue) _error = 0;
 
-                var err = _rawLearningProcessor.Train(sampleVector, outputVector);
+                var err = _rawLearningProcessor.Train(inputVector, outputVector);
 
                 _error += err;
 

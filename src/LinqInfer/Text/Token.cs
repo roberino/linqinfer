@@ -3,6 +3,14 @@ using System.Linq;
 
 namespace LinqInfer.Text
 {
+    public static class TokenExtensions
+    {
+        public static string NormalForm(this IToken token)
+        {
+            return token.Text.ToLowerInvariant();
+        }
+    }
+
     internal class Token : IToken
     {
         public Token(string value, int index, TokenType? type = null)

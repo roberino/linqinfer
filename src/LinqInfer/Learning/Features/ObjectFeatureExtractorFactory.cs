@@ -1,4 +1,5 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +61,7 @@ namespace LinqInfer.Learning.Features
             foreach (var p in featureProperties) p.Index = i++;
 
             return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
-                featureProperties.Select(c => x == null ? 1f : c.ConversionFunction(x)).ToArray(),
+                Extract(x, featureProperties),
                 featureProperties.Count,
                 featureProperties.Select(f => new Feature()
                 {
@@ -70,6 +71,21 @@ namespace LinqInfer.Learning.Features
                     Index = f.Index,
                     Model = f.FeatureMetadata.Model
                 }).ToArray());
+        }
+
+        private IVector Extract<T>(T item, IList<PropertyExtractor<T>> properties)
+        {
+            var values = new double[properties.Count];
+
+            if (item != null)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    values[i] = properties[i].ConversionFunction(item);
+                }
+            }
+
+            return new ColumnVector1D(values);
         }
 
         internal IList<PropertyExtractor<T>> GetFeatureProperties<T>(Type actualType, string setName = null) where T : class

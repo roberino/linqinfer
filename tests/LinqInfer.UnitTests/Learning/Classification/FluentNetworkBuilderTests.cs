@@ -22,7 +22,11 @@ namespace LinqInfer.UnitTests.Learning.Classification
         public void WhenLearningParamsProvided_ThenSetCorrectlyInSpec()
         {
             var spec = new FluentNetworkBuilder(8, 4)
-                .ConfigureLearningParameters(0.12d, 0.33d)
+                .ConfigureLearningParameters(p =>
+                {
+                    p.LearningRate = 0.12d;
+                    p.MinimumError = 0.33d;
+                })
                 .Build()
                 .Parameters;
 

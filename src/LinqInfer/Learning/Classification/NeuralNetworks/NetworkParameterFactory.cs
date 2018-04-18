@@ -16,7 +16,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _learningRate = learningRate;
         }
 
-        public IEnumerable<NetworkParameters> GenerateParameters(ActivatorFunc activator)
+        public IEnumerable<NetworkParameters> GenerateParameters(IActivatorFunction activator)
         {
             // d | d(2d + 1) | (2d + 1) | o
 

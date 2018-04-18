@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>MatrixBenchmarks</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.10.12, OS=Windows 10 Redstone 2 [1703, Creators Update] (10.0.15063.909)
+Intel Core i7-6500U CPU 2.50GHz (Skylake), 1 CPU, 4 logical cores and 2 physical cores
+Frequency=2531248 Hz, Resolution=395.0620 ns, Timer=TSC
+.NET Core SDK=2.0.2
+  [Host]     : .NET Core 2.0.3 (Framework 4.6.25815.02), 64bit RyuJIT
+  DefaultJob : .NET Core 2.0.3 (Framework 4.6.25815.02), 64bit RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>           Method</th><th>Width</th><th>Height</th><th>         Mean</th><th>      Error</th><th>      StdDev</th><th>       Median</th>
+</tr>
+</thead><tbody><tr><td>Matrix_Multiply</td><td>5</td><td>5</td><td>33,946.5694 ns</td><td>971.0194 ns</td><td>2,738.7776 ns</td><td>33,774.1072 ns</td>
+</tr><tr><td>Matrix_Addition</td><td>5</td><td>5</td><td>3,323.1778 ns</td><td>94.4132 ns</td><td>275.4079 ns</td><td>3,261.2334 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>5</td><td>5</td><td>0.6336 ns</td><td>0.0596 ns</td><td>0.1662 ns</td><td>0.6074 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>5</td><td>100</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Multiply</td><td>5</td><td>100</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Addition</td><td>5</td><td>100</td><td>27,428.6191 ns</td><td>769.7525 ns</td><td>2,183.6598 ns</td><td>26,952.6496 ns</td>
+</tr><tr><td>Matrix_Addition</td><td>5</td><td>100</td><td>26,901.3215 ns</td><td>869.7379 ns</td><td>2,481.4112 ns</td><td>26,692.3557 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>5</td><td>100</td><td>0.6817 ns</td><td>0.0608 ns</td><td>0.1715 ns</td><td>0.6416 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>5</td><td>100</td><td>0.5802 ns</td><td>0.0571 ns</td><td>0.1242 ns</td><td>0.5857 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>100</td><td>5</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Addition</td><td>100</td><td>5</td><td>6,040.8511 ns</td><td>241.2339 ns</td><td>688.2539 ns</td><td>5,860.2884 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>100</td><td>5</td><td>0.7531 ns</td><td>0.0576 ns</td><td>0.1137 ns</td><td>0.7156 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>100</td><td>100</td><td>139,485,381.1102 ns</td><td>3,643,033.5127 ns</td><td>10,626,899.7513 ns</td><td>139,162,477.8569 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>100</td><td>100</td><td>140,546,906.7055 ns</td><td>2,786,435.3458 ns</td><td>7,340,585.2312 ns</td><td>140,475,176.4250 ns</td>
+</tr><tr><td>Matrix_Addition</td><td>100</td><td>100</td><td>61,767.4328 ns</td><td>1,476.8427 ns</td><td>1,450.4569 ns</td><td>61,227.4114 ns</td>
+</tr><tr><td>Matrix_Addition</td><td>100</td><td>100</td><td>70,838.3600 ns</td><td>2,434.0918 ns</td><td>7,138.7698 ns</td><td>69,363.4229 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>100</td><td>100</td><td>0.5270 ns</td><td>0.0560 ns</td><td>0.1144 ns</td><td>0.4807 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>100</td><td>100</td><td>0.7465 ns</td><td>0.0673 ns</td><td>0.0629 ns</td><td>0.7524 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>500</td><td>5</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Addition</td><td>500</td><td>5</td><td>13,199.3597 ns</td><td>394.2379 ns</td><td>1,137.4666 ns</td><td>12,878.0616 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>500</td><td>5</td><td>1.0209 ns</td><td>0.0520 ns</td><td>0.0461 ns</td><td>1.0172 ns</td>
+</tr><tr><td>Matrix_Multiply</td><td>500</td><td>100</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Multiply</td><td>500</td><td>100</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Matrix_Addition</td><td>500</td><td>100</td><td>296,486.6562 ns</td><td>6,010.6207 ns</td><td>16,755.2080 ns</td><td>294,034.3758 ns</td>
+</tr><tr><td>Matrix_Addition</td><td>500</td><td>100</td><td>296,699.2176 ns</td><td>7,883.1231 ns</td><td>22,618.1579 ns</td><td>292,808.6322 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>500</td><td>100</td><td>12,616.2101 ns</td><td>247.9812 ns</td><td>339.4395 ns</td><td>12,460.1709 ns</td>
+</tr><tr><td>Matrix_CovarianceMatrix</td><td>500</td><td>100</td><td>27.4219 ns</td><td>0.7355 ns</td><td>2.1222 ns</td><td>27.3334 ns</td>
+</tr></tbody></table>
+</body>
+</html>
