@@ -8,6 +8,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class LayerSpecification : IExportableAsVectorDocument
     {
+        public static readonly Range DefaultInitialWeightRange = new Range(0.01, -0.01);
+
         private ISerialisableVectorTransformation _outputTransformation;
 
         public LayerSpecification(
@@ -35,7 +37,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public LayerSpecification(
             int layerSize,
             IActivatorFunction activator = null,
-            ILossFunction lossFunction = null) : this(layerSize, activator ?? Activators.Sigmoid(1), lossFunction ?? LossFunctions.Square, DefaultWeightUpdateRule.Create(), new Range(0.01, -0.01))
+            ILossFunction lossFunction = null) : this(
+                layerSize, activator ?? Activators.Sigmoid(1), 
+                lossFunction ?? LossFunctions.Square, 
+                DefaultWeightUpdateRule.Create(), 
+                DefaultInitialWeightRange)
         {
         }
 
@@ -74,7 +80,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public ISerialisableVectorTransformation OutputTransformation
         {
-            get { return _outputTransformation; }
+            get => _outputTransformation;
             set
             {
                 if (value != null && value.InputSize != LayerSize)

@@ -21,7 +21,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             IActivatorFunction activator,
             ILossFunction lossFunction,
             Func<int, INeuron> neuronFactory = null)
-            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), new Range(1, -1)))
+            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), Range.MinusOneToOne))
         {
         }
 

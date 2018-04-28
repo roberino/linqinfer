@@ -57,7 +57,7 @@ namespace LinqInfer.Text.Analysis
                   w.Vector.Size == 0 ? _encoding.Encode(w.Word) : w.Vector,
                 _encoding.VectorSize);
 
-            pipeline = await pipeline.CentreAndScaleAsync(new Range(1, -1));
+            pipeline = await pipeline.CentreAndScaleAsync(Range.MinusOneToOne);
 
             return pipeline
                  .AsTrainingSet(w => w.Word, aggregation.Keys.ToArray());

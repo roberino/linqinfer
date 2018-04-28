@@ -26,7 +26,7 @@ namespace LinqInfer.Maths
         /// <returns></returns>
         public static SerialisableVectorTransformation CreateCentreAndScaleTransformation(this MinMaxMeanVector minMaxAndMean, Range? range = null)
         {
-            if (!range.HasValue) range = new Range(1, -1);
+            if (!range.HasValue) range = Range.MinusOneToOne;
 
             var mean = minMaxAndMean.Mean.ToColumnVector();
             var adjustedMin = minMaxAndMean.Min.ToColumnVector() - mean;
@@ -35,7 +35,7 @@ namespace LinqInfer.Maths
             var targetMin = Vector.UniformVector(adjustedMax.Size, -range.Value.Min);
 
             var centre = new VectorOperation(VectorOperationType.Subtract, mean + adjustedMin);
-            var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
+            var scale = new VectorOperation(VectorOperationType.SafeDivide, scaleValue);
             var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, targetMin);
 
             var transform = new SerialisableVectorTransformation(centre, scale, rangeTranspose);
@@ -49,7 +49,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxVector minMax, Range? range = null)
         {
-            if (!range.HasValue) range = new Range(1, -1);
+            if (!range.HasValue) range = Range.MinusOneToOne;
 
             var adjustedMax = minMax.Max.ToColumnVector() - minMax.Min.ToColumnVector();
             var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);

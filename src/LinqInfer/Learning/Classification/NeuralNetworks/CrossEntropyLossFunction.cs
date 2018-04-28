@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var loss = targetOutput.MultiplyBy(actualOutput.ToColumnVector().Log());
             var error = targetOutput.ToColumnVector() - actualOutput.ToColumnVector();
-            var dw = error.Calculate(actualOutput, (e, o) => -e * derivative(o));
+            var dw = error.Calculate(actualOutput, (e, o) => e * derivative(o));
 
             return new ErrorAndLossVectors()
             {

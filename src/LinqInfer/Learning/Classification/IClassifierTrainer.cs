@@ -10,6 +10,11 @@
         void PruneInputs(params int[] inputIndexes);
 
         /// <summary>
+        /// Returns the average error from training
+        /// </summary>
+        double? AverageError { get; }
+
+        /// <summary>
         /// Resets the error back to null
         /// </summary>
         void ResetError();

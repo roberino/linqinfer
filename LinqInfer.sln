@@ -54,7 +54,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CB31A68F-767
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1FDA159C-6FAB-46FA-BC24-21736A48A986}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Benchmarking", "tests\LinqInfer.Benchmarking\LinqInfer.Benchmarking.csproj", "{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Benchmarking", "tests\LinqInfer.Benchmarking\LinqInfer.Benchmarking.csproj", "{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.ImageLearningTests", "tests\LinqInfer.ImageLearningTests\LinqInfer.ImageLearningTests.csproj", "{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,6 +96,10 @@ Global
 		{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,6 +114,7 @@ Global
 		{1E8D446F-D1E1-4E54-9DC4-7432B883E0DA} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 		{300FD62F-8A3C-401B-84AE-592F978C6DB9} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 		{99FFBAAA-6682-4665-BC93-F0CDEDCF5799} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
+		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {37958736-31B5-4708-B641-737A0D069293}

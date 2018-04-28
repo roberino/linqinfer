@@ -17,6 +17,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         }
 
+        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        {
+            return specificationBuilder.
+                AddHiddenLayer(p => 
+                    new LayerSpecification(
+                        layerSize, 
+                        Activators.None(), 
+                        LossFunctions.Square,
+                        DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum),
+                        LayerSpecification.DefaultInitialWeightRange));
+
+        }
+
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
         {
             return specificationBuilder
@@ -37,7 +50,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
     public sealed class FluentNetworkBuilder : IFluentNetworkBuilder
     {
-        private readonly IList<LayerSpecification> _layers;
+        private readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
         private readonly Range _defaultWeightRange;
         private LearningParameters _learningParams;
         private LayerSpecification _output;
@@ -52,7 +65,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
-            _layers = new List<LayerSpecification>();
+            _layers = new List<Func<LearningParameters, LayerSpecification>>();
             _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), _defaultWeightRange);
         }
 
@@ -89,7 +102,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IFluentNetworkBuilder AddHiddenLayer(LayerSpecification layer)
         {
-            _layers.Add(layer);
+            _layers.Add(_ => layer);
+            return this;
+        }
+
+        public IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, LayerSpecification> layerFactory)
+        {
+            _layers.Add(layerFactory);
             return this;
         }
 
@@ -97,7 +116,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var tx = _output.OutputTransformation;
 
-            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
+            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, DefaultWeightUpdateRule.Create(_learningParams.LearningRate, _learningParams.Momentum), initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
             {
                 OutputTransformation = tx
             };
@@ -127,17 +146,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IClassifierTrainingContext<NetworkSpecification> Build()
         {
+            var builtLayers = _layers.Select(f => f(_learningParams)).ToList();
+
             if (_layerAction != null)
             {
-                foreach (var layer in _layers)
+                foreach (var layer in builtLayers)
                 {
                     _layerAction(layer);
                 }
                 _layerAction(_output);
             }
 
-            var spec = new NetworkSpecification(_learningParams,
-                _inputVectorSize, _layers.Concat(new[] { _output }).ToArray());
+            var spec = new NetworkSpecification(
+                _learningParams,
+                _inputVectorSize, 
+                builtLayers.Concat(new[] { _output }).ToArray());
             
             int id = 1;
 
@@ -167,7 +190,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Parameters = parameters;
             }
 
-            public MlnCtx(Func<int> idFunc, MultilayerNetwork network)
+            private MlnCtx(Func<int> idFunc, MultilayerNetwork network)
             {
                 _network = network;
 

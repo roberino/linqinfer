@@ -1,21 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyName>LinqInfer.UnitTests</AssemblyName>
     <RootNamespace>LinqInfer.UnitTests</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Text\*.txt" />
-    <EmbeddedResource Include="Text\*.html" />
-    <EmbeddedResource Include="Maths\*.html" />
-    <EmbeddedResource Include="Maths\Graphs\*.xml" />
-    <EmbeddedResource Include="Learning\*.xml" />
-    <EmbeddedResource Include="Data\Storage\*.csv" />
-    <EmbeddedResource Include="Data\Remoting\*.txt" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
@@ -23,15 +13,6 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NUnit" Version="3.8.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Learning/Classification/Remoting/RemoteClassifierTrainingServerTests.cs" />
-    <Compile Remove="Data/Remoting/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Data\Orm\DataMapperTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,6 +10,21 @@ namespace LinqInfer.Learning
     public static class MlnExtensions
     {
         /// <summary>
+        /// Builds a softmax network configuration
+        /// with a single hidden layer
+        /// </summary>
+        public static IFluentNetworkBuilder ConfigureSoftmaxNetwork(this IFluentNetworkBuilder builder, int hiddenLayerSize, Action<LearningParameters> learningConfig = null)
+        {
+            return builder.ParallelProcess()
+                .ConfigureLearningParameters(p =>
+                {
+                    learningConfig?.Invoke(p);
+                })
+                .AddHiddenLinearLayer(hiddenLayerSize)
+                .AddSoftmaxOutput();
+        }
+
+        /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
