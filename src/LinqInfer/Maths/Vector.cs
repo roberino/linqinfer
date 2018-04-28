@@ -345,11 +345,25 @@ namespace LinqInfer.Maths
 
         public static Vector operator /(Vector v1, Vector v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
+            return v1.Divide(v2, ZeroDivideBehaviour.ReturnNan);
+        }
 
-            int i = 0;
+        public Vector Divide(Vector v2, ZeroDivideBehaviour zeroDivideBehaviour)
+        {
+            Contract.Requires(Size == v2.Size);
 
-            return new Vector(v1._values.Select(x => x / v2._values[i++]).ToArray());
+            var divider = zeroDivideBehaviour.CreateDivider();
+
+            var newValues = new double[Size];
+            var v1a = _values;
+            var v2a = v2._values;
+
+            for (int i = 0; i < v1a.Length; i++)
+            {
+                newValues[i] = divider(v1a[i], v2a[i]);
+            }
+
+            return new ColumnVector1D(newValues);
         }
 
         public static Vector operator /(Vector v1, double y)

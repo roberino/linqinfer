@@ -17,6 +17,16 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a range 0 to 1
+        /// </summary>
+        public static readonly Range ZeroToOne = new Range(1, 0);
+
+        /// <summary>
+        /// Returns a range -1 to 1
+        /// </summary>
+        public static readonly Range MinusOneToOne = new Range(1, -1);
+
+        /// <summary>
         /// The minimum (inclusive) value
         /// </summary>
         public double Min { get; }

@@ -52,6 +52,8 @@ namespace LinqInfer.Maths
                     return AsVector().MultiplyBy(input);
                 case VectorOperationType.Divide:
                     return input.ToColumnVector() / AsVector();
+                case VectorOperationType.SafeDivide:
+                    return input.ToColumnVector().Divide(AsVector(), ZeroDivideBehaviour.ReturnZero);
                 case VectorOperationType.Subtract:
                     return input.ToColumnVector() - AsVector();
                 case VectorOperationType.EuclideanDistance:
@@ -122,6 +124,7 @@ namespace LinqInfer.Maths
         Subtract,
         VectorMultiply,
         MatrixMultiply,
-        Divide
+        Divide,
+        SafeDivide
     }
 }

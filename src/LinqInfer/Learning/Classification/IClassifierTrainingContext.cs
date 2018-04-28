@@ -33,10 +33,5 @@ namespace LinqInfer.Learning.Classification
         /// Returns the error accumulated from training
         /// </summary>
         double? CumulativeError { get; }
-
-        /// <summary>
-        /// Returns the average error from training
-        /// </summary>
-        double? AverageError { get; }
     }
 }

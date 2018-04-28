@@ -229,6 +229,16 @@ namespace LinqInfer.Maths
             return FromByteArray(Convert.FromBase64String(data));
         }
 
+        /// <summary>
+        /// Returns a BitVector from a 
+        /// double array where anything below the threshold is
+        /// zero (false) and anything above or equest is one (true)
+        /// </summary>
+        public static BitVector FromDoubleArray(double[] data, double threshold)
+        {
+            return new BitVector(data.Select(x => x >= threshold).ToArray());
+        }
+
         private static byte[] Encode(bool[] values)
         {
             Contract.Requires(values != null);

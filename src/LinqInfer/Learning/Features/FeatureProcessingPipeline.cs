@@ -232,7 +232,7 @@ namespace LinqInfer.Learning.Features
         {
             try
             {
-                return CentreFeatures().ScaleFeatures(new Range(1, 0));
+                return CentreFeatures().ScaleFeatures(Range.ZeroToOne);
             }
             catch (Exception ex)
             {
