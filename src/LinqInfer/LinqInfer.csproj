@@ -23,7 +23,7 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>4.1.0</Version>
+    <Version>4.2.0</Version>
     <RootNamespace>LinqInfer</RootNamespace>
     <RootNamespace>LinqInfer</RootNamespace>
     <LangVersion>7</LangVersion>
