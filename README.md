@@ -73,6 +73,8 @@ var classifier3 = trainingSet.ToMultilayerNetworkClassifier().Execute();
 
 ```
 
+See also [character learning example] (tests/LinqInfer.ImageLearningTests/ImageLearningExamples.cs)
+
 See more documentation on [Neural Networks](docs/neural-networks.md)
 
 #### Text
