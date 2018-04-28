@@ -19,9 +19,9 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var loss1 = func.Calculate(v1, expected, x => x);
             var loss2 = func.Calculate(v2, expected, x => x);
 
-            Assert.That(loss1.DerivativeError[0], Is.LessThan(loss2.DerivativeError[0]));
-            Assert.That(loss1.DerivativeError[1], Is.LessThan(loss2.DerivativeError[1]));
-            Assert.That(loss1.DerivativeError[2], Is.EqualTo(loss2.DerivativeError[2]));
+            Assert.That(loss2.DerivativeError[0], Is.LessThan(loss1.DerivativeError[0]));
+            Assert.That(loss2.DerivativeError[1], Is.LessThan(loss1.DerivativeError[1]));
+            Assert.That(loss2.DerivativeError[2], Is.EqualTo(loss1.DerivativeError[2]));
         }
 
         [Test]
