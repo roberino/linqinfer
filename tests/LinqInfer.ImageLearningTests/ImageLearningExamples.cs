@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Maths;
 using LinqInfer.Tests.Learning;
 using LinqInfer.Utility;
@@ -15,19 +16,19 @@ namespace LinqInfer.UnitTests
     public class ImageLearningExamples
     {
         [Test]
-        public async Task TrainSoftmaxNetwork()
+        public async Task TrainSoftmaxNetworkAsync()
         {
-            int size = 15;
+            const int size = 15;
 
-            var chars = ImageSampleGeneration.Characters('A', 'F').ToArray();
-            // var chars = new[] {'A', 'C', '.'};
+            var chars = ImageSampleGeneration.Characters('O', 'i', 'X').ToArray();
 
             var bitmapDataSource = chars
                 .Letters(size, FontFamily.GenericMonospace)
+                .Concat(chars.Letters(size, FontFamily.GenericSansSerif))
                 .RandomOrder()
                 .ToList();
 
-            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(90));
             var token = tokenSource.Token; //CancellationToken.None;
 
             var trainingSet = await bitmapDataSource
@@ -38,16 +39,26 @@ namespace LinqInfer.UnitTests
 
             var network = trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
-                b.ConfigureSoftmaxNetwork(size * size * 2, p => p.MinimumError = 0.05);
+                b.ConfigureSoftmaxNetwork(size * size * 2, p =>
+                {
+                    p.ErrorHistoryCount = 150;
+                    p.HaltingFunction = (_, s) =>
+                    {
+                        return s.AverageError < 1.1 || s.Trend > 0.1;
+                    };
+                });
             });
 
-            await trainingSet.RunAsync(token, 100);
+            await trainingSet.RunAsync(token, 1500);
+
+            var data = network.ToVectorDocument();
+
+            var classifier = data.OpenAsMultilayerNetworkClassifier<ImageSampleGeneration.Letter, char>(x => x.VectorData, size * size);
 
             foreach (var unknownLetter in chars
-                .Letters(size, FontFamily.GenericSerif)
-                .RandomOrder())
+                .Letters(size, FontFamily.GenericSerif))
             {
-                var result = network.Classify(unknownLetter);
+                var result = classifier.Classify(unknownLetter);
 
                 Console.WriteLine($"{unknownLetter.Character}");
 

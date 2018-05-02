@@ -23,6 +23,11 @@ namespace LinqInfer.Tests.Learning
                 .Select(n => (char)(byte)n);
         }
 
+        public static IEnumerable<char> Characters(params char[] values)
+        {
+            return values;
+        }
+
         public static IEnumerable<Letter> Letters(this IEnumerable<char> characters, int width, FontFamily font)
         {
             return characters

@@ -61,7 +61,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        internal static NetworkSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context = null)
+        internal static NetworkSpecification FromVectorDocument(BinaryVectorDocument doc,
+            NetworkBuilderContext context = null)
         {
             NetworkSpecification networkSpecification = null;
 
@@ -78,9 +79,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 MinimumError = minimumError
             };
 
-            if (layers.Length == 1) return new NetworkSpecification(learningParams, inputVectorSize, layers.Single());
-
-            return new NetworkSpecification(learningParams, layers);
+            return inputVectorSize > 0
+                ? new NetworkSpecification(learningParams, inputVectorSize, layers)
+                : new NetworkSpecification(learningParams, layers);
         }
 
         internal void Validate()

@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class LayerSpecification : IExportableAsVectorDocument
     {
-        public static readonly Range DefaultInitialWeightRange = new Range(0.01, -0.01);
+        public static readonly Range DefaultInitialWeightRange = new Range(0.00000001, -0.00000001);
 
         private ISerialisableVectorTransformation _outputTransformation;
 

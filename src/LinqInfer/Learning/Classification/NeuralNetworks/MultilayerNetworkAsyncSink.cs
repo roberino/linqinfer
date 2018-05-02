@@ -9,19 +9,22 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkAsyncSink<TInput, TClass>
+    internal class MultilayerNetworkAsyncSink<TClass>
         : IBuilderSink<TrainingPair<IVector, IVector>, IVectorClassifier>
-        where TInput : class where TClass : IEquatable<TClass>
+        where TClass : IEquatable<TClass>
     {
         private readonly IClassifierTrainer _trainingContext;
-        private readonly Func<int, double, bool> _haltingFunction;
+        private readonly LearningParameters _learningParameters;
 
-        private double? _lastError;
+        private readonly ValueStore _errorHistory;
         
-        public MultilayerNetworkAsyncSink(IClassifierTrainer trainer, Func<int, double, bool> haltingFunction)
+        public MultilayerNetworkAsyncSink(
+            IClassifierTrainer trainer,
+            LearningParameters learningParameters)
         {
             _trainingContext = trainer;
-            _haltingFunction = haltingFunction;
+            _learningParameters = learningParameters;
+            _errorHistory = new ValueStore(learningParameters.ErrorHistoryCount);
 
             Reset();
         }
@@ -48,21 +51,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             if (_trainingContext.AverageError.HasValue)
             {
-                if (_lastError.HasValue)
+                _errorHistory.Register(_trainingContext.AverageError.Value);
+
+                if (_errorHistory.Trend > 0)
                 {
-                    var rateOrErr = (_trainingContext.AverageError - _lastError);
-
-                    if (rateOrErr > 0)
-                    {
-                        // CanReceive = false;
-
-                        DebugOutput.Log("Error increasing");
-                    }
+                    DebugOutput.Log("Error increasing");
                 }
 
-                _lastError = _trainingContext.AverageError;
+                var status = new TrainingStatus
+                {
+                    AverageError = _trainingContext.AverageError.Value,
+                    Iteration = _errorHistory.Count,
+                    Trend = _errorHistory.Trend
+                };
 
-                if (_haltingFunction(dataBatch.BatchNumber, _trainingContext.AverageError.Value))
+                if (_learningParameters.EvaluateHaltingFunction(status))
                 {
                     CanReceive = false;
 

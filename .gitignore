@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.userosscache
+*.ncrunchproject
 *.sln.docstates
 *.sqlite
 # Build results

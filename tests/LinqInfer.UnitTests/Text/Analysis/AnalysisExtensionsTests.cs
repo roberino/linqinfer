@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Learning;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
@@ -21,17 +20,6 @@ namespace LinqInfer.Tests.Text.Analysis
         {
             _testCorpus = new Corpus("a b c d e f g h i j k l m n o p q r s t u v w x y z".Tokenise());
             _testVocab = _testCorpus.ExtractKeyTerms();
-        }
-
-        [Test]
-        public async Task CreateLinearClassifier_ReturnsVectors()
-        {
-            var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
-            var trainingData = cbow.AsNGramAsyncTrainingSet();
-
-            var classifier = await trainingData.CreateLinearClassifier();
-
-            Assert.That(classifier.Vectors, Is.Not.Null);
         }
 
         [Test]

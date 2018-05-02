@@ -10,6 +10,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal static class FluentMultilayerNetworkBuilderExtensions
     {
+        /// <summary>
+        /// Builds a softmax network configuration
+        /// with a single hidden layer
+        /// </summary>
+        public static IFluentNetworkBuilder ConfigureSoftmaxNetwork(this IFluentNetworkBuilder builder, int hiddenLayerSize, Action<LearningParameters> learningConfig = null)
+        {
+            return builder.ParallelProcess()
+                .ConfigureLearningParameters(p =>
+                {
+                    learningConfig?.Invoke(p);
+                })
+                .AddHiddenLinearLayer(hiddenLayerSize)
+                .AddSoftmaxOutput();
+        }
+
         public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
         {
             return specificationBuilder.

@@ -4,26 +4,12 @@ using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using System;
 using System.Linq;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning
 {
     public static class MlnExtensions
     {
-        /// <summary>
-        /// Builds a softmax network configuration
-        /// with a single hidden layer
-        /// </summary>
-        public static IFluentNetworkBuilder ConfigureSoftmaxNetwork(this IFluentNetworkBuilder builder, int hiddenLayerSize, Action<LearningParameters> learningConfig = null)
-        {
-            return builder.ParallelProcess()
-                .ConfigureLearningParameters(p =>
-                {
-                    learningConfig?.Invoke(p);
-                })
-                .AddHiddenLinearLayer(hiddenLayerSize)
-                .AddSoftmaxOutput();
-        }
-
         /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>
@@ -41,7 +27,7 @@ namespace LinqInfer.Learning
 
             var trainingContext = builder.Build();
 
-            var sink = new MultilayerNetworkAsyncSink<TInput, TClass>(trainingContext, trainingContext.Parameters.LearningParameters.EvaluateHaltingFunction);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
@@ -148,7 +134,7 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
+        /// <param name="docData">An exported multilayer network</param>
         /// <param name="featureExtractor">An optional feature extractor</param>
         public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
@@ -167,10 +153,11 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
+        /// <param name="docData">An exported multilayer network</param>
         /// <param name="featureExtractorFunc">A feature extracting function</param>
+        /// <param name="vectorSize">The size of the input vector</param>
         public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
-            this BinaryVectorDocument docData, Func<TInput, double[]> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
+            this BinaryVectorDocument docData, Func<TInput, IVector> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunc, vectorSize));
 

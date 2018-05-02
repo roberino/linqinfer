@@ -37,7 +37,7 @@ namespace LinqInfer.Data.Pipes
                         return;
                     }
 
-                    DebugOutput.Log($"{pipelineInstance} Processing batch {b} with {activeSinks.Count} active sinks");
+                    DebugOutput.Log($"{pipelineInstance} Processing epoch {i}, batch {b} with {activeSinks.Count} active sinks");
 
                     var tasks = activeSinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 
