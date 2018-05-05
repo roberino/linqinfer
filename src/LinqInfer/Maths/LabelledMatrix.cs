@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -23,11 +24,11 @@ namespace LinqInfer.Maths
         }
 
         internal LabelledMatrix(
-            BinaryVectorDocument data) : base(Create(new Vector(0)))
+            PortableDataDocument data) : base(Create(new Vector(0)))
         {
             LabelIndexes = new Dictionary<T, int>();
 
-            FromVectorDocument(data);
+            FromDataDocument(data);
         }
 
         /// <summary>
@@ -50,9 +51,9 @@ namespace LinqInfer.Maths
         /// </summary>
         public LabelledMatrix<T> LabelledCosineSimularityMatrix => new LabelledMatrix<T>(Rotate().CosineSimularityMatrix, LabelIndexes, true);
 
-        public override BinaryVectorDocument ToVectorDocument()
+        public override PortableDataDocument ToDataDocument()
         {
-            var doc = base.ToVectorDocument();
+            var doc = base.ToDataDocument();
 
             doc.SetPropertyFromExpression(() => _labelsAreColsAndRows, _labelsAreColsAndRows);
 
@@ -64,9 +65,9 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public override void FromVectorDocument(BinaryVectorDocument doc)
+        public override void FromDataDocument(PortableDataDocument doc)
         {
-            base.FromVectorDocument(doc);
+            base.FromDataDocument(doc);
 
             _labelsAreColsAndRows = doc.PropertyOrDefault(nameof(_labelsAreColsAndRows), false);
 

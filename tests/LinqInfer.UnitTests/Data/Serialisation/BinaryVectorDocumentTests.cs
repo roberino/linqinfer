@@ -1,31 +1,32 @@
-﻿using LinqInfer.Data;
+﻿using System;
+using System.Collections.Generic;
+using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
+using LinqInfer.Data.Storage;
 using LinqInfer.Maths;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using static LinqInfer.Tests.TestData;
 
-namespace LinqInfer.Tests.Data
+namespace LinqInfer.UnitTests.Data.Serialisation
 {
     [TestFixture]
-    public class BinaryVectorDocumentTests
+    public class PortableDataDocumentTests
     {
         [Test]
         public void SetType_WhenSetToClass_ThenLcTypeNameUsedAsRootElementName()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
-            doc.SetType<Pirate>();
+            doc.SetType<TestData.Pirate>();
 
             var xml = doc.ExportAsXml();
 
-            Assert.That(xml.Root.Name.LocalName, Is.EqualTo(nameof(Pirate).ToLower()));
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo(nameof(TestData.Pirate).ToLower()));
         }
 
         [Test]
         public void SetType_WhenSetToGeneric_ThenGenericNameUsedWithoutArgs()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType<Dictionary<string, int>>();
 
@@ -37,7 +38,7 @@ namespace LinqInfer.Tests.Data
         [Test]
         public void Checksum_ChangesWhenDataChanges()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Version = 1;
             doc.Properties["title"] = "abc";
@@ -59,13 +60,13 @@ namespace LinqInfer.Tests.Data
         [Test]
         public void SaveAndLoad_DocWithChildren()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Version = 2;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
 
-            var doc1 = new BinaryVectorDocument();
+            var doc1 = new PortableDataDocument();
 
             doc1.Vectors.Add(ColumnVector1D.Create(8.2432, 89.4));
             doc1.Vectors.Add(ColumnVector1D.Create(20, 0.14));
@@ -76,7 +77,7 @@ namespace LinqInfer.Tests.Data
             {
                 store.Store("a", doc);
 
-                var doc2 = store.Restore("a", new BinaryVectorDocument());
+                var doc2 = store.Restore("a", new PortableDataDocument());
 
                 Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
                 Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
@@ -91,7 +92,7 @@ namespace LinqInfer.Tests.Data
 
             var xml = doc.ExportAsXml();
 
-            var doc2 = new BinaryVectorDocument();
+            var doc2 = new PortableDataDocument();
 
             doc2.ImportXml(xml);
 
@@ -104,7 +105,7 @@ namespace LinqInfer.Tests.Data
         [Test]
         public void SetNullPropertyValue_ThrowsError()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             Assert.Throws<ArgumentException>(() => doc.Properties["x"] = null);
         }
@@ -112,7 +113,7 @@ namespace LinqInfer.Tests.Data
         [Test]
         public void SaveAndLoad_BasicDoc()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Version = 1;
             doc.Properties["title"] = "abc";
@@ -129,7 +130,7 @@ namespace LinqInfer.Tests.Data
             {
                 store.Store("a", doc);
 
-                var doc2 = store.Restore("a", new BinaryVectorDocument());
+                var doc2 = store.Restore("a", new PortableDataDocument());
 
                 Assert.That(doc2.Properties.Count, Is.EqualTo(2));
                 Assert.That(doc2.Properties["title"], Is.EqualTo("abc"));
@@ -160,15 +161,15 @@ namespace LinqInfer.Tests.Data
             Assert.That(doc1.Equals(doc2), Is.False);
         }
 
-        private BinaryVectorDocument CreateTestDoc()
+        private PortableDataDocument CreateTestDoc()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Version = 2;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
 
-            var doc1 = new BinaryVectorDocument();
+            var doc1 = new PortableDataDocument();
 
             doc1.Vectors.Add(ColumnVector1D.Create(8.2432, 89.4));
             doc1.Vectors.Add(ColumnVector1D.Create(20, 0.14));
@@ -179,7 +180,7 @@ namespace LinqInfer.Tests.Data
             {
                 store.Store("a", doc);
 
-                var doc2 = store.Restore("a", new BinaryVectorDocument());
+                var doc2 = store.Restore("a", new PortableDataDocument());
 
                 Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
                 Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));

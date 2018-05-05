@@ -1,12 +1,8 @@
-﻿using LinqInfer.Utility;
+﻿using System;
+using LinqInfer.Utility;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Utility
+namespace LinqInfer.UnitTests.Utility
 {
     [TestFixture]
     public class ConstrainableDictionaryTests

@@ -1,9 +1,9 @@
-﻿using LinqInfer.Genetics;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
+using LinqInfer.Genetics;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Genetics
+namespace LinqInfer.UnitTests.Genetics
 {
     [TestFixture]
     public class AlgorithmOptimiserTests : TestFixtureBase

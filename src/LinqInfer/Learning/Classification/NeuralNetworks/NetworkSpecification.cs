@@ -3,10 +3,11 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class NetworkSpecification : IExportableAsVectorDocument, IEquatable<NetworkSpecification>
+    public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
         public NetworkSpecification(LearningParameters learningParameters, params LayerSpecification[] layers)
         {
@@ -44,9 +45,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification OutputLayer => Layers.Last();
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType<NetworkSpecification>();
             doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
@@ -55,13 +56,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             foreach (var child in Layers)
             {
-                doc.Children.Add(child.ToVectorDocument());
+                doc.Children.Add(child.ToDataDocument());
             }
 
             return doc;
         }
 
-        internal static NetworkSpecification FromVectorDocument(BinaryVectorDocument doc,
+        internal static NetworkSpecification FromVectorDocument(PortableDataDocument doc,
             NetworkBuilderContext context = null)
         {
             NetworkSpecification networkSpecification = null;
@@ -113,8 +114,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            var docA = ToVectorDocument();
-            var docB = other.ToVectorDocument();
+            var docA = ToDataDocument();
+            var docB = other.ToDataDocument();
 
             return docA.Equals(docB);
         }
@@ -126,7 +127,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override int GetHashCode()
         {
-            return (int)ToVectorDocument().Checksum;
+            return (int)ToDataDocument().Checksum;
         }
     }
 }

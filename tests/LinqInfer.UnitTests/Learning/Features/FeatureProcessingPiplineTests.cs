@@ -1,8 +1,8 @@
-﻿using LinqInfer.Learning.Features;
+﻿using System.Linq;
+using LinqInfer.Learning.Features;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class FeatureProcessingPiplineTests

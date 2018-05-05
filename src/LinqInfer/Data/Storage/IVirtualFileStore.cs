@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     /// <summary>
     /// Simple storage interface which can be implemented by both physical and cloud based storage systems

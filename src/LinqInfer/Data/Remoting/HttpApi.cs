@@ -1,4 +1,5 @@
 ﻿using System;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {

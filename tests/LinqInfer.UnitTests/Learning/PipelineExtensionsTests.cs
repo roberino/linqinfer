@@ -1,9 +1,9 @@
-﻿using LinqInfer.Learning;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
+using LinqInfer.Learning;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class PipelineExtensionsTests

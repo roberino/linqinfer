@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     public sealed class FileStorage : IVirtualFileStore
     {

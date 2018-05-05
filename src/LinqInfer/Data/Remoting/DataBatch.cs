@@ -1,8 +1,9 @@
 ﻿using System;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
-    public class DataBatch : BinaryVectorDocument
+    public class DataBatch : PortableDataDocument
     {
         internal DataBatch()
         {

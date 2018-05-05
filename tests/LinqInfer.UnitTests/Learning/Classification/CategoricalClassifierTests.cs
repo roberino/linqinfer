@@ -1,8 +1,8 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using System.Linq;
+using LinqInfer.Learning.Classification;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class CategoricalClassifierTests

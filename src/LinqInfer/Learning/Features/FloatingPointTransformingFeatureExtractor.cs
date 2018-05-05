@@ -4,20 +4,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class FloatingPointTransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class FloatingPointTransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         private readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
-        private readonly List<ISerialisableVectorTransformation> _transformations;
+        private readonly List<ISerialisableDataTransformation> _transformations;
 
         private IList<IFeature> _transformedFeatures;
 
-        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, ISerialisableVectorTransformation transformation = null)
+        public FloatingPointTransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor, ISerialisableDataTransformation transformation = null)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
-            _transformations = new List<ISerialisableVectorTransformation>();
+            _transformations = new List<ISerialisableDataTransformation>();
 
             if (transformation != null) _transformations.Add(transformation);
         }
@@ -44,7 +45,7 @@ namespace LinqInfer.Learning.Features
 
         public int VectorSize { get { return _transformations.Any() ? _transformations.Last().OutputSize : _baseFeatureExtractor.VectorSize; } }
 
-        public void AddTransform(ISerialisableVectorTransformation transformation)
+        public void AddTransform(ISerialisableDataTransformation transformation)
         {
             var last = _transformations.LastOrDefault();
 
@@ -103,18 +104,18 @@ namespace LinqInfer.Learning.Features
             return nextInput;
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var tr in _transformations)
             {
-                if (!(tr is IExportableAsVectorDocument))
+                if (!(tr is IExportableAsDataDocument))
                 {
                     throw new NotSupportedException("Non-serialisable transformation");
                 }
 
-                doc.Children.Add(((IExportableAsVectorDocument)tr).ToVectorDocument());
+                doc.Children.Add(((IExportableAsDataDocument)tr).ToDataDocument());
             }
 
             doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
@@ -122,13 +123,13 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             _transformations.Clear();
 
             foreach(var child in doc.Children)
             {
-                var tr = SerialisableVectorTransformation.LoadFromDocument(child);
+                var tr = SerialisableDataTransformation.LoadFromDocument(child);
 
                 _transformations.Add(tr);
             }

@@ -32,7 +32,7 @@ namespace LinqInfer.Learning
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor()
         {
-            return new FeatureMapVectorExtractor<T>(this);
+            return new FeatureMapDataExtractor<T>(this);
         }
 
         public Matrix ExportClusterWeights()

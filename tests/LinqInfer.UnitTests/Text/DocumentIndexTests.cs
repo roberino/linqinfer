@@ -1,12 +1,12 @@
-﻿using LinqInfer.Text;
-using LinqInfer.Text.Analysis;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class DocumentIndexTests : TestFixtureBase

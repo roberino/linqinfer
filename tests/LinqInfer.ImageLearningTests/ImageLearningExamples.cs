@@ -28,8 +28,8 @@ namespace LinqInfer.UnitTests
                 .RandomOrder()
                 .ToList();
 
-            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            var token = tokenSource.Token; //CancellationToken.None;
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(180));
+            var token = tokenSource.Token;
 
             var trainingSet = await bitmapDataSource
                 .AsAsyncEnumerator()
@@ -44,14 +44,16 @@ namespace LinqInfer.UnitTests
                     p.ErrorHistoryCount = 150;
                     p.HaltingFunction = (_, s) =>
                     {
-                        return s.AverageError < 1.1 || s.Trend > 0.1;
+                        return s.AverageError < 0.6 || s.Trend > 0.1;
                     };
+                    p.LearningRate = 0.05;
+
                 });
             });
 
-            await trainingSet.RunAsync(token, 1500);
+            await trainingSet.RunAsync(token, 2500);
 
-            var data = network.ToVectorDocument();
+            var data = network.ToDataDocument();
 
             var classifier = data.OpenAsMultilayerNetworkClassifier<ImageSampleGeneration.Letter, char>(x => x.VectorData, size * size);
 

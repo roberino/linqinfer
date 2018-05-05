@@ -62,7 +62,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     AverageError = _trainingContext.AverageError.Value,
                     Iteration = _errorHistory.Count,
-                    Trend = _errorHistory.Trend
+                    Trend = _errorHistory.Trend,
+                    MovingError =  _errorHistory.MovingError
                 };
 
                 if (_learningParameters.EvaluateHaltingFunction(status))

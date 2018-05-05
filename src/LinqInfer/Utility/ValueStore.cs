@@ -38,6 +38,8 @@ namespace LinqInfer.Utility
         public long Count => _counter;
 
         public double? LastValue => _counter > 0 ? new double?(_history.Last()) : null;
+        
+        public double MovingError => _counter > 0 ? _history.Sum() / _counter : 0;
 
         public double Trend => _history.Count == _maxHistory ? _history.Last() - _history.Peek() : 0;
     }

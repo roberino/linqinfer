@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
+using LinqInfer.Data.Storage;
 
 namespace LinqInfer.Learning.Features
 {
@@ -75,14 +77,14 @@ namespace LinqInfer.Learning.Features
         public int SampleCount => Data.Count();
 
         /// <summary>
-        /// Exports the internal state (not the data) of the pipeline as a <see cref="BinaryVectorDocument"/>
+        /// Exports the internal state (not the data) of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public BinaryVectorDocument SaveState() => _featureExtractor.ToVectorDocument();
+        public PortableDataDocument SaveState() => _featureExtractor.ToDataDocument();
 
         /// <summary>
-        /// Retores the state of the pipeline from a previously exported <see cref="BinaryVectorDocument"/>
+        /// Retores the state of the pipeline from a previously exported <see cref="PortableDataDocument"/>
         /// </summary>
-        public void RestoreState(BinaryVectorDocument data) => _featureExtractor.FromVectorDocument(data);
+        public void RestoreState(PortableDataDocument data) => _featureExtractor.FromDataDocument(data);
 
         /// <summary>
         /// Filters features by property
@@ -125,7 +127,7 @@ namespace LinqInfer.Learning.Features
         {
             var mean = ExtractColumnVectors().MeanOfEachDimension();
 
-            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.Subtract, mean));
+            var transform = new SerialisableDataTransformation(new DataOperation(VectorOperationType.Subtract, mean));
 
             return PreprocessWith(transform);
         }
@@ -172,7 +174,7 @@ namespace LinqInfer.Learning.Features
 
             var map = mapper.Map(Limit(sampleSize));
 
-            var transform = new SerialisableVectorTransformation(new VectorOperation(VectorOperationType.EuclideanDistance, map.ExportClusterWeights()));
+            var transform = new SerialisableDataTransformation(new DataOperation(VectorOperationType.EuclideanDistance, map.ExportClusterWeights()));
 
             return PreprocessWith(transform);
         }
@@ -182,7 +184,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public IFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation)
+        public IFeatureProcessingPipeline<T> PreprocessWith(ISerialisableDataTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
 
@@ -276,9 +278,9 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Extracts and exports data into a single document
         /// </summary>
-        public BinaryVectorDocument ExportData(int? maxRows = null)
+        public PortableDataDocument ExportData(int? maxRows = null)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach(var vec in (maxRows.HasValue ? ExtractColumnVectors().Take(maxRows.Value) : ExtractColumnVectors()))
             {

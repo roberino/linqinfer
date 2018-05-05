@@ -2,7 +2,7 @@
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MultiVariateKernelDensityEstimatorTests

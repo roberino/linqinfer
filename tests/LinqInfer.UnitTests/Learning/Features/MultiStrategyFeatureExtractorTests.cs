@@ -2,7 +2,7 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class MultiStrategyFeatureExtractorTests
@@ -54,13 +54,13 @@ namespace LinqInfer.Tests.Learning.Features
 
             var multiStrategyFeatureExtractor2 = new MultiStrategyFeatureExtractor<string>(new IFloatingPointFeatureExtractor<string>[] { fe0b, fe1b });
 
-            var transform = new SerialisableVectorTransformation(new[] { new VectorOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)) });
+            var transform = new SerialisableDataTransformation(new[] { new DataOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)) });
 
             fe1a.PreprocessWith(transform);
 
-            var data = multiStrategyFeatureExtractor1.ToVectorDocument();
+            var data = multiStrategyFeatureExtractor1.ToDataDocument();
 
-            multiStrategyFeatureExtractor2.FromVectorDocument(data);
+            multiStrategyFeatureExtractor2.FromDataDocument(data);
 
             var vect1 = multiStrategyFeatureExtractor1.ExtractIVector("a");
             var vect2 = multiStrategyFeatureExtractor2.ExtractIVector("a");

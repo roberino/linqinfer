@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.IO;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {

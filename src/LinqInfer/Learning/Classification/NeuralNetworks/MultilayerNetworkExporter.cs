@@ -1,6 +1,7 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -9,9 +10,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public BinaryVectorDocument Export(MultilayerNetwork network)
+        public PortableDataDocument Export(MultilayerNetwork network)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var prop in network.Properties)
             {
@@ -41,14 +42,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        public MultilayerNetwork Import(BinaryVectorDocument doc)
+        public MultilayerNetwork Import(PortableDataDocument doc)
         {
             if (doc.Version == 2) return CreateFromVectorDocumentV2(doc);
 
             return CreateFromVectorDocumentV1(doc);
         }
 
-        private static MultilayerNetwork CreateFromVectorDocumentV2(BinaryVectorDocument doc)
+        private static MultilayerNetwork CreateFromVectorDocumentV2(PortableDataDocument doc)
         {
             var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
@@ -65,7 +66,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return network;
         }
 
-        private static MultilayerNetwork CreateFromVectorDocumentV1(BinaryVectorDocument doc)
+        private static MultilayerNetwork CreateFromVectorDocumentV1(PortableDataDocument doc)
         {
             var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
             var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();

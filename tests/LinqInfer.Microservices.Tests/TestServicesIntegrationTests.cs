@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using LinqInfer.Data.Storage;
 using Xunit;
 
 namespace LinqInfer.Microservices.Tests

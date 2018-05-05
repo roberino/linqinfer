@@ -4,15 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class FeatureMapVectorExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class FeatureMapDataExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         private readonly IFloatingPointFeatureExtractor<T> _baseFeatureExtractor;
         private Matrix _weights;
 
-        public FeatureMapVectorExtractor(FeatureMap<T> map)
+        public FeatureMapDataExtractor(FeatureMap<T> map)
         {
             _baseFeatureExtractor = map.FeatureExtractor;
             _weights = map.ExportClusterWeights();
@@ -42,7 +43,7 @@ namespace LinqInfer.Learning.Features
             return ExtractColumnVector(obj);
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             _weights = new Matrix(doc.Vectors.Select(v => v.ToColumnVector()));
             _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
@@ -50,19 +51,19 @@ namespace LinqInfer.Learning.Features
 
         public void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument(input);
+            var doc = new PortableDataDocument(input);
 
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
 

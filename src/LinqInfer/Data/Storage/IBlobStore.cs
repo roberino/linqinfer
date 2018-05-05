@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     /// <summary>
     /// Represents a storage facility for binary objects

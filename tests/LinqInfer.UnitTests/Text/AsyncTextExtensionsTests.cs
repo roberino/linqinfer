@@ -1,15 +1,14 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Text;
-using LinqInfer.Utility;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static LinqInfer.Tests.TestData;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Text;
+using LinqInfer.Utility;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class AsyncTextExtensionsTests
@@ -30,11 +29,11 @@ namespace LinqInfer.Tests.Text
             Assert.That(objectVectorPairs.All(v => v.Vector.Size > 0));
         }
 
-        private static AsyncBatch<Pirate> Load(int n)
+        private static AsyncBatch<UnitTests.TestData.Pirate> Load(int n)
         {
             var items = Task.FromResult(
-                    (IList<Pirate>)Enumerable.Range(0, 10)
-                    .Select(x => new Pirate()
+                    (IList<UnitTests.TestData.Pirate>)Enumerable.Range(0, 10)
+                    .Select(x => new UnitTests.TestData.Pirate()
                     {
                         Age = x,
                         Gold = n,
@@ -48,7 +47,7 @@ namespace LinqInfer.Tests.Text
 
             if (n > 9) throw new InvalidOperationException();
 
-            return new AsyncBatch<Pirate>(items, n == 9, n);
+            return new AsyncBatch<UnitTests.TestData.Pirate>(items, n == 9, n);
         }
     }
 }

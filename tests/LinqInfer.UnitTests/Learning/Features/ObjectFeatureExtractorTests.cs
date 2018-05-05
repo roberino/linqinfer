@@ -1,9 +1,8 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths.Probability;
+﻿using System;
+using LinqInfer.Learning.Features;
 using NUnit.Framework;
-using System;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class ObjectFeatureExtractorTests

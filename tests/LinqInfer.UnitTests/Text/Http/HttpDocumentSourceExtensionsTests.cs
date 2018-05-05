@@ -1,15 +1,13 @@
-﻿using LinqInfer.Data.Pipes;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
 using LinqInfer.Text;
 using LinqInfer.Text.Http;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Text.Http
+namespace LinqInfer.UnitTests.Text.Http
 {
     [TestFixture]
     public class HttpDocumentSourceExtensionsTests

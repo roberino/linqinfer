@@ -1,13 +1,13 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Text;
-using LinqInfer.Text.Analysis;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text.Analysis
+namespace LinqInfer.UnitTests.Text.Analysis
 {
     [TestFixture]
     public class AnalysisExtensionsTests

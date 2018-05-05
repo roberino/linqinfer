@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     /// <summary>
     /// Represents an object whose state can be stored and restored to and from a binary stream

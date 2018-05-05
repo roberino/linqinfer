@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text
 {

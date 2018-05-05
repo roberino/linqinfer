@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     public static class TestData
     {

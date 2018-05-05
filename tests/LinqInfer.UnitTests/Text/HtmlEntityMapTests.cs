@@ -1,7 +1,7 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class HtmlEntityMapTests

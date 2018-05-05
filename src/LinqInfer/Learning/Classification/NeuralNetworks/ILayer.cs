@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -70,7 +71,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Exports the raw data and properties
         /// </summary>
-        BinaryVectorDocument Export();
+        PortableDataDocument Export();
 
         /// <summary>
         /// Exports the raw data
@@ -80,6 +81,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Imports raw data
         /// </summary>
-        void Import(BinaryVectorDocument data);
+        void Import(PortableDataDocument data);
     }
 }

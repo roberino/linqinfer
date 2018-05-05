@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using LinqInfer.Maths;
 using System;
 using System.IO;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
@@ -12,7 +13,7 @@ namespace LinqInfer.Data.Remoting
         string ClientId { get; }
         string Path { get; }
         Verb Verb { get; }
-        Task Send(BinaryVectorDocument doc);
+        Task Send(PortableDataDocument doc);
         Task Send(IEnumerable<ColumnVector1D> data);
         Task<Stream> Receive(object parameters = null);
         Task<Stream> End(object parameters, Uri forwardResponseTo = null);

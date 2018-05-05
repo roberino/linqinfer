@@ -1,17 +1,16 @@
-﻿using LinqInfer.Data.Pipes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using static LinqInfer.Tests.TestData;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class AsyncPipelineExtensionsTests
@@ -36,8 +35,8 @@ namespace LinqInfer.Tests.Learning
             var pipeline = await From.Func(Load)
                 .BuildPipelineAsync(
                     CancellationToken.None,
-                    new DefaultFeatureExtractionStrategy<Pirate>(),
-                    new CategoricalFeatureExtractionStrategy<Pirate>());
+                    new DefaultFeatureExtractionStrategy<TestData.Pirate>(),
+                    new CategoricalFeatureExtractionStrategy<TestData.Pirate>());
             
             var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
@@ -106,18 +105,18 @@ namespace LinqInfer.Tests.Learning
             Assert.That(counter, Is.EqualTo(10));
         }
 
-        internal static IAsyncFeatureProcessingPipeline<Pirate> CreatePipeline()
+        internal static IAsyncFeatureProcessingPipeline<TestData.Pirate> CreatePipeline()
         {
-            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
+            var pipeline = new Func<int, AsyncBatch<TestData.Pirate>>(Load).CreatePipeline();
 
             return pipeline;
         }
 
-        private static AsyncBatch<Pirate> Load(int n)
+        private static AsyncBatch<TestData.Pirate> Load(int n)
         {
             var items = Task.FromResult(
-                    (IList<Pirate>)Enumerable.Range(0, 10)
-                    .Select(x => new Pirate()
+                    (IList<TestData.Pirate>)Enumerable.Range(0, 10)
+                    .Select(x => new TestData.Pirate()
                     {
                         Age = x,
                         Gold = n,
@@ -130,7 +129,7 @@ namespace LinqInfer.Tests.Learning
 
             if (n > 9) throw new InvalidOperationException();
 
-            return new AsyncBatch<Pirate>(items, n == 9, n);
+            return new AsyncBatch<TestData.Pirate>(items, n == 9, n);
         }
     }
 }

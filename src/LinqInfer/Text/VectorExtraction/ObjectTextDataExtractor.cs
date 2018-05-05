@@ -6,26 +6,26 @@ using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class ObjectTextVectorExtractor<T> : TextVectorExtractor, IFloatingPointFeatureExtractor<T> where T : class
+    internal class ObjectTextDataExtractor<T> : TextDataExtractor, IFloatingPointFeatureExtractor<T> where T : class
     {
         private readonly Func<T, IEnumerable<IToken>> _tokeniser;
 
-        public ObjectTextVectorExtractor(Func<T, IEnumerable<IToken>> tokeniser)
+        public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser)
         {
             _tokeniser = tokeniser;
         }
 
-        public ObjectTextVectorExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words) : base(words, 0, false)
+        public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words) : base(words, 0, false)
         {
             _tokeniser = tokeniser;
         }
 
-        public ObjectTextVectorExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int normalisingFrequency) : base(words, normalisingFrequency)
+        public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int normalisingFrequency) : base(words, normalisingFrequency)
         {
             _tokeniser = tokeniser;
         }
 
-        public ObjectTextVectorExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int[] normalisingFrequencies) : base(words, normalisingFrequencies)
+        public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int[] normalisingFrequencies) : base(words, normalisingFrequencies)
         {
             _tokeniser = tokeniser;
         }

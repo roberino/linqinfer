@@ -1,8 +1,8 @@
-﻿using LinqInfer.Maths;
+﻿using System.Linq;
+using LinqInfer.Maths;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     public class BitVectorTests
     {

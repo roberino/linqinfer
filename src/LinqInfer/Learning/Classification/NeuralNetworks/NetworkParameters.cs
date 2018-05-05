@@ -100,7 +100,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Transforms the output
         /// </summary>
-        public ISerialisableVectorTransformation OutputTransformation { get; internal set; }
+        public ISerialisableDataTransformation OutputTransformation { get; internal set; }
 
         /// <summary>
         /// Gets the Layer size including the input and output layers

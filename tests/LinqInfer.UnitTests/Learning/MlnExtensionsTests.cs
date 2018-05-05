@@ -1,11 +1,11 @@
-﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Classification.NeuralNetworks;
-using NUnit.Framework;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class MlnExtensionsTests

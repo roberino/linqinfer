@@ -1,8 +1,9 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
-    public class Softmax : ISerialisableVectorTransformation
+    public class Softmax : ISerialisableDataTransformation
     {
         internal Softmax()
         {
@@ -32,14 +33,14 @@ namespace LinqInfer.Maths
             return exp / exp.Sum;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             InputSize = doc.PropertyOrDefault(() => InputSize, 0);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType(this);
             doc.SetPropertyFromExpression(() => InputSize);

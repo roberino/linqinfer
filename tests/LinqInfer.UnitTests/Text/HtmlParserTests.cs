@@ -1,13 +1,13 @@
-﻿using LinqInfer.Text;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Text;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class HtmlParserTests

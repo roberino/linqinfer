@@ -139,7 +139,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder TransformOutput(ISerialisableVectorTransformation transformation)
+        public IFluentNetworkBuilder TransformOutput(ISerialisableDataTransformation transformation)
         {
             _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
@@ -149,7 +149,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableVectorTransformation> transformationFactory)
+        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableDataTransformation> transformationFactory)
         {
             _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {

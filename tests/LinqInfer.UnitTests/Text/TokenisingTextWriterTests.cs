@@ -1,12 +1,12 @@
-﻿using LinqInfer.Text;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Text;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class TokenisingTextWriterTests

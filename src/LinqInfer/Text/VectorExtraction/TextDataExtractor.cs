@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class TextVectorExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class TextDataExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         private const int EXTENDED_FEATURE_COUNT = 4;
         private readonly IList<IFeature> _features;
@@ -18,7 +19,7 @@ namespace LinqInfer.Text.VectorExtraction
         private int[] _normalisingFrequencies;
         private int _normalisingFrequencyDefault;
 
-        internal TextVectorExtractor(bool normalise = true)
+        internal TextDataExtractor(bool normalise = true)
         {
             _words = new Dictionary<string, int>();
             _features = new List<IFeature>();
@@ -27,11 +28,11 @@ namespace LinqInfer.Text.VectorExtraction
             _normalise = normalise;
         }
 
-        internal TextVectorExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true) : this(words, Enumerable.Range(1, words.Count() + EXTENDED_FEATURE_COUNT).Select(_ => normalisingFrequency).ToArray(), normalise)
+        internal TextDataExtractor(IEnumerable<string> words, int normalisingFrequency, bool normalise = true) : this(words, Enumerable.Range(1, words.Count() + EXTENDED_FEATURE_COUNT).Select(_ => normalisingFrequency).ToArray(), normalise)
         {
         }
 
-        internal TextVectorExtractor(IEnumerable<string> words, int[] normalisingFrequencies, bool normalise = true)
+        internal TextDataExtractor(IEnumerable<string> words, int[] normalisingFrequencies, bool normalise = true)
         {
             int i = 0;
 
@@ -49,7 +50,7 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IFloatingPointFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
         {
-            return _normalise ? new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies) : new ObjectTextVectorExtractor<T>(tokeniser, _words.Keys);
+            return _normalise ? new ObjectTextDataExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies) : new ObjectTextDataExtractor<T>(tokeniser, _words.Keys);
         }
 
         public int VectorSize
@@ -158,19 +159,19 @@ namespace LinqInfer.Text.VectorExtraction
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
         }
 
         public void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument(input);
+            var doc = new PortableDataDocument(input);
 
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach(var word in _words)
             {
@@ -185,7 +186,7 @@ namespace LinqInfer.Text.VectorExtraction
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             foreach (var prop in doc.Properties.Where(p => !p.Key.StartsWith("_")))
             {

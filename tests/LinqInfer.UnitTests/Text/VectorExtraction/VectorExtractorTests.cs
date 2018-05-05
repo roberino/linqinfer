@@ -1,10 +1,9 @@
-﻿using LinqInfer.Text;
+﻿using System.IO;
+using LinqInfer.Text;
 using LinqInfer.Text.VectorExtraction;
 using NUnit.Framework;
-using System;
-using System.IO;
 
-namespace LinqInfer.Tests.Text.VectorExtraction
+namespace LinqInfer.UnitTests.Text.VectorExtraction
 {
     [TestFixture]
     public class VectorExtractorTests
@@ -12,7 +11,7 @@ namespace LinqInfer.Tests.Text.VectorExtraction
         [Test]
         public void ExtractColumnVector_ReturnsExpectedData()
         {
-            var ve = new TextVectorExtractor(new[] { "apples", "oranges" }, 5);
+            var ve = new TextDataExtractor(new[] { "apples", "oranges" }, 5);
 
             var token1 = new Token("apples", 0);
             var token2 = new Token("jam", 0);
@@ -27,7 +26,7 @@ namespace LinqInfer.Tests.Text.VectorExtraction
         [Test]
         public void ExtractColumnVector_SaveLoad_SerialisesAsExpected()
         {
-            var ve = new TextVectorExtractor(new[] { "apples", "oranges" }, 5);
+            var ve = new TextDataExtractor(new[] { "apples", "oranges" }, 5);
 
             using(var ms = new MemoryStream())
             {
@@ -37,7 +36,7 @@ namespace LinqInfer.Tests.Text.VectorExtraction
 
                 using (var input = new MemoryStream(data))
                 {
-                    var ve2 = new TextVectorExtractor();
+                    var ve2 = new TextDataExtractor();
 
                     ve2.Load(input);
 

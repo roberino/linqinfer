@@ -3,36 +3,37 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
-    public sealed class SerialisableVectorTransformation : ISerialisableVectorTransformation, IEquatable<SerialisableVectorTransformation>
+    public sealed class SerialisableDataTransformation : ISerialisableDataTransformation, IEquatable<SerialisableDataTransformation>
     {
-        private readonly IList<VectorOperation> _operations;
+        private readonly IList<DataOperation> _operations;
 
-        public SerialisableVectorTransformation()
+        public SerialisableDataTransformation()
         {
-            _operations = new List<VectorOperation>();
+            _operations = new List<DataOperation>();
         }
 
-        public SerialisableVectorTransformation(Matrix transformer, Vector transposer = null) : this()
+        public SerialisableDataTransformation(Matrix transformer, Vector transposer = null) : this()
         {
             Contract.Ensures(transformer != null);
 
             if (transposer != null)
             {
-                _operations.Add(new VectorOperation(VectorOperationType.Subtract, transposer));
+                _operations.Add(new DataOperation(VectorOperationType.Subtract, transposer));
             }
 
-            _operations.Add(new VectorOperation(VectorOperationType.MatrixMultiply, transformer));
+            _operations.Add(new DataOperation(VectorOperationType.MatrixMultiply, transformer));
         }
 
-        public SerialisableVectorTransformation(IEnumerable<VectorOperation> operations)
+        public SerialisableDataTransformation(IEnumerable<DataOperation> operations)
         {
             _operations = operations.ToList();
         }
 
-        public SerialisableVectorTransformation(params VectorOperation[] operations) : this()
+        public SerialisableDataTransformation(params DataOperation[] operations) : this()
         {
             foreach (var operation in operations) _operations.Add(operation);
         }
@@ -55,38 +56,38 @@ namespace LinqInfer.Maths
 
         public int OutputSize => _operations.Last().OutputSize;
 
-        public static SerialisableVectorTransformation LoadFromDocument(BinaryVectorDocument doc)
+        public static SerialisableDataTransformation LoadFromDocument(PortableDataDocument doc)
         {
-            var transform = new SerialisableVectorTransformation();
+            var transform = new SerialisableDataTransformation();
 
-            transform.FromVectorDocument(doc);
+            transform.FromDataDocument(doc);
 
             return transform;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             _operations.Clear();
 
             foreach(var child in doc.Children)
             {
-                _operations.Add(new VectorOperation(child));
+                _operations.Add(new DataOperation(child));
             }
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var op in _operations)
             {
-                doc.Children.Add(op.ToVectorDocument());
+                doc.Children.Add(op.ToDataDocument());
             }
 
             return doc;
         }
 
-        public bool Equals(SerialisableVectorTransformation other)
+        public bool Equals(SerialisableDataTransformation other)
         {
             if (other == null) return false;
 
@@ -101,7 +102,7 @@ namespace LinqInfer.Maths
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as SerialisableVectorTransformation);
+            return Equals(obj as SerialisableDataTransformation);
         }
 
         public override int GetHashCode()

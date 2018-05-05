@@ -1,5 +1,5 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Remoting;
+﻿using LinqInfer.Data.Remoting;
+using LinqInfer.Data.Serialisation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System;

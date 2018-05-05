@@ -7,17 +7,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetwork : 
         ICloneableObject<MultilayerNetwork>, 
         IBinaryPersistable, 
-        IExportableAsVectorDocument, 
-        IImportableAsVectorDocument, 
+        IExportableAsDataDocument, 
+        IImportableFromDataDocument, 
         IHasNetworkTopology,
         IVectorClassifier,
-        ISerialisableVectorTransformation
+        ISerialisableDataTransformation
     {
         private readonly Func<int, Range, INeuron> _neuronFactory;
 
@@ -73,7 +74,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public NetworkParameters Parameters => _parameters;
 
-        public IEnumerable<Matrix> ExportData()
+        public IEnumerable<Matrix> ExportRawData()
         {
             return ForEachLayer(l => l.ExportData(), false);
         }
@@ -258,7 +259,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
 
             output.Flush();
         }
@@ -266,12 +267,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
             return new MultilayerNetworkExporter().Export(this);
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             var nn = CreateFromVectorDocument(doc);
 
@@ -279,7 +280,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _rootLayer = nn._rootLayer;
         }
 
-        public static MultilayerNetwork CreateFromVectorDocument(BinaryVectorDocument doc)
+        public static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
         {
             return new MultilayerNetworkExporter().Import(doc);
         }
@@ -294,7 +295,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public static MultilayerNetwork LoadData(Stream input)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Load(input);
 

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text
 {
@@ -370,7 +371,7 @@ namespace LinqInfer.Text
                     TermFrequency = w.Item3
                 }).ToList();
 
-            return new VectorExtraction.TextVectorExtractor(wf
+            return new VectorExtraction.TextDataExtractor(wf
                 .OrderByDescending(w => _calculationMethod(new[] { w })) // Math.Log((double)w.Item2 / (double)w.Item3 + 1)
                 .Select(w => w.Term)
                 .Take(maxVectorSize), wf.Select(f => (int)f.TermFrequency).ToArray()).CreateObjectTextVectoriser(tokeniser);
@@ -405,7 +406,7 @@ namespace LinqInfer.Text
             .ToList();
 
             return new VectorExtraction
-                .TextVectorExtractor(frequentWordsByKey.Select(d => d.data.Term), frequentWordsByKey.Select(d => d.nf).ToArray())
+                .TextDataExtractor(frequentWordsByKey.Select(d => d.data.Term), frequentWordsByKey.Select(d => d.nf).ToArray())
                 .CreateObjectTextVectoriser(tokeniser);
         }
 
@@ -415,7 +416,7 @@ namespace LinqInfer.Text
 
             var wf = WordFrequencies.ToList();
 
-            return new VectorExtraction.TextVectorExtractor(wf
+            return new VectorExtraction.TextDataExtractor(wf
                 .OrderByDescending(w => Math.Log((double)w.Item2 / (double)w.Item3 + 1))
                 .Select(w => w.Item1)
                 .Take(maxVectorSize), normalise ? wf.Max(f => f.Item3) : 1, normalise);

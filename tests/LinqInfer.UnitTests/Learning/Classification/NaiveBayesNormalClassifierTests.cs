@@ -1,9 +1,7 @@
-﻿using LinqInfer.Learning;
-using LinqInfer.Learning.Features;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
 using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class NaiveBayesNormalClassifierTests

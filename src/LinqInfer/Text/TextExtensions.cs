@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Xml.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text
 {
@@ -23,9 +24,9 @@ namespace LinqInfer.Text
         /// <param name="docData">An exported multilayer network</returns>
         /// <param name="tokeniser">An optional tokeniser</param>
         public static IDynamicClassifier<TClass, string> OpenAsTextualMultilayerNetworkClassifier<TClass>(
-            this BinaryVectorDocument docData, ITokeniser tokeniser = null) where TClass : IEquatable<TClass>
+            this PortableDataDocument docData, ITokeniser tokeniser = null) where TClass : IEquatable<TClass>
         {
-            var featureExtractor = new TextVectorExtractor();
+            var featureExtractor = new TextDataExtractor();
             var t = tokeniser ?? new Tokeniser();
             var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<string>(t.Tokenise);
 
@@ -39,11 +40,11 @@ namespace LinqInfer.Text
         /// <typeparam name="TClass">The returned class type</typeparam>
         /// <param name="docData">An exported multilayer network</returns>
         public static IDynamicClassifier<TClass, TInput> OpenAsTextualMultilayerNetworkClassifier<TClass, TInput>(
-            this BinaryVectorDocument docData)
+            this PortableDataDocument docData)
             where TClass : IEquatable<TClass>
             where TInput : class
         {
-            var featureExtractor = new TextVectorExtractor();
+            var featureExtractor = new TextDataExtractor();
             var index = new DocumentIndex();
             var tokeniser = new ObjectTextExtractor<TInput>(index.Tokeniser);
             var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<TInput>(tokeniser.CreateObjectTextTokeniser());
@@ -77,7 +78,7 @@ namespace LinqInfer.Text
         /// </summary>
         public static FeatureProcessingPipeline<TokenisedTextDocument> CreateTextFeaturePipeline(this IQueryable<TokenisedTextDocument> documents, ISemanticSet keyTerms)
         {
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return new FeatureProcessingPipeline<TokenisedTextDocument>(documents, ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens));
         }
@@ -90,7 +91,7 @@ namespace LinqInfer.Text
         {
             if (tokeniser == null) tokeniser = new Tokeniser();
 
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens);
         }
@@ -103,7 +104,7 @@ namespace LinqInfer.Text
         {
             if (tokeniser == null) tokeniser = new Tokeniser();
 
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return new FeatureProcessingPipeline<string>(data, ve.CreateObjectTextVectoriser<string>(s => tokeniser.Tokenise(s)));
         }
@@ -144,7 +145,7 @@ namespace LinqInfer.Text
             var tokeniser = new Tokeniser();
             var otokeniser = new ObjectTextExtractor<T>(tokeniser);
             var objtokeniser = otokeniser.CreateObjectTextTokeniser();
-            var vectorExtractor = new TextVectorExtractor(keywords, 100, false);
+            var vectorExtractor = new TextDataExtractor(keywords, 100, false);
 
             var pipeline = new FeatureProcessingPipeline<T>(data, vectorExtractor.CreateObjectTextVectoriser(objtokeniser));
 

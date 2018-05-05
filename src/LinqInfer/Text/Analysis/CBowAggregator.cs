@@ -34,7 +34,7 @@ namespace LinqInfer.Text.Analysis
 
         public IAsyncEnumerator<SyntacticContext> Cbow { get; }
 
-        public async Task<IDictionary<string, WordVector>> AggregateVectorsAync(CancellationToken cancellationToken)
+        public async Task<IDictionary<string, WordData>> AggregateVectorsAync(CancellationToken cancellationToken)
         {
             var aggregation = Cbow
                 .CreatePipe()
@@ -42,12 +42,12 @@ namespace LinqInfer.Text.Analysis
 
             await aggregation.Pipe.RunAsync(cancellationToken);
 
-            var results = aggregation.Output.Select(kv => new WordVector(kv.Key, kv.Value.Count, CreateVector(kv.Value))).ToDictionary(v => v.Word);
+            var results = aggregation.Output.Select(kv => new WordData(kv.Key, kv.Value.Count, CreateVector(kv.Value))).ToDictionary(v => v.Word);
 
             return results;
         }
 
-        public async Task<IAsyncTrainingSet<WordVector, string>> GetTrainingSetAync(CancellationToken cancellationToken)
+        public async Task<IAsyncTrainingSet<WordData, string>> GetTrainingSetAync(CancellationToken cancellationToken)
         {
             var aggregation = await AggregateVectorsAync(cancellationToken);
 
@@ -84,7 +84,7 @@ namespace LinqInfer.Text.Analysis
 
             await trainingSet.RunAsync(cancellationToken);
 
-            var doc = classifier.ToVectorDocument();
+            var doc = classifier.ToDataDocument();
 
             var mln = doc.GetChildDoc<MultilayerNetwork>();
 

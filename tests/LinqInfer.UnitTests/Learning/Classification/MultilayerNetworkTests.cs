@@ -1,14 +1,14 @@
-﻿using LinqInfer.Learning.Classification;
-using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Maths;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class MultilayerNetworkTests : TestFixtureBase
@@ -33,7 +33,7 @@ namespace LinqInfer.Tests.Learning.Classification
             var parameters = new NetworkSpecification(8, new LayerSpecification(4));
             var network = SetupTestNetwork(parameters);
 
-            var weights = network.ExportData().ToList();
+            var weights = network.ExportRawData().ToList();
 
             Assert.That(weights.Count, Is.EqualTo(1));
             Assert.That(weights[0].Width, Is.EqualTo(9)); // input size + bias
@@ -85,7 +85,7 @@ namespace LinqInfer.Tests.Learning.Classification
 
             var network = new MultilayerNetwork(spec, attribs);
 
-            var doc = network.ToVectorDocument();
+            var doc = network.ToDataDocument();
 
             Console.Write(doc.ExportAsXml().ToString());
 

@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
     internal class MultiStrategyFeatureExtractor<T> : 
         IFloatingPointFeatureExtractor<T>,
-        IExportableAsVectorDocument,
-        IImportableAsVectorDocument
+        IExportableAsDataDocument,
+        IImportableFromDataDocument
     {
         private readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
 
@@ -35,7 +36,7 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             for (var i = 0; i < _featureExtractionStrategies.Length; i++)
             {
@@ -46,19 +47,19 @@ namespace LinqInfer.Learning.Features
         public void Load(Stream input)
         {
             var xml = XDocument.Load(input);
-            var doc = new BinaryVectorDocument(xml);
+            var doc = new PortableDataDocument(xml);
 
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
 
         public void Save(Stream output)
         {
-            ToVectorDocument().ExportAsXml().Save(output);
+            ToDataDocument().ExportAsXml().Save(output);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType(this);
 

@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths;
+﻿using System;
+using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class FractionTests : AssertionHelper

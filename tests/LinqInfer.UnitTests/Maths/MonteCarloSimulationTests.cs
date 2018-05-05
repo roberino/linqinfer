@@ -1,8 +1,8 @@
-﻿using LinqInfer.Maths.Probability;
+﻿using System;
+using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MonteCarloSimulationTests : TestFixtureBase

@@ -24,7 +24,7 @@ namespace LinqInfer.Maths
         /// <param name="minMaxAndMean">The min max and mean</param>
         /// <param name="range">The range that values should fall between</param>
         /// <returns></returns>
-        public static SerialisableVectorTransformation CreateCentreAndScaleTransformation(this MinMaxMeanVector minMaxAndMean, Range? range = null)
+        public static SerialisableDataTransformation CreateCentreAndScaleTransformation(this MinMaxMeanVector minMaxAndMean, Range? range = null)
         {
             if (!range.HasValue) range = Range.MinusOneToOne;
 
@@ -34,11 +34,11 @@ namespace LinqInfer.Maths
             var scaleValue = adjustedMax / range.Value.Size;
             var targetMin = Vector.UniformVector(adjustedMax.Size, -range.Value.Min);
 
-            var centre = new VectorOperation(VectorOperationType.Subtract, mean + adjustedMin);
-            var scale = new VectorOperation(VectorOperationType.SafeDivide, scaleValue);
-            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, targetMin);
+            var centre = new DataOperation(VectorOperationType.Subtract, mean + adjustedMin);
+            var scale = new DataOperation(VectorOperationType.SafeDivide, scaleValue);
+            var rangeTranspose = new DataOperation(VectorOperationType.Subtract, targetMin);
 
-            var transform = new SerialisableVectorTransformation(centre, scale, rangeTranspose);
+            var transform = new SerialisableDataTransformation(centre, scale, rangeTranspose);
 
             return transform;
         }
@@ -47,7 +47,7 @@ namespace LinqInfer.Maths
         /// Creates a transformation to scale a vector 
         /// so that values fall between a min max range
         /// </summary>
-        public static SerialisableVectorTransformation CreateScaleTransformation(this MinMaxVector minMax, Range? range = null)
+        public static SerialisableDataTransformation CreateScaleTransformation(this MinMaxVector minMax, Range? range = null)
         {
             if (!range.HasValue) range = Range.MinusOneToOne;
 
@@ -55,11 +55,11 @@ namespace LinqInfer.Maths
             var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
             var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
 
-            var minTranspose = new VectorOperation(VectorOperationType.Subtract, minMax.Min.ToColumnVector());
-            var scale = new VectorOperation(VectorOperationType.Divide, scaleValue);
-            var rangeTranspose = new VectorOperation(VectorOperationType.Subtract, rangeMin);
+            var minTranspose = new DataOperation(VectorOperationType.Subtract, minMax.Min.ToColumnVector());
+            var scale = new DataOperation(VectorOperationType.Divide, scaleValue);
+            var rangeTranspose = new DataOperation(VectorOperationType.Subtract, rangeMin);
 
-            var transform = new SerialisableVectorTransformation(minTranspose, scale, rangeTranspose);
+            var transform = new SerialisableDataTransformation(minTranspose, scale, rangeTranspose);
 
             return transform;
         }

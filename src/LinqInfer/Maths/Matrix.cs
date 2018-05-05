@@ -7,6 +7,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -14,7 +15,7 @@ namespace LinqInfer.Maths
     /// Represents a matrix of floating point numbers
     /// with various methods for supporting matrix operations
     /// </summary>
-    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument, IJsonExportable, IMatrix
+    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsDataDocument, IImportableFromDataDocument, IJsonExportable, IMatrix
     {
         private Lazy<Vector> _mean;
         private Lazy<Matrix> _covariance;
@@ -604,9 +605,9 @@ namespace LinqInfer.Maths
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
         }
 
-        public virtual BinaryVectorDocument ToVectorDocument()
+        public virtual PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var vect in _rows)
             {
@@ -616,7 +617,7 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public virtual void FromVectorDocument(BinaryVectorDocument doc)
+        public virtual void FromDataDocument(PortableDataDocument doc)
         {
             _rows.Clear();
 

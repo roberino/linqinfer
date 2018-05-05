@@ -2,10 +2,11 @@
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class Kde<T> : IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class Kde<T> : IExportableAsDataDocument, IImportableFromDataDocument
     {
         private readonly Func<IDictionary<string, double>, Func<T, Fraction>> _functionFactory;
 
@@ -29,7 +30,7 @@ namespace LinqInfer.Maths.Probability
 
         public Func<T, Fraction> Function { get; }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             foreach (var item in doc.Properties)
             {
@@ -40,9 +41,9 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var item in Parameters)
             {

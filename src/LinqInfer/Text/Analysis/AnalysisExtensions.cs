@@ -27,7 +27,7 @@ namespace LinqInfer.Text.Analysis
             return cbow;
         }
 
-        public static async Task<IAsyncTrainingSet<WordVector, string>> CreateAggregatedTrainingSetAsync(this AsyncContinuousBagOfWords cbow, CancellationToken cancellationToken, int contextPadding = 2)
+        public static async Task<IAsyncTrainingSet<WordData, string>> CreateAggregatedTrainingSetAsync(this AsyncContinuousBagOfWords cbow, CancellationToken cancellationToken, int contextPadding = 2)
         {
             var aggreg = new CBowAggregator(cbow.GetNGramSource(contextPadding), cbow.WiderVocabulary);
 
@@ -36,7 +36,7 @@ namespace LinqInfer.Text.Analysis
             return trainingSet;
         }
 
-        internal static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        internal static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<WordData, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }

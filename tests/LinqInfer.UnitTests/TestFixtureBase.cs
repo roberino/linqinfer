@@ -1,15 +1,15 @@
-﻿using NUnit.Framework;
-using System;
-using System.IO;
-using System.Reflection;
-using System.Linq;
-using LinqInfer.Maths;
-using NUnit.Framework.Constraints;
+﻿using System;
 using System.Diagnostics;
-using System.Xml.Linq;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using LinqInfer.Maths;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.UnitTests
 {
     public class TestFixtureBase : AssertionHelper
     {

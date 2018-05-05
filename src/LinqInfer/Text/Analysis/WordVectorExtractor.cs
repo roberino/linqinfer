@@ -20,7 +20,7 @@ namespace LinqInfer.Text.Analysis
 
             await trainingSet.RunAsync(cancellationToken);
 
-            var doc = classifier.ToVectorDocument();
+            var doc = classifier.ToDataDocument();
 
             var mln = doc.GetChildDoc<MultilayerNetwork>();
 
@@ -32,13 +32,13 @@ namespace LinqInfer.Text.Analysis
                   .ToMatrix();
         }
 
-        public async Task<LabelledMatrix<string>> ExtractVectorsAsync(IAsyncTrainingSet<WordVector, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public async Task<LabelledMatrix<string>> ExtractVectorsAsync(IAsyncTrainingSet<WordData, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(NetworkBuilder(vectorSize));
 
             await trainingSet.RunAsync(cancellationToken);
 
-            var doc = classifier.ToVectorDocument();
+            var doc = classifier.ToDataDocument();
 
             var mln = doc.GetChildDoc<MultilayerNetwork>();
 

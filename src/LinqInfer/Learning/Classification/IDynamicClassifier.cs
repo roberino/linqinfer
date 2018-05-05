@@ -1,8 +1,9 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification
 {
-    public interface IDynamicClassifier<TClass, TInput> : IPrunableObjectClassifier<TClass, TInput>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    public interface IDynamicClassifier<TClass, TInput> : IPrunableObjectClassifier<TClass, TInput>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         /// <summary>
         /// Returns classifier statistics

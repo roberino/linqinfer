@@ -1,12 +1,12 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class LinearClassifierTests

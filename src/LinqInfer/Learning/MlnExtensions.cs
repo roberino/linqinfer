@@ -4,6 +4,7 @@ using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using System;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 
 namespace LinqInfer.Learning
@@ -137,13 +138,13 @@ namespace LinqInfer.Learning
         /// <param name="docData">An exported multilayer network</param>
         /// <param name="featureExtractor">An optional feature extractor</param>
         public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
-            this BinaryVectorDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
+            this PortableDataDocument docData, IFloatingPointFeatureExtractor<TInput> featureExtractor = null) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(featureExtractor);
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
 
-            classifier.FromVectorDocument(docData);
+            classifier.FromDataDocument(docData);
 
             return classifier;
         }
@@ -157,13 +158,13 @@ namespace LinqInfer.Learning
         /// <param name="featureExtractorFunc">A feature extracting function</param>
         /// <param name="vectorSize">The size of the input vector</param>
         public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
-            this BinaryVectorDocument docData, Func<TInput, IVector> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
+            this PortableDataDocument docData, Func<TInput, IVector> featureExtractorFunc, int vectorSize) where TInput : class where TClass : IEquatable<TClass>
         {
             var fe = new MultiFunctionFeatureExtractor<TInput>(new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunc, vectorSize));
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
 
-            classifier.FromVectorDocument(docData);
+            classifier.FromDataDocument(docData);
 
             return classifier;
         }

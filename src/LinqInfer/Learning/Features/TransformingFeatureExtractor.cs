@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class TransformingFeatureExtractor<TInput, TVector> : IFeatureExtractor<TInput, TVector>, IExportableAsVectorDocument, IImportableAsVectorDocument where TVector : struct
+    internal class TransformingFeatureExtractor<TInput, TVector> : IFeatureExtractor<TInput, TVector>, IExportableAsDataDocument, IImportableFromDataDocument where TVector : struct
     {
         private readonly IFeatureExtractor<TInput, TVector> _baseFeatureExtractor;
         private readonly Func<TVector[], TVector[]> _transformation;
@@ -78,21 +79,21 @@ namespace LinqInfer.Learning.Features
 
         public virtual void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
             doc.Load(input);
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
 
         public virtual void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
             if (_hasCustomTransformation) throw new NotSupportedException("Custom transformations can't be serialised");
 
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
 
@@ -101,7 +102,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             if (doc.Properties.ContainsKey("SelectedFeatures"))
             {

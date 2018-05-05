@@ -1,11 +1,11 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class PrincipalComponentsAnalysisTests

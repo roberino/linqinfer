@@ -6,6 +6,7 @@ using System.Linq;
 using LinqInfer.Utility;
 using System.Xml;
 using System.IO;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text
 {

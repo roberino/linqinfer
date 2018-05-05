@@ -39,7 +39,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
-        public IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation)
+        public IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableDataTransformation transformation)
         {
             _featureExtractor.PreprocessWith(transformation);
 

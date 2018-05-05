@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     internal class ObjectBlobber<T> : IBinaryPersistable
     {

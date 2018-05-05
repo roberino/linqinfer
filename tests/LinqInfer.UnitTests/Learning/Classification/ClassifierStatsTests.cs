@@ -1,8 +1,8 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using System.Linq;
+using LinqInfer.Learning.Classification;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class ClassifierStatsTests
@@ -23,7 +23,7 @@ namespace LinqInfer.Tests.Learning.Classification
                 stats.IncrementTrainingSampleCount();
             }
 
-            var doc = stats.ToVectorDocument();
+            var doc = stats.ToDataDocument();
 
             Assert.That(doc.PropertyOrDefault("ClassificationCount", 0), Is.EqualTo(17));
             Assert.That(doc.PropertyOrDefault("TrainingSampleCount", 0), Is.EqualTo(22));

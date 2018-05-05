@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     internal class DeflateCompression<T> : IBinaryPersistable where T : IBinaryPersistable
     {

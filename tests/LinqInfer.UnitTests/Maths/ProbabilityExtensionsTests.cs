@@ -1,10 +1,10 @@
-﻿using LinqInfer.Maths;
+﻿using System;
+using System.Linq;
+using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class ProbabilityExtensionsTests

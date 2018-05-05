@@ -1,15 +1,11 @@
-﻿using LinqInfer.Utility;
-using NUnit.Framework;
-using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static LinqInfer.Tests.TestData;
+using LinqInfer.Utility;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Utility
+namespace LinqInfer.UnitTests.Utility
 {
     [TestFixture]
     public class DictionarySerialiserTests
@@ -46,12 +42,12 @@ namespace LinqInfer.Tests.Utility
         [Test]
         public void Write_And_Read_PirateIntDict()
         {
-            var s = new DictionarySerialiser<Pirate, int>();
-            var data = new Dictionary<Pirate, int>();
+            var s = new DictionarySerialiser<TestData.Pirate, int>();
+            var data = new Dictionary<TestData.Pirate, int>();
 
-            data[new Pirate()] = 1;
-            data[new Pirate() { Age = 16 }] = 2;
-            data[new Pirate()] = 3;
+            data[new TestData.Pirate()] = 1;
+            data[new TestData.Pirate() { Age = 16 }] = 2;
+            data[new TestData.Pirate()] = 3;
 
             byte[] output;
 

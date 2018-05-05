@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -166,9 +167,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep) => Clone(deep);
 
-        public BinaryVectorDocument Export()
+        public PortableDataDocument Export()
         {
-            var layerDoc = new BinaryVectorDocument();
+            var layerDoc = new PortableDataDocument();
 
             layerDoc.Properties["Size"] = Size.ToString();
 
@@ -180,7 +181,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return layerDoc;
         }
 
-        public void Import(BinaryVectorDocument data)
+        public void Import(PortableDataDocument data)
         {
             int i = 0;
 

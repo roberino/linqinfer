@@ -1,12 +1,13 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Maths;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {
-    public sealed class WordVector : IExportableAsVectorDocument
+    public sealed class WordData : IExportableAsDataDocument
     {
-        public WordVector(string word, long frequency = 1, IVector vector = null)
+        public WordData(string word, long frequency = 1, IVector vector = null)
         {
             Word = word;
             Frequency = frequency;
@@ -18,17 +19,17 @@ namespace LinqInfer.Text.Analysis
         public long Frequency { get; }
         public long NumberOfConnections => Vector.ToColumnVector().Where(v => v > 0).Count();
 
-        public static WordVector FromVectorDocument(BinaryVectorDocument doc)
+        public static WordData FromVectorDocument(PortableDataDocument doc)
         {
-            return new WordVector(
+            return new WordData(
                 doc.PropertyOrDefault(nameof(Word), string.Empty),
                 doc.PropertyOrDefault(nameof(Frequency), default(long)),
                 doc.Vectors.Single());
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => Word);
             doc.SetPropertyFromExpression(() => Frequency);

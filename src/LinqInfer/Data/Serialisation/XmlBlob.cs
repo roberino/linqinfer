@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     public class XmlBlob<T> : IBinaryPersistable where T : IXmlExportable, IXmlImportable
     {

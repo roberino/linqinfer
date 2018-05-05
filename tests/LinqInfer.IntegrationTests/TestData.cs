@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
 using System.Collections.Generic;
 using System.IO;

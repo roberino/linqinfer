@@ -1,9 +1,9 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+﻿using System.IO;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Maths;
 using NUnit.Framework;
-using System.IO;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
     public class BackPropagationLearningTests

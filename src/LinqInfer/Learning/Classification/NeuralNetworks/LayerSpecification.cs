@@ -3,14 +3,15 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class LayerSpecification : IExportableAsVectorDocument
+    public sealed class LayerSpecification : IExportableAsDataDocument
     {
         public static readonly Range DefaultInitialWeightRange = new Range(0.00000001, -0.00000001);
 
-        private ISerialisableVectorTransformation _outputTransformation;
+        private ISerialisableDataTransformation _outputTransformation;
 
         public LayerSpecification(
             int layerSize, 
@@ -78,7 +79,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Transforms the output
         /// </summary>
-        public ISerialisableVectorTransformation OutputTransformation
+        public ISerialisableDataTransformation OutputTransformation
         {
             get => _outputTransformation;
             set
@@ -96,9 +97,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public Range InitialWeightRange { get; }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => LayerSize);
             doc.SetPropertyFromExpression(() => Activator);
@@ -119,7 +120,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        internal static LayerSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context)
+        internal static LayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
         {
             LayerSpecification layer = null;
 
@@ -135,7 +136,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var lossFunc = context.LossFunctionFactory.Create(lossFuncStr);
             var wuRule = context.WeightUpdateRuleFactory.Create(weightUpdateRuleStr);
 
-            ISerialisableVectorTransformation outputTransform = null;
+            ISerialisableDataTransformation outputTransform = null;
 
             if (doc.Children.Count > 0)
             {

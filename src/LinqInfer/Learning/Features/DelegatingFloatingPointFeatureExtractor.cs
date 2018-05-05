@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class DelegatingFloatingPointFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         private readonly Func<T, IVector> _vectorFunc;
 
@@ -46,16 +47,16 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
         }
 
         public void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Load(input);
 
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
 
         public ColumnVector1D ExtractColumnVector(T obj)
@@ -68,16 +69,16 @@ namespace LinqInfer.Learning.Features
             return _vectorFunc(obj);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Properties[nameof(VectorSize)] = VectorSize.ToString();
 
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             if (doc.Vectors.Any())
             {

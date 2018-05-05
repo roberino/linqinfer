@@ -17,7 +17,7 @@ namespace LinqInfer.IntegrationTests.Text
     public class VectorExtractionTests
     {
         private IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
-        private IAsyncTrainingSet<WordVector, string> _aggTrainingSet;
+        private IAsyncTrainingSet<WordData, string> _aggTrainingSet;
         private INetworkClassifier<string, BiGram> _classifier;
 
         [Test]
@@ -66,7 +66,7 @@ namespace LinqInfer.IntegrationTests.Text
             }
         }
 
-        private async Task<IAsyncTrainingSet<WordVector, string>> GivenAnAggregatedAsyncTrainingSet()
+        private async Task<IAsyncTrainingSet<WordData, string>> GivenAnAggregatedAsyncTrainingSet()
         {
             var corpus = CorpusDataSource.GetCorpus(5000);
 

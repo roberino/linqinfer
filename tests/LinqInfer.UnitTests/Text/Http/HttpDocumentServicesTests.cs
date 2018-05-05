@@ -1,10 +1,4 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Data.Remoting;
-using LinqInfer.Text;
-using LinqInfer.Text.Http;
-using NSubstitute;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,8 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Data.Remoting;
+using LinqInfer.Text;
+using LinqInfer.Text.Http;
+using NSubstitute;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text.Http
+namespace LinqInfer.UnitTests.Text.Http
 {
     [TestFixture]
     public class HttpDocumentServicesTests

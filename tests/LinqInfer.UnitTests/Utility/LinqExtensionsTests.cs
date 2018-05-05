@@ -1,9 +1,9 @@
-﻿using LinqInfer.Utility;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq.Expressions;
+using LinqInfer.Utility;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Utility
+namespace LinqInfer.UnitTests.Utility
 {
     [TestFixture]
     public class LinqExtensionsTests

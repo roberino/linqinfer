@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
@@ -27,14 +28,14 @@ namespace LinqInfer.Maths.Probability
             _root = new Transition();
         }
 
-        public DiscreteMarkovChain(BinaryVectorDocument data, Func<T, string> valueExportFunc = null, Func<string, T> valueImportFunc = null)
+        public DiscreteMarkovChain(PortableDataDocument data, Func<T, string> valueExportFunc = null, Func<string, T> valueImportFunc = null)
         {
             _valueExportFunc = valueExportFunc;
             _valueImportFunc = valueImportFunc;
             _order = data.PropertyOrDefault(() => Order, (byte)1);
             _root = new Transition();
 
-            FromVectorDocument(data);
+            FromDataDocument(data);
         }
 
         public void Merge(IDiscreteMarkovChain<T> other)
@@ -228,11 +229,11 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
             var ve = _valueExportFunc ?? new GenericTypeConverter<T>().ConvertToString;
 
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => Order);
 
@@ -241,7 +242,7 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             var vi = _valueImportFunc ?? new GenericTypeConverter<T>().ConvertFromString;
 
@@ -421,9 +422,9 @@ namespace LinqInfer.Maths.Probability
                 return doc;
             }
 
-            internal BinaryVectorDocument ExportAsBinaryVectorDoc(Func<T, string> valueExportFunc)
+            internal PortableDataDocument ExportAsBinaryVectorDoc(Func<T, string> valueExportFunc)
             {
-                var doc = new BinaryVectorDocument();
+                var doc = new PortableDataDocument();
 
                 if (!_isRoot)
                 {
@@ -439,7 +440,7 @@ namespace LinqInfer.Maths.Probability
                 return doc;
             }
 
-            internal void ImportBinaryVectorDoc(Func<string, T> valueImportFunc, BinaryVectorDocument doc)
+            internal void ImportBinaryVectorDoc(Func<string, T> valueImportFunc, PortableDataDocument doc)
             {
                 if (!_isRoot)
                 {

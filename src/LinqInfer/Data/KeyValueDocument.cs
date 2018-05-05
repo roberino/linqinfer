@@ -1,10 +1,11 @@
 ﻿using LinqInfer.Data;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data
 {
-    internal class KeyValueDocument : IExportableAsVectorDocument, IImportableAsVectorDocument
+    internal class KeyValueDocument : IExportableAsDataDocument, IImportableFromDataDocument
     {
         private readonly IDictionary<string, string> _keyValues;
 
@@ -19,9 +20,9 @@ namespace LinqInfer.Data
 
         public IDictionary<string, string> Data => _keyValues;
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var kv in _keyValues)
             {
@@ -31,7 +32,7 @@ namespace LinqInfer.Data
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             _keyValues.Clear();
 

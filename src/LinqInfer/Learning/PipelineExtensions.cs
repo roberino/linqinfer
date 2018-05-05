@@ -7,6 +7,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning
 {
@@ -49,7 +50,7 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <param name="data">The document data</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipeline<Vector> CreatePipeline(this BinaryVectorDocument data)
+        public static FeatureProcessingPipeline<Vector> CreatePipeline(this PortableDataDocument data)
         {
             if (!data.Vectors.Any())
             {

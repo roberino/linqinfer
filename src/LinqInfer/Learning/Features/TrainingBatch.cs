@@ -3,10 +3,11 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    public class TrainingBatch : IBatch<TrainingPair<IVector, IVector>>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    public class TrainingBatch : IBatch<TrainingPair<IVector, IVector>>, IExportableAsDataDocument, IImportableFromDataDocument
     {
         public TrainingBatch(IBatch<TrainingPair<IVector, IVector>> batch)
         {
@@ -21,7 +22,7 @@ namespace LinqInfer.Learning.Features
 
         public bool IsLast { get; private set; }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             ArgAssert.Assert(() => doc.Children.Count > 0, nameof(doc.Children));
 
@@ -43,11 +44,11 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
-            var inputs = new BinaryVectorDocument();
-            var outputs = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
+            var inputs = new PortableDataDocument();
+            var outputs = new PortableDataDocument();
 
             doc.Children.Add(inputs);
             doc.Children.Add(outputs);

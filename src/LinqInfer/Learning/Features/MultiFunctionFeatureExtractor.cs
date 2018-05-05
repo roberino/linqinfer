@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using LinqInfer.Maths;
 using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
     internal class MultiFunctionFeatureExtractor<T> : 
         IFloatingPointFeatureExtractor<T>, 
-        IImportableAsVectorDocument, 
-        IExportableAsVectorDocument where T : class
+        IImportableFromDataDocument, 
+        IExportableAsDataDocument where T : class
     {
         private static readonly ObjectFeatureExtractorFactory _objExtractor = new ObjectFeatureExtractorFactory();
 
@@ -90,7 +91,7 @@ namespace LinqInfer.Learning.Features
         /// Preprocesses the data with the supplied transformation
         /// </summary>
         /// <param name="transformation">The vector transformation</param>
-        public void PreprocessWith(ISerialisableVectorTransformation transformation)
+        public void PreprocessWith(ISerialisableDataTransformation transformation)
         {
             if (_transformation == null)
             {
@@ -118,11 +119,11 @@ namespace LinqInfer.Learning.Features
         }
 
         /// <summary>
-        /// Exports the state of the pipeline as a <see cref="BinaryVectorDocument"/>
+        /// Exports the state of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Properties["HasFilter"] = (_filter != null).ToString().ToLower();
             doc.Properties["HasTransformation"] = (_transformation != null).ToString().ToLower();
@@ -133,9 +134,9 @@ namespace LinqInfer.Learning.Features
         }
 
         /// <summary>
-        /// Retores the state of the pipeline as a <see cref="BinaryVectorDocument"/>
+        /// Retores the state of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public void FromVectorDocument(BinaryVectorDocument data)
+        public void FromDataDocument(PortableDataDocument data)
         {
             var hasTr = data.PropertyOrDefault("HasTransformation", false);
 
@@ -145,7 +146,7 @@ namespace LinqInfer.Learning.Features
 
                 if (!hasTr)
                 {
-                    _filter.FromVectorDocument(data.Children.First());
+                    _filter.FromDataDocument(data.Children.First());
                     return;
                 }
             }
@@ -154,14 +155,14 @@ namespace LinqInfer.Learning.Features
             {
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_filter ?? _featureExtractor);
 
-                _transformation.FromVectorDocument(data.Children.First());
+                _transformation.FromDataDocument(data.Children.First());
 
                 return;
             }
 
-            if (_featureExtractor is IImportableAsVectorDocument)
+            if (_featureExtractor is IImportableFromDataDocument)
             {
-                ((IImportableAsVectorDocument)_featureExtractor).FromVectorDocument(data.Children.First());
+                ((IImportableFromDataDocument)_featureExtractor).FromDataDocument(data.Children.First());
             }
             else
             {
@@ -171,16 +172,16 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ToDataDocument().Save(output);
         }
 
         public void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Load(input);
 
-            FromVectorDocument(doc);
+            FromDataDocument(doc);
         }
     }
 }

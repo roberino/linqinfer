@@ -1,9 +1,8 @@
 ﻿using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class HypoSetTests

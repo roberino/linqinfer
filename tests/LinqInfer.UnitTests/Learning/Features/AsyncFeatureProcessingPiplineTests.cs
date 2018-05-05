@@ -1,12 +1,12 @@
-﻿using LinqInfer.Learning.Features;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class AsyncFeatureProcessingPiplineTests

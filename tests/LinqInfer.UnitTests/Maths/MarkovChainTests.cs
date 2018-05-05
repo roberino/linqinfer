@@ -1,10 +1,10 @@
-﻿using LinqInfer.Data;
+﻿using System;
+using System.Linq;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MarkovChainTests
@@ -28,9 +28,9 @@ namespace LinqInfer.Tests.Maths
 
             mkc.AnalyseSequence("abcjholsdgkjhjjkkklkjssssdf");
 
-            var xml = mkc.ToVectorDocument().ExportAsXml();
+            var xml = mkc.ToDataDocument().ExportAsXml();
 
-            var doc = new BinaryVectorDocument(xml);
+            var doc = new PortableDataDocument(xml);
 
             var mkc2 = new DiscreteMarkovChain<char>(doc);
 

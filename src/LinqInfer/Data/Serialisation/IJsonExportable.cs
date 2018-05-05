@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     /// <summary>
     /// Interface for objects which can export data in a JSON format

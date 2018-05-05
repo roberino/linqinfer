@@ -1,6 +1,4 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,14 +6,16 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using LinqInfer.Maths;
+using LinqInfer.Utility;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
     /// <summary>
     /// General purpose document for serialising vector and general object data.
     /// The document supports serialising as XML and to a binary stream
     /// </summary>
-    public class BinaryVectorDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<BinaryVectorDocument>
+    public class PortableDataDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<PortableDataDocument>
     {
         private const string PropertiesName = "PROP";
         private const string BlobName = "BLOB";
@@ -24,23 +24,23 @@ namespace LinqInfer.Data
 
         private string _rootName;
 
-        public BinaryVectorDocument()
+        public PortableDataDocument()
         {
             Properties = new ConstrainableDictionary<string, string>(v => v != null);
             Blobs = new Dictionary<string, byte[]>();
             Vectors = new List<IVector>();
-            Children = new List<BinaryVectorDocument>();
+            Children = new List<PortableDataDocument>();
 
             Version = 1;
             Timestamp = DateTime.UtcNow;
         }
 
-        public BinaryVectorDocument(Stream data) : this()
+        public PortableDataDocument(Stream data) : this()
         {
             Load(data);
         }
 
-        public BinaryVectorDocument(XDocument xml, bool validate = false, XmlVectorSerialisationMode vectorToXmlSerialisationMode = XmlVectorSerialisationMode.Default) : this()
+        public PortableDataDocument(XDocument xml, bool validate = false, XmlVectorSerialisationMode vectorToXmlSerialisationMode = XmlVectorSerialisationMode.Default) : this()
         {
             VectorToXmlSerialisationMode = vectorToXmlSerialisationMode;
             ValidateOnImport = validate;
@@ -127,7 +127,7 @@ namespace LinqInfer.Data
 
         internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
 
-        public BinaryVectorDocument FindChild<T>()
+        public PortableDataDocument FindChild<T>()
         {
             return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
         }
@@ -136,7 +136,7 @@ namespace LinqInfer.Data
 
         public IDictionary<string, byte[]> Blobs { get; }
 
-        public IEnumerable<BinaryVectorDocument> QueryChildren(object propertyQuery)
+        public IEnumerable<PortableDataDocument> QueryChildren(object propertyQuery)
         {
             var query = propertyQuery.ToDictionary();
 
@@ -190,14 +190,14 @@ namespace LinqInfer.Data
 
         public IList<IVector> Vectors { get; private set; }
 
-        public BinaryVectorDocument AddChild()
+        public PortableDataDocument AddChild()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
             Children.Add(doc);
             return doc;
         }
 
-        public IList<BinaryVectorDocument> Children { get; private set; }
+        public IList<PortableDataDocument> Children { get; private set; }
 
         public void Load(Stream input)
         {
@@ -256,7 +256,7 @@ namespace LinqInfer.Data
             }
         }
 
-        internal BinaryVectorDocument GetChildDoc<T>(Type type = null, int? index = null, bool ignoreIfMissing = false)
+        internal PortableDataDocument GetChildDoc<T>(Type type = null, int? index = null, bool ignoreIfMissing = false)
         {
             var tname = (type ?? typeof(T)).GetTypeInf().Name;
 
@@ -275,9 +275,9 @@ namespace LinqInfer.Data
 
             if (childNode == null) return obj;
 
-            if (obj is IImportableAsVectorDocument)
+            if (obj is IImportableFromDataDocument)
             {
-                ((IImportableAsVectorDocument)obj).FromVectorDocument(childNode);
+                ((IImportableFromDataDocument)obj).FromDataDocument(childNode);
 
                 return obj;
             }
@@ -301,9 +301,9 @@ namespace LinqInfer.Data
 
             if (tc == TypeCode.Object)
             {
-                if (obj is IExportableAsVectorDocument)
+                if (obj is IExportableAsDataDocument)
                 {
-                    var childDoc = ((IExportableAsVectorDocument)obj).ToVectorDocument();
+                    var childDoc = ((IExportableAsDataDocument)obj).ToDataDocument();
 
                     SetProperties(childDoc, attributes);
 
@@ -315,7 +315,7 @@ namespace LinqInfer.Data
                 {
                     if (obj is IBinaryPersistable)
                     {
-                        var childDoc = new BinaryVectorDocument();
+                        var childDoc = new PortableDataDocument();
 
                         SetProperties(childDoc, attributes);
                         childDoc.SetType(childType);                        
@@ -373,7 +373,7 @@ namespace LinqInfer.Data
 
             actions[ChildrenName] = (n, r) =>
             {
-                var child = new BinaryVectorDocument();
+                var child = new PortableDataDocument();
 
                 child.Read(r, level + 1);
 
@@ -388,7 +388,7 @@ namespace LinqInfer.Data
             }
         }
 
-        private void SetProperties(BinaryVectorDocument doc, object obj)
+        private void SetProperties(PortableDataDocument doc, object obj)
         {
             if (obj != null)
             {
@@ -501,7 +501,7 @@ namespace LinqInfer.Data
 
             foreach (var child in ChildElements(rootNode, ChildrenName))
             {
-                var cdoc = new BinaryVectorDocument() { ValidateOnImport = ValidateOnImport, VectorToXmlSerialisationMode = VectorToXmlSerialisationMode };
+                var cdoc = new PortableDataDocument() { ValidateOnImport = ValidateOnImport, VectorToXmlSerialisationMode = VectorToXmlSerialisationMode };
 
                 cdoc.ImportXml(child);
 
@@ -568,7 +568,7 @@ namespace LinqInfer.Data
             }
         }
 
-        public bool Equals(BinaryVectorDocument other)
+        public bool Equals(PortableDataDocument other)
         {
             if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -585,7 +585,7 @@ namespace LinqInfer.Data
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as BinaryVectorDocument);
+            return Equals(obj as PortableDataDocument);
         }
 
         public override int GetHashCode()

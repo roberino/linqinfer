@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     internal class DelegateWriteStream : Stream
     {

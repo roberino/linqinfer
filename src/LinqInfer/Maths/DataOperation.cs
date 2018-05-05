@@ -3,34 +3,35 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
-    public sealed class VectorOperation : IExportableAsVectorDocument, IImportableAsVectorDocument, IEquatable<VectorOperation>
+    public sealed class DataOperation : IExportableAsDataDocument, IImportableFromDataDocument, IEquatable<DataOperation>
     {
         private readonly IList<ColumnVector1D> _parameters;
 
-        public VectorOperation()
+        public DataOperation()
         {
             _parameters = new List<ColumnVector1D>();
         }
 
-        public VectorOperation(BinaryVectorDocument data) : this()
+        public DataOperation(PortableDataDocument data) : this()
         {
-            FromVectorDocument(data);
+            FromDataDocument(data);
         }
 
-        public VectorOperation(VectorOperationType type, IEnumerable<Vector> parameters) : this()
+        public DataOperation(VectorOperationType type, IEnumerable<Vector> parameters) : this()
         {
             foreach (var para in parameters) _parameters.Add(new ColumnVector1D(para));
         }
 
-        public VectorOperation(VectorOperationType type, Matrix transformation) : this(type, transformation.Rows.Select(r => r.ToColumnVector()))
+        public DataOperation(VectorOperationType type, Matrix transformation) : this(type, transformation.Rows.Select(r => r.ToColumnVector()))
         {
             Operation = type;
         }
 
-        public VectorOperation(VectorOperationType type, params Vector[] parameters) : this(type, (IEnumerable<Vector>)parameters)
+        public DataOperation(VectorOperationType type, params Vector[] parameters) : this(type, (IEnumerable<Vector>)parameters)
         {
             Operation = type;
         }
@@ -67,7 +68,7 @@ namespace LinqInfer.Maths
 
         public VectorOperationType Operation { get; private set; }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             _parameters.Clear();
 
@@ -76,9 +77,9 @@ namespace LinqInfer.Maths
             foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector())) _parameters.Add(vect);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.Properties["Operation"] = Operation.ToString();
             doc.Properties["Version"] = "1";
@@ -94,7 +95,7 @@ namespace LinqInfer.Maths
 
         private Matrix AsMatrix() => new Matrix(_parameters);
 
-        public bool Equals(VectorOperation other)
+        public bool Equals(DataOperation other)
         {
             if (other == null) return false;
 
@@ -109,7 +110,7 @@ namespace LinqInfer.Maths
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as VectorOperation);
+            return Equals(obj as DataOperation);
         }
 
         public override int GetHashCode()

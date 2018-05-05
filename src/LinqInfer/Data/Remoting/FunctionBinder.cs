@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {

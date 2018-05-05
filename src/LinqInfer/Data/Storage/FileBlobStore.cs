@@ -1,11 +1,11 @@
-﻿using LinqInfer.Utility;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     public class FileBlobStore : BlobStoreBase
     {

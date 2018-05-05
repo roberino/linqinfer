@@ -1,12 +1,12 @@
-﻿using LinqInfer.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Storage
 {
     public sealed class VirtualFile : IVirtualFile
     {

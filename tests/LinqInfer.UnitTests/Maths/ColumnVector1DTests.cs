@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class ColumnVector1DTests

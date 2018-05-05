@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -39,7 +40,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ClassifierStats Statistics { get; private set; }
 
-        public ISerialisableVectorTransformation VectorTransformation => _network;
+        public ISerialisableDataTransformation DataTransformation => _network;
 
         public void Load(Stream input)
         {
@@ -63,14 +64,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _network.Save(output);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ToDataDocument()
         {
             if (_network == null)
             {
                 throw new InvalidOperationException("No training data received");
             }
 
-            var root = new BinaryVectorDocument();
+            var root = new PortableDataDocument();
 
             root.WriteChildObject(Statistics);
             root.WriteChildObject(_config.FeatureExtractor);
@@ -80,7 +81,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return root;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void FromDataDocument(PortableDataDocument doc)
         {
             doc.ReadChildObject(Statistics, null, true);
 
@@ -92,7 +93,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
             else
             {
-                _network.FromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+                _network.FromDataDocument(doc.GetChildDoc<MultilayerNetwork>());
             }
 
             doc.ReadChildObject(_config.OutputMapper);
