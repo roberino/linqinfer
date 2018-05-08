@@ -1,13 +1,10 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
@@ -35,7 +32,7 @@ namespace LinqInfer.Maths.Probability
             _order = data.PropertyOrDefault(() => Order, (byte)1);
             _root = new Transition();
 
-            FromDataDocument(data);
+            ImportData(data);
         }
 
         public void Merge(IDiscreteMarkovChain<T> other)
@@ -64,12 +61,10 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        public int Order { get { return _order; } }
+        public int Order => _order;
 
-        public void AnalyseSequences<S>(IEnumerable<S> sequences) where S : IEnumerable<T>
+        public void AnalyseSequences<TSequence>(IEnumerable<TSequence> sequences) where TSequence : IEnumerable<T>
         {
-            //AnalyseSequencesParallel(sequences);
-
             foreach (var seq in sequences) AnalyseSequence(seq);
         }
 
@@ -81,7 +76,6 @@ namespace LinqInfer.Maths.Probability
         public void AnalyseSequence(IEnumerable<T> sequence)
         {
             var history = new Queue<RuntimeTransition>();
-            var last = default(T);
 
             foreach (var state in sequence)
             {
@@ -96,8 +90,6 @@ namespace LinqInfer.Maths.Probability
                 }
 
                 history.Enqueue(new RuntimeTransition(_root.SetFollowing(state)));
-
-                last = state;
             }
         }
 
@@ -110,11 +102,11 @@ namespace LinqInfer.Maths.Probability
         {
             var history = new Queue<T>(_order);
 
-            NullableState next = new NullableState() { Value = seedState, HasValue = true };
+            var next = new NullableState() { Value = seedState, HasValue = true };
 
             history.Enqueue(next.Value);
 
-            for (int i = 0; i < maxIterations; i++)
+            for (var i = 0; i < maxIterations; i++)
             {
                 yield return next.Value;
 
@@ -150,12 +142,7 @@ namespace LinqInfer.Maths.Probability
             var freq = GetFrequencies(transitionStates);
 
 
-            if (freq.TryGetValue(nextState, out int f))
-            {
-                return new Fraction(f, freq.Sum(x => x.Value));
-            }
-
-            return Fraction.Zero;
+            return freq.TryGetValue(nextState, out var f) ? new Fraction(f, freq.Sum(x => x.Value)) : Fraction.Zero;
         }
 
         public IDictionary<T, int> GetPriorFrequencies(T currentState)
@@ -171,7 +158,7 @@ namespace LinqInfer.Maths.Probability
                         var m = p.Value.Following.TryGetValue(currentState, out Transition tx);
                         return new
                         {
-                            p = p,
+                            p,
                             freq = m ? tx.Frequency : 0
                         };
                     })
@@ -214,10 +201,7 @@ namespace LinqInfer.Maths.Probability
                 }
             }
 
-            if (pathFound)
-                return node.Following.ToDictionary(x => x.Key, x => x.Value.Frequency);
-
-            return new Dictionary<T, int>();
+            return pathFound ? node.Following.ToDictionary(x => x.Key, x => x.Value.Frequency) : new Dictionary<T, int>();
         }
 
         public XDocument ExportAsXml()
@@ -229,7 +213,7 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var ve = _valueExportFunc ?? new GenericTypeConverter<T>().ConvertToString;
 
@@ -242,7 +226,7 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             var vi = _valueImportFunc ?? new GenericTypeConverter<T>().ConvertFromString;
 
@@ -252,71 +236,6 @@ namespace LinqInfer.Maths.Probability
             }
 
             _root.ImportBinaryVectorDoc(vi, doc.Children.First());
-        }
-
-        private void AnalyseSequencesParallel<S>(IEnumerable<S> sequences) where S : IEnumerable<T>
-        {
-            int i = 0;
-
-            var chains = Enumerable.Range(1, Environment.ProcessorCount)
-                .Select(n => new
-                {
-                    queue = new ConcurrentQueue<IEnumerable<T>>(),
-                    chain = new DiscreteMarkovChain<T>(_order),
-                    complete = new CancellationTokenSource()
-                })
-                .ToList();
-
-            var workers = chains
-                .Select(c => Task.Factory.StartNew(() =>
-                {
-                    while (!c.complete.IsCancellationRequested)
-                    {
-                        while (c.queue.TryDequeueWhenAvailable(out IEnumerable<T> next))
-                        {
-                            if (next != null) c.chain.AnalyseSequence(next);
-                        }
-                    }
-                })).ToArray();
-
-            foreach (var seq in sequences)
-            {
-                var worker = chains[i % chains.Count];
-
-                worker.queue.Enqueue(seq);
-
-                i++;
-            }
-
-            foreach (var worker in chains)
-            {
-                worker.complete.Cancel();
-                worker.queue.Close();
-            }
-
-            Task.WaitAll(workers);
-
-            foreach (var worker in chains)
-            {
-                Merge(worker.chain);
-            }
-
-            //sequences
-            //    .AsParallel()
-            //    .WithDegreeOfParallelism(chains.Count)
-            //    .ForAll(s =>
-            //    {
-            //        var n = Interlocked.Increment(ref i);
-
-            //        var chain = chains[n % chains.Count];
-
-            //        chain.AnalyseSequence(s);
-            //    });
-
-            //foreach (var chain in chains)
-            //{
-            //    Merge(chain);
-            //}
         }
 
         private void Merge(Transition source, Transition target)
@@ -461,7 +380,7 @@ namespace LinqInfer.Maths.Probability
                 }
             }
 
-            public IDictionary<T, Transition> Following { get; private set; }
+            public IDictionary<T, Transition> Following { get; }
         }
     }
 }

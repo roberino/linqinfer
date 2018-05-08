@@ -18,7 +18,7 @@ namespace LinqInfer.Maths
 
         public DataOperation(PortableDataDocument data) : this()
         {
-            FromDataDocument(data);
+            ImportData(data);
         }
 
         public DataOperation(VectorOperationType type, IEnumerable<Vector> parameters) : this()
@@ -68,7 +68,7 @@ namespace LinqInfer.Maths
 
         public VectorOperationType Operation { get; private set; }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _parameters.Clear();
 
@@ -77,7 +77,7 @@ namespace LinqInfer.Maths
             foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector())) _parameters.Add(vect);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

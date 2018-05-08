@@ -85,7 +85,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var network = new MultilayerNetwork(spec, attribs);
 
-            var doc = network.ToDataDocument();
+            var doc = network.ExportData();
 
             Console.Write(doc.ExportAsXml().ToString());
 

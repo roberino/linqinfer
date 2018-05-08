@@ -47,9 +47,7 @@ namespace LinqInfer.Utility
 
         public override bool Equals(object obj)
         {
-            var oc = obj as DynamicComparer<T>;
-
-            if (oc == null) return false;
+            if (!(obj is DynamicComparer<T> oc)) return false;
 
             return oc._compareFunc.Equals(_compareFunc) && ((!oc._hasCustomHashFunc && !_hasCustomHashFunc) || oc._hashCodeFunc.Equals(_hashCodeFunc));
         }

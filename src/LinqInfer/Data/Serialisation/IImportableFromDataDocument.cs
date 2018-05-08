@@ -2,6 +2,6 @@
 {
     public interface IImportableFromDataDocument
     {
-        void FromDataDocument(PortableDataDocument doc);
+        void ImportData(PortableDataDocument doc);
     }
 }

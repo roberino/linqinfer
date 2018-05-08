@@ -18,7 +18,6 @@ namespace LinqInfer.IntegrationTests.Text
     {
         private IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
         private IAsyncTrainingSet<WordData, string> _aggTrainingSet;
-        private INetworkClassifier<string, BiGram> _classifier;
 
         [Test]
         public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()

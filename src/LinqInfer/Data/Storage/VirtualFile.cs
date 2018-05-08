@@ -13,9 +13,9 @@ namespace LinqInfer.Data.Storage
         private readonly bool _immediateWriteMode;
         private Stream _dirtyData;
         private Func<string, Task<Stream>> _getData;
-        private Func<string, Stream, Task> _writeData;
-        private Func<string, Stream> _getWriteStream;
-        private Func<string, Task> _delete;
+        private readonly Func<string, Stream, Task> _writeData;
+        private readonly Func<string, Stream> _getWriteStream;
+        private readonly Func<string, Task> _delete;
 
         /// <summary>
         /// Creates a new VirtualFile

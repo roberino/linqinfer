@@ -34,7 +34,7 @@ namespace LinqInfer.UnitTests.Maths
                 Matrix.RandomMatrix(5, 4, new Range(1, -1)),
                 Enumerable.Range(0, 4).ToDictionary(n => "x-" + n, n => n));
 
-            var doc = matrix.ToDataDocument();
+            var doc = matrix.ExportData();
 
             var matrix2 = new LabelledMatrix<string>(doc);
 

@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Maths
 
             var transformed = transform.Apply(vector);
 
-            var data = transform.ToDataDocument().ToClob();
+            var data = transform.ExportData().ToClob();
 
             var doc = (new PortableDataDocument()).FromClob(data);
 

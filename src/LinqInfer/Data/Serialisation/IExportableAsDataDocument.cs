@@ -2,6 +2,6 @@
 {
     public interface IExportableAsDataDocument
     {
-        PortableDataDocument ToDataDocument();
+        PortableDataDocument ExportData();
     }
 }

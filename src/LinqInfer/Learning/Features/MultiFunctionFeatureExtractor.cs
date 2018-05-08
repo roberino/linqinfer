@@ -121,7 +121,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Exports the state of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -136,7 +136,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Retores the state of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public void FromDataDocument(PortableDataDocument data)
+        public void ImportData(PortableDataDocument data)
         {
             var hasTr = data.PropertyOrDefault("HasTransformation", false);
 
@@ -146,7 +146,7 @@ namespace LinqInfer.Learning.Features
 
                 if (!hasTr)
                 {
-                    _filter.FromDataDocument(data.Children.First());
+                    _filter.ImportData(data.Children.First());
                     return;
                 }
             }
@@ -155,14 +155,14 @@ namespace LinqInfer.Learning.Features
             {
                 _transformation = new FloatingPointTransformingFeatureExtractor<T>(_filter ?? _featureExtractor);
 
-                _transformation.FromDataDocument(data.Children.First());
+                _transformation.ImportData(data.Children.First());
 
                 return;
             }
 
             if (_featureExtractor is IImportableFromDataDocument)
             {
-                ((IImportableFromDataDocument)_featureExtractor).FromDataDocument(data.Children.First());
+                ((IImportableFromDataDocument)_featureExtractor).ImportData(data.Children.First());
             }
             else
             {
@@ -172,7 +172,7 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
         public void Load(Stream input)
@@ -181,7 +181,7 @@ namespace LinqInfer.Learning.Features
 
             doc.Load(input);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
     }
 }

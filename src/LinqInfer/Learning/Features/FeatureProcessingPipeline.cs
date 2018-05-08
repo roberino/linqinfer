@@ -79,12 +79,12 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Exports the internal state (not the data) of the pipeline as a <see cref="PortableDataDocument"/>
         /// </summary>
-        public PortableDataDocument SaveState() => _featureExtractor.ToDataDocument();
+        public PortableDataDocument SaveState() => _featureExtractor.ExportData();
 
         /// <summary>
         /// Retores the state of the pipeline from a previously exported <see cref="PortableDataDocument"/>
         /// </summary>
-        public void RestoreState(PortableDataDocument data) => _featureExtractor.FromDataDocument(data);
+        public void RestoreState(PortableDataDocument data) => _featureExtractor.ImportData(data);
 
         /// <summary>
         /// Filters features by property

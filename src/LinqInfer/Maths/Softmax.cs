@@ -33,12 +33,12 @@ namespace LinqInfer.Maths
             return exp / exp.Sum;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             InputSize = doc.PropertyOrDefault(() => InputSize, 0);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

@@ -277,7 +277,7 @@ namespace LinqInfer.Data.Serialisation
 
             if (obj is IImportableFromDataDocument)
             {
-                ((IImportableFromDataDocument)obj).FromDataDocument(childNode);
+                ((IImportableFromDataDocument)obj).ImportData(childNode);
 
                 return obj;
             }
@@ -303,7 +303,7 @@ namespace LinqInfer.Data.Serialisation
             {
                 if (obj is IExportableAsDataDocument)
                 {
-                    var childDoc = ((IExportableAsDataDocument)obj).ToDataDocument();
+                    var childDoc = ((IExportableAsDataDocument)obj).ExportData();
 
                     SetProperties(childDoc, attributes);
 

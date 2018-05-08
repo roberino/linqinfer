@@ -30,13 +30,13 @@ namespace LinqInfer.Learning.Classification
             Interlocked.Increment(ref _trainingInterationCount);
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _trainingInterationCount = doc.PropertyOrDefault(() => TrainingSampleCount, 0);
             _classificationCount = doc.PropertyOrDefault(() => ClassificationCount, 0);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -53,7 +53,7 @@ namespace LinqInfer.Learning.Classification
             {
                 var stats = new ClassifierStats();
 
-                stats.FromDataDocument(ToDataDocument());
+                stats.ImportData(ExportData());
 
                 return stats;
             }

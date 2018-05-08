@@ -14,7 +14,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            var doc = spec.ToDataDocument();
+            var doc = spec.ExportData();
 
             Assert.That(doc, Is.Not.Null);
             Assert.That(doc.Children.Count, Is.EqualTo(2));
@@ -49,7 +49,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                   DefaultWeightUpdateRule.Create(),
                   new Range()));
 
-            var doc = spec.ToDataDocument();
+            var doc = spec.ExportData();
 
             var spec2 = NetworkSpecification.FromVectorDocument(doc);
 
@@ -69,7 +69,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             spec.Layers.Last().OutputTransformation = transform;
 
-            var doc = spec.ToDataDocument();
+            var doc = spec.ExportData();
 
             var spec2 = NetworkSpecification.FromVectorDocument(doc);
             var spec2transform = spec2.Layers.Last().OutputTransformation;
@@ -84,7 +84,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            var doc = spec.ToDataDocument();
+            var doc = spec.ExportData();
 
             var spec2 = NetworkSpecification.FromVectorDocument(doc);
 

@@ -47,7 +47,7 @@ namespace LinqInfer.Learning.Features
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
         public void Load(Stream input)
@@ -56,7 +56,7 @@ namespace LinqInfer.Learning.Features
 
             doc.Load(input);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
         public ColumnVector1D ExtractColumnVector(T obj)
@@ -69,7 +69,7 @@ namespace LinqInfer.Learning.Features
             return _vectorFunc(obj);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -78,7 +78,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             if (doc.Vectors.Any())
             {

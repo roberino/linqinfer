@@ -144,7 +144,7 @@ namespace LinqInfer.Microservices.Text
 
                 using (var fs = mlnFile.GetWriteStream())
                 {
-                    classifier.ToDataDocument().ExportAsXml().Save(fs);
+                    classifier.ExportData().ExportAsXml().Save(fs);
                     await termsFile.CommitWrites();
                 }
 
@@ -247,7 +247,7 @@ namespace LinqInfer.Microservices.Text
 
                     using (var fs = file.GetWriteStream())
                     {
-                        classifier.ToDataDocument().ExportAsXml().Save(fs);
+                        classifier.ExportData().ExportAsXml().Save(fs);
 
                         await file.CommitWrites();
                     }

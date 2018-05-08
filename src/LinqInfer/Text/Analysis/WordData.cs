@@ -27,7 +27,7 @@ namespace LinqInfer.Text.Analysis
                 doc.Vectors.Single());
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

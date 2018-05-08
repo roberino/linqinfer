@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification OutputLayer => Layers.Last();
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -56,7 +56,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             foreach (var child in Layers)
             {
-                doc.Children.Add(child.ToDataDocument());
+                doc.Children.Add(child.ExportData());
             }
 
             return doc;
@@ -114,8 +114,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            var docA = ToDataDocument();
-            var docB = other.ToDataDocument();
+            var docA = ExportData();
+            var docB = other.ExportData();
 
             return docA.Equals(docB);
         }
@@ -127,7 +127,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override int GetHashCode()
         {
-            return (int)ToDataDocument().Checksum;
+            return (int)ExportData().Checksum;
         }
     }
 }

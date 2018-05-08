@@ -97,7 +97,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public Range InitialWeightRange { get; }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

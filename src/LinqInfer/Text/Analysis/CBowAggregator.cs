@@ -84,7 +84,7 @@ namespace LinqInfer.Text.Analysis
 
             await trainingSet.RunAsync(cancellationToken);
 
-            var doc = classifier.ToDataDocument();
+            var doc = classifier.ExportData();
 
             var mln = doc.GetChildDoc<MultilayerNetwork>();
 

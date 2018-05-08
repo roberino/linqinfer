@@ -28,7 +28,7 @@ namespace LinqInfer.UnitTests.Maths
 
             mkc.AnalyseSequence("abcjholsdgkjhjjkkklkjssssdf");
 
-            var xml = mkc.ToDataDocument().ExportAsXml();
+            var xml = mkc.ExportData().ExportAsXml();
 
             var doc = new PortableDataDocument(xml);
 

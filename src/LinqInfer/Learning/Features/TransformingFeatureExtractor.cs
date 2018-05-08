@@ -81,15 +81,15 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new PortableDataDocument();
             doc.Load(input);
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
         public virtual void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             if (_hasCustomTransformation) throw new NotSupportedException("Custom transformations can't be serialised");
 
@@ -102,7 +102,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             if (doc.Properties.ContainsKey("SelectedFeatures"))
             {

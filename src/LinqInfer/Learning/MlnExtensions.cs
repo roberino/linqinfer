@@ -144,7 +144,7 @@ namespace LinqInfer.Learning
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
 
-            classifier.FromDataDocument(docData);
+            classifier.ImportData(docData);
 
             return classifier;
         }
@@ -164,7 +164,7 @@ namespace LinqInfer.Learning
 
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(fe);
 
-            classifier.FromDataDocument(docData);
+            classifier.ImportData(docData);
 
             return classifier;
         }

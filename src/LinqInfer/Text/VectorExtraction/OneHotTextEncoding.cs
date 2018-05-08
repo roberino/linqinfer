@@ -59,26 +59,26 @@ namespace LinqInfer.Text.VectorExtraction
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
         public void Load(Stream input)
         {
             var doc = new PortableDataDocument(input);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
-            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ToDataDocument();
+            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ExportData();
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             var kvdoc = new KeyValueDocument();
 
-            kvdoc.FromDataDocument(doc);
+            kvdoc.ImportData(doc);
 
             foreach (var kv in kvdoc.Data)
             {

@@ -43,7 +43,7 @@ namespace LinqInfer.Learning.Features
             return ExtractColumnVector(obj);
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _weights = new Matrix(doc.Vectors.Select(v => v.ToColumnVector()));
             _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
@@ -53,15 +53,15 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new PortableDataDocument(input);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

@@ -605,7 +605,7 @@ namespace LinqInfer.Maths
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
         }
 
-        public virtual PortableDataDocument ToDataDocument()
+        public virtual PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -617,7 +617,7 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public virtual void FromDataDocument(PortableDataDocument doc)
+        public virtual void ImportData(PortableDataDocument doc)
         {
             _rows.Clear();
 

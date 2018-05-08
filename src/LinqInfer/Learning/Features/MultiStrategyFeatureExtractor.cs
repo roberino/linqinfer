@@ -36,7 +36,7 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             for (var i = 0; i < _featureExtractionStrategies.Length; i++)
             {
@@ -49,15 +49,15 @@ namespace LinqInfer.Learning.Features
             var xml = XDocument.Load(input);
             var doc = new PortableDataDocument(xml);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
         public void Save(Stream output)
         {
-            ToDataDocument().ExportAsXml().Save(output);
+            ExportData().ExportAsXml().Save(output);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

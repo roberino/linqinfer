@@ -30,7 +30,7 @@ namespace LinqInfer.Maths.Probability
 
         public Func<T, Fraction> Function { get; }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             foreach (var item in doc.Properties)
             {
@@ -41,7 +41,7 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 

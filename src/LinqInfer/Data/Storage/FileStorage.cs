@@ -33,7 +33,7 @@ namespace LinqInfer.Data.Storage
         {
             if (_storageDir.Exists)
             {
-                return Task.FromResult(_storageDir.GetFiles().Select(f => VirtualFile.FromFile(f)).ToList());
+                return Task.FromResult(_storageDir.GetFiles().Select(VirtualFile.FromFile).ToList());
             }
 
             return Task.FromResult(new List<IVirtualFile>());

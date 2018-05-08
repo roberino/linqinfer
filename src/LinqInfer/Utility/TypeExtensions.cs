@@ -8,7 +8,7 @@ namespace LinqInfer.Utility
 {
     public static class TypeExtensions
     {
-        private static readonly Type nullableType = typeof(Nullable<>);
+        private static readonly Type NullableType = typeof(Nullable<>);
 
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
@@ -109,7 +109,7 @@ namespace LinqInfer.Utility
         /// </summary>
         public static Type GetNullableTypeType(this Type type)
         {
-            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == nullableType)
+            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == NullableType)
             {
                 return type.GetTypeInf().GetGenericArguments()[0];
             }
@@ -124,11 +124,11 @@ namespace LinqInfer.Utility
         /// <returns></returns>
         public static object MakeNullableType(this Type innerType, object value)
         {
-            return nullableType
+            return NullableType
                 .MakeGenericType(innerType)
                 .GetTypeInfo()
-                .GetConstructor(new Type[] { innerType })
-                .Invoke(new object[] { value });
+                .GetConstructor(new [] { innerType })
+                .Invoke(new [] { value });
         }
 
         /// <summary>

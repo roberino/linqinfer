@@ -14,8 +14,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     internal class MultilayerNetwork : 
         ICloneableObject<MultilayerNetwork>, 
         IBinaryPersistable, 
-        IExportableAsDataDocument, 
-        IImportableFromDataDocument, 
         IHasNetworkTopology,
         IVectorClassifier,
         ISerialisableDataTransformation
@@ -259,7 +257,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
 
             output.Flush();
         }
@@ -267,12 +265,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             return new MultilayerNetworkExporter().Export(this);
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             var nn = CreateFromVectorDocument(doc);
 

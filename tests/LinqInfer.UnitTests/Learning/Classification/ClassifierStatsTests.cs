@@ -23,7 +23,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 stats.IncrementTrainingSampleCount();
             }
 
-            var doc = stats.ToDataDocument();
+            var doc = stats.ExportData();
 
             Assert.That(doc.PropertyOrDefault("ClassificationCount", 0), Is.EqualTo(17));
             Assert.That(doc.PropertyOrDefault("TrainingSampleCount", 0), Is.EqualTo(22));

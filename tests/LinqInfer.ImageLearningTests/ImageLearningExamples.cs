@@ -53,7 +53,7 @@ namespace LinqInfer.UnitTests
 
             await trainingSet.RunAsync(token, 2500);
 
-            var data = network.ToDataDocument();
+            var data = network.ExportData();
 
             var classifier = data.OpenAsMultilayerNetworkClassifier<ImageSampleGeneration.Letter, char>(x => x.VectorData, size * size);
 

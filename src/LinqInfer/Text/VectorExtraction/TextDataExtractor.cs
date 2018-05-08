@@ -159,17 +159,17 @@ namespace LinqInfer.Text.VectorExtraction
 
         public void Save(Stream output)
         {
-            ToDataDocument().Save(output);
+            ExportData().Save(output);
         }
 
         public void Load(Stream input)
         {
             var doc = new PortableDataDocument(input);
 
-            FromDataDocument(doc);
+            ImportData(doc);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -186,7 +186,7 @@ namespace LinqInfer.Text.VectorExtraction
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             foreach (var prop in doc.Properties.Where(p => !p.Key.StartsWith("_")))
             {

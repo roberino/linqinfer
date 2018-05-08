@@ -58,9 +58,9 @@ namespace LinqInfer.UnitTests.Learning.Features
 
             fe1a.PreprocessWith(transform);
 
-            var data = multiStrategyFeatureExtractor1.ToDataDocument();
+            var data = multiStrategyFeatureExtractor1.ExportData();
 
-            multiStrategyFeatureExtractor2.FromDataDocument(data);
+            multiStrategyFeatureExtractor2.ImportData(data);
 
             var vect1 = multiStrategyFeatureExtractor1.ExtractIVector("a");
             var vect2 = multiStrategyFeatureExtractor2.ExtractIVector("a");

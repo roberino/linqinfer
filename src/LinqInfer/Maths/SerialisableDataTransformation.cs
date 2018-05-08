@@ -60,12 +60,12 @@ namespace LinqInfer.Maths
         {
             var transform = new SerialisableDataTransformation();
 
-            transform.FromDataDocument(doc);
+            transform.ImportData(doc);
 
             return transform;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _operations.Clear();
 
@@ -75,13 +75,13 @@ namespace LinqInfer.Maths
             }
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
             foreach (var op in _operations)
             {
-                doc.Children.Add(op.ToDataDocument());
+                doc.Children.Add(op.ExportData());
             }
 
             return doc;

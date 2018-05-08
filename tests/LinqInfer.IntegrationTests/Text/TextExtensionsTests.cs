@@ -36,7 +36,7 @@ namespace LinqInfer.IntegrationTests.Text
 
             var classifier = pipeline.AsTrainingSet(x => x.cls).ToMultilayerNetworkClassifier().Execute();
 
-            var state = classifier.ToDataDocument();
+            var state = classifier.ExportData();
 
             var classifier2 = state.OpenAsTextualMultilayerNetworkClassifier<string, TestDoc>();
             

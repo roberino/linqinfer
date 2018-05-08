@@ -23,9 +23,7 @@ namespace LinqInfer.UnitTests
 
             sw.Stop();
 
-#if !NET_STD
             Console.WriteLine("Invoke {0} took {1}", name ?? test.Method.Name, sw.Elapsed);
-#endif
 
             return sw.Elapsed;
         }

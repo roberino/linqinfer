@@ -28,7 +28,7 @@ namespace LinqInfer.Maths
         {
             LabelIndexes = new Dictionary<T, int>();
 
-            FromDataDocument(data);
+            ImportData(data);
         }
 
         /// <summary>
@@ -51,9 +51,9 @@ namespace LinqInfer.Maths
         /// </summary>
         public LabelledMatrix<T> LabelledCosineSimularityMatrix => new LabelledMatrix<T>(Rotate().CosineSimularityMatrix, LabelIndexes, true);
 
-        public override PortableDataDocument ToDataDocument()
+        public override PortableDataDocument ExportData()
         {
-            var doc = base.ToDataDocument();
+            var doc = base.ExportData();
 
             doc.SetPropertyFromExpression(() => _labelsAreColsAndRows, _labelsAreColsAndRows);
 
@@ -65,9 +65,9 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public override void FromDataDocument(PortableDataDocument doc)
+        public override void ImportData(PortableDataDocument doc)
         {
-            base.FromDataDocument(doc);
+            base.ImportData(doc);
 
             _labelsAreColsAndRows = doc.PropertyOrDefault(nameof(_labelsAreColsAndRows), false);
 

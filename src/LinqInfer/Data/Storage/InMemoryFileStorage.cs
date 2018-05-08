@@ -8,7 +8,6 @@ namespace LinqInfer.Data.Storage
 {
     public sealed class InMemoryFileStorage : IVirtualFileStore
     {
-        private readonly object _lockObj;
         private readonly IDictionary<string, InMemoryFileStorage> _childContainers;
         private readonly IDictionary<string, VirtualFile> _files;
         private readonly InMemoryFileStorage _parent;
@@ -22,7 +21,6 @@ namespace LinqInfer.Data.Storage
         {
             _parent = parent;
             _name = name;
-            _lockObj = new object();
             _files = new Dictionary<string, VirtualFile>();
             _childContainers = new Dictionary<string, InMemoryFileStorage>();
         }

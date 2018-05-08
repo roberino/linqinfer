@@ -1,6 +1,5 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {

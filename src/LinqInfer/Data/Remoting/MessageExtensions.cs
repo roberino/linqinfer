@@ -13,7 +13,7 @@ namespace LinqInfer.Data.Remoting
 
             message.Properties["_Type"] = typeof(T).AssemblyQualifiedName;
 
-            var xml = body.ToDataDocument().ExportAsXml();
+            var xml = body.ExportData().ExportAsXml();
 
             using(var ms = new MemoryStream())
             {
@@ -39,7 +39,7 @@ namespace LinqInfer.Data.Remoting
 
                 var body = new T();
 
-                body.FromDataDocument(doc);
+                body.ImportData(doc);
 
                 return body;
             }

@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Features
 
         public bool IsLast { get; private set; }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             ArgAssert.Assert(() => doc.Children.Count > 0, nameof(doc.Children));
 
@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
             var inputs = new PortableDataDocument();

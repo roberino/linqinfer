@@ -1,7 +1,6 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System.Collections.Generic;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data
 {
@@ -20,7 +19,7 @@ namespace LinqInfer.Data
 
         public IDictionary<string, string> Data => _keyValues;
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -32,7 +31,7 @@ namespace LinqInfer.Data
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _keyValues.Clear();
 

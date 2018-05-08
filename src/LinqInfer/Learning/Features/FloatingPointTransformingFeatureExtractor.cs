@@ -104,7 +104,7 @@ namespace LinqInfer.Learning.Features
             return nextInput;
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
@@ -115,7 +115,7 @@ namespace LinqInfer.Learning.Features
                     throw new NotSupportedException("Non-serialisable transformation");
                 }
 
-                doc.Children.Add(((IExportableAsDataDocument)tr).ToDataDocument());
+                doc.Children.Add(((IExportableAsDataDocument)tr).ExportData());
             }
 
             doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
@@ -123,7 +123,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _transformations.Clear();
 

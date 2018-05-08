@@ -64,7 +64,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _network.Save(output);
         }
 
-        public PortableDataDocument ToDataDocument()
+        public PortableDataDocument ExportData()
         {
             if (_network == null)
             {
@@ -81,7 +81,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return root;
         }
 
-        public void FromDataDocument(PortableDataDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             doc.ReadChildObject(Statistics, null, true);
 
@@ -93,7 +93,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
             else
             {
-                _network.FromDataDocument(doc.GetChildDoc<MultilayerNetwork>());
+                _network.ImportData(doc.GetChildDoc<MultilayerNetwork>());
             }
 
             doc.ReadChildObject(_config.OutputMapper);
