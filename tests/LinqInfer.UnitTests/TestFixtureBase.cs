@@ -11,7 +11,7 @@ using NUnit.Framework.Constraints;
 
 namespace LinqInfer.UnitTests
 {
-    public class TestFixtureBase : AssertionHelper
+    public class TestFixtureBase
     {
         public static TimeSpan TimeTest(Action test, string name = null)
         {
