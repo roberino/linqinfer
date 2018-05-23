@@ -1,16 +1,29 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning
 {
     public static class MlnExtensions
     {
+        public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
+            this IAsyncTrainingSet<TInput, TClass> trainingSet,
+            PortableDataDocument existingClassifierData) where TInput : class where TClass : IEquatable<TClass>
+        {
+            var network = MultilayerNetwork.CreateFromData(existingClassifierData);
+            var trainingContext = new MultilayerNetworkTrainingContext<NetworkSpecification>(() => 1, network, network.Specification);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.LearningParameters);
+            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
+
+            trainingSet.RegisterSinks(sink);
+
+            return classifier;
+        }
+
         /// <summary>
         /// Creates a multi-layer neural network classifier, training the network using the supplied feature data.
         /// </summary>

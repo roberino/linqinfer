@@ -1,6 +1,4 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Learning;
-using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
@@ -25,14 +23,7 @@ namespace LinqInfer.IntegrationTests.Text
             await GivenAnAsyncTextTrainingSet();
 
             await ThenBigramVectorsCanBeExtracted();
-        }
 
-        [Test]
-        public async Task WhenGivenAggregatedSet_ThenVectorsCanBeExtracted()
-        {
-            await GivenAnAggregatedAsyncTrainingSet();
-            
-            await ThenAggrVectorsCanBeExtracted();
         }
 
         private void LogPipeStats(IPipeStatistics stats)
@@ -44,17 +35,10 @@ namespace LinqInfer.IntegrationTests.Text
             Console.WriteLine($"Average batches per second: {stats.AverageBatchesPerSecond}");
         }
 
-        private async Task ThenAggrVectorsCanBeExtracted()
-        {
-            var vects = await _aggTrainingSet.ExtractVectorsAsync(
-                CancellationToken.None, 64);
-
-            await vects.WriteAsCsvAsync(Console.Out);
-        }
-
         private async Task ThenBigramVectorsCanBeExtracted()
         {
-            var vects = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
+            var result = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
+            var vects = result.Vectors;
 
             await vects.WriteAsCsvAsync(Console.Out);
 
@@ -63,19 +47,6 @@ namespace LinqInfer.IntegrationTests.Text
             {
                 await vects.LabelledCosineSimularityMatrix.WriteAsCsvAsync(writer);
             }
-        }
-
-        private async Task<IAsyncTrainingSet<WordData, string>> GivenAnAggregatedAsyncTrainingSet()
-        {
-            var corpus = CorpusDataSource.GetCorpus(5000);
-
-            var keyTerms = await corpus.ExtractKeyTermsAsync(CancellationToken.None);
-
-            var cbow = corpus.CreateAsyncContinuousBagOfWords(keyTerms);
-
-            _aggTrainingSet = await cbow.CreateAggregatedTrainingSetAsync(CancellationToken.None);
-
-            return _aggTrainingSet;
         }
 
         private async Task<IAsyncTrainingSet<BiGram, string>> GivenAnAsyncTextTrainingSet()

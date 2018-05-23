@@ -89,7 +89,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             if (_network == null)
             {
-                _network = MultilayerNetwork.CreateFromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
+                _network = MultilayerNetwork.CreateFromData(doc.GetChildDoc<MultilayerNetwork>());
             }
             else
             {

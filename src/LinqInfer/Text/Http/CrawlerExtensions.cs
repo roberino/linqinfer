@@ -56,7 +56,14 @@ namespace LinqInfer.Text.Http
             return await ExtractVectors(uri, cancellationToken, crawlerConfig, vocabset);
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectors(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
+        public static async Task<LabelledMatrix<string>> ExtractVectors(this Uri uri,
+            CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null,
+            ISemanticSet vocabulary = null)
+        {
+            return (await ExtractVectorsInternal(uri, cancellationToken, crawlerConfig, vocabulary)).Vectors;
+        }
+
+        private static async Task<VectorExtractionResult<BiGram>> ExtractVectorsInternal(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
         {
             using (var httpServices = new HttpDocumentServices())
             {
@@ -69,9 +76,7 @@ namespace LinqInfer.Text.Http
 
                 var trainingSet = cbow.AsBiGramAsyncTrainingSet();
 
-                var vectors = await trainingSet.ExtractVectorsAsync(cancellationToken, 8);
-
-                return vectors;
+                return await trainingSet.ExtractVectorsAsync(cancellationToken, 8);
             }
         }
 

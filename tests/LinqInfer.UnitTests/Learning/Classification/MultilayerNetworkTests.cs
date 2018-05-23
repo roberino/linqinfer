@@ -89,7 +89,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             Console.Write(doc.ExportAsXml().ToString());
 
-            var network2 = MultilayerNetwork.CreateFromVectorDocument(doc);
+            var network2 = MultilayerNetwork.CreateFromData(doc);
 
             Assert.That(network.Parameters, Is.Not.Null);
             Assert.That(network.Specification.Equals(network2.Specification));

@@ -24,7 +24,7 @@ namespace LinqInfer.AspNetCoreTestHarness
             var sz = new JsonObjectSerialiser();
 
             api.UseTextServices();
-
+            
             var cache = new MemoryCache(new MemoryCacheOptions());
             
             api.AddErrorHandler(async (c, e) =>

@@ -272,13 +272,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void ImportData(PortableDataDocument doc)
         {
-            var nn = CreateFromVectorDocument(doc);
+            var nn = CreateFromData(doc);
 
             _parameters = nn._parameters;
             _rootLayer = nn._rootLayer;
         }
 
-        public static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
+        public static MultilayerNetwork CreateFromData(PortableDataDocument doc)
         {
             return new MultilayerNetworkExporter().Import(doc);
         }
@@ -297,7 +297,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             doc.Load(input);
 
-            return CreateFromVectorDocument(doc);
+            return CreateFromData(doc);
         }
 
         public override string ToString()
@@ -308,7 +308,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 s += "[Layer " + layer.Size + "]";
             }
 
-            return string.Format("Network({0}):{1}", Parameters.InputVectorSize, s);
+            return $"Network({Parameters.InputVectorSize}):{s}";
         }
 
         public MultilayerNetwork Clone(bool deep)

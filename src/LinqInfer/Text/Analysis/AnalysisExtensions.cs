@@ -36,12 +36,12 @@ namespace LinqInfer.Text.Analysis
             return trainingSet;
         }
 
-        internal static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<WordData, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        internal static async Task<VectorExtractionResult<WordData>> ExtractVectorsAsync(this IAsyncTrainingSet<WordData, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public static async Task<VectorExtractionResult<BiGram>> ExtractVectorsAsync(this IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
         {
             return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }
