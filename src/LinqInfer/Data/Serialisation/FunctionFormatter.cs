@@ -37,7 +37,7 @@ namespace LinqInfer.Data.Serialisation
 
             if (methodSelector == null)
             {
-                methodSelector = (t, n) => t.GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.Name == n).FirstOrDefault();
+                methodSelector = (t, n) => t.GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(m => m.Name == n);
             }
 
             var paramInfo = Parse(formattedFunction);
@@ -47,9 +47,9 @@ namespace LinqInfer.Data.Serialisation
             return (TOutput)method.Invoke(instance, parameters);
         }
 
-        public T Create<T>(string formattedFunction) where T : class
+        public T Create<T>(string formattedFunction, Type implementationType = null) where T : class
         {
-            var type = typeof(T);
+            var type = implementationType ?? typeof(T);
             
             var paramInfo = Parse(formattedFunction);
 
@@ -101,6 +101,26 @@ namespace LinqInfer.Data.Serialisation
             sb.Append(")");
 
             return sb.ToString();
+        }
+
+        private T Create<T>(string formattedFunction, params Type[] implementationTypes) where T : class
+        {
+            var paramInfo = Parse(formattedFunction);
+
+            var type = implementationTypes.SingleOrDefault(t => string.Equals(t.Name, paramInfo.Name));
+
+            if (type == null) throw new ArgumentException("No matching implementation found");
+
+            var ctr = type
+                .GetTypeInfo()
+                .GetConstructors()
+                .FirstOrDefault(c => c.GetParameters().Length == paramInfo.Parameters.Count);
+
+            if (ctr == null) throw new ArgumentException("No matching constructor found");
+
+            var parameters = Bind(paramInfo.Parameters, ctr.GetParameters());
+
+            return (T)ctr.Invoke(parameters);
         }
 
         internal TInstance BindToStaticFactoryMethod<TInstance>(string formattedFunction) where TInstance : class
@@ -167,6 +187,11 @@ namespace LinqInfer.Data.Serialisation
         {
             public IList<string> Parameters { get; } = new List<string>();
             public string Name { get; set; }
+
+            public override string ToString()
+            {
+                return $"{Name}({string.Join(",", Parameters)})";
+            }
         }
 
         private class Factory<TResult, TProvider> 
@@ -183,6 +208,25 @@ namespace LinqInfer.Data.Serialisation
             public TResult Create(string parameters)
             {
                 return _formatter.Create<TProvider>(parameters);
+            }
+        }
+
+        private class Strategy<TResult> 
+            : IFactory<TResult, string>
+            where TResult : class
+        {
+            private readonly FunctionFormatter _formatter;
+            private readonly Type[] _implementations;
+
+            public Strategy(FunctionFormatter formatter, params Type[] implementations)
+            {
+                _formatter = formatter;
+                _implementations = implementations;
+            }
+
+            public TResult Create(string parameters)
+            {
+                return _formatter.Create<TResult>(parameters, _implementations);
             }
         }
     }

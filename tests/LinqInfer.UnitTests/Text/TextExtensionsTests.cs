@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Xml.Linq;
 using LinqInfer.Text;
+using LinqInfer.Utility;
 using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text
@@ -8,6 +10,50 @@ namespace LinqInfer.UnitTests.Text
     [TestFixture]
     public class TextExtensionsTests : TestFixtureBase
     {
+        [Test]
+        public void CreateSemanticClassifier_WithAnonymousObjects_ReturnsClassifier()
+        {
+            var classifier = new[]
+                {
+                    new
+                    {
+                        a = "hey there man",
+                        b = "greeting"
+                    },
+                    new
+                    {
+                        a = "x y z",
+                        b = "other"
+                    },
+                    new
+                    {
+                        a = "hi there man",
+                        b = "greeting"
+                    },
+                    new
+                    {
+                        a = "z z z",
+                        b = "other"
+                    }
+                }
+                .AsQueryable()
+                .CreateSemanticClassifier(x => x.b);
+
+            var results = classifier.Classify(new
+            {
+                a = "hi you",
+                b = "?"
+            });
+
+            foreach (var result in results.OrderByDescending(r => r.Score))
+            {
+                Console.WriteLine(result);
+            }
+
+            Assert.That(results.OrderByDescending(r => r.Score).First().ClassType, 
+                Is.EqualTo("greeting"));
+        }
+
         [Test]
         public void WhenTokenisedAndIndexed_ThenDocsCanBeSearched()
         {

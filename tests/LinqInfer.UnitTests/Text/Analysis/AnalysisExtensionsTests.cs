@@ -23,6 +23,16 @@ namespace LinqInfer.UnitTests.Text.Analysis
         }
 
         [Test]
+        public async Task CreateBiGramAsyncTrainingSet_ExtractVectors()
+        {
+            var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
+            var trainingData = cbow.AsBiGramAsyncTrainingSet();
+            var vectors = await trainingData.ExtractVectorsAsync(CancellationToken.None, 8);
+
+            Assert.That(vectors, Is.Not.Null);
+        }
+
+        [Test]
         public async Task CreateContinuousBagOfWordsAsyncTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
         {
             var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);

@@ -75,6 +75,15 @@ namespace LinqInfer.UnitTests
             }
         }
 
+        public static void SaveArtifact(string fileName, Action<Stream> writer)
+        {
+            const string artifactPath = "../../../../../artifacts";
+            using (var fs = new FileStream(Path.Combine(artifactPath, fileName), FileMode.Create))
+            {
+                writer(fs);
+            }
+        }
+
         protected string RemoveWhitespace(object value, string replaceWith = "_")
         {
             if (value == null) return null;

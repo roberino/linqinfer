@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -36,14 +37,18 @@ namespace LinqInfer.Text.Analysis
             return trainingSet;
         }
 
-        internal static async Task<VectorExtractionResult<WordData>> ExtractVectorsAsync(this IAsyncTrainingSet<WordData, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public static async Task<VectorExtractionResult> ExtractVectorsAsync<T>(
+            this IAsyncTrainingSet<T, string> trainingSet,
+            CancellationToken cancellationToken, int vectorSize) where T : class
         {
             return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
         }
 
-        public static async Task<VectorExtractionResult<BiGram>> ExtractVectorsAsync(this IAsyncTrainingSet<BiGram, string> trainingSet, CancellationToken cancellationToken, int vectorSize)
+        public static async Task<VectorExtractionResult> ExtractVectorsAsync<T>(
+            this IAsyncTrainingSet<T, string> trainingSet,
+            CancellationToken cancellationToken, PortableDataDocument existingModelData) where T : class
         {
-            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, vectorSize);
+            return await new WordVectorExtractor().ExtractVectorsAsync(trainingSet, cancellationToken, existingModelData);
         }
 
         public static ITrainingSet<SyntacticContext, string> AsNGramTrainingSet(this ContinuousBagOfWords cbow, int contextPadding = 2)

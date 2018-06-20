@@ -1,9 +1,8 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    public interface IFeatureExtractor<TInput, TVector> : IHasFeatureMetadata, IBinaryPersistable where TVector : struct
+    public interface IFeatureExtractor<in TInput, out TVector> : IHasFeatureMetadata, IBinaryPersistable where TVector : struct
     {
         /// <summary>
         /// The size of the feature vector.

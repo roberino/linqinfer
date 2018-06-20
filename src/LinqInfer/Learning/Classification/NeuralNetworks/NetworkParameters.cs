@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public NetworkParameters(int inputVectorSize, int outputSize, IActivatorFunction activator = null)
         {
             Activator = activator ?? Activators.Sigmoid();
-            InitialWeightRange = new Range(0.7, -0.7);
+            InitialWeightRange = new Range(0.01, -0.01);
             LayerSizes = new[] { inputVectorSize, inputVectorSize * 2, outputSize };
             LearningRate = 0.1;
         }
@@ -39,7 +39,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Contract.Requires(layerSizes != null && layerSizes.Length > 1);
 
             Activator = activator ?? Activators.Sigmoid();
-            InitialWeightRange = new Range(0.7, -0.7);
+            InitialWeightRange = new Range(0.01, -0.01);
             LayerSizes = layerSizes;
             LearningRate = 0.1;
         }

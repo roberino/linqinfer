@@ -20,34 +20,39 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     learningConfig?.Invoke(p);
                 })
-                .AddHiddenLinearLayer(hiddenLayerSize)
+                .AddHiddenLinearLayer(hiddenLayerSize, p => SimpleWeightUpdateRule.Create(p.LearningRate))
                 .AddSoftmaxOutput();
         }
 
         public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
         {
+            if (layerSize == 0) return specificationBuilder;
+
             return specificationBuilder.
                 AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
 
         }
 
-        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize, Func<LearningParameters, IWeightUpdateRule> updateRule = null)
         {
+            if (layerSize == 0) return specificationBuilder;
+
+            updateRule = updateRule ?? (p => DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum));
+
             return specificationBuilder.
                 AddHiddenLayer(p => 
                     new LayerSpecification(
                         layerSize, 
                         Activators.None(), 
                         LossFunctions.Square,
-                        DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum),
+                        updateRule(p),
                         LayerSpecification.DefaultInitialWeightRange));
-
         }
 
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
         {
             return specificationBuilder
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, p => SimpleWeightUpdateRule.Create(p.LearningRate))
                 .TransformOutput(x => new Softmax(x));
         }
 
@@ -126,11 +131,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null)
+        public IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null, Func<LearningParameters, IWeightUpdateRule> updateRule = null)
         {
             var tx = _output.OutputTransformation;
+            
+            updateRule = updateRule ?? (p => DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum));
 
-            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, DefaultWeightUpdateRule.Create(_learningParams.LearningRate, _learningParams.Momentum), initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
+            _output = new LayerSpecification(
+                _output.LayerSize, 
+                activator, 
+                lossFunction, 
+                updateRule(_learningParams), 
+                initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
             {
                 OutputTransformation = tx
             };

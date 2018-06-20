@@ -3,7 +3,6 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -56,7 +55,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Adjust(errors.Item1);
 
             DebugOutput.LogVerbose("Error = {0}", errors.Item2);
-            // DebugOutput.LogVerbose("Target = {0} Actual={1}", targetOutput, output);
 
             return errors.Item2;
         }
@@ -146,7 +144,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private void Validate(IVector output, IVector inputVector, IVector targetOutput)
         {
 #if DEBUG
-            if (output.ToColumnVector().Any(x => x == double.NaN))
+            if (output.ToColumnVector().Any(double.IsNaN))
             {
                 var ex = new CalculationException();
 

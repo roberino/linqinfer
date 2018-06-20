@@ -1,18 +1,36 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+﻿using System.Linq;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 
 namespace LinqInfer.Text.Analysis
 {
-    public sealed class VectorExtractionResult<T>
+    public sealed class VectorExtractionResult : IExportableAsDataDocument
     {
-        public VectorExtractionResult(INetworkClassifier<string, T> model, LabelledMatrix<string> vectors)
+        internal VectorExtractionResult(PortableDataDocument model, LabelledMatrix<string> vectors)
         {
-            Model = model;
+            ModelData = model;
             Vectors = vectors;
         }
 
-        public INetworkClassifier<string, T> Model { get; }
+        public PortableDataDocument ModelData { get; }
 
         public LabelledMatrix<string> Vectors { get; }
+
+        public PortableDataDocument ExportData()
+        {
+            var doc = new PortableDataDocument();
+
+            doc.Children.Add(ModelData);
+            doc.Children.Add(Vectors.ExportData());
+
+            return doc;
+        }
+
+        public static VectorExtractionResult CreateFromData(PortableDataDocument data)
+        {
+            var matrix = new LabelledMatrix<string>(data.Children[1]);
+
+            return new VectorExtractionResult(data.Children[0], matrix);
+        }
     }
 }

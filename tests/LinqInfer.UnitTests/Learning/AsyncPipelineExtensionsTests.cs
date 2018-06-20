@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using LinqInfer.Data.Pipes;
 using LinqInfer.Data.Remoting;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
+using LinqInfer.Utility;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -15,6 +21,122 @@ namespace LinqInfer.UnitTests.Learning
     [TestFixture]
     public class AsyncPipelineExtensionsTests
     {
+        class D
+        {
+            public int x { get; set; }
+            public int y { get; set; }
+            public string c { get;set; }
+        }
+
+        [Test]
+        public async Task LoadSoftmax()
+        {
+            using (var stream = new FileStream(@"C:\dev\roberino\linqinfer\artifacts\nn-350.xml", FileMode.Open))
+            {
+                var xml = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);
+                var doc = new PortableDataDocument(xml);
+                var classifier = doc.OpenAsMultilayerNetworkClassifier<D, string>();
+                
+                Assert.That(classifier, Is.Not.Null);
+            }
+        }
+
+        [Test]
+        public async Task BasicSoftmax()
+        {
+            var data = new[]
+            {
+                new
+                {
+                    x = 1,
+                    y = 5,
+                    c = "a"
+                },
+                new
+                {
+                    x = 11,
+                    y = 23,
+                    c = "a"
+                },
+                new
+                {
+                    x = -11,
+                    y = -23,
+                    c = "b"
+                },
+                new
+                {
+                    x = -15,
+                    y = -25,
+                    c = "b"
+                }
+            };
+
+            var pipeline = await data.AsAsyncEnumerator()
+                .BuildPipelineAsync(CancellationToken.None);
+
+            pipeline = await pipeline.CentreAndScaleAsync(Range.ZeroToOne);
+
+            Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
+
+            var trainingSet = pipeline.AsTrainingSet(x => x.c, "a", "b");
+            
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
+            {
+                b.ConfigureSoftmaxNetwork(1, p =>
+                {
+                    p.ErrorHistoryCount = 150;
+                    p.HaltingFunction = (_, s) =>
+                    {
+                        return s.AverageError < 0.6 || s.Trend > 0.1;
+                    };
+                    p.LearningRate = 0.1;
+                });
+            });
+
+            await trainingSet.RunAsync(CancellationToken.None, 550);
+
+            var results = classifier.Classify(new
+            {
+                x = 5,
+                y = 5,
+                c = "?"
+            });
+
+            var exportedNetwork = classifier.ExportData();
+
+            Assert.That(exportedNetwork, Is.Not.Null);
+
+            TestFixtureBase.SaveArtifact("nn-350.xml", exportedNetwork.ExportAsXml().Save);
+
+            foreach (var result in results)
+            {
+                Console.WriteLine(result);
+            }
+
+            Assert.That(results.OrderByDescending(x => x.Score).First().ClassType, Is.EqualTo("a"));
+        }
+
+        [Test]
+        public async Task AttachAndReattachMultilayerNetworkClassifier_ReducesVectorSizeAsSpecified()
+        {
+            var pipeline = CreatePipeline();
+
+            var trainingSet = pipeline.AsTrainingSet(x => x.Category, "a", "b");
+
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
+                b.ConfigureSoftmaxNetwork(4)
+            );
+
+            await trainingSet.RunAsync(CancellationToken.None);
+
+            var data = classifier.ExportData();
+
+            var classifier2 = trainingSet.AttachMultilayerNetworkClassifier(data);
+
+            Assert.That(classifier2, Is.Not.Null);
+        }
+
         [Test]
         public async Task PrincipalComponentReductionAsync_ReducesVectorSizeAsSpecified()
         {

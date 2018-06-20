@@ -9,8 +9,11 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Text
 {
@@ -163,7 +166,8 @@ namespace LinqInfer.Text
         /// <param name="classifyingFunction">A function which will return a class label for an object</param>
         /// <param name="maxVectorSize">The maximum number of terms (words) used to classify object</param>
         /// <returns>An object classifier</returns>
-        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
+        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data,
+            Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
         {
             var index = new DocumentIndex();
             var cf = classifyingFunction.Compile();
@@ -173,9 +177,27 @@ namespace LinqInfer.Text
 
             index.IndexDocuments(docs);
 
-            var pipeline = new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
-            var trainingSet = pipeline.AsTrainingSet(classifyingFunction);
-            return trainingSet.ToMultilayerNetworkClassifier().Execute();
+            var featureExtractor = index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize);
+
+            var outputs = data.GroupBy(classifyingFunction).Select(g => g.Key).ToArray();
+
+            var trainingSet =
+                data.AsAsyncEnumerator()
+                    .CreatePipeine(featureExtractor)
+                    .AsTrainingSet(classifyingFunction, outputs);
+
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(
+                b =>
+                {
+                    b.ConfigureSoftmaxNetwork(
+                        featureExtractor.VectorSize * 2,
+                        lp => { lp.LearningRate = 0.01; });
+                }
+            );
+
+            trainingSet.RunAsync(CancellationToken.None, 100).ConfigureAwait(true).GetAwaiter().GetResult();
+
+            return classifier;
         }
 
         /// <summary>

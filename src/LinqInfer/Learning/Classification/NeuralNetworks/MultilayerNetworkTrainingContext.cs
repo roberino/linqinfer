@@ -21,7 +21,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             _network = network;
 
-            var bpa = new BackPropagationLearning(_network);
+            _rawLearningProcessor = new BackPropagationLearning(_network);
 
             _idFunc = idFunc;
 
@@ -66,7 +66,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _network.PruneInputs(inputIndexes);
         }
 
-        public double Train(IVector outputVector, IVector sampleVector)
+        public double Train(IVector sampleVector, IVector outputVector)
         {
             if (!_error.HasValue) _error = 0;
 

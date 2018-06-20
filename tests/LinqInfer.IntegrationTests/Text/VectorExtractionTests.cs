@@ -38,6 +38,7 @@ namespace LinqInfer.IntegrationTests.Text
         private async Task ThenBigramVectorsCanBeExtracted()
         {
             var result = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
+
             var vects = result.Vectors;
 
             await vects.WriteAsCsvAsync(Console.Out);

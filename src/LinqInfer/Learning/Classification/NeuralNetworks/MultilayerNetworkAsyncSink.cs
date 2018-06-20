@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             await Task.Factory.StartNew(() =>
             {
-                _trainingContext.Train(dataBatch.Items, (n, e) => cancellationToken.IsCancellationRequested);
+                _trainingContext.Train(dataBatch.Items.RandomOrder(), (n, e) => cancellationToken.IsCancellationRequested);
 
                 DebugOutput.Log($"Average error: {_trainingContext.AverageError}");
             });

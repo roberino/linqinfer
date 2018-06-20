@@ -79,7 +79,7 @@ namespace LinqInfer.Learning.Features
         public IVector ExtractIVector(T obj)
         {
             if (_outputs == null) throw new InvalidOperationException();
-
+            
             return new OneOfNVector(VectorSize, _outputs[obj]);
         }
 

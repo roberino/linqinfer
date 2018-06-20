@@ -63,7 +63,7 @@ namespace LinqInfer.Text.Http
             return (await ExtractVectorsInternal(uri, cancellationToken, crawlerConfig, vocabulary)).Vectors;
         }
 
-        private static async Task<VectorExtractionResult<BiGram>> ExtractVectorsInternal(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
+        private static async Task<VectorExtractionResult> ExtractVectorsInternal(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
         {
             using (var httpServices = new HttpDocumentServices())
             {

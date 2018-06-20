@@ -17,16 +17,21 @@ namespace LinqInfer.Data.Serialisation
     /// </summary>
     public class PortableDataDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<PortableDataDocument>
     {
-        private const string PropertiesName = "PROP";
-        private const string BlobName = "BLOB";
-        private const string DataName = "DATA";
-        private const string ChildrenName = "CLRN";
+        private const string PropertiesName = "Properties";
+        private const string BlobName = "Blob";
+        private const string DataName = "Data";
+        private const string ChildrenName = "Children";
+        private const string VectorName = "Vector";
 
         private string _rootName;
 
         public PortableDataDocument()
         {
-            Properties = new ConstrainableDictionary<string, string>(v => v != null);
+            var properties = new ConstrainableDictionary<string, string>(v => v != null);
+
+            properties.AddContraint((k, v) => XmlConvert.VerifyName(k) != null);
+
+            Properties = properties;
             Blobs = new Dictionary<string, byte[]>();
             Vectors = new List<IVector>();
             Children = new List<PortableDataDocument>();
@@ -118,7 +123,7 @@ namespace LinqInfer.Data.Serialisation
                     n = n.Substring(0, i);
                 }
 
-                _rootName = XmlConvert.VerifyName(n)?.ToLowerInvariant();
+                _rootName = XmlConvert.VerifyName(n);
             }
             catch (XmlException) { }
         }
@@ -401,47 +406,45 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        private XDocument ExportAsXml(bool isRoot, bool base64v)
+        private XDocument ExportAsXml(bool isRoot, bool base64V)
         {
             var date = DateTime.UtcNow;
 
-            var en = _rootName ?? (isRoot ? "doc" : "node");
+            var en = _rootName ?? (isRoot ? "Doc" : "Node");
 
             var doc = new XDocument(new XElement(en,
                 new XAttribute("version", Version),
                 new XAttribute("checksum", Checksum)));
 
-            if (isRoot) doc.Root.Add(new XAttribute("exported", date));
+            if (isRoot) doc.Root.SetAttributeValue("exported", date);
 
             if (Properties.Any())
             {
-                var propsNode = new XElement(PropertiesName.ToLower(),
-                    Properties.Select(p => new XElement("property",
-                        new XAttribute("key", p.Key),
-                        new XAttribute("value", p.Value))));
+                var propsNode = new XElement(PropertiesName,
+                    Properties.Select(p => new XElement(p.Key, p.Value)));
 
                 doc.Root.Add(propsNode);
             }
 
             if (Vectors.Any())
             {
-                var dataNode = new XElement(DataName.ToLower(),
-                    Vectors.Select(v => new XElement("vector", 
-                    VectorSerialiser.Serialize(v, base64v))));
+                var dataNode = new XElement(DataName,
+                    Vectors.Select(v => new XElement(VectorName, 
+                    VectorSerialiser.Serialize(v, base64V))));
                 doc.Root.Add(dataNode);
             }
 
             if (Blobs.Any())
             {
-                var blobsNode = new XElement(BlobName.ToLower() + "s",
-                    Blobs.Select(b => new XElement(BlobName.ToLower(),
+                var blobsNode = new XElement(BlobName + "s",
+                    Blobs.Select(b => new XElement(BlobName,
                         new XAttribute("key", b.Key), Convert.ToBase64String(b.Value))));
                 doc.Root.Add(blobsNode);
             }
 
             if (Children.Any())
             {
-                var childrenNode = new XElement(ChildrenName.ToLower(), Children.Select(c => c.ExportAsXml(false, base64v).Root));
+                var childrenNode = new XElement(ChildrenName, Children.Select(c => c.ExportAsXml(false, base64V).Root));
 
                 doc.Root.Add(childrenNode);
             }
@@ -478,23 +481,23 @@ namespace LinqInfer.Data.Serialisation
 
         private void ImportXml(XElement rootNode)
         {
-            var checksum = int.Parse(rootNode.Attribute("checksum").Value);
+            var checksum = int.Parse(rootNode.Attribute("checksum")?.Value);
 
-            Version = int.Parse(rootNode.Attribute("version").Value);
+            Version = int.Parse(rootNode.Attribute("version")?.Value);
 
-            foreach (var prop in ChildElements(rootNode, PropertiesName).Where(e => e.Name.LocalName == "property" && e.HasAttributes))
+            foreach (var prop in ChildElements(rootNode, PropertiesName))
             {
-                Properties[prop.Attribute("key").Value] = prop.Attribute("value").Value;
+                Properties[prop.Name.LocalName] = prop.Value;
             }
 
-            foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == "vector"))
+            foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == VectorName))
             {
                 var vd = VectorSerialiser.Deserialize(vect.Value, VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
 
                 Vectors.Add(vd);
             }
             
-            foreach (var blob in ChildElements(rootNode, BlobName + "s").Where(e => e.Name.LocalName == BlobName.ToLower()))
+            foreach (var blob in ChildElements(rootNode, BlobName + "s").Where(e => e.Name.LocalName == BlobName))
             {
                 Blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
             }
@@ -516,7 +519,7 @@ namespace LinqInfer.Data.Serialisation
 
         private IEnumerable<XElement> ChildElements(XElement parent, string name)
         {
-            var e = parent.Element(XName.Get(name.ToLower()));
+            var e = parent.Element(XName.Get(name));
 
             return (e?.Elements() ?? Enumerable.Empty<XElement>());
         }
