@@ -1,4 +1,6 @@
-﻿namespace LinqInfer.Utility.Expressions
+﻿using System.Linq;
+
+namespace LinqInfer.Utility.Expressions
 {
     internal class ExpressionTreeReader
     {
@@ -18,37 +20,47 @@
         {
             var state = new ExpressionTree();
             var root = state;
+            var type = TokenType.Unknown;
+            var pos = 0;
 
             foreach (var c in input)
             {
-                var type = GetType(state.Type, c);
+                var lastType = type;
+
+                type = GetType(state.Type, c);
 
                 if (type == TokenType.Space) continue;
 
-                if (type == state.Type && type != TokenType.GroupOpen)
+                if (type == lastType && type != TokenType.GroupOpen)
                 {
                     state.Value += c;
                     continue;
                 }
 
-                if (type == TokenType.GroupClose || type == TokenType.Separator)
+                if (type == TokenType.GroupClose)
                 {
                     state = state.Parent;
                     continue;
                 }
 
+                if (type == TokenType.Separator)
+                {
+                    state = state.LocalRoot;
+                    continue;
+                }
+
                 if (type == TokenType.Operator)
                 {
-                    root = new ExpressionTree() { Type = type, Value = c.ToString() };
-                    root.AddChild(state.LocalRoot);
-                    state = root;
+                    state = state.InsertRoot(type, c.ToString());
+                    state.Position = pos++;
                     continue;
                 }
 
                 state = state.AddChild(type, c.ToString());
+                state.Position = pos++;
             }
 
-            return root;
+            return root.Children.Single();
         }
 
         static TokenType GetType(TokenType currentTokenType, char c)

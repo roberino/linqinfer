@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -11,6 +10,7 @@ namespace LinqInfer.Utility.Expressions
         public ExpressionTree Parent { get; set; }
         public TokenType Type { get; set; }
         public string Value { get; set; }
+        public int Position { get; set; }
 
         public IEnumerable<ExpressionTree> Children => _children;
 
@@ -27,6 +27,22 @@ namespace LinqInfer.Utility.Expressions
 
                 return parent;
             }
+        }
+
+        public ExpressionTree InsertRoot(TokenType type, string value)
+        {
+            var localRoot = LocalRoot;
+
+            var newLocalRoot = new ExpressionTree() {Type = type, Value = value, Parent = localRoot};
+
+            var newChild = localRoot.Children.Single();
+
+            newLocalRoot.AddChild(newChild);
+
+            localRoot._children.Clear();
+            localRoot.AddChild(newLocalRoot);
+
+            return newLocalRoot;
         }
 
         public ExpressionTree AddChild(TokenType type, string value)

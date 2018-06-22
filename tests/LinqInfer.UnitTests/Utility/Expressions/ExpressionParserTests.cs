@@ -9,9 +9,23 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void Parse_GivenExpressionMathFunction_CorrectResultReturned()
+        {
+            var exp = Exp(x => Math.Sqrt(x.Z)); // "x => Sqrt(x.Z)"
+            var parser = new ExpressionParser<MyParams>();
+            var exp2 = parser.Parse(exp.ToString());
+
+            var func = exp2.Compile();
+
+            var result = func(new MyParams() {Z = 9});
+
+            Assert.That(result, Is.EqualTo(3));
+        }
+
+        [Test]
         public void Parse_GivenMultiplyExpressionWithConversion_CorrectResultReturned()
         {
-            var exp = Exp(x => x.X * x.Y);
+            var exp = Exp(x => x.X * x.Y); // "x => Convert((x.X * x.Y), Double)"
             var parser = new ExpressionParser<MyParams>();
             var exp2 = parser.Parse(exp.ToString());
 
