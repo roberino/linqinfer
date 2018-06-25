@@ -9,6 +9,32 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void Parse_GivenNumerousOperators2_CreatesCorrectPrecedence()
+        {
+            var parser = new ExpressionParser<MyParams>();
+            var exp2 = parser.Parse("x => x.Z + 1 * x.Z - 2");
+
+            var func = exp2.Compile();
+
+            var result = func(new MyParams() {Z = 3});
+
+            Assert.That(result, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void Parse_GivenNumerousOperators_CreatesCorrectPrecedence()
+        {
+            var parser = new ExpressionParser<MyParams>();
+            var exp2 = parser.Parse("x => x.Z * 2 + 5 * 2");
+
+            var func = exp2.Compile();
+
+            var result = func(new MyParams() {Z = 3});
+
+            Assert.That(result, Is.EqualTo(16));
+        }
+
+        [Test]
         public void Parse_GivenExpressionMathFunction_CorrectResultReturned()
         {
             var exp = Exp(x => Math.Sqrt(x.Z)); // "x => Sqrt(x.Z)"

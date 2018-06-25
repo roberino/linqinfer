@@ -51,7 +51,7 @@ namespace LinqInfer.Utility.Expressions
 
                 if (type == TokenType.Operator)
                 {
-                    state = state.InsertRoot(type, c.ToString());
+                    state = state.InsertOperator(c.ToString());
                     state.Position = pos++;
                     continue;
                 }

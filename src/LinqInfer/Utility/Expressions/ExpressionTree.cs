@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Utility.Expressions
@@ -20,7 +21,9 @@ namespace LinqInfer.Utility.Expressions
             {
                 var parent = Parent;
 
-                while (parent != null && parent.Type != TokenType.GroupOpen)
+                while (parent?.Parent != null
+                       && parent.Type != TokenType.GroupOpen
+                       && parent.Type != TokenType.Operator)
                 {
                     parent = parent.Parent;
                 }
@@ -29,20 +32,63 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public ExpressionTree InsertRoot(TokenType type, string value)
+        ExpressionTree TakeLastArg()
+        {
+            var arg = _children.Last();
+            _children.Remove(arg);
+            return arg;
+        }
+
+        ExpressionTree DetatchFromParent()
+        {
+            var parent = Parent;
+            parent?._children.Remove(this);
+            return parent;
+        }
+        
+        public ExpressionTree InsertOperator(string value)
         {
             var localRoot = LocalRoot;
+                
+            var newNode = new ExpressionTree() {Type = TokenType.Operator, Value = value};
+            
+            if (localRoot?.Type == TokenType.Operator)
+            {
+                if (OperatorPrecedence.TakesPrecedence(value, localRoot.Value))
+                {
+                    newNode.AddChild(localRoot.TakeLastArg());
+                    newNode.Parent = localRoot;
+                    localRoot.AddChild(newNode);
+                }
+                else
+                {
+                    newNode.Parent = localRoot.DetatchFromParent();
+                    newNode.Parent?.AddChild(newNode);
+                    newNode.AddChild(localRoot);
+                }
+            }
+            else
+            {
+                newNode.Parent = localRoot;
 
-            var newLocalRoot = new ExpressionTree() {Type = type, Value = value, Parent = localRoot};
+                if (localRoot == null)
+                {
+                    newNode.AddChild(this);
+                    Parent = newNode;
+                }
+                else
+                {
+                    var newChild = localRoot.Children.Single();
 
-            var newChild = localRoot.Children.Single();
+                    newNode.AddChild(newChild);
+                    newChild.Parent = newNode;
 
-            newLocalRoot.AddChild(newChild);
+                    localRoot._children.Clear();
+                    localRoot.AddChild(newNode);
+                }
+            }
 
-            localRoot._children.Clear();
-            localRoot.AddChild(newLocalRoot);
-
-            return newLocalRoot;
+            return newNode;
         }
 
         public ExpressionTree AddChild(TokenType type, string value)
