@@ -39,7 +39,7 @@ namespace LinqInfer.Utility.Expressions
 
                 if (type == TokenType.GroupClose)
                 {
-                    state = state.Parent;
+                    state = state.MoveToAncestor(e => e.Type == TokenType.GroupOpen);
                     continue;
                 }
 

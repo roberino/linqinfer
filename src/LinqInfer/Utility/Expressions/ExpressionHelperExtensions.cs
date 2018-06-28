@@ -8,49 +8,52 @@ namespace LinqInfer.Utility.Expressions
 {
     internal static class ExpressionHelperExtensions
     {
-        public static IEnumerable<Expression> Convert(this ExpressionTree expressionTree, Expression context)
+        public static IEnumerable<Expression> Convert(this ExpressionTree expressionTree, Scope context)
         {
             switch (expressionTree.Type)
             {
                 case TokenType.Operator:
-                {
-                    var left = expressionTree.Children.First().Convert(context).Single();
-                    var right = expressionTree.Children.Last().Convert(context).Single();
-                    yield return expressionTree.CreateBinaryExpression(left, right);
-                    break;
-                }
+                    {
+                        var left = expressionTree.Children.First().Convert(context).Single();
+                        var right = expressionTree.Children.Last().Convert(context).Single();
+                        yield return expressionTree.CreateBinaryExpression(left, right);
+                        break;
+                    }
                 case TokenType.Name:
-                {
-                    var globalFunc = expressionTree.AsGlobalFunction(context);
-
-                    if (globalFunc != null)
                     {
-                        yield return globalFunc;
+                        if (context.IsRoot)
+                        {
+                            var globalFunc = expressionTree.AsGlobalFunction(context);
+
+                            if (globalFunc != null)
+                            {
+                                yield return globalFunc;
+                                break;
+                            }
+
+                            var asTypeConstant = expressionTree.AsTypeConstant();
+
+                            if (asTypeConstant != null)
+                            {
+                                yield return asTypeConstant;
+                                break;
+                            }
+                        }
+
+                        yield return expressionTree.AsMemberAccessor(context);
                         break;
                     }
-
-                    var asTypeConstant = expressionTree.AsTypeConstant();
-
-                    if (asTypeConstant != null)
-                    {
-                        yield return asTypeConstant;
-                        break;
-                    }
-
-                    yield return expressionTree.AsMemberAccessor(context);
-                    break;
-                }
 
                 case TokenType.Navigate:
                 case TokenType.GroupOpen:
-                {
-                    foreach (var child in expressionTree.Children.SelectMany(e => e.Convert(context)))
                     {
-                        yield return child;
-                    }
+                        foreach (var child in expressionTree.Children.SelectMany(e => e.Convert(context)))
+                        {
+                            yield return child;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case TokenType.Literal:
                     yield return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
                     break;
@@ -59,28 +62,36 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        static Expression AsMemberAccessor(this ExpressionTree expressionTree, Expression context)
-        {           
-            var pe = context as ParameterExpression;
+        static Expression AsMemberAccessor(this ExpressionTree expressionTree, Scope context)
+        {
+            var pe = context.CurrentContext as ParameterExpression;
 
-            Expression newContext;
+            Scope newContext;
 
             if (pe != null)
             {
                 if (pe.Name == expressionTree.Value)
                 {
-                    newContext = pe;
+                    newContext = context.NewScope(pe);
                 }
                 else
                 {
-                    newContext = Expression.Property(context, pe.Type, expressionTree.Value);
+                    if (expressionTree.IsMethod())
+                    {
+                        return expressionTree.AsMethodCall(context);
+                    }
+
+                    newContext = context.NewScope(Expression.Property(context.CurrentContext, pe.Type, expressionTree.Value));
                 }
             }
             else
             {
-                var me = (MemberExpression) context;
-                var type = ((PropertyInfo) me.Member).PropertyType;
-                newContext = Expression.Property(context, type, expressionTree.Value);
+                if (expressionTree.IsMethod())
+                {
+                    return expressionTree.AsMethodCall(context);
+                }
+
+                newContext = context.NewScope(Expression.Property(context.CurrentContext, context.CurrentContext.Type, expressionTree.Value));
             }
 
             if (expressionTree.Children.Any())
@@ -88,22 +99,35 @@ namespace LinqInfer.Utility.Expressions
                 return expressionTree.Children.Single().Convert(newContext).Single();
             }
 
-            return newContext;
+            return newContext.CurrentContext;
         }
 
-        static Expression AsGlobalFunction(this ExpressionTree expression, Expression context)
+        static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
+        {
+            var args = expressionTree.Children.SelectMany(c => c.Convert(context.GlobalContext));
+
+            return new FunctionBinder(context.CurrentContext.Type, BindingFlags.Instance).GetFunction(context.CurrentContext, expressionTree.Value, args);
+        }
+
+        static bool IsMethod(this ExpressionTree expressionTree)
+        {
+            return (expressionTree.Type == TokenType.Name &&
+                    expressionTree.Children.SingleOrNull()?.Type == TokenType.GroupOpen);
+        }
+
+        static Expression AsGlobalFunction(this ExpressionTree expression, Scope context)
         {
             if (MathFunctions.IsDefined(expression.Value))
             {
-                var args = expression.Children.SelectMany(c => c.Convert(context)).ToArray();
+                var args = expression.Children.SelectMany(c => c.Convert(context.GlobalContext)).ToArray();
 
                 return MathFunctions.GetFunction(expression.Value, args);
             }
 
             if (expression.Value == "Convert")
-            {   
-                var args = expression.Children.SelectMany(c => c.Convert(context)).ToArray();
-                    
+            {
+                var args = expression.Children.SelectMany(c => c.Convert(context.GlobalContext)).ToArray();
+
                 return Expression.Convert(args.First(), (Type)((ConstantExpression)args.Last()).Value);
             }
 

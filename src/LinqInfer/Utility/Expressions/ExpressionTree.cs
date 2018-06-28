@@ -15,21 +15,20 @@ namespace LinqInfer.Utility.Expressions
 
         public IEnumerable<ExpressionTree> Children => _children;
 
-        public ExpressionTree LocalRoot
+        public ExpressionTree LocalRoot =>
+            MoveToAncestor(e => e.Type == TokenType.GroupOpen 
+                                || e.Type == TokenType.Operator);
+
+        public ExpressionTree MoveToAncestor(Func<ExpressionTree, bool> predicate)
         {
-            get
+            var parent = Parent;
+
+            while (parent?.Parent != null && !predicate(parent))
             {
-                var parent = Parent;
-
-                while (parent?.Parent != null
-                       && parent.Type != TokenType.GroupOpen
-                       && parent.Type != TokenType.Operator)
-                {
-                    parent = parent.Parent;
-                }
-
-                return parent;
+                parent = parent.Parent;
             }
+
+            return parent;
         }
 
         ExpressionTree TakeLastArg()

@@ -20,7 +20,7 @@ namespace LinqInfer.UnitTests.Data.Serialisation
 
             var xml = doc.ExportAsXml();
 
-            Assert.That(xml.Root.Name.LocalName, Is.EqualTo(nameof(TestData.Pirate).ToLower()));
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo(nameof(TestData.Pirate)));
         }
 
         [Test]
@@ -32,7 +32,7 @@ namespace LinqInfer.UnitTests.Data.Serialisation
 
             var xml = doc.ExportAsXml();
 
-            Assert.That(xml.Root.Name.LocalName, Is.EqualTo("dictionary"));
+            Assert.That(xml.Root.Name.LocalName, Is.EqualTo("Dictionary"));
         }
 
         [Test]
