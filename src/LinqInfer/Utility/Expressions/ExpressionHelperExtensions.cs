@@ -105,8 +105,8 @@ namespace LinqInfer.Utility.Expressions
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
         {
             var args = expressionTree.Children.SelectMany(c => c.Convert(context.GlobalContext));
-
-            return new FunctionBinder(context.CurrentContext.Type, BindingFlags.Instance).GetFunction(context.CurrentContext, expressionTree.Value, args);
+            var binder = context.GetBinder();
+            return binder.GetFunction(context.CurrentContext, expressionTree.Value, args);
         }
 
         static bool IsMethod(this ExpressionTree expressionTree)
