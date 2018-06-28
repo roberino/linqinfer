@@ -9,11 +9,12 @@ namespace LinqInfer.Utility.Expressions
     {
         private readonly IDictionary<Type, FunctionBinder> _binders;
 
-        public Scope(Expression currentContext, Scope globalContext = null)
+        public Scope(Expression currentContext, Scope globalContext = null, bool? isRoot = null, Type conversionType = null)
         {
             CurrentContext = currentContext;
             GlobalContext = globalContext ?? this;
-            IsRoot = globalContext == null;
+            IsRoot = isRoot.GetValueOrDefault(globalContext == null);
+            ConversionType = conversionType;
 
             if (IsRoot)
             {
@@ -26,6 +27,8 @@ namespace LinqInfer.Utility.Expressions
         public Scope GlobalContext { get; }
 
         public Expression CurrentContext { get; }
+
+        public Type ConversionType { get; }
 
         public FunctionBinder GetBinder()
         {
@@ -47,6 +50,11 @@ namespace LinqInfer.Utility.Expressions
         public Scope NewScope(Expression newContext)
         {
             return new Scope(newContext, GlobalContext);
+        }
+
+        public Scope NewConversionScope(Type conversionType)
+        {
+            return new Scope(CurrentContext, GlobalContext, IsRoot, conversionType);
         }
     }
 }

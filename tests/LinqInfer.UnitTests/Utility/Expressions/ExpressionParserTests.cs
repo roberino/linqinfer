@@ -87,7 +87,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void Parse_GivenExpressionWithFieldAccessor_CorrectResultReturned()
         {
-            var exp = Exp(x => x.Field1 * 2);
+            var exp = Exp(x => x.Field1 * (long)2);
             
             var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
 

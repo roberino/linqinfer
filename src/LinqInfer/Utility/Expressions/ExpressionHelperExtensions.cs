@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -15,7 +14,7 @@ namespace LinqInfer.Utility.Expressions
                 case TokenType.Operator:
                     {
                         var left = expressionTree.Children.First().Convert(context).Single();
-                        var right = expressionTree.Children.Last().Convert(context).Single();
+                        var right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type)).Single();
                         yield return expressionTree.CreateBinaryExpression(left, right);
                         break;
                     }
@@ -55,11 +54,22 @@ namespace LinqInfer.Utility.Expressions
                         break;
                     }
                 case TokenType.Literal:
-                    yield return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
+                    yield return expressionTree.AsLiteral(context);
                     break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
             }
+        }
+
+        static Expression AsLiteral(this ExpressionTree expressionTree, Scope context)
+        {
+            if (context.ConversionType == null)
+            {
+                return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
+            }
+
+            var value = System.Convert.ChangeType(expressionTree.Value, context.ConversionType);
+            return Expression.Constant(value, context.ConversionType);
         }
 
         static Expression AsMemberAccessor(this ExpressionTree expressionTree, Scope context)
@@ -70,7 +80,7 @@ namespace LinqInfer.Utility.Expressions
 
             if (pe != null)
             {
-                if (pe.Name == expressionTree.Value)
+                if (context.IsRoot && pe.Name == expressionTree.Value)
                 {
                     newContext = context.NewScope(pe);
                 }
@@ -81,7 +91,8 @@ namespace LinqInfer.Utility.Expressions
                         return expressionTree.AsMethodCall(context);
                     }
 
-                    newContext = context.NewScope(Expression.Property(context.CurrentContext, pe.Type, expressionTree.Value));
+                    newContext =
+                        context.NewScope(Expression.PropertyOrField(context.CurrentContext, expressionTree.Value));
                 }
             }
             else
@@ -90,8 +101,8 @@ namespace LinqInfer.Utility.Expressions
                 {
                     return expressionTree.AsMethodCall(context);
                 }
-
-                newContext = context.NewScope(Expression.Property(context.CurrentContext, context.CurrentContext.Type, expressionTree.Value));
+                
+                newContext = context.NewScope(Expression.PropertyOrField(context.CurrentContext, expressionTree.Value));
             }
 
             if (expressionTree.Children.Any())
