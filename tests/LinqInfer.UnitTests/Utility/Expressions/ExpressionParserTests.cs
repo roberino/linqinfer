@@ -10,6 +10,51 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void Parse_GivenExpressionWithMinus_CorrectResultReturned()
+        {
+            var expression = "_ => 5.1 - -6.2";
+
+            var exp = expression.AsExpression<MyParams, double>();
+            
+            var result = exp.Compile().Invoke(new MyParams());
+
+            Assert.That(result, Is.EqualTo(5.1 - -6.2));
+        }
+
+        [Test]
+        public void Parse_GivenExpressionWithClosure_CorrectResultReturned()
+        {
+            var i = new {x = 1};
+            var z = 123;
+
+            var exp = Exp(i, 0, x => x.x + z);
+
+            var func = exp.ExportAsString().AsFunc(i, 0);
+
+            var result = func();
+
+            var expected = exp.Compile().Invoke(i);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void Parse_GivenAnonymousParameterExpression_CorrectResultReturned()
+        {
+            var i = new {x = 1, y = "s"};
+
+            var exp = Exp(i, 0, x => x.x + x.y.Length);
+
+            var func = exp.ExportAsString().AsFunc(i, 0);
+
+            var result = func();
+
+            var expected = exp.Compile().Invoke(i);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
         public void Parse_GivenExpressionWithFractions_CorrectResultReturned()
         {
             var exp = FractionExp(x => x.Value1 + x.Value2);
@@ -34,7 +79,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = VectExp(x => x.Input1.ToColumnVector() * x.Input2.ToColumnVector());
 
-            var func = exp.ExportAsString().AsExpression<MyParamsWithVector, IVector>().Compile();
+            var exp2 = exp.ExportAsString().AsExpression<MyParamsWithVector, IVector>();
+
+            var func = exp2.Compile();
 
             var input = new MyParamsWithVector()
             {
@@ -75,6 +122,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
         [TestCase("x => x.Z * 2 + 5 * 2", 16d)]
         [TestCase("x => x.Z + 1 * x.Z - 2", 4d)]
+        [TestCase("x => x.Z + 1 * (x.Z) - 2", 4d)]
+        [TestCase("x => x.Z + ((1 * x.Z)) - 2", 4d)]
+        [TestCase("x => (x.Z + 1) * x.Z - 2", 10d)]
+        [TestCase("x => ((x.Z + 1) * x.Z) - 2", 10d)]
         public void Parse_GivenNumerousOperators_CreatesCorrectPrecedence(string expression, double expectedResult)
         {
             var func = expression.AsExpression<MyParams, double>().Compile();
@@ -112,8 +163,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         public void Parse_GivenMultiplyExpressionWithConversion_CorrectResultReturned()
         {
             var exp = Exp(x => x.X * x.Y); // "x => Convert((x.X * x.Y), Double)"
+            var exps = exp.ExportAsString();
             
-            var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
+            var func = exps.AsExpression<MyParams, double>().Compile();
 
             var result = func(new MyParams() {X = 2, Y = 3});
 
@@ -131,6 +183,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(Math.Round(result, 5), Is.EqualTo(3.3));
         }
+
+        static Expression<Func<TInput, TOuput>> Exp<TInput, TOuput>(TInput inputExample, TOuput outputExample,
+            Expression<Func<TInput, TOuput>> exp) => exp;
 
         static Expression<Func<MyParams, double>> Exp(Expression<Func<MyParams, double>> exp) => exp;
 

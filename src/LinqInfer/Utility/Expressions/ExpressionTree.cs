@@ -15,12 +15,16 @@ namespace LinqInfer.Utility.Expressions
 
         public IEnumerable<ExpressionTree> Children => _children;
 
+        public ExpressionTree ParentOrSelf => Parent ?? this;
+
         public ExpressionTree LocalRoot =>
-            MoveToAncestor(e => e.Type == TokenType.GroupOpen 
+            MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen 
                                 || e.Type == TokenType.Operator);
 
-        public ExpressionTree MoveToAncestor(Func<ExpressionTree, bool> predicate)
+        public ExpressionTree MoveToAncestorOrSelf(Func<ExpressionTree, bool> predicate)
         {
+            if (Parent == null) return this;
+
             var parent = Parent;
 
             while (parent?.Parent != null && !predicate(parent))
@@ -51,7 +55,7 @@ namespace LinqInfer.Utility.Expressions
                 
             var newNode = new ExpressionTree() {Type = TokenType.Operator, Value = value};
             
-            if (localRoot?.Type == TokenType.Operator)
+            if (localRoot.Type == TokenType.Operator)
             {
                 if (OperatorPrecedence.TakesPrecedence(value, localRoot.Value))
                 {
@@ -69,22 +73,14 @@ namespace LinqInfer.Utility.Expressions
             else
             {
                 newNode.Parent = localRoot;
+                
+                var newChild = localRoot.Children.Single();
 
-                if (localRoot == null)
-                {
-                    newNode.AddChild(this);
-                    Parent = newNode;
-                }
-                else
-                {
-                    var newChild = localRoot.Children.Single();
+                newNode.AddChild(newChild);
+                newChild.Parent = newNode;
 
-                    newNode.AddChild(newChild);
-                    newChild.Parent = newNode;
-
-                    localRoot._children.Clear();
-                    localRoot.AddChild(newNode);
-                }
+                localRoot._children.Clear();
+                localRoot.AddChild(newNode);
             }
 
             return newNode;

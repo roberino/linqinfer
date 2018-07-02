@@ -4,7 +4,7 @@
     <AssemblyTitle>LinqInfer</AssemblyTitle>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <Authors>R Eyres</Authors>
-    <TargetFrameworks>netstandard1.6;netstandard2.0;net45;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>LinqInfer</AssemblyName>
     <PackageId>LinqInfer</PackageId>
     <PackageTags>inference;linq;bayesian probability;reasoning;machine learning;text search;neural networks;markov chains</PackageTags>
