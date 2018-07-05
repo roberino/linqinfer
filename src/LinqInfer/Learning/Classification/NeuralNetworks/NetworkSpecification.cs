@@ -80,33 +80,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 MinimumError = minimumError
             };
 
-            return inputVectorSize > 0
+            return (inputVectorSize > 0
                 ? new NetworkSpecification(learningParams, inputVectorSize, layers)
-                : new NetworkSpecification(learningParams, layers);
+                : new NetworkSpecification(learningParams, layers)).Initialise();
         }
 
-        internal void Validate()
+        public NetworkSpecification Initialise()
         {
-            LearningParameters.Validate();
-        }
-
-        internal NetworkParameters ToParameters()
-        {
-            var layerSizes = new List<int>();
-
-            if (Layers.Count == 1)
+            foreach (var layer in Layers)
             {
-                layerSizes.Add(InputVectorSize);
+                layer.WeightUpdateRule.Initialise(LearningParameters);
             }
 
-            layerSizes.AddRange(Layers.Select(l => l.LayerSize));
-
-            return new NetworkParameters(layerSizes.ToArray(), Layers.Last().Activator)
-            {
-                InitialWeightRange = Layers.Last().InitialWeightRange,
-                LearningRate = LearningParameters.LearningRate,
-                MinimumError = LearningParameters.MinimumError
-            };
+            return this;
         }
 
         public bool Equals(NetworkSpecification other)
@@ -128,6 +114,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public override int GetHashCode()
         {
             return (int)ExportData().Checksum;
+        }
+
+        internal void Validate()
+        {
+            LearningParameters.Validate();
         }
     }
 }

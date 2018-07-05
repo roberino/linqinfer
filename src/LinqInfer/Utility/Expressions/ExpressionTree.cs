@@ -21,6 +21,8 @@ namespace LinqInfer.Utility.Expressions
             MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen 
                                 || e.Type == TokenType.Operator);
 
+        public bool IsFull => Type == TokenType.Operator && _children.Count == 2;
+
         public ExpressionTree MoveToAncestorOrSelf(Func<ExpressionTree, bool> predicate)
         {
             if (Parent == null) return this;
@@ -52,7 +54,12 @@ namespace LinqInfer.Utility.Expressions
         public ExpressionTree InsertOperator(string value)
         {
             var localRoot = LocalRoot;
-                
+
+            if (Type == TokenType.Operator)
+            {
+                return AddChild(TokenType.Operator, value);
+            }
+
             var newNode = new ExpressionTree() {Type = TokenType.Operator, Value = value};
             
             if (localRoot.Type == TokenType.Operator)

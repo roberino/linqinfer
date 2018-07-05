@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -98,7 +97,7 @@ namespace LinqInfer.Utility.Expressions
 
         private static string ExportBinaryExpression(BinaryExpression expression, string symbol)
         {
-            return $"{ExportExpression(expression.Left)} {symbol} {ExportExpression(expression.Right)}";
+            return $"({ExportExpression(expression.Left)} {symbol} {ExportExpression(expression.Right)})";
         }
     }
 }

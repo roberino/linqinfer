@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data.Serialisation;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Linq;
@@ -33,7 +32,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 return new SerialisableDataTransformation();
             });
 
-            WeightUpdateRuleFactory = new FunctionFormatter().CreateFactory<IWeightUpdateRule, DefaultWeightUpdateRule>();
+            WeightUpdateRuleFactory = 
+                new Factory<string, WeightUpdateRule>(
+                    e => WeightUpdateRule.Create(e));
         }
 
         public NetworkBuilderContext(
@@ -41,7 +42,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             IFactory<IActivatorFunction, string> activatorFactory, 
             IFactory<string, IActivatorFunction> activatorFormatter,
             IFactory<ISerialisableDataTransformation, string> transformationFactory,
-            IFactory<IWeightUpdateRule, string> weightUpdateRuleFactory)
+            IFactory<WeightUpdateRule, string> weightUpdateRuleFactory)
         {
             NeuronFactory = neuronFactory;
             ActivatorFactory = activatorFactory;
@@ -54,7 +55,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IFactory<IActivatorFunction, string> ActivatorFactory { get; }
         public IFactory<string, IActivatorFunction> ActivatorFormatter { get; }
         public IFactory<ILossFunction, string> LossFunctionFactory { get; }
-        public IFactory<IWeightUpdateRule, string> WeightUpdateRuleFactory { get; }
+        public IFactory<WeightUpdateRule, string> WeightUpdateRuleFactory { get; }
         public IFactory<ISerialisableDataTransformation, string> TransformationFactory { get; }
 
         private static Tuple<string, double> ParseActivatorArgs(string args)

@@ -7,44 +7,52 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public static class WeightUpdateRules
     {
-        public static IWeightUpdateRule Simple()
+        public static WeightUpdateRule Simple()
         {
             return WeightUpdateRule.Create(
                 p => p.CurrentWeightValue +
-                                p.CurrentLearningRate * p.CurrentWeightValue *
-                                 p.Error);
+                     p.CurrentLearningRate * p.CurrentWeightValue *
+                     p.Error);
         }
 
-        public static IWeightUpdateRule Default(double momentum)
+        public static WeightUpdateRule Default()
         {
             return WeightUpdateRule.Create(
                 p => p.CurrentWeightValue +
-                     (p.CurrentLearningRate * ((momentum * p.CurrentWeightValue) +
-                                       ((1.0 - momentum) * (p.Error * p.PreviousLayerOutput)))));
+                     (p.CurrentLearningRate * ((p.CurrentMomentum * p.CurrentWeightValue) +
+                                               ((1.0 - p.CurrentMomentum) * (p.Error * p.PreviousLayerOutput)))));
         }
     }
 
-    public sealed class WeightUpdateRule : IWeightUpdateRule
+    public sealed class WeightUpdateRule
     {
         private double _learningRate;
+        private double _momentum;
         private readonly Expression<Func<WeightUpdateParameters, double>> _rule;
+        private readonly Func<WeightUpdateParameters, double> _compiledRule;
 
-        private Func<WeightUpdateParameters, double> _compiledRule;
-
-        private WeightUpdateRule(Expression<Func<WeightUpdateParameters, double>> expression)
+        private WeightUpdateRule(double learningRate, double momentum, Expression<Func<WeightUpdateParameters, double>> expression)
         {
+            _learningRate = learningRate;
+            _momentum = momentum;
             _rule = expression;
             _compiledRule = expression.Compile();
         }
 
-        public static IWeightUpdateRule Create(Expression<Func<WeightUpdateParameters, double>> expression)
+        public static WeightUpdateRule Create(Expression<Func<WeightUpdateParameters, double>> expression)
         {
-            return new WeightUpdateRule(expression);
+            return new WeightUpdateRule(0.05, 0.1, expression);
         }
 
-        public static IWeightUpdateRule Create(string expression)
+        public static WeightUpdateRule Create(string expression)
         {
-            return new WeightUpdateRule(expression.AsExpression<WeightUpdateParameters, double>());
+            return Create(expression.AsExpression<WeightUpdateParameters, double>());
+        }
+
+        public void Initialise(LearningParameters learningParameters)
+        {
+            _learningRate = learningParameters.LearningRate;
+            _momentum = learningParameters.Momentum;
         }
 
         public double AdjustLearningRate(Func<double, double> rateAdjustment)
@@ -61,6 +69,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public double Execute(WeightUpdateParameters updateParams)
         {
             updateParams.CurrentLearningRate = _learningRate;
+            updateParams.CurrentMomentum = _momentum;
 
             return _compiledRule(updateParams);
         }

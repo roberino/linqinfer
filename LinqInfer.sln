@@ -3,12 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.AspNetCoreTestHarness", "tests\LinqInfer.AspNetCoreTestHarness\LinqInfer.AspNetCoreTestHarness.csproj", "{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Microservices", "src\LinqInfer.Microservices\LinqInfer.Microservices.csproj", "{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Microservices.Tests", "tests\LinqInfer.Microservices.Tests\LinqInfer.Microservices.Tests.csproj", "{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer", "src\LinqInfer\LinqInfer.csproj", "{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E-47AC-49B9-A991-E89ED5C863D5}"
@@ -56,7 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1FDA159C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Benchmarking", "tests\LinqInfer.Benchmarking\LinqInfer.Benchmarking.csproj", "{99FFBAAA-6682-4665-BC93-F0CDEDCF5799}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.ImageLearningTests", "tests\LinqInfer.ImageLearningTests\LinqInfer.ImageLearningTests.csproj", "{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.ImageLearningTests", "tests\LinqInfer.ImageLearningTests\LinqInfer.ImageLearningTests.csproj", "{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,18 +58,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -105,9 +87,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A0D0106C-5149-4B72-8A28-FC3C13B4F0E9} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
-		{60C8FB0E-7E7C-4E84-B8AA-5EC039B0D4C8} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
-		{485C80BB-E007-4EFE-BB38-D9B2B3CD667A} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 		{7251FD37-1AA0-48F0-AEBE-27E7DD226E34} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
 		{0F16B826-860A-4124-88C7-DA3FDEAAF9D8} = {748B717E-47AC-49B9-A991-E89ED5C863D5}
 		{F7C1E6B2-906F-4B68-83CA-847AA341D10F} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}

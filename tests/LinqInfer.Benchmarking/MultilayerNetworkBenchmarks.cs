@@ -57,7 +57,7 @@ namespace LinqInfer.Benchmarking
                         LayerSize,
                         Activators.Create(Activator, 1),
                         LossFunctions.Square, 
-                        DefaultWeightUpdateRule.Create(),
+                        WeightUpdateRules.Default(),
                         new Range(1, -1),
                         ParallelProcess));
                 }

@@ -54,23 +54,23 @@ namespace LinqInfer.UnitTests
             await trainingSet.RunAsync(token, 2500);
 
             var data = network.ExportData();
+            
+            //var classifier = data.OpenAsMultilayerNetworkClassifier<ImageSampleGeneration.Letter, char>(x => x.VectorData, size * size);
 
-            var classifier = data.OpenAsMultilayerNetworkClassifier<ImageSampleGeneration.Letter, char>(x => x.VectorData, size * size);
+            //foreach (var unknownLetter in chars
+            //    .Letters(size, FontFamily.GenericSerif))
+            //{
+            //    var result = classifier.Classify(unknownLetter);
 
-            foreach (var unknownLetter in chars
-                .Letters(size, FontFamily.GenericSerif))
-            {
-                var result = classifier.Classify(unknownLetter);
+            //    Console.WriteLine($"{unknownLetter.Character}");
 
-                Console.WriteLine($"{unknownLetter.Character}");
+            //    foreach (var item in result)
+            //    {
+            //        Console.WriteLine($"- {item.ClassType}={item.Score}");
+            //    }
 
-                foreach (var item in result)
-                {
-                    Console.WriteLine($"- {item.ClassType}={item.Score}");
-                }
-
-                Console.WriteLine();
-            }
+            //    Console.WriteLine();
+            //}
         }
     }
 }

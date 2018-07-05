@@ -1,8 +1,9 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning;
+﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,50 +12,11 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
-using LinqInfer.Data.Serialisation;
-using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Utility;
 
 namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
-        /// <param name="tokeniser">An optional tokeniser</param>
-        public static IDynamicClassifier<TClass, string> OpenAsTextualMultilayerNetworkClassifier<TClass>(
-            this PortableDataDocument docData, ITokeniser tokeniser = null) where TClass : IEquatable<TClass>
-        {
-            var featureExtractor = new TextDataExtractor();
-            var t = tokeniser ?? new Tokeniser();
-            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<string>(t.Tokenise);
-
-            return MlnExtensions.OpenAsMultilayerNetworkClassifier<string, TClass>(docData, objFeatureExtractor);
-        }
-
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
-        public static IDynamicClassifier<TClass, TInput> OpenAsTextualMultilayerNetworkClassifier<TClass, TInput>(
-            this PortableDataDocument docData)
-            where TClass : IEquatable<TClass>
-            where TInput : class
-        {
-            var featureExtractor = new TextDataExtractor();
-            var index = new DocumentIndex();
-            var tokeniser = new ObjectTextExtractor<TInput>(index.Tokeniser);
-            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<TInput>(tokeniser.CreateObjectTextTokeniser());
-
-            return MlnExtensions.OpenAsMultilayerNetworkClassifier<TInput, TClass>(docData, objFeatureExtractor);
-        }
-
         /// <summary>
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.

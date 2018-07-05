@@ -20,7 +20,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     learningConfig?.Invoke(p);
                 })
-                .AddHiddenLinearLayer(hiddenLayerSize, p => SimpleWeightUpdateRule.Create(p.LearningRate))
+                .AddHiddenLinearLayer(hiddenLayerSize, WeightUpdateRules.Simple())
                 .AddSoftmaxOutput();
         }
 
@@ -30,14 +30,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return specificationBuilder.
                 AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
-
         }
 
-        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize, Func<LearningParameters, IWeightUpdateRule> updateRule = null)
+        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize, WeightUpdateRule updateRule = null)
         {
             if (layerSize == 0) return specificationBuilder;
 
-            updateRule = updateRule ?? (p => DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum));
+            updateRule = updateRule ?? WeightUpdateRules.Default();
 
             return specificationBuilder.
                 AddHiddenLayer(p => 
@@ -45,14 +44,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                         layerSize, 
                         Activators.None(), 
                         LossFunctions.Square,
-                        updateRule(p),
+                        updateRule,
                         LayerSpecification.DefaultInitialWeightRange));
         }
 
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
         {
             return specificationBuilder
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, p => SimpleWeightUpdateRule.Create(p.LearningRate))
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, WeightUpdateRules.Simple())
                 .TransformOutput(x => new Softmax(x));
         }
 
@@ -85,7 +84,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
             _layers = new List<Func<LearningParameters, LayerSpecification>>();
-            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), _defaultWeightRange);
+            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), _defaultWeightRange);
         }
 
         internal IFluentNetworkBuilder ConfigureLayers(Action<LayerSpecification> layerAction)
@@ -131,17 +130,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null, Func<LearningParameters, IWeightUpdateRule> updateRule = null)
+        public IFluentNetworkBuilder ConfigureOutputLayer(
+            IActivatorFunction activator, 
+            ILossFunction lossFunction, 
+            Range? initialWeightRange = null, 
+            WeightUpdateRule updateRule = null)
         {
             var tx = _output.OutputTransformation;
             
-            updateRule = updateRule ?? (p => DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum));
+            updateRule = updateRule ??  WeightUpdateRules.Default();
 
             _output = new LayerSpecification(
                 _output.LayerSize, 
                 activator, 
                 lossFunction, 
-                updateRule(_learningParams), 
+                updateRule, 
                 initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
             {
                 OutputTransformation = tx

@@ -16,23 +16,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         private readonly LayerSpecification _spec;
         private Vector _output;
 
-        public NetworkLayer(
-            int inputVectorSize,
-            int neuronCount,
-            IActivatorFunction activator,
-            ILossFunction lossFunction,
-            Func<int, INeuron> neuronFactory = null)
-            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), Range.MinusOneToOne))
-        {
-        }
-
         public NetworkLayer(int inputVectorSize, LayerSpecification specification)
         {
             _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
 
             var nf = specification.NeuronFactory;
 
-            _neuronsFactory = new Func<int, IList<INeuron>>((c) =>
+            _neuronsFactory = c =>
             {
                 return Enumerable.Range(1, c).Select(n =>
                 {
@@ -40,7 +30,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     nx.Activator = specification.Activator.Activator;
                     return nx;
                 }).ToList();
-            });
+            };
 
             _neurons = _neuronsFactory(specification.LayerSize);
 
@@ -61,7 +51,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ILossFunction LossFunction => _spec.LossFunction;
 
-        public IWeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
+        public WeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
         public IVector LastOutput => _output;
 
@@ -146,7 +136,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ILayer Clone(bool deep)
         {
-            var layer = new NetworkLayer(InputVectorSize, _neurons.Count, Activator, LossFunction);
+            var layer = new NetworkLayer(InputVectorSize, _spec);
 
             layer._neurons.Clear();
 

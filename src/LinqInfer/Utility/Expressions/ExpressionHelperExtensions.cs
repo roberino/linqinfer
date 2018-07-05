@@ -13,9 +13,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TokenType.Operator:
                     {
-                        var left = expressionTree.Children.First().Convert(context).Single();
-                        var right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type)).Single();
-                        yield return expressionTree.CreateBinaryExpression(left, right);
+                        yield return expressionTree.CreateBinaryExpression(context);
                         break;
                     }
                 case TokenType.Name:
@@ -156,6 +154,20 @@ namespace LinqInfer.Utility.Expressions
                 default:
                     return null;
             }
+        }
+
+        static BinaryExpression CreateBinaryExpression(this ExpressionTree expressionTree, Scope context)
+        {
+            var left = expressionTree.Children.First().Convert(context).Single();
+            var right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type))
+                .Single();
+
+            if (expressionTree.Children.Count() == 1)
+            {
+                left = Expression.Constant(System.Convert.ChangeType(0, right.Type), right.Type);
+            }
+
+            return expressionTree.CreateBinaryExpression(left, right);
         }
 
         static BinaryExpression CreateBinaryExpression(this ExpressionTree expression, Expression left,

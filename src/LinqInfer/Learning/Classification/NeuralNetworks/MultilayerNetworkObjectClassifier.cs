@@ -1,18 +1,15 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using LinqInfer.Data.Serialisation;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     internal class MultilayerNetworkObjectClassifier<TClass, TInput> :
-        INetworkClassifier<TClass, TInput>
-        where TClass : IEquatable<TClass>
+        INetworkClassifier<TClass, TInput> where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
 
@@ -41,28 +38,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public ClassifierStats Statistics { get; private set; }
 
         public ISerialisableDataTransformation DataTransformation => _network;
-
-        public void Load(Stream input)
-        {
-            _config.OutputMapper.Load(input);
-            _config.FeatureExtractor.Load(input);
-
-            var network = new MultilayerNetwork(input);
-
-            Setup(network);
-        }
-
-        public virtual void Save(Stream output)
-        {
-            if (_network == null)
-            {
-                throw new InvalidOperationException("No training data received");
-            }
-
-            _config.OutputMapper.Save(output);
-            _config.FeatureExtractor.Save(output);
-            _network.Save(output);
-        }
 
         public PortableDataDocument ExportData()
         {
@@ -112,7 +87,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var outputObjects = _config.OutputMapper.Map(output);
 
             Statistics.IncrementClassificationCount();
-            
+
             return outputObjects;
         }
 
@@ -134,12 +109,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _network == null ? "Un-initialised classifier" : "NN classifier" + _network.ToString();
         }
 
-        public void PruneFeatures(params int[] featureIndexes)
-        {
-            _network.PruneInputs(featureIndexes);
-        }
-
-        public IPrunableObjectClassifier<TClass, TInput> Clone(bool deep)
+        public IDynamicClassifier<TClass, TInput> Clone(bool deep)
         {
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(_config);
 

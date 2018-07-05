@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the function for updating weights
         /// </summary>
-        IWeightUpdateRule WeightUpdateRule { get; }
+        WeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Gets a neuron by index

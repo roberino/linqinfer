@@ -61,11 +61,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _error = null;
         }
 
-        public void PruneInputs(params int[] inputIndexes)
-        {
-            _network.PruneInputs(inputIndexes);
-        }
-
         public double Train(IVector sampleVector, IVector outputVector)
         {
             if (!_error.HasValue) _error = 0;

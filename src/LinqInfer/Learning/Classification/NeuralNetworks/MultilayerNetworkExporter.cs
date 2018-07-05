@@ -1,7 +1,5 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -44,9 +42,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetwork Import(PortableDataDocument doc)
         {
-            if (doc.Version == 2) return CreateFromVectorDocumentV2(doc);
-
-            return CreateFromVectorDocumentV1(doc);
+            return CreateFromVectorDocumentV2(doc);
         }
 
         private static MultilayerNetwork CreateFromVectorDocumentV2(PortableDataDocument doc)
@@ -57,29 +53,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var network = new MultilayerNetwork(spec, properties);
 
             int i = 1;
-
-            foreach (var layer in network.Layers)
-            {
-                layer.Import(doc.Children[i++]);
-            }
-
-            return network;
-        }
-
-        private static MultilayerNetwork CreateFromVectorDocumentV1(PortableDataDocument doc)
-        {
-            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
-            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
-
-            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
-
-            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
-            {
-                LearningRate = double.Parse(doc.Properties["LearningRate"]),
-                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
-            }, properties);
-
-            int i = 0;
 
             foreach (var layer in network.Layers)
             {

@@ -30,16 +30,16 @@ namespace LinqInfer.Utility.Expressions
                 type = GetType(state.Type, c);
 
                 if (type == TokenType.Space) continue;
-
-                if (type == lastType && type != TokenType.GroupOpen)
-                {
-                    state.Value += c;
-                    continue;
-                }
-
+                
                 if (type == TokenType.GroupClose)
                 {
                     state = state.MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen);
+                    continue;
+                }
+
+                if (type == lastType && ShouldAccumulate(type))
+                {
+                    state.Value += c;
                     continue;
                 }
 
@@ -61,6 +61,14 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return root.Children.Single();
+        }
+
+        static bool ShouldAccumulate(TokenType tokenType)
+        {
+            return tokenType == TokenType.Literal
+                    || tokenType == TokenType.Name
+                    || tokenType == TokenType.Operator
+                    || tokenType == TokenType.Space;
         }
 
         static TokenType GetType(TokenType currentTokenType, char c)

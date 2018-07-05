@@ -1,9 +1,8 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -17,7 +16,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             int layerSize, 
             IActivatorFunction activator, 
             ILossFunction lossFunction,
-            IWeightUpdateRule weightUpdateRule,
+            WeightUpdateRule weightUpdateRule,
             Range initialWeightRange,
             bool parallelProcess = false,
             Func<int, INeuron> neuronFactory = null)
@@ -41,7 +40,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             ILossFunction lossFunction = null) : this(
                 layerSize, activator ?? Activators.Sigmoid(1), 
                 lossFunction ?? LossFunctions.Square, 
-                DefaultWeightUpdateRule.Create(), 
+                WeightUpdateRules.Default(), 
                 DefaultInitialWeightRange)
         {
         }
@@ -74,7 +73,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets a function for updating weights
         /// </summary>
-        public IWeightUpdateRule WeightUpdateRule { get; }
+        public WeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Transforms the output

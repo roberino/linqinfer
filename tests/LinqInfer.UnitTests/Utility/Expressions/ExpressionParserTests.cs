@@ -10,6 +10,22 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void Parse_GivenExpressionWithGrouping_GroupPrecedencyIsPreserved()
+        {
+            var exp0 = Exp(x => (x.Z + 1) * (x.Z + 2));
+            var expression = exp0.ExportAsString();
+
+            var exp = expression.AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {Z = 14};
+
+            var result = exp.Compile().Invoke(paramz);
+            var expected = exp0.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
         public void Parse_GivenExpressionWithMinus_CorrectResultReturned()
         {
             var expression = "_ => 5.1 - -6.2";

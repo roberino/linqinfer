@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Data.Remoting;
-using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
@@ -15,6 +7,11 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using NSubstitute;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.UnitTests.Learning
 {
@@ -26,19 +23,6 @@ namespace LinqInfer.UnitTests.Learning
             public int x { get; set; }
             public int y { get; set; }
             public string c { get;set; }
-        }
-
-        [Test]
-        public async Task LoadSoftmax()
-        {
-            using (var stream = new FileStream(@"C:\dev\roberino\linqinfer\artifacts\nn-350.xml", FileMode.Open))
-            {
-                var xml = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);
-                var doc = new PortableDataDocument(xml);
-                var classifier = doc.OpenAsMultilayerNetworkClassifier<D, string>();
-                
-                Assert.That(classifier, Is.Not.Null);
-            }
         }
 
         [Test]
