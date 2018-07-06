@@ -21,7 +21,7 @@ namespace LinqInfer.Utility.Expressions
             MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen 
                                 || e.Type == TokenType.Operator);
 
-        public bool IsFull => Type == TokenType.Operator && _children.Count == 2;
+        public bool IsFull => Type.Capacity() == _children.Count;
 
         public ExpressionTree MoveToAncestorOrSelf(Func<ExpressionTree, bool> predicate)
         {
@@ -49,6 +49,20 @@ namespace LinqInfer.Utility.Expressions
             var parent = Parent;
             parent?._children.Remove(this);
             return parent;
+        }
+
+        public ExpressionTree InsertCondition()
+        {
+            var localRoot = LocalRoot;
+
+            var newNode = new ExpressionTree() {Type = TokenType.Condition, Value = "?"};
+            
+            newNode.AddChild(localRoot.TakeLastArg());
+            newNode.Parent = localRoot;
+            
+            localRoot.AddChild(newNode);
+
+            return newNode;
         }
         
         public ExpressionTree InsertOperator(string value)
@@ -114,18 +128,5 @@ namespace LinqInfer.Utility.Expressions
         }
 
         public override string ToString() => $"{Type}:{Value}";
-    }
-
-    internal enum TokenType
-    {
-        Unknown,
-        Operator,
-        Name,
-        Navigate,
-        Space,
-        GroupClose,
-        GroupOpen,
-        Literal,
-        Separator
     }
 }

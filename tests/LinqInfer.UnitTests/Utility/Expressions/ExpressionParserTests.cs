@@ -10,6 +10,21 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void Parse_GivenExpressionWithCondition_ParsesCorrectly()
+        {
+            var exp0 = Exp(x => x.Z > 0 ? 1.1 : 2.2);
+            var expression = exp0.ExportAsString();
+
+            var exp = expression.AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {Z = 3};
+
+            var result = exp.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(1.1));
+        }
+
+        [Test]
         public void Parse_GivenExpressionWithGrouping_GroupPrecedencyIsPreserved()
         {
             var exp0 = Exp(x => (x.Z + 1) * (x.Z + 2));

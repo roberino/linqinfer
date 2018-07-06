@@ -27,7 +27,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 var lastType = type;
 
-                type = GetType(state.Type, c);
+                type = state.Type.GetTokenType(c);
 
                 if (type == TokenType.Space) continue;
                 
@@ -37,7 +37,7 @@ namespace LinqInfer.Utility.Expressions
                     continue;
                 }
 
-                if (type == lastType && ShouldAccumulate(type))
+                if (type == lastType && type.ShouldAccumulate())
                 {
                     state.Value += c;
                     continue;
@@ -61,49 +61,6 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return root.Children.Single();
-        }
-
-        static bool ShouldAccumulate(TokenType tokenType)
-        {
-            return tokenType == TokenType.Literal
-                    || tokenType == TokenType.Name
-                    || tokenType == TokenType.Operator
-                    || tokenType == TokenType.Space;
-        }
-
-        static TokenType GetType(TokenType currentTokenType, char c)
-        {
-            switch (c)
-            {
-                case '(': return TokenType.GroupOpen;
-                case ')': return TokenType.GroupClose;
-                case ' ': return TokenType.Space;
-                case '+':
-                case '-':
-                case '/':
-                case '*':
-                case '=':
-                case '!':
-                case '|':
-                case '&':
-                    return TokenType.Operator;
-                case ',':
-                    return TokenType.Separator;
-                case '.':
-                    if (currentTokenType == TokenType.Literal) return TokenType.Literal;
-                    if (currentTokenType == TokenType.Name) return TokenType.Navigate;
-                    return TokenType.Unknown;
-                default:
-                    if (char.IsDigit(c))
-                    {
-                        if (currentTokenType == TokenType.Name) return TokenType.Name;
-                        return TokenType.Literal;
-                    }
-
-                    if (char.IsLetter(c)) return TokenType.Name;
-                    return TokenType.Unknown;
-
-            }
         }
     }
 }

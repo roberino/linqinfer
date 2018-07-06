@@ -13,9 +13,14 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TokenType.Operator:
                     {
-                        yield return expressionTree.CreateBinaryExpression(context);
+                        yield return expressionTree.AsOperatorExpression(context);
                         break;
                     }
+                case TokenType.Condition:
+                {
+                    yield return expressionTree.AsCondition(context);
+                    break;
+                }
                 case TokenType.Name:
                     {
                         if (context.IsRoot)
@@ -57,6 +62,13 @@ namespace LinqInfer.Utility.Expressions
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
             }
+        }
+
+        static Expression AsCondition(this ExpressionTree expressionTree, Scope context)
+        {
+            var parts = expressionTree.Children.Select(c => c.Convert(context).Single()).ToArray();
+
+            return Expression.Condition(parts[0], parts[1], parts[2]);
         }
 
         static Expression AsLiteral(this ExpressionTree expressionTree, Scope context)
@@ -156,15 +168,27 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        static BinaryExpression CreateBinaryExpression(this ExpressionTree expressionTree, Scope context)
+        static Expression AsOperatorExpression(this ExpressionTree expressionTree, Scope context)
         {
-            var left = expressionTree.Children.First().Convert(context).Single();
-            var right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type))
-                .Single();
+            Expression left, right;
+            var first = expressionTree.Children.First().Convert(context).Single();
 
-            if (expressionTree.Children.Count() == 1)
+            if (!expressionTree.IsFull)
             {
-                left = Expression.Constant(System.Convert.ChangeType(0, right.Type), right.Type);
+                if (expressionTree.Value == "-")
+                {
+                    return Expression.Negate(first);
+                }
+                
+                left = Expression.Constant(System.Convert.ChangeType(0, first.Type), first.Type);
+                
+                right = first;
+            }
+            else
+            {
+                left = first;
+                right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type))
+                    .Single();
             }
 
             return expressionTree.CreateBinaryExpression(left, right);
@@ -173,19 +197,21 @@ namespace LinqInfer.Utility.Expressions
         static BinaryExpression CreateBinaryExpression(this ExpressionTree expression, Expression left,
             Expression right)
         {
-            switch (expression.Value)
-            {
-                case "+":
-                    return Expression.Add(left, right);
-                case "*":
-                    return Expression.Multiply(left, right);
-                case "/":
-                    return Expression.Divide(left, right);
-                case "-":
-                    return Expression.Subtract(left, right);
-            }
+            return Expression.MakeBinary(expression.Value.AsExpressionType(), left, right);
 
-            throw new NotSupportedException(expression.Value);
+            //switch (expression.Value)
+            //{
+            //    case "+":
+            //        return Expression.Add(left, right);
+            //    case "*":
+            //        return Expression.Multiply(left, right);
+            //    case "/":
+            //        return Expression.Divide(left, right);
+            //    case "-":
+            //        return Expression.Subtract(left, right);
+            //}
+
+            //throw new NotSupportedException(expression.Value);
         }
     }
 }

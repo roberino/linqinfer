@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             WeightUpdateRuleFactory = 
                 new Factory<string, WeightUpdateRule>(
-                    e => WeightUpdateRule.Create(e));
+                    e => WeightUpdateRule.Parse(e));
         }
 
         public NetworkBuilderContext(

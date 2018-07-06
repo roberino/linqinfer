@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new WeightUpdateRule(0.05, 0.1, expression);
         }
 
-        public static WeightUpdateRule Create(string expression)
+        public static WeightUpdateRule Parse(string expression)
         {
             return Create(expression.AsExpression<WeightUpdateParameters, double>());
         }
