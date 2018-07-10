@@ -9,15 +9,60 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     [TestFixture]
     public class ExpressionParserTests
     {
+        [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
+        [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
+        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
+        [TestCase("x => true ? 1 : -1", 0, 1)]
+        [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
+        public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
+        {
+            var exp = expression.AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {Z = z};
+
+            var result = exp.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void T()
+        {
+            var exp = "x => x.Z > 0 ? 2.1 : 2.9 + 5".AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {Z = 0};
+
+            var result = exp.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(1));
+        }
+
         [Test]
         public void Parse_GivenExpressionWithCondition_ParsesCorrectly()
         {
             var exp0 = Exp(x => x.Z > 0 ? 1.1 : 2.2);
+
             var expression = exp0.ExportAsString();
 
             var exp = expression.AsExpression<MyParams, double>();
 
             var paramz = new MyParams() {Z = 3};
+
+            var result = exp.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(1.1));
+        }
+
+        [Test]
+        public void Parse_GivenExpressionWithMemberCondition_ParsesCorrectly()
+        {
+            var exp0 = Exp(x => x.P ? 1.1 : 2.2);
+
+            var expression = exp0.ExportAsString();
+
+            var exp = expression.AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {P = true};
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -230,6 +275,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             public int X { get; set; }
             public int Y { get; set; }
             public double Z { get; set; }
+            public bool P { get; set; }
         }
 
         private class MyParamsWithVector

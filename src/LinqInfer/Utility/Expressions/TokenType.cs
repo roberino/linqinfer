@@ -40,6 +40,23 @@ namespace LinqInfer.Utility.Expressions
             throw new NotSupportedException(expressionType.ToString());
         }
 
+        public static bool IsBooleanOperator(this string token)
+        {
+            var et = token.AsExpressionType();
+
+            return et == ExpressionType.And
+                   || et == ExpressionType.AndAlso
+                   || et == ExpressionType.Or
+                   || et == ExpressionType.OrElse
+                   || et == ExpressionType.Equal
+                   || et == ExpressionType.NotEqual
+                   || et == ExpressionType.Not
+                   || et == ExpressionType.GreaterThan
+                   || et == ExpressionType.GreaterThanOrEqual
+                   || et == ExpressionType.LessThan
+                   || et == ExpressionType.LessThanOrEqual;
+        }
+
         public static ExpressionType AsExpressionType(this string token)
         {
             switch (token)
@@ -69,7 +86,7 @@ namespace LinqInfer.Utility.Expressions
                 case "!=":
                     return ExpressionType.NotEqual;
                 case "!":
-                    return ExpressionType.Negate;
+                    return ExpressionType.Not;
             }
 
             throw new NotSupportedException(token);
@@ -83,8 +100,9 @@ namespace LinqInfer.Utility.Expressions
                     return 2;
                 case TokenType.Name:
                 case TokenType.Navigate:
-                case TokenType.Literal:
                     return 1;
+                case TokenType.Literal:
+                    return 0;
                 case TokenType.Condition:
                     return 3;
             }
@@ -122,6 +140,8 @@ namespace LinqInfer.Utility.Expressions
                     return TokenType.Condition;
                 case ',':
                     return TokenType.Separator;
+                case ':':
+                    return TokenType.Split;
                 case '.':
                     if (currentTokenContext == TokenType.Literal) return TokenType.Literal;
                     if (currentTokenContext == TokenType.Name) return TokenType.Navigate;
@@ -143,6 +163,7 @@ namespace LinqInfer.Utility.Expressions
     internal enum TokenType
     {
         Unknown,
+        Root,
         Operator,
         Name,
         Navigate,
@@ -151,6 +172,7 @@ namespace LinqInfer.Utility.Expressions
         GroupOpen,
         Literal,
         Separator,
-        Condition
+        Condition,
+        Split
     }
 }

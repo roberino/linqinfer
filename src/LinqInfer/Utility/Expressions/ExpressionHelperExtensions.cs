@@ -25,19 +25,13 @@ namespace LinqInfer.Utility.Expressions
                     {
                         if (context.IsRoot)
                         {
-                            var globalFunc = expressionTree.AsGlobalFunction(context);
+                            var glob = expressionTree.AsGlobalFunction(context) ?? 
+                                expressionTree.AsTypeConstant() ?? 
+                                expressionTree.AsGlobalNamedConstant();
 
-                            if (globalFunc != null)
+                            if (glob != null)
                             {
-                                yield return globalFunc;
-                                break;
-                            }
-
-                            var asTypeConstant = expressionTree.AsTypeConstant();
-
-                            if (asTypeConstant != null)
-                            {
-                                yield return asTypeConstant;
+                                yield return glob;
                                 break;
                             }
                         }
@@ -163,6 +157,19 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TypeCode.Double:
                     return Expression.Constant(typeof(double));
+                default:
+                    return null;
+            }
+        }
+
+        static Expression AsGlobalNamedConstant(this ExpressionTree expression)
+        {
+            switch (expression.Value)
+            {
+                case "true":
+                    return Expression.Constant(true);
+                case "false":
+                    return Expression.Constant(true);
                 default:
                     return null;
             }

@@ -14,6 +14,14 @@ namespace LinqInfer.Utility.Expressions
             _precedence["/"] = 100;
             _precedence["+"] = 50;
             _precedence["-"] = 50;
+            _precedence[">"] = 30;
+            _precedence[">="] = 30;
+            _precedence["<"] = 30;
+            _precedence["<="] = 30;
+            _precedence["=="] = 30;
+            _precedence["!="] = 30;
+            _precedence["&&"] = 30;
+            _precedence["||"] = 30;
         }
 
         public static bool TakesPrecedence(string operator1, string operator2)
