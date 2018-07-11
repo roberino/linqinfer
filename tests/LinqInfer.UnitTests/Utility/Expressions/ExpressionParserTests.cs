@@ -26,11 +26,13 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void T()
+        public void Parse_GivenExpressionsWithComplexCondition_ParsesCorrectly()
         {
-            var exp = "x => x.Z > 0 ? 2.1 : 2.9 + 5".AsExpression<MyParams, double>();
+            var exp0 = Exp(x => x.Z > 0 && x.Z > 1 ? 1 : 2);
 
-            var paramz = new MyParams() {Z = 0};
+            var exp = "x => x.Z > 0 && x.Z > 1 ? 1 : 2".AsExpression<MyParams, double>();
+
+            var paramz = new MyParams() {Z = 2};
 
             var result = exp.Compile().Invoke(paramz);
 

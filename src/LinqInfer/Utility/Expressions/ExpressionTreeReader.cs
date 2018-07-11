@@ -6,29 +6,27 @@ namespace LinqInfer.Utility.Expressions
     {
         private static (string token, int position) GreedyRead(char currentChar, string input, int pos, TokenType context)
         {
-            string result = currentChar.ToString();
-            int posNew = pos + 1;
+            var result = currentChar.ToString();
             var lastType = context;
 
-            if (posNew < input.Length)
+            if (pos >= input.Length) return (result, pos);
+
+            int i;
+
+            for (i = pos + 1; i < input.Length; i++)
             {
-                for (var i = posNew; i < input.Length; i++)
+                var nextChar = input[i];
+                var nextType = context.GetTokenType(nextChar);
+
+                if (nextType != lastType || !nextType.ShouldAccumulate())
                 {
-                    var nextChar = input[posNew];
-                    var nextType = context.GetTokenType(nextChar);
-
-                    if (nextType != lastType || !nextType.ShouldAccumulate())
-                    {
-                        break;
-                    }
-
-                    result += nextChar;
-
-                    posNew = i;
+                    return (result, i - 1);
                 }
+
+                result += nextChar;
             }
 
-            return (result, posNew - 1);
+            return (result, i);
         }
 
         // (x + 1) * (y - 2)
@@ -61,13 +59,13 @@ namespace LinqInfer.Utility.Expressions
 
                 if (type == TokenType.Split)
                 {
-                    state = state.MoveToAncestorOrSelf(e => e.Type == TokenType.Condition);
+                    state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.Condition);
                     continue;
                 }
 
                 if (type == TokenType.GroupClose)
                 {
-                    state = state.MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen);
+                    state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen);
                     continue;
                 }
 
@@ -85,8 +83,11 @@ namespace LinqInfer.Utility.Expressions
 
                 if (type == TokenType.Operator)
                 {
-                    state = state.InsertOperator(c.ToString());
+                    var readState = GreedyRead(c, input, pos, type);
+
+                    state = state.InsertOperator(readState.token);
                     state.Position = pos;
+                    pos = readState.position;
                     continue;
                 }
 

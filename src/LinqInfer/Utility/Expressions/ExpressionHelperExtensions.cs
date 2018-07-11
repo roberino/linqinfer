@@ -205,20 +205,6 @@ namespace LinqInfer.Utility.Expressions
             Expression right)
         {
             return Expression.MakeBinary(expression.Value.AsExpressionType(), left, right);
-
-            //switch (expression.Value)
-            //{
-            //    case "+":
-            //        return Expression.Add(left, right);
-            //    case "*":
-            //        return Expression.Multiply(left, right);
-            //    case "/":
-            //        return Expression.Divide(left, right);
-            //    case "-":
-            //        return Expression.Subtract(left, right);
-            //}
-
-            //throw new NotSupportedException(expression.Value);
         }
     }
 }

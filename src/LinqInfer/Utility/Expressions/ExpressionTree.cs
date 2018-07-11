@@ -18,7 +18,7 @@ namespace LinqInfer.Utility.Expressions
         public ExpressionTree ParentOrSelf => Parent ?? this;
 
         public ExpressionTree LocalRoot =>
-            MoveToAncestorOrSelf(e => e.Type == TokenType.GroupOpen
+            MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen
                                 || e.Type == TokenType.Operator || e.Type == TokenType.Condition);
 
         public bool IsFull => Type.Capacity() == _children.Count;
@@ -37,14 +37,33 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree MoveToParentOrRoot() => Type == TokenType.Root ? this : Parent;
 
-        public ExpressionTree MoveToAncestorOrSelf(Func<ExpressionTree, bool> predicate)
+        public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false)
         {
-            if (Parent == null) return this;
+            if (Type == TokenType.Root) return this;
 
             var parent = Parent;
 
-            while (parent?.Parent != null && !predicate(parent))
+            ExpressionTree candidate = null;
+
+            while (parent?.Parent != null)
             {
+                if (predicate(parent))
+                {
+                    candidate = parent;
+
+                    if (!greedy)
+                    {
+                        return candidate;
+                    }
+                }
+                else
+                {
+                    if (candidate != null)
+                    {
+                        return candidate;
+                    }
+                }
+
                 parent = parent.Parent;
             }
 
@@ -67,9 +86,9 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree InsertCondition()
         {
-            var localRoot = MoveToAncestorOrSelf(e =>
+            var localRoot = MoveToAncestorOrRoot(e =>
             (e.Type == TokenType.Operator && e.Value.IsBooleanOperator())
-            || e.Parent?.Type == TokenType.Root);
+            || e.Parent?.Type == TokenType.Root, true);
 
             if (localRoot.Type != TokenType.Root) localRoot = localRoot.Parent;
 

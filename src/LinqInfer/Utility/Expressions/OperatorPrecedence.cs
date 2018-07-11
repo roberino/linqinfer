@@ -8,20 +8,21 @@ namespace LinqInfer.Utility.Expressions
 
         static OperatorPrecedence()
         {
-            _precedence = new Dictionary<string, int>();
-
-            _precedence["*"] = 100;
-            _precedence["/"] = 100;
-            _precedence["+"] = 50;
-            _precedence["-"] = 50;
-            _precedence[">"] = 30;
-            _precedence[">="] = 30;
-            _precedence["<"] = 30;
-            _precedence["<="] = 30;
-            _precedence["=="] = 30;
-            _precedence["!="] = 30;
-            _precedence["&&"] = 30;
-            _precedence["||"] = 30;
+            _precedence = new Dictionary<string, int>
+            {
+                ["*"] = 100,
+                ["/"] = 100,
+                ["+"] = 50,
+                ["-"] = 50,
+                [">"] = 30,
+                [">="] = 30,
+                ["<"] = 30,
+                ["<="] = 30,
+                ["=="] = 20,
+                ["!="] = 20,
+                ["&&"] = 10,
+                ["||"] = 10
+            };
         }
 
         public static bool TakesPrecedence(string operator1, string operator2)

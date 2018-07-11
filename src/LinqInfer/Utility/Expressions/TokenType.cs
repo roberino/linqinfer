@@ -142,6 +142,8 @@ namespace LinqInfer.Utility.Expressions
                     return TokenType.Separator;
                 case ':':
                     return TokenType.Split;
+                case '_':
+                    return TokenType.Name;
                 case '.':
                     if (currentTokenContext == TokenType.Literal) return TokenType.Literal;
                     if (currentTokenContext == TokenType.Name) return TokenType.Navigate;
