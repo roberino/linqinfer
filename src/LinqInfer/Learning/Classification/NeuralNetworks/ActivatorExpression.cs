@@ -38,13 +38,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public static ActivatorExpression Parse(string data)
         {
-            var parts = data.Split(':');
-            var exp = parts[1].Split('#').Select(s => s.Trim()).Where(s => s.Length > 0).ToArray();
+            var i = data.IndexOf(':');
+            var name = data.Substring(0, i).Trim();
+            var exprParts = data.Substring(i + 1);
+            var exp = exprParts.Split('#').Select(s => s.Trim()).Where(s => s.Length > 0).ToArray();
 
             var act = exp.First().AsExpression<double, double>();
             var der = exp.Last().AsExpression<double, double>();
 
-            return new ActivatorExpression(parts[0].Trim(), act, der);
+            return new ActivatorExpression(name, act, der);
         }
     }
 }

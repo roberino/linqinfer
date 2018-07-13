@@ -14,6 +14,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
+        [TestCase("x => Convert((((x > 0.5) ? 1 : 0)), Double)", 1, 1)]
+        [TestCase("x.PF() ? -1 : 2", 0, 2)]
+        [TestCase("!x.PF() ? -1 : 2", 0, -1)]
         public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
@@ -28,9 +31,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void Parse_GivenExpressionsWithComplexCondition_ParsesCorrectly()
         {
-            var exp0 = Exp(x => x.Z > 0 && x.Z > 1 ? 1 : 2);
+            var exp0 = Exp(x => x.PF() ? -1 : 2);
 
-            var exp = "x => (1 / (1 + Exp((-(2) * x))))".AsExpression<double, double>();
+            var exp = "x => Convert((((x > 0.5) ? 1 : 0)), Double)".AsExpression<double, double>();
             
             var result = exp.Compile().Invoke(2);
 
@@ -276,6 +279,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             public int Y { get; set; }
             public double Z { get; set; }
             public bool P { get; set; }
+            public bool PF() => true;
         }
 
         private class MyParamsWithVector

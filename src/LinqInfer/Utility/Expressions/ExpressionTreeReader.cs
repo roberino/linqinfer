@@ -46,7 +46,6 @@ namespace LinqInfer.Utility.Expressions
             var state = new ExpressionTree() { Type = TokenType.Root };
             var reader = new StringNavigator<TokenType>(input, (t, c) => t.GetTokenType(c), t => t.ShouldAccumulate());
             var root = state;
-            var type = state.Type;
 
             while (reader.ReadNextToken())
             {

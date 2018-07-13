@@ -101,7 +101,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => LayerSize);
-            doc.SetPropertyFromExpression(() => Activator);
+            doc.SetPropertyFromExpression(() => Activator, Activator.Export());
             doc.SetPropertyFromExpression(() => LossFunction, LossFunction.GetType().Name);
             doc.SetPropertyFromExpression(() => WeightUpdateRule, WeightUpdateRule.Export());
 

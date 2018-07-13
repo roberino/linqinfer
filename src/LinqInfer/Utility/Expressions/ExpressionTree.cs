@@ -28,6 +28,18 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        public bool IsBoolean
+        {
+            get
+            {
+                if (IsOperation && Value.IsBooleanOperator()) return true;
+
+                if (Type == TokenType.GroupOpen && _children.Count == 1 && _children[0].IsBoolean) return true;
+
+                return false;
+            }
+        }
+
         public ExpressionTree LocalRoot => MoveToAncestorOrRoot(e =>
             e.Type == TokenType.GroupOpen ||
             e.IsOperation ||
@@ -51,9 +63,9 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false, bool includeSelf = false)
         {
-            if (Type == TokenType.Root || (includeSelf && predicate(this))) return this;
+            if (Type == TokenType.Root) return this;
 
-            var parent = Parent;
+            var parent = includeSelf ? this : Parent;
 
             ExpressionTree candidate = null;
 
@@ -63,7 +75,7 @@ namespace LinqInfer.Utility.Expressions
                 {
                     candidate = parent;
 
-                    if (!greedy)
+                    if (!greedy || candidate.Type == TokenType.GroupOpen)
                     {
                         return candidate;
                     }
@@ -84,9 +96,7 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree InsertCondition(int position)
         {
-            var localRoot = MoveToAncestorOrRoot(e =>
-            (e.Type == TokenType.Operator && e.Value.IsBooleanOperator())
-            || e.Parent?.Type == TokenType.Root, true);
+            var localRoot = MoveToAncestorOrRoot(e => e.IsBoolean || e.Parent?.Type == TokenType.Root, true, true);
 
             if (localRoot.Type != TokenType.Root) localRoot = localRoot.Parent;
 
