@@ -31,9 +31,11 @@ namespace LinqInfer.Utility.Expressions
         public ExpressionTree LocalRoot => MoveToAncestorOrRoot(e =>
             e.Type == TokenType.GroupOpen ||
             e.IsOperation ||
-            e.Type == TokenType.Condition);
+            e.Type == TokenType.Condition, false, true);
 
         public bool IsFull => Type.Capacity() == _children.Count;
+
+        public bool IsEmpty => _children.Count == 0;
 
         public ExpressionTree MoveToEmptyAncestorOrSelf()
         {
@@ -47,9 +49,9 @@ namespace LinqInfer.Utility.Expressions
             return next;
         }
 
-        public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false)
+        public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false, bool includeSelf = false)
         {
-            if (Type == TokenType.Root) return this;
+            if (Type == TokenType.Root || (includeSelf && predicate(this))) return this;
 
             var parent = Parent;
 
@@ -126,7 +128,10 @@ namespace LinqInfer.Utility.Expressions
             }
             else
             {
-                newNode.AddChild(localRoot.TakeLastChild());
+                if (!localRoot.IsEmpty)
+                {
+                    newNode.AddChild(localRoot.TakeLastChild());
+                }
 
                 localRoot.AddChild(newNode);
             }
