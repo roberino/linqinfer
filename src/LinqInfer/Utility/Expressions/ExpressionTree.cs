@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -15,11 +16,22 @@ namespace LinqInfer.Utility.Expressions
 
         public IEnumerable<ExpressionTree> Children => _children;
 
-        public ExpressionTree ParentOrSelf => Parent ?? this;
+        public bool IsOperation
+        {
+            get
+            {
+                if (Type != TokenType.Operator) return false;
 
-        public ExpressionTree LocalRoot =>
-            MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen
-                                || e.Type == TokenType.Operator || e.Type == TokenType.Condition);
+                if (Value.AsExpressionType() != ExpressionType.Subtract) return true;
+
+                return IsFull;
+            }
+        }
+
+        public ExpressionTree LocalRoot => MoveToAncestorOrRoot(e =>
+            e.Type == TokenType.GroupOpen ||
+            e.IsOperation ||
+            e.Type == TokenType.Condition);
 
         public bool IsFull => Type.Capacity() == _children.Count;
 
@@ -34,8 +46,6 @@ namespace LinqInfer.Utility.Expressions
 
             return next;
         }
-
-        public ExpressionTree MoveToParentOrRoot() => Type == TokenType.Root ? this : Parent;
 
         public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false)
         {
@@ -70,21 +80,7 @@ namespace LinqInfer.Utility.Expressions
             return parent;
         }
 
-        ExpressionTree TakeLastChild()
-        {
-            var arg = _children.Last();
-            _children.Remove(arg);
-            return arg;
-        }
-
-        ExpressionTree DetatchFromParent()
-        {
-            var parent = Parent;
-            parent?._children.Remove(this);
-            return parent;
-        }
-
-        public ExpressionTree InsertCondition()
+        public ExpressionTree InsertCondition(int position)
         {
             var localRoot = MoveToAncestorOrRoot(e =>
             (e.Type == TokenType.Operator && e.Value.IsBooleanOperator())
@@ -92,7 +88,7 @@ namespace LinqInfer.Utility.Expressions
 
             if (localRoot.Type != TokenType.Root) localRoot = localRoot.Parent;
 
-            var newNode = new ExpressionTree() { Type = TokenType.Condition, Value = "?" };
+            var newNode = new ExpressionTree() { Type = TokenType.Condition, Value = "?", Position = position };
 
             newNode.AddChild(localRoot.TakeLastChild());
             newNode.Parent = localRoot;
@@ -102,16 +98,16 @@ namespace LinqInfer.Utility.Expressions
             return newNode;
         }
 
-        public ExpressionTree InsertOperator(string value)
+        public ExpressionTree InsertOperator(string value, int position)
         {
             if (Type == TokenType.Operator || Type == TokenType.Condition)
             {
-                return AddChild(TokenType.Operator, value);
+                return AddChild(TokenType.Operator, value, position);
             }
-            
+
             var localRoot = LocalRoot;
 
-            var newNode = new ExpressionTree() { Type = TokenType.Operator, Value = value };
+            var newNode = new ExpressionTree() { Type = TokenType.Operator, Value = value, Position = position };
 
             if (localRoot.Type == TokenType.Operator)
             {
@@ -129,7 +125,7 @@ namespace LinqInfer.Utility.Expressions
                 }
             }
             else
-            {                
+            {
                 newNode.AddChild(localRoot.TakeLastChild());
 
                 localRoot.AddChild(newNode);
@@ -138,9 +134,9 @@ namespace LinqInfer.Utility.Expressions
             return newNode;
         }
 
-        public ExpressionTree AddChild(TokenType type, string value)
+        public ExpressionTree AddChild(TokenType type, string value, int position)
         {
-            var child = new ExpressionTree() { Type = type, Value = value, Parent = this };
+            var child = new ExpressionTree() { Type = type, Value = value, Parent = this, Position = position };
 
             _children.Add(child);
 
@@ -159,5 +155,19 @@ namespace LinqInfer.Utility.Expressions
         }
 
         public override string ToString() => $"{Type}:{Value}";
+
+        private ExpressionTree TakeLastChild()
+        {
+            var arg = _children.Last();
+            _children.Remove(arg);
+            return arg;
+        }
+
+        private ExpressionTree DetatchFromParent()
+        {
+            var parent = Parent;
+            parent?._children.Remove(this);
+            return parent;
+        }
     }
 }

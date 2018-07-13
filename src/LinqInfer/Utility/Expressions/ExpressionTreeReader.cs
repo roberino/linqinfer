@@ -43,65 +43,47 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree Read(string input)
         {
-            var state = new ExpressionTree() {Type = TokenType.Root};
+            var state = new ExpressionTree() { Type = TokenType.Root };
+            var reader = new StringNavigator<TokenType>(input, (t, c) => t.GetTokenType(c), t => t.ShouldAccumulate());
             var root = state;
             var type = state.Type;
 
-            for (var pos = 0; pos < input.Length; pos++)
+            while (reader.ReadNextToken())
             {
-                var c = input[pos];
-                var lastType = type;
-                (string token, int position) tokenInf = (c.ToString(), pos);
-
-                type = state.Type.GetTokenType(c);
-
-                if (type == TokenType.Space) continue;
-
-                if (type == TokenType.Split)
+                switch (reader.TokenClass)
                 {
-                    state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.Condition);
-                    continue;
-                }
-
-                if (type == TokenType.GroupClose)
-                {
-                    state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen);
-                    continue;
-                }
-
-                if (type == lastType && type.ShouldAccumulate())
-                {
-                    state.Value += c;
-                    continue;
-                }
-
-                if (type == TokenType.Separator)
-                {
-                    state = state.LocalRoot;
-                    continue;
-                }
-
-                if (type == TokenType.Operator)
-                {
-                    var readState = GreedyRead(c, input, pos, type);
-
-                    state = state.InsertOperator(readState.token);
-                    state.Position = pos;
-                    pos = readState.position;
-                    continue;
-                }
-
-                if (type == TokenType.Condition)
-                {
-                    state = state.InsertCondition();
-                    state.Position = pos;
-                    continue;
+                    case TokenType.Space:
+                        continue;
+                    case TokenType.Split:
+                        {
+                            state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.Condition);
+                            continue;
+                        }
+                    case TokenType.GroupClose:
+                        {
+                            state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen);
+                            continue;
+                        }
+                    case TokenType.Separator:
+                        {
+                            state = state.LocalRoot;
+                            continue;
+                        }
+                    case TokenType.Operator:
+                        {
+                            state = state.InsertOperator(reader.CurrentToken, reader.StartPosition);
+                            continue;
+                        }
+                    case TokenType.Condition:
+                        {
+                            state = state.InsertCondition(reader.StartPosition);
+                            continue;
+                        }
                 }
 
                 state = state.MoveToEmptyAncestorOrSelf();
 
-                state = state.AddChild(type, c.ToString());
-                state.Position = pos;
+                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
             return root.Children.Single();

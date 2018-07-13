@@ -55,7 +55,7 @@ namespace LinqInfer.Benchmarking
                 {
                     p.AddHiddenLayer(new LayerSpecification(
                         LayerSize,
-                        Activators.Create(Activator, 1),
+                        Activators.All().First(a => a.Name == Activator),
                         LossFunctions.Square, 
                         WeightUpdateRules.Default(),
                         new Range(1, -1),

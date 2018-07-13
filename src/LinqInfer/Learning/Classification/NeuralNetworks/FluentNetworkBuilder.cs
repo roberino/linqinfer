@@ -131,7 +131,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public IFluentNetworkBuilder ConfigureOutputLayer(
-            IActivatorFunction activator, 
+            ActivatorExpression activator, 
             ILossFunction lossFunction, 
             Range? initialWeightRange = null, 
             WeightUpdateRule updateRule = null)

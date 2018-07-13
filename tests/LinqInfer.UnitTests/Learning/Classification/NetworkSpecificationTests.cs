@@ -112,7 +112,6 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 Assert.That(layer.LayerSize, Is.EqualTo(spec.Layers[i].LayerSize));
                 Assert.That(layer.InitialWeightRange, Is.EqualTo(spec.Layers[i].InitialWeightRange));
                 Assert.That(layer.Activator.Name, Is.EqualTo(spec.Layers[i].Activator.Name));
-                Assert.That(layer.Activator.Parameter, Is.EqualTo(spec.Layers[i].Activator.Parameter));
 
                 i++;
             }

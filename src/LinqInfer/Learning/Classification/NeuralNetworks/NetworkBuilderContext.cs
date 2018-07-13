@@ -15,13 +15,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Activator = p.Activator.Activator
             });
 
-            ActivatorFactory = new Factory<string, IActivatorFunction>(a =>
-            {
-                var args = ParseActivatorArgs(a);
-                return Activators.Create(args.Item1, args.Item2);
-            });
+            ActivatorFactory = new Factory<string, ActivatorExpression>(ActivatorExpression.Parse);
 
-            ActivatorFormatter = new Factory<IActivatorFunction, string>(a => $"{a.Name}({a.Parameter})");
+            ActivatorFormatter = new Factory<ActivatorExpression, string>(a => a.Export());
 
             LossFunctionFactory = new Factory<string, ILossFunction>(LossFunctions.Parse);
 
@@ -39,8 +35,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public NetworkBuilderContext(
             IFactory<INeuron, NeuronParameters> neuronFactory, 
-            IFactory<IActivatorFunction, string> activatorFactory, 
-            IFactory<string, IActivatorFunction> activatorFormatter,
+            IFactory<ActivatorExpression, string> activatorFactory, 
+            IFactory<string, ActivatorExpression> activatorFormatter,
             IFactory<ISerialisableDataTransformation, string> transformationFactory,
             IFactory<WeightUpdateRule, string> weightUpdateRuleFactory)
         {
@@ -52,8 +48,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public IFactory<INeuron, NeuronParameters> NeuronFactory { get; }
-        public IFactory<IActivatorFunction, string> ActivatorFactory { get; }
-        public IFactory<string, IActivatorFunction> ActivatorFormatter { get; }
+        public IFactory<ActivatorExpression, string> ActivatorFactory { get; }
+        public IFactory<string, ActivatorExpression> ActivatorFormatter { get; }
         public IFactory<ILossFunction, string> LossFunctionFactory { get; }
         public IFactory<WeightUpdateRule, string> WeightUpdateRuleFactory { get; }
         public IFactory<ISerialisableDataTransformation, string> TransformationFactory { get; }

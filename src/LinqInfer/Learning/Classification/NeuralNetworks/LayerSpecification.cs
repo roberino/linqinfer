@@ -14,7 +14,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification(
             int layerSize, 
-            IActivatorFunction activator, 
+            ActivatorExpression activator, 
             ILossFunction lossFunction,
             WeightUpdateRule weightUpdateRule,
             Range initialWeightRange,
@@ -36,7 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification(
             int layerSize,
-            IActivatorFunction activator = null,
+            ActivatorExpression activator = null,
             ILossFunction lossFunction = null) : this(
                 layerSize, activator ?? Activators.Sigmoid(1), 
                 lossFunction ?? LossFunctions.Square, 
@@ -68,7 +68,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator function
         /// </summary>
-        public IActivatorFunction Activator { get; }
+        public ActivatorExpression Activator { get; }
 
         /// <summary>
         /// Gets a function for updating weights

@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator used for the layer
         /// </summary>
-        IActivatorFunction Activator { get; }
+        ActivatorExpression Activator { get; }
 
         /// <summary>
         /// Gets the function used to calculate errors

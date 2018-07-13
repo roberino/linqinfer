@@ -30,7 +30,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp0 = Exp(x => x.Z > 0 && x.Z > 1 ? 1 : 2);
 
-            var exp = "x => x.Z > 0 && x.Z > 1 ? 1 : 2".AsExpression<MyParams, double>();
+            var exp = "x => (1 / (1 + Exp((-(2) * x))))".AsExpression<MyParams, double>();
 
             var paramz = new MyParams() {Z = 2};
 

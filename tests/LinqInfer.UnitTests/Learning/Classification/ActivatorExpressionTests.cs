@@ -9,7 +9,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void Export_WhenParsed_CreatedSameResults()
         {
-            var activator = Activators.SigmoidA();
+            var activator = Activators.Sigmoid();
 
             var data = activator.Export();
 

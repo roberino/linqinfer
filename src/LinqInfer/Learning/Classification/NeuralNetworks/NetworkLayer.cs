@@ -47,7 +47,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int Size => _neurons.Count;
 
-        public IActivatorFunction Activator => _spec.Activator;
+        public ActivatorExpression Activator => _spec.Activator;
 
         public ILossFunction LossFunction => _spec.LossFunction;
 
