@@ -28,16 +28,22 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Test]
-        public void Parse_GivenExpressionsWithComplexCondition_ParsesCorrectly()
+        [TestCase("!x.PF() ? -1 : 2")]
+        public void Parse_GivenInvalidExpression_ThrowsCompileError(string expression)
         {
-            var exp0 = Exp(x => x.PF() ? -1 : 2);
+            Assert.Throws<ArgumentException>(() => expression.AsExpression<MyParams, double>());
+        }
 
-            var exp = "x => Convert((((x > 0.5) ? 1 : 0)), Double)".AsExpression<double, double>();
+        [Test]
+        public void Parse_ThenExport_ReturnsSameExpressionString()
+        {
+            var expStr = "x => Convert((((x > 0.5) ? 1 : 0)), Double)";
             
-            var result = exp.Compile().Invoke(2);
+            var exp = expStr.AsExpression<double, double>();
 
-            Assert.That(result, Is.EqualTo(1));
+            var expStr2 = exp.ExportAsString();
+            
+            Assert.That(expStr, Is.EqualTo(expStr2));
         }
 
         [Test]

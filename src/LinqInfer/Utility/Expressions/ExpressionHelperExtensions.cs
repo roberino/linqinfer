@@ -53,6 +53,9 @@ namespace LinqInfer.Utility.Expressions
                 case TokenType.Literal:
                     yield return expressionTree.AsLiteral(context);
                     break;
+                case TokenType.Root:
+                    yield return expressionTree.Children.Single().Convert(context).Single();
+                    break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
             }

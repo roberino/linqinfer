@@ -9,10 +9,35 @@ namespace LinqInfer.Utility.Expressions
     {
         IList<ExpressionTree> _children = new List<ExpressionTree>();
 
-        public ExpressionTree Parent { get; set; }
-        public TokenType Type { get; set; }
-        public string Value { get; set; }
-        public int Position { get; set; }
+        private ExpressionTree()
+        {
+        }
+
+        public static ExpressionTree Root => new ExpressionTree() {Type = TokenType.Root};
+
+        public ExpressionTree Parent { get;  private set; }
+        public TokenType Type { get; private set; }
+        public string Value { get; private set; }
+        public int Position { get; private set; }
+
+        public int Depth
+        {
+            get
+            {
+                var depth = 0;
+
+                var next = this;
+
+                while (next.Parent != null)
+                {
+                    if (next.Type == TokenType.GroupOpen) depth++;
+
+                    next = next.Parent;
+                }
+
+                return depth;
+            }
+        }
 
         public IEnumerable<ExpressionTree> Children => _children;
 
@@ -47,6 +72,9 @@ namespace LinqInfer.Utility.Expressions
 
         public bool IsFull => Type.Capacity() == _children.Count;
 
+        public bool IsFunction =>
+            Type == TokenType.Name && _children.Count == 1 && _children[0].Type == TokenType.GroupOpen;
+
         public bool IsEmpty => _children.Count == 0;
 
         public ExpressionTree MoveToEmptyAncestorOrSelf()
@@ -60,6 +88,8 @@ namespace LinqInfer.Utility.Expressions
 
             return next;
         }
+
+        public ExpressionTree MoveToGroup() => MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen, false, true);
 
         public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false, bool includeSelf = false)
         {
@@ -98,7 +128,7 @@ namespace LinqInfer.Utility.Expressions
         {
             var localRoot = MoveToAncestorOrRoot(e => e.IsBoolean || e.Parent?.Type == TokenType.Root, true, true);
 
-            if (localRoot.Type != TokenType.Root) localRoot = localRoot.Parent;
+            if (localRoot.Type != TokenType.Root && localRoot.Type != TokenType.GroupOpen) localRoot = localRoot.Parent;
 
             var newNode = new ExpressionTree() { Type = TokenType.Condition, Value = "?", Position = position };
 
@@ -126,7 +156,6 @@ namespace LinqInfer.Utility.Expressions
                 if (OperatorPrecedence.TakesPrecedence(value, localRoot.Value))
                 {
                     newNode.AddChild(localRoot.TakeLastChild());
-                    newNode.Parent = localRoot;
                     localRoot.AddChild(newNode);
                 }
                 else
@@ -151,7 +180,13 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree AddChild(TokenType type, string value, int position)
         {
-            var child = new ExpressionTree() { Type = type, Value = value, Parent = this, Position = position };
+            var child = new ExpressionTree()
+            {
+                Type = type,
+                Value = value,
+                Parent = this,
+                Position = position,
+            };
 
             _children.Add(child);
 

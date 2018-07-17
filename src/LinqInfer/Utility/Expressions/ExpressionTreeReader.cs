@@ -43,9 +43,8 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree Read(string input)
         {
-            var state = new ExpressionTree() { Type = TokenType.Root };
+            var state = ExpressionTree.Root;
             var reader = new StringNavigator<TokenType>(input, (t, c) => t.GetTokenType(c), t => t.ShouldAccumulate());
-            var root = state;
 
             while (reader.ReadNextToken())
             {
@@ -60,12 +59,12 @@ namespace LinqInfer.Utility.Expressions
                         }
                     case TokenType.GroupClose:
                         {
-                            state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen);
+                            state = state.MoveToGroup().Parent;
+
                             continue;
                         }
                     case TokenType.Separator:
                         {
-                            state = state.LocalRoot;
                             continue;
                         }
                     case TokenType.Operator:
@@ -78,6 +77,10 @@ namespace LinqInfer.Utility.Expressions
                             state = state.InsertCondition(reader.StartPosition);
                             continue;
                         }
+                    case TokenType.Unknown:
+                    {
+                        throw new CompileException(reader.CurrentToken, reader.StartPosition, CompileErrorReason.UnknownToken);
+                    }
                 }
 
                 state = state.MoveToEmptyAncestorOrSelf();
@@ -85,7 +88,14 @@ namespace LinqInfer.Utility.Expressions
                 state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
-            return root.Children.Single();
+            state = state.MoveToGroup();
+
+            if (state.Depth != 0)
+            {
+                throw new CompileException(state.Value, state.Position, CompileErrorReason.EndOfStream);
+            }
+
+            return state;
         }
     }
 }
