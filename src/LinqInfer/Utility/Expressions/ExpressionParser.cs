@@ -25,7 +25,7 @@ namespace LinqInfer.Utility.Expressions
         {
             var i = expression.IndexOf("=>", StringComparison.Ordinal);
 
-            if(i==-1) throw  new ArgumentException("Missing lamda");
+            if (i == -1) throw new ArgumentException("Missing lamda");
 
             var body = expression.Substring(i + 2, expression.Length - (i + 2));
             var paramName = expression.Substring(0, i).Trim();

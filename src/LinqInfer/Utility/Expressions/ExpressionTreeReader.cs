@@ -1,34 +1,7 @@
-﻿using System.Linq;
-
-namespace LinqInfer.Utility.Expressions
+﻿namespace LinqInfer.Utility.Expressions
 {
     internal class ExpressionTreeReader
     {
-        private static (string token, int position) GreedyRead(char currentChar, string input, int pos, TokenType context)
-        {
-            var result = currentChar.ToString();
-            var lastType = context;
-
-            if (pos >= input.Length) return (result, pos);
-
-            int i;
-
-            for (i = pos + 1; i < input.Length; i++)
-            {
-                var nextChar = input[i];
-                var nextType = context.GetTokenType(nextChar);
-
-                if (nextType != lastType || !nextType.ShouldAccumulate())
-                {
-                    return (result, i - 1);
-                }
-
-                result += nextChar;
-            }
-
-            return (result, i);
-        }
-
         // (x + 1) * (y - 2)
 
         // = 

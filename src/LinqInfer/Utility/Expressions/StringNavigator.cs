@@ -26,8 +26,6 @@ namespace LinqInfer.Utility.Expressions
 
         public int StartPosition => _startPos;
 
-        public int Position => _pos;
-
         public T TokenClass => _tokenClass;
 
         public string CurrentToken => _buffer.ToString();

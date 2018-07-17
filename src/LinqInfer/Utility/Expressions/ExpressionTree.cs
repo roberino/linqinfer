@@ -7,7 +7,7 @@ namespace LinqInfer.Utility.Expressions
 {
     internal class ExpressionTree
     {
-        IList<ExpressionTree> _children = new List<ExpressionTree>();
+        private readonly IList<ExpressionTree> _children = new List<ExpressionTree>();
 
         private ExpressionTree()
         {
@@ -47,9 +47,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (Type != TokenType.Operator) return false;
 
-                if (Value.AsExpressionType() != ExpressionType.Subtract) return true;
-
-                return IsFull;
+                return Value.AsExpressionType() != ExpressionType.Subtract || IsFull;
             }
         }
 
@@ -59,9 +57,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (IsOperation && Value.IsBooleanOperator()) return true;
 
-                if (Type == TokenType.GroupOpen && _children.Count == 1 && _children[0].IsBoolean) return true;
-
-                return false;
+                return Type == TokenType.GroupOpen && _children.Count == 1 && _children[0].IsBoolean;
             }
         }
 
@@ -71,9 +67,6 @@ namespace LinqInfer.Utility.Expressions
             e.Type == TokenType.Condition, false, true);
 
         public bool IsFull => Type.Capacity() == _children.Count;
-
-        public bool IsFunction =>
-            Type == TokenType.Name && _children.Count == 1 && _children[0].Type == TokenType.GroupOpen;
 
         public bool IsEmpty => _children.Count == 0;
 
@@ -160,8 +153,7 @@ namespace LinqInfer.Utility.Expressions
                 }
                 else
                 {
-                    newNode.Parent = localRoot.DetatchFromParent();
-                    newNode.Parent?.AddChild(newNode);
+                    localRoot.DetatchFromParent()?.AddChild(newNode);
                     newNode.AddChild(localRoot);
                 }
             }
