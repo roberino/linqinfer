@@ -135,14 +135,15 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree InsertOperator(string value, int position)
         {
-            if (Type == TokenType.Operator || Type == TokenType.Condition)
+            var newNode = new ExpressionTree() { Type = TokenType.Operator, Value = value, Position = position };
+
+            if ((Type == TokenType.Operator || Type == TokenType.Condition) 
+                && !IsFull)
             {
-                return AddChild(TokenType.Operator, value, position);
+                return AddChild(newNode);
             }
 
             var localRoot = LocalRoot;
-
-            var newNode = new ExpressionTree() { Type = TokenType.Operator, Value = value, Position = position };
 
             if (localRoot.Type == TokenType.Operator)
             {

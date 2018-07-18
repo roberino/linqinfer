@@ -55,10 +55,9 @@
                         throw new CompileException(reader.CurrentToken, reader.StartPosition, CompileErrorReason.UnknownToken);
                     }
                 }
+                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
 
                 state = state.MoveToEmptyAncestorOrSelf();
-
-                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
             state = state.MoveToGroup();

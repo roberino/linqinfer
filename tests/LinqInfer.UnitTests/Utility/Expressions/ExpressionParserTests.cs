@@ -17,6 +17,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => Convert((((x > 0.5) ? 1 : 0)), Double)", 1, 1)]
         [TestCase("x.PF() ? -1 : 2", 0, 2)]
         [TestCase("!x.PF() ? -1 : 2", 0, -1)]
+        [TestCase("x => (1 / (1 + Exp((-(2) * x.Z))))", 0, -1)]
         public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
@@ -24,6 +25,18 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var paramz = new MyParams() {Z = z};
 
             var result = exp.Compile().Invoke(paramz);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void Parse_GivenComplexNegation_ParsesCorrectly()
+        {
+            var exp = "x => -(2) * x".AsExpression<double, double>();
+            var exp1 = Exp(x => -(2) * x.Z);
+
+            var result = exp.Compile().Invoke(2.2);
+            var expected = exp1.Compile().Invoke(new MyParams() { Z = 2.2});
 
             Assert.That(result, Is.EqualTo(expected));
         }
