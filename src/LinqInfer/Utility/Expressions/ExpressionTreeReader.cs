@@ -25,17 +25,13 @@
                 {
                     case TokenType.Space:
                         continue;
-                    case TokenType.Split:
-                        {
-                            state = state.MoveToAncestorOrRoot(e => e.Type == TokenType.Condition);
-                            continue;
-                        }
                     case TokenType.GroupClose:
                         {
                             state = state.MoveToGroup().Parent;
 
                             continue;
                         }
+                    case TokenType.Split:
                     case TokenType.Separator:
                         {
                             continue;
@@ -55,9 +51,8 @@
                         throw new CompileException(reader.CurrentToken, reader.StartPosition, CompileErrorReason.UnknownToken);
                     }
                 }
-                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
 
-                state = state.MoveToEmptyAncestorOrSelf();
+                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
             state = state.MoveToGroup();

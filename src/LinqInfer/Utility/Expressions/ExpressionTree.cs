@@ -183,7 +183,14 @@ namespace LinqInfer.Utility.Expressions
 
             _children.Add(child);
 
-            return child;
+            if (Type == TokenType.Operator
+                && _children.Count == 1
+                && Value.AsExpressionType() == ExpressionType.Subtract)
+            {
+                Type = TokenType.Negation;
+            }
+
+            return child.MoveToEmptyAncestorOrSelf();
         }
 
         public ExpressionTree AddChild(ExpressionTree expressionTree)

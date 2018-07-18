@@ -54,11 +54,19 @@ namespace LinqInfer.Utility.Expressions
                     yield return expressionTree.AsLiteral(context);
                     break;
                 case TokenType.Root:
-                    yield return expressionTree.Children.Single().Convert(context).Single();
+                    yield return expressionTree.SingleParameter(context);
+                    break;
+                case TokenType.Negation:
+                    yield return Expression.Negate(expressionTree.SingleParameter(context));
                     break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
             }
+        }
+
+        static Expression SingleParameter(this ExpressionTree expressionTree, Scope context)
+        {
+            return expressionTree.Children.Single().Convert(context).Single();
         }
 
         static Expression AsCondition(this ExpressionTree expressionTree, Scope context)

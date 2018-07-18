@@ -100,6 +100,7 @@ namespace LinqInfer.Utility.Expressions
                     return 2;
                 case TokenType.Name:
                 case TokenType.Navigate:
+                case TokenType.Negation:
                     return 1;
                 case TokenType.Literal:
                     return 0;
@@ -175,6 +176,7 @@ namespace LinqInfer.Utility.Expressions
         Literal,
         Separator,
         Condition,
-        Split
+        Split,
+        Negation
     }
 }
