@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public static class Activators
     {
+        public static ActivatorExpression FindByName(string name)
+        {
+            return All().SingleOrDefault(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
         public static IEnumerable<ActivatorExpression> All()
         {
             yield return Sigmoid();

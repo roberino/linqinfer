@@ -32,8 +32,14 @@
                             continue;
                         }
                     case TokenType.Split:
+                        {
+                            state.SegmentIndex++;
+                            continue;
+                        }
                     case TokenType.Separator:
                         {
+                            state = state.InsertSeparator(reader.StartPosition);
+
                             continue;
                         }
                     case TokenType.Operator:
@@ -47,12 +53,12 @@
                             continue;
                         }
                     case TokenType.Unknown:
-                    {
-                        throw new CompileException(reader.CurrentToken, reader.StartPosition, CompileErrorReason.UnknownToken);
-                    }
+                        {
+                            throw new CompileException(reader.CurrentToken, reader.StartPosition, CompileErrorReason.UnknownToken);
+                        }
                 }
 
-                state = state.AddChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
+                state = state.InsertChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
             state = state.MoveToGroup();

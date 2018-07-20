@@ -11,13 +11,11 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     {
         [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
         [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
-        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
+        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 2.1)]
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
-        [TestCase("x => Convert((((x > 0.5) ? 1 : 0)), Double)", 1, 1)]
-        [TestCase("x.PF() ? -1 : 2", 0, 2)]
-        [TestCase("!x.PF() ? -1 : 2", 0, -1)]
-        [TestCase("x => (1 / (1 + Exp((-(2) * x.Z))))", 0, -1)]
+        [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
+        [TestCase("x => !x.PF() ? -1 : 2", 0, -1)]
         public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
@@ -29,19 +27,66 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Test]
-        public void Parse_GivenComplexNegation_ParsesCorrectly()
+        [TestCase("x => -(2) * x", 2, -4)]
+        [TestCase("x => -2.2 * x", 2, -4.4)]
+        [TestCase("x => 5 * x + 4", 2, 14)]
+        [TestCase("x => 4 + 5 * x", 2, 14)]
+        [TestCase("x => Pow(2.71, 0-(x))", 2.2, 0.11154948255890629)]
+        [TestCase("x => Pow(2.71, -(x))", 2.2, 0.11154948255890629)]
+        public void Parse_GivenNumericExpressions_ParsesCorrectly(string expression, double x, double expected)
         {
-            var exp = "x => -(2) * x".AsExpression<double, double>();
-            var exp1 = Exp(x => -(2) * x.Z);
+            var exp = expression.AsExpression<double, double>();
 
-            var result = exp.Compile().Invoke(2.2);
-            var expected = exp1.Compile().Invoke(new MyParams() { Z = 2.2});
+            var result = exp.Compile().Invoke(x);
 
             Assert.That(result, Is.EqualTo(expected));
         }
 
-        [TestCase("!x.PF() ? -1 : 2")]
+        [Test]
+        public void Parse_GivenInvertedCondition_EvaluatesCorrectly()
+        {
+            var exp = "x => !x.PF() ? -1 : 2".AsExpression<MyParams, int>();
+
+            var parameter = new MyParams() {PFValue = false};
+
+            var result = exp.Compile().Invoke(parameter);
+
+            Assert.That(result, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void Parse_GivedInvertedConditionWithNumericOperation_EvaluatesCorrectly()
+        {
+            var exp = "x => 5 + (!x.PF() ? -1 : 2)".AsExpression<MyParams, int>();
+
+            var parameter = new MyParams() {PFValue = false};
+
+            var result = exp.Compile().Invoke(parameter);
+
+            Assert.That(result, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void Parse_GivenOperatorsInNonPrecedenceOrder_EvaluatesInCorrectOrder()
+        {
+            var exp = "x => 4 + 5 * x".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(2);
+
+            Assert.That(result, Is.EqualTo(14));
+        }
+
+        [Test]
+        public void Parse_GivenNegatedFunctionParams_ParsesCorrectly()
+        {
+            var exp = "x => Pow(2.71, 0-(x))".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(2.2);
+
+            Assert.That(result, Is.EqualTo(Math.Pow(2.71, -2.2)));
+        }
+
+        [TestCase("!x.PF() ? (-1 : 2")]
         public void Parse_GivenInvalidExpression_ThrowsCompileError(string expression)
         {
             Assert.Throws<ArgumentException>(() => expression.AsExpression<MyParams, double>());
@@ -298,7 +343,8 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             public int Y { get; set; }
             public double Z { get; set; }
             public bool P { get; set; }
-            public bool PF() => true;
+            public bool PFValue { get; set; } = true;
+            public bool PF() => PFValue;
         }
 
         private class MyParamsWithVector

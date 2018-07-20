@@ -35,6 +35,8 @@ namespace LinqInfer.Utility.Expressions
                     return "!=";
                 case ExpressionType.Negate:
                     return "!";
+                case ExpressionType.Conditional:
+                    return "?";
             }
 
             throw new NotSupportedException(expressionType.ToString());
@@ -87,6 +89,8 @@ namespace LinqInfer.Utility.Expressions
                     return ExpressionType.NotEqual;
                 case "!":
                     return ExpressionType.Not;
+                case "?":
+                    return ExpressionType.Conditional;
             }
 
             throw new NotSupportedException(token);

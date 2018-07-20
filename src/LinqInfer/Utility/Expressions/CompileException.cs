@@ -19,6 +19,8 @@ namespace LinqInfer.Utility.Expressions
     public enum CompileErrorReason
     {
         UnknownToken,
-        EndOfStream
+        EndOfStream,
+        TooManyArgs,
+        NotEnoughArgs
     }
 }

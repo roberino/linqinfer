@@ -5,9 +5,16 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal static class ExpressionHelperExtensions
+    internal static class ExpressionConversionExtensions
     {
-        public static IEnumerable<Expression> Convert(this ExpressionTree expressionTree, Scope context)
+        public static Expression Convert<T>(this Expression expression)
+        {
+            return expression.Type != typeof(T) ? 
+                Expression.Convert(expression, typeof(T)) : 
+                expression;
+        }
+
+        public static IEnumerable<Expression> Build(this ExpressionTree expressionTree, Scope context)
         {
             switch (expressionTree.Type)
             {
@@ -42,8 +49,9 @@ namespace LinqInfer.Utility.Expressions
 
                 case TokenType.Navigate:
                 case TokenType.GroupOpen:
+                case TokenType.Separator:
                     {
-                        foreach (var child in expressionTree.Children.SelectMany(e => e.Convert(context)))
+                        foreach (var child in expressionTree.Children.SelectMany(e => e.Build(context)))
                         {
                             yield return child;
                         }
@@ -66,18 +74,24 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression SingleParameter(this ExpressionTree expressionTree, Scope context)
         {
-            return expressionTree.Children.Single().Convert(context).Single();
+            expressionTree.ValidateArgs(1, 1);
+
+            return expressionTree.Children.Single().Build(context).Single();
         }
 
         static Expression AsCondition(this ExpressionTree expressionTree, Scope context)
         {
-            var parts = expressionTree.Children.Select(c => c.Convert(context).Single()).ToArray();
+            expressionTree.ValidateArgs(3, 3);
+
+            var parts = expressionTree.Children.Select(c => c.Build(context).Single()).ToArray();
 
             return Expression.Condition(parts[0], parts[1], parts[2]);
         }
 
         static Expression AsLiteral(this ExpressionTree expressionTree, Scope context)
         {
+            expressionTree.ValidateArgs(0, 0);
+
             if (context.ConversionType == null)
             {
                 return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
@@ -122,7 +136,7 @@ namespace LinqInfer.Utility.Expressions
 
             if (expressionTree.Children.Any())
             {
-                return expressionTree.Children.Single().Convert(newContext).Single();
+                return expressionTree.Children.Single().Build(newContext).Single();
             }
 
             return newContext.CurrentContext;
@@ -130,7 +144,7 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
         {
-            var args = expressionTree.Children.SelectMany(c => c.Convert(context.GlobalContext));
+            var args = expressionTree.Children.SelectMany(c => c.Build(context.GlobalContext));
             var binder = context.GetBinder();
             return binder.GetFunction(context.CurrentContext, expressionTree.Value, args);
         }
@@ -145,14 +159,16 @@ namespace LinqInfer.Utility.Expressions
         {
             if (MathFunctions.IsDefined(expression.Value))
             {
-                var args = expression.Children.SelectMany(c => c.Convert(context.GlobalContext)).ToArray();
+                var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
 
                 return MathFunctions.GetFunction(expression.Value, args);
             }
 
             if (expression.Value == "Convert")
             {
-                var args = expression.Children.SelectMany(c => c.Convert(context.GlobalContext)).ToArray();
+                var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
+
+                expression.ValidateArgs(args, 2, 2);
 
                 return Expression.Convert(args.First(), (Type)((ConstantExpression)args.Last()).Value);
             }
@@ -186,36 +202,61 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        static Expression AsNotExpression(this ExpressionTree expressionTree, Expression arg)
+        {
+            expressionTree.ValidateArgs(1, 1);
+
+            return Expression.Not(arg);
+        }
+
+        static void ValidateArgs(this ExpressionTree expressionTree, int min, int max)
+        {
+            ValidateArgs(expressionTree, expressionTree.Children, min, max);
+        }
+
+        static void ValidateArgs<T>(this ExpressionTree expressionTree, IReadOnlyCollection<T> args, int min, int max)
+        {
+            if (args.Count > max)
+            {
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.TooManyArgs);
+            }
+
+            if (args.Count < min)
+            {
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.NotEnoughArgs);
+            }
+        }
+
         static Expression AsOperatorExpression(this ExpressionTree expressionTree, Scope context)
         {
-            Expression left, right;
-            var first = expressionTree.Children.First().Convert(context).Single();
+            expressionTree.ValidateArgs(1, 2);
+
+            var first = expressionTree.Children.First().Build(context).Single();
+            var expressionType = expressionTree.Value.AsExpressionType();
+
+            if (expressionType == ExpressionType.Not)
+            {
+                return AsNotExpression(expressionTree, first);
+            }
 
             if (!expressionTree.IsFull)
             {
-                if (expressionTree.Value == "-")
+                if (expressionType == ExpressionType.Subtract)
                 {
                     return Expression.Negate(first);
                 }
-                
-                left = Expression.Constant(System.Convert.ChangeType(0, first.Type), first.Type);
-                
-                right = first;
-            }
-            else
-            {
-                left = first;
-                right = expressionTree.Children.Last().Convert(context.NewConversionScope(left.Type))
-                    .Single();
+
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.NotEnoughArgs);
             }
 
-            return expressionTree.CreateBinaryExpression(left, right);
-        }
+            var right = expressionTree.Children.Last()
+                .Build(context.NewConversionScope(first.Type))
+                .Single();
 
-        static BinaryExpression CreateBinaryExpression(this ExpressionTree expression, Expression left,
-            Expression right)
-        {
-            return Expression.MakeBinary(expression.Value.AsExpressionType(), left, right);
+            return Expression.MakeBinary(expressionType, first, right);
         }
     }
 }

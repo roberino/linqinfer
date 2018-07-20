@@ -6,10 +6,12 @@ namespace LinqInfer.UnitTests.Learning.Classification
     [TestFixture]
     public class ActivatorExpressionTests
     {
-        [Test]
-        public void Export_WhenParsed_CreatedSameResults()
+        [TestCase(nameof(Activators.Sigmoid))]
+        [TestCase(nameof(Activators.HyperbolicTangent))]
+        [TestCase(nameof(Activators.Threshold))]
+        public void Export_WhenParsed_CreatedSameResults(string name)
         {
-            var activator = Activators.Sigmoid();
+            var activator = Activators.FindByName(name);
 
             var data = activator.Export();
 

@@ -12,13 +12,14 @@ namespace LinqInfer.Utility.Expressions
             var extr = new ExpressionTreeReader();
             var root = extr.Read(parts.body);
             var parameter = Expression.Parameter(typeof(TInput), parts.paramName);
-            var body = Convert(parameter, root);
+            var body = Build(parameter, root).Convert<TOutput>();
+
             return Expression.Lambda<Func<TInput, TOutput>>(body, parameter);
         }
 
-        internal Expression Convert(Expression context, ExpressionTree expressionTree)
+        internal Expression Build(Expression context, ExpressionTree expressionTree)
         {
-            return expressionTree.Convert(new Scope(context)).Single();
+            return expressionTree.Build(new Scope(context)).Single();
         }
 
         private static (string paramName, string body) GetExpressionParts(string expression)
