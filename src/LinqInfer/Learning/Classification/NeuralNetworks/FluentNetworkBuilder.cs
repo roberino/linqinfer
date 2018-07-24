@@ -20,7 +20,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     learningConfig?.Invoke(p);
                 })
-                .AddHiddenLinearLayer(hiddenLayerSize, WeightUpdateRules.Simple())
+                .AddHiddenLinearLayer(hiddenLayerSize, WeightUpdateRules.Default())
                 .AddSoftmaxOutput();
         }
 
@@ -51,7 +51,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
         {
             return specificationBuilder
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, WeightUpdateRules.Simple())
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, WeightUpdateRules.Default())
                 .TransformOutput(x => new Softmax(x));
         }
 

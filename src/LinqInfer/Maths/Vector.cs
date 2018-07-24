@@ -511,7 +511,7 @@ namespace LinqInfer.Maths
         {
             if (precision == int.MaxValue)
             {
-                return string.Join(delimitter.ToString(), _values.Select(v => v.ToString()));
+                return string.Join(delimitter.ToString(), _values.Select(v => v.ToString("R")));
             }
 
             return string.Join(delimitter.ToString(), _values.Select(v => Math.Round(v, precision).ToString()));

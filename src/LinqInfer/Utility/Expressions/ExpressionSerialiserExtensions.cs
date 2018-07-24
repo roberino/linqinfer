@@ -109,12 +109,34 @@ namespace LinqInfer.Utility.Expressions
             switch (member)
             {
                 case PropertyInfo prop:
-                    return prop.GetValue(constant.Value)?.ToString();
+                    return prop.GetValue(constant.Value).ToPreciseString();
                 case FieldInfo field:
-                    return field.GetValue(constant.Value)?.ToString();
+                    return field.GetValue(constant.Value).ToPreciseString();
             }
 
             throw new NotSupportedException(member.GetType().Name);
+        }
+
+        private static string ToPreciseString(this object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var type = value.GetType();
+            var tc = Type.GetTypeCode(type);
+
+            switch (tc)
+            {
+                case TypeCode.Double:
+                case TypeCode.Single:
+                    return ((double) value).ToString("R");
+                case TypeCode.Object:
+                    throw new NotSupportedException($"Unsupported constant: {type.Name}");
+            }
+
+            return value.ToString();
         }
 
         private static string ExportBinaryExpression(BinaryExpression expression, string symbol)

@@ -11,11 +11,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     {
         [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
         [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
-        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 2.1)]
+        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
         [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
-        [TestCase("x => !x.PF() ? -1 : 2", 0, -1)]
         public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
@@ -40,6 +39,16 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var result = exp.Compile().Invoke(x);
 
             Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void Parse_GivenConditionWithAddition_EvaluatesCorrectly()
+        {
+            var exp = "x => x > 1 + 1 ? 10 : 5".AsExpression<double, double>();
+            
+            var result = exp.Compile().Invoke(2.2);
+
+            Assert.That(result, Is.EqualTo(10));
         }
 
         [Test]

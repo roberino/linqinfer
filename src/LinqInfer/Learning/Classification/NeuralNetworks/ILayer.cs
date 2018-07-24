@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     /// <summary>
     /// Represents a layer in a layered network of neurons
     /// </summary>
-    public interface ILayer : INetworkSignalFilter, ICloneableObject<ILayer>
+    public interface ILayer : INetworkSignalFilter, IPropagatedOutput, ICloneableObject<ILayer>
     {
         /// <summary>
         /// The size of the vector which the layer can receive
@@ -41,12 +41,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         /// <param name="index">The zero base index</param>
         INeuron this[int index] { get; }
-
-        /// <summary>
-        /// Gets the last output as a vector
-        /// </summary>
-        IVector LastOutput { get; }
-
+        
         /// <summary>
         /// Applies a function over each neuron supplying the neuron as a parameter
         /// </summary>

@@ -53,7 +53,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public WeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
-        public IVector LastOutput => _output;
+        public IVector Output => _output;
 
         public INeuron this[int index]
         {

@@ -11,8 +11,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 new LayerSpecification(2),
                 new LayerSpecification(4));
 
-        [TestCase(2, 0)]
-        [TestCase(4, 0)]
+        [TestCase(2, 1)]
+        [TestCase(4, 2)]
         [TestCase(6, 2)]
         public void InitialiseAndTrain_ReturnsErrorGt0(int layer1Size, int layer2Size)
         {

@@ -7,14 +7,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public static class WeightUpdateRules
     {
-        public static WeightUpdateRule Simple()
-        {
-            return WeightUpdateRule.Create(
-                p => p.CurrentWeightValue +
-                     p.CurrentLearningRate * p.CurrentWeightValue *
-                     p.Error);
-        }
-
         public static WeightUpdateRule Default()
         {
             return WeightUpdateRule.Create(

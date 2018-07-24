@@ -32,8 +32,8 @@ namespace LinqInfer.UnitTests.Learning
             {
                 new
                 {
-                    x = 1,
-                    y = 5,
+                    x = 10,
+                    y = 15,
                     c = "a"
                 },
                 new
@@ -67,14 +67,11 @@ namespace LinqInfer.UnitTests.Learning
             
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
-                b.ConfigureSoftmaxNetwork(1, p =>
+                b.ConfigureSoftmaxNetwork(4, p =>
                 {
                     p.ErrorHistoryCount = 150;
-                    p.HaltingFunction = (_, s) =>
-                    {
-                        return s.AverageError < 0.6 || s.Trend > 0.1;
-                    };
-                    p.LearningRate = 0.1;
+                    p.HaltingFunction = (_, s) => s.AverageError < 0.4 || s.Trend > 0.1;
+                    p.LearningRate = 0.005;
                 });
             });
 
@@ -82,8 +79,8 @@ namespace LinqInfer.UnitTests.Learning
 
             var results = classifier.Classify(new
             {
-                x = 5,
-                y = 5,
+                x = 10,
+                y = 10,
                 c = "?"
             });
 
