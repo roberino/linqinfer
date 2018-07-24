@@ -54,4 +54,9 @@
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Genetics\**" />
+    <EmbeddedResource Remove="Genetics\**" />
+    <None Remove="Genetics\**" />
+  </ItemGroup>
 </Project>
