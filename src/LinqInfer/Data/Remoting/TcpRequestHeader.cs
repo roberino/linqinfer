@@ -10,9 +10,9 @@ namespace LinqInfer.Data.Remoting
     //TODO: Should be split into stateful object and parser
     public sealed class TcpRequestHeader : IRequestHeader
     {
-        private static readonly Regex _httpHeaderTest;
+        static readonly Regex _httpHeaderTest;
 
-        private StringBuilder _buffer;
+        StringBuilder _buffer;
 
         static TcpRequestHeader()
         {
@@ -126,7 +126,7 @@ namespace LinqInfer.Data.Remoting
 
         public long ContentLength { get; private set; }
 
-        private void ParseHttpHeader(string text)
+        void ParseHttpHeader(string text)
         {
             string ascii;
 
@@ -175,7 +175,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private IDictionary<string, string[]> ParseQuery(string pathAndQuery)
+        IDictionary<string, string[]> ParseQuery(string pathAndQuery)
         {
             var qi = pathAndQuery.IndexOf('?');
 
@@ -200,7 +200,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void ReadHttpHeaders(string header)
+        void ReadHttpHeaders(string header)
         {
             string line = null;
             var firstLineRead = false;
@@ -253,7 +253,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private string[] SplitHeader(string name, string values)
+        string[] SplitHeader(string name, string values)
         {
             if (values == null) return new string[0];
 

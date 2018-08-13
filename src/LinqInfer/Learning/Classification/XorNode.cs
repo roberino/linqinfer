@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class XorNode : IEquatable<XorNode>
+    class XorNode : IEquatable<XorNode>
     {
         public bool X { get; set; }
         public bool Y { get; set; }

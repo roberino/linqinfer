@@ -8,10 +8,10 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class FeatureMapDataExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
+    class FeatureMapDataExtractor<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly IFloatingPointFeatureExtractor<T> _baseFeatureExtractor;
-        private Matrix _weights;
+        readonly IFloatingPointFeatureExtractor<T> _baseFeatureExtractor;
+        Matrix _weights;
 
         public FeatureMapDataExtractor(FeatureMap<T> map)
         {
@@ -45,27 +45,17 @@ namespace LinqInfer.Learning.Features
 
         public void ImportData(PortableDataDocument doc)
         {
+            throw new NotImplementedException();
+
             _weights = new Matrix(doc.Vectors.Select(v => v.ToColumnVector()));
-            _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
-        }
-
-        public void Load(Stream input)
-        {
-            var doc = new PortableDataDocument(input);
-
-            ImportData(doc);
-        }
-
-        public void Save(Stream output)
-        {
-            ExportData().Save(output);
+            //_baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
         }
 
         public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
-            doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
+            doc.Children.Add(_baseFeatureExtractor.ExportData());
 
             foreach (var row in _weights)
             {

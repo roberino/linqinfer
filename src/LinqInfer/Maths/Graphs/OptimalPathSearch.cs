@@ -12,9 +12,9 @@ namespace LinqInfer.Maths.Graphs
     /// </summary>
     public sealed class OptimalPathSearch<T, C> where T : IEquatable<T> where C : IComparable<C>
     {
-        private readonly IDictionary<T, IDictionary<IComparer<C>, IDictionary<T, Path>>> _searchData;
-        private readonly WeightedGraph<T, C> _graph;
-        private readonly Func<C, C, C> _weightAccumulator;
+        readonly IDictionary<T, IDictionary<IComparer<C>, IDictionary<T, Path>>> _searchData;
+        readonly WeightedGraph<T, C> _graph;
+        readonly Func<C, C, C> _weightAccumulator;
 
         internal OptimalPathSearch(WeightedGraph<T, C> graphRoot, Func<C, C, C> weightAccumulator)
         {
@@ -75,7 +75,7 @@ namespace LinqInfer.Maths.Graphs
             return paths;
         }
 
-        private IDictionary<IComparer<C>, IDictionary<T, Path>> GetDataCache(T key)
+        IDictionary<IComparer<C>, IDictionary<T, Path>> GetDataCache(T key)
         {
             IDictionary<IComparer<C>, IDictionary<T, Path>> cache = null;
 
@@ -87,7 +87,7 @@ namespace LinqInfer.Maths.Graphs
             return cache;
         }
 
-        private async Task<IDictionary<T, Path>> CalculateAsync(WeightedGraphNode<T, C> start, IComparer<C> costComparer)
+        async Task<IDictionary<T, Path>> CalculateAsync(WeightedGraphNode<T, C> start, IComparer<C> costComparer)
         {
             C currentCost = default(C);
 
@@ -171,7 +171,7 @@ namespace LinqInfer.Maths.Graphs
             return sb.ToString();
         }
 
-        private class Path
+        class Path
         {
             public T PreviousVertex { get; set; }
             public T Vertex { get; set; }

@@ -50,7 +50,7 @@ namespace LinqInfer.Data.Remoting
             set { Properties["ForwardTo"] = value.ToString(); }
         }
 
-        private Uri Parse(string value)
+        Uri Parse(string value)
         {
             if (value == null) return null;
 

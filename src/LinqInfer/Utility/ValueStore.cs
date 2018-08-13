@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace LinqInfer.Utility
 {
-    internal class ValueStore
+    class ValueStore
     {
-        private readonly object _lockObj;
-        private readonly Queue<double> _history;
-        private readonly int _maxHistory;
-        private double _total;
-        private long _counter;
+        readonly object _lockObj;
+        readonly Queue<double> _history;
+        readonly int _maxHistory;
+        double _total;
+        long _counter;
 
         public ValueStore(int maxHistory)
         {

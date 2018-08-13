@@ -7,58 +7,38 @@ using System.Collections;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class TrainingSet<TInput, TClass> : ITrainingSet<TInput, TClass>
+    class TrainingSet<TInput, TClass> : ITrainingSet<TInput, TClass>
         where TInput : class
         where TClass : IEquatable<TClass>
     {
-        private readonly IFeatureProcessingPipeline<TInput> _pipeline;
-        private readonly Expression<Func<TInput, TClass>> _classf;
-        private readonly Lazy<ICategoricalOutputMapper<TClass>> _outputMapper;
+        readonly Lazy<ICategoricalOutputMapper<TClass>> _outputMapper;
 
         internal TrainingSet(IFeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf)
         {
-            _pipeline = pipeline;
-            _classf = classf;
+            FeaturePipeline = pipeline;
+            ClassifyingExpression = classf;
 
             _outputMapper = new Lazy<ICategoricalOutputMapper<TClass>>(() => new OutputMapperFactory<TInput, TClass>().Create(pipeline.Data, classf));
         }
 
-        public IFeatureProcessingPipeline<TInput> FeaturePipeline
-        {
-            get
-            {
-                return _pipeline;
-            }
-        }
+        public IFeatureProcessingPipeline<TInput> FeaturePipeline { get; }
 
-        public ICategoricalOutputMapper<TClass> OutputMapper
-        {
-            get
-            {
-                return _outputMapper.Value;
-            }
-        }
+        public ICategoricalOutputMapper<TClass> OutputMapper => _outputMapper.Value;
 
-        public Expression<Func<TInput, TClass>> ClassifyingExpression
-        {
-            get
-            {
-                return _classf;
-            }
-        }
+        public Expression<Func<TInput, TClass>> ClassifyingExpression { get; }
 
         public IEnumerable<TrainingPair<TInput, TClass>> ExtractTrainingObjects()
         {
-            var cf = _classf.Compile();
+            var cf = ClassifyingExpression.Compile();
 
-            return _pipeline.Data.Select(d => new TrainingPair<TInput, TClass>(d, cf(d)));
+            return FeaturePipeline.Data.Select(d => new TrainingPair<TInput, TClass>(d, cf(d)));
         }
 
         public IEnumerable<IList<TrainingPair<IVector, IVector>>> ExtractTrainingVectorBatches(int batchSize = 1000)
         {
-            var cf = _classf.Compile();
+            var cf = ClassifyingExpression.Compile();
 
-            foreach (var batch in _pipeline.ExtractBatches(batchSize))
+            foreach (var batch in FeaturePipeline.ExtractBatches(batchSize))
             {
                 yield return batch.Select(b => new TrainingPair<IVector, IVector>(b.Vector, _outputMapper.Value.ExtractIVector(cf(b.Value)))).ToList();
             }
@@ -66,19 +46,19 @@ namespace LinqInfer.Learning.Features
 
         public IQueryable<IGrouping<TClass, ObjectVectorPair<TInput>>> GetEnumerator()
         {
-            return _pipeline
+            return FeaturePipeline
                 .Data
-                .GroupBy(_classf)
+                .GroupBy(ClassifyingExpression)
                 .Select(g =>
                     (IGrouping<TClass, ObjectVectorPair<TInput>>)new G(g.Key,
                         g.Select(x =>
-                            new ObjectVectorPair<TInput>(x, _pipeline.FeatureExtractor.ExtractIVector(x))))
+                            new ObjectVectorPair<TInput>(x, FeaturePipeline.FeatureExtractor.ExtractIVector(x))))
                             );
         }
 
-        private class G : IGrouping<TClass, ObjectVectorPair<TInput>>
+        class G : IGrouping<TClass, ObjectVectorPair<TInput>>
         {
-            private readonly IEnumerable<ObjectVectorPair<TInput>> _data;
+            readonly IEnumerable<ObjectVectorPair<TInput>> _data;
 
             public G(TClass key, IEnumerable<ObjectVectorPair<TInput>> data)
             {

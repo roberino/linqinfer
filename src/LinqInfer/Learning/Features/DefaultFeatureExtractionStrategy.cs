@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using LinqInfer.Data;
 using System.Threading;
 using System.Collections.Generic;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class DefaultFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
+    class DefaultFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
     {
         public DefaultFeatureExtractionStrategy()
         {
@@ -25,9 +26,9 @@ namespace LinqInfer.Learning.Features
             return new Builder(Properties);
         }
 
-        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
-            private readonly IList<PropertyExtractor<T>> _properties;
+            readonly IList<PropertyExtractor<T>> _properties;
 
             public Builder(IList<PropertyExtractor<T>> properties)
             {
@@ -38,8 +39,8 @@ namespace LinqInfer.Learning.Features
 
             public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
             {
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new DelegatingFloatingPointFeatureExtractor<T>(
-                   x => _properties.Select(p => p.ConversionFunction(x)).ToArray(),
+                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new ExpressionFeatureExtractor<T>(
+                   x => _properties.Select(p => p.ConversionFunction(x)).ToArray().ToVector(),
                    _properties.Count,
                    Feature.CreateDefaults(_properties.Select(p => p.Property.Name)))
                    );

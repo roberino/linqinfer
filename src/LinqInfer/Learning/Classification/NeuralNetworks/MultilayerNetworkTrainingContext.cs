@@ -7,15 +7,15 @@ using System.Diagnostics;
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     [DebuggerDisplay("{AverageError}:{Parameters}")]
-    internal class MultilayerNetworkTrainingContext<TParams> : IClassifierTrainingContext<TParams>
+    class MultilayerNetworkTrainingContext<TParams> : IClassifierTrainingContext<TParams>
     {
-        private readonly MultilayerNetwork _network;
-        private readonly IAssistedLearningProcessor _rawLearningProcessor;
-        private readonly Func<int> _idFunc;
+        readonly MultilayerNetwork _network;
+        readonly IAssistedLearningProcessor _rawLearningProcessor;
+        readonly Func<int> _idFunc;
 
-        private double? _lastError;
-        private double? _error;
-        private int _trainingCounter;
+        double? _lastError;
+        double? _error;
+        int _trainingCounter;
 
         public MultilayerNetworkTrainingContext(Func<int> idFunc, MultilayerNetwork network, TParams parameters)
         {

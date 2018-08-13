@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Maths
 {
-    internal class VectorPool : ObjectPool<ColumnVector1D>
+    class VectorPool : ObjectPool<ColumnVector1D>
     {
         public VectorPool(int vectorSize, int initialBufferSize = 64) : base(initialBufferSize, 
                 (p) =>

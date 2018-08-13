@@ -8,8 +8,8 @@ namespace LinqInfer.Maths.Graphs
 {
     public sealed class WeightedGraphInMemoryStore<T, C> : IWeightedGraphStore<T, C> where T : IEquatable<T> where C : IComparable<C>
     {
-        private readonly IDictionary<T, IDictionary<T, C>> _allNodes;
-        private readonly IDictionary<T, IDictionary<string, object>> _attributes;
+        readonly IDictionary<T, IDictionary<T, C>> _allNodes;
+        readonly IDictionary<T, IDictionary<string, object>> _attributes;
 
         public WeightedGraphInMemoryStore()
         {

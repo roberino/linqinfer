@@ -9,17 +9,7 @@ namespace LinqInfer.Learning.Features
         /// Returns the feature extractor
         /// </summary>
         IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
-
-        /// <summary>
-        /// Filters features based on a predicate function
-        /// </summary>
-        IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter);
-
-        /// <summary>
-        /// Filters features based on their mapped property name (assumes a direct mapping between property name and feature key)
-        /// </summary>
-        IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector);
-
+        
         /// <summary>
         /// Centres the features around the mean
         /// </summary>

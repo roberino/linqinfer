@@ -20,7 +20,7 @@ namespace LinqInfer.Learning.Features
             return System.Convert.ToDouble(value);
         }
 
-        private bool CanConvertToVector(Type type)
+        bool CanConvertToVector(Type type)
         {
             var tc = Type.GetTypeCode(type);
 

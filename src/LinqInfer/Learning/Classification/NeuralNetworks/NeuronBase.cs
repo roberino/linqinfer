@@ -7,9 +7,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public class NeuronBase : INeuron
     {
-        private ColumnVector1D _weights;
+        ColumnVector1D _weights;
 
-        private NeuronBase(ColumnVector1D weights, Func<double, double> activator, bool firstWeightIsBias = false)
+        NeuronBase(ColumnVector1D weights, Func<double, double> activator, bool firstWeightIsBias = false)
         {
             if (firstWeightIsBias)
             {

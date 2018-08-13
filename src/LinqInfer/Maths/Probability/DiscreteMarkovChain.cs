@@ -8,12 +8,12 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class DiscreteMarkovChain<T> : IDiscreteMarkovChain<T> where T : IEquatable<T>
+    class DiscreteMarkovChain<T> : IDiscreteMarkovChain<T> where T : IEquatable<T>
     {
-        private readonly Func<T, string> _valueExportFunc;
-        private readonly Func<string, T> _valueImportFunc;
-        private readonly Transition _root;
-        private readonly byte _order;
+        readonly Func<T, string> _valueExportFunc;
+        readonly Func<string, T> _valueImportFunc;
+        readonly Transition _root;
+        readonly byte _order;
 
         public DiscreteMarkovChain(byte order = 1, Func<T, string> valueExportFunc = null, Func<string, T> valueImportFunc = null)
         {
@@ -238,7 +238,7 @@ namespace LinqInfer.Maths.Probability
             _root.ImportBinaryVectorDoc(vi, doc.Children.First());
         }
 
-        private void Merge(Transition source, Transition target)
+        void Merge(Transition source, Transition target)
         {
             foreach (var item in source.Following)
             {
@@ -259,7 +259,7 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        private NullableState SimulateNextInternal(IEnumerable<T> transitionStates)
+        NullableState SimulateNextInternal(IEnumerable<T> transitionStates)
         {
             var freq = GetFrequencies(transitionStates);
 
@@ -270,15 +270,15 @@ namespace LinqInfer.Maths.Probability
             return new NullableState { Value = value, HasValue = value != null };
         }
 
-        private struct NullableState
+        struct NullableState
         {
             public bool HasValue { get; set; }
             public T Value { get; set; }
         }
 
-        private class RuntimeTransition
+        class RuntimeTransition
         {
-            private Transition _link;
+            Transition _link;
 
             public RuntimeTransition(Transition link)
             {
@@ -291,9 +291,9 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        private class Transition
+        class Transition
         {
-            private bool _isRoot;
+            bool _isRoot;
 
             public Transition() : this(default(T))
             {

@@ -9,7 +9,7 @@ namespace LinqInfer.Data.Remoting
 {
     public sealed class RoutingHandler
     {
-        private readonly RoutingTable<IOwinContext> _routes;
+        readonly RoutingTable<IOwinContext> _routes;
 
         public RoutingHandler()
         {

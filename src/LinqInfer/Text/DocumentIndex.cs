@@ -12,13 +12,13 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text
 {
-    internal class DocumentIndex : IDocumentIndex
+    class DocumentIndex : IDocumentIndex
     {
-        private readonly ITokeniser _tokeniser;
-        private readonly IDictionary<string, TermDocumentFrequencyMap> _frequencies;
-        private readonly Func<IList<DocumentTermWeightingData>, double> _calculationMethod;
+        readonly ITokeniser _tokeniser;
+        readonly IDictionary<string, TermDocumentFrequencyMap> _frequencies;
+        readonly Func<IList<DocumentTermWeightingData>, double> _calculationMethod;
 
-        private int _documentCount;
+        int _documentCount;
 
         /// <summary>
         /// Creates a new document index using the default calculation method
@@ -422,7 +422,7 @@ namespace LinqInfer.Text
                 .Take(maxVectorSize), normalise ? wf.Max(f => f.Item3) : 1, normalise);
         }
 
-        private IDictionary<string, TermDocumentFrequencyMap> GetWordFrequencies(string text)
+        IDictionary<string, TermDocumentFrequencyMap> GetWordFrequencies(string text)
         {
             var words = _tokeniser.Tokenise(text).Where(t => t.Type == TokenType.Word);
 
@@ -448,7 +448,7 @@ namespace LinqInfer.Text
             .ToDictionary(w => w.Word, v => v.Map);
         }
 
-        private IEnumerable<IToken> ExtractWords(XDocument doc)
+        IEnumerable<IToken> ExtractWords(XDocument doc)
         {
             foreach (var node in AllText(doc.Root))
             {
@@ -459,7 +459,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private IEnumerable<XText> AllText(XElement parent)
+        IEnumerable<XText> AllText(XElement parent)
         {
             foreach (var node in parent.Nodes())
             {
@@ -480,7 +480,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private IEnumerable<XElement> KeyPairToNode(IEnumerable<KeyValuePair<string, int>> pairs)
+        IEnumerable<XElement> KeyPairToNode(IEnumerable<KeyValuePair<string, int>> pairs)
         {
             return pairs
                     .Select(
@@ -488,14 +488,14 @@ namespace LinqInfer.Text
                                new XAttribute("f", p.Value), p.Key));
         }
 
-        private IEnumerable<KeyValuePair<string, int>> NodeToKeyPairs(XElement data)
+        IEnumerable<KeyValuePair<string, int>> NodeToKeyPairs(XElement data)
         {
             return data.Elements().Select(e => new KeyValuePair<string, int>(e.Value, int.Parse(e.Attribute("f").Value)));
         }
 
-        private class TermDocumentFrequencyMap : IBinaryPersistable
+        class TermDocumentFrequencyMap : IBinaryPersistable
         {
-            private Dictionary<string, int> _docFrequencies;
+            Dictionary<string, int> _docFrequencies;
 
             public TermDocumentFrequencyMap()
             {

@@ -12,9 +12,9 @@ namespace LinqInfer.Learning
 {
     public class FeatureMap<T> : IEnumerable<ClusterNode<T>>, IHasNetworkTopology
     {
-        private readonly IEnumerable<ClusterNode<T>> _nodes;
-        private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
-        private readonly ClusteringParameters _parameters;
+        readonly IEnumerable<ClusterNode<T>> _nodes;
+        readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        readonly ClusteringParameters _parameters;
 
         internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IFloatingPointFeatureExtractor<T> featureExtractor, ClusteringParameters parameters)
         {
@@ -142,7 +142,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        private async Task FinalisePosition(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
+        async Task FinalisePosition(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
         {
             if (ExportMode == GraphExportMode.Spatial3D)
             {
@@ -150,7 +150,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        private Tuple<Point3D, double> GetNodePosition(Point3D origin, double unitW, double unitH, int i, ClusterNode<T> node)
+        Tuple<Point3D, double> GetNodePosition(Point3D origin, double unitW, double unitH, int i, ClusterNode<T> node)
         {
             if (ExportMode == GraphExportMode.Spatial3D)
             {
@@ -185,7 +185,7 @@ namespace LinqInfer.Learning
             }, unitW);
         }
 
-        private Func<int, T, int, Tuple<Point3D, double>> GetMemberPositionCalculator(Point3D origin, Point3D nodePos, double radius, ClusterNode<T> node)
+        Func<int, T, int, Tuple<Point3D, double>> GetMemberPositionCalculator(Point3D origin, Point3D nodePos, double radius, ClusterNode<T> node)
         {
             var members = node.GetMembers();
             var count = members.Count;

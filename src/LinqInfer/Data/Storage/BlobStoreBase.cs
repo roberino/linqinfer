@@ -14,7 +14,7 @@ namespace LinqInfer.Data.Storage
 
         protected const string KeyDelimitter = "$";
 
-        private bool _isDisposed;
+        bool _isDisposed;
 
         public abstract Task<IEnumerable<string>> ListKeys<T>();
 

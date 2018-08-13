@@ -85,7 +85,7 @@ namespace LinqInfer.UnitTests.Maths
             Assert.That(postProb.Denominator, Is.EqualTo(expectedDenominator));
         }
 
-        private class Cookie
+        class Cookie
         {
             public char F;
         }

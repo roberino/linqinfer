@@ -161,7 +161,7 @@ namespace LinqInfer.UnitTests.Data.Serialisation
             Assert.That(doc1.Equals(doc2), Is.False);
         }
 
-        private PortableDataDocument CreateTestDoc()
+        PortableDataDocument CreateTestDoc()
         {
             var doc = new PortableDataDocument();
 

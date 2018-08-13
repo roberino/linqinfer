@@ -5,9 +5,9 @@ using System.Text;
 
 namespace LinqInfer.Utility
 {
-    internal class StopwatchWrapper : IStopwatch
+    class StopwatchWrapper : IStopwatch
     {
-        private readonly Stopwatch _sw;
+        readonly Stopwatch _sw;
 
         public StopwatchWrapper()
         {

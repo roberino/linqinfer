@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Utility
 {
-    internal static class ArgAssert
+    static class ArgAssert
     {
         public static void AssertEquals<T>(T x, T y, string name) where T : struct
         {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class OutputMapperFactory<TInput, TClass> where TClass : IEquatable<TClass>
+    class OutputMapperFactory<TInput, TClass> where TClass : IEquatable<TClass>
     {
         public ICategoricalOutputMapper<TClass> Create(IEnumerable<TClass> outputs)
         {

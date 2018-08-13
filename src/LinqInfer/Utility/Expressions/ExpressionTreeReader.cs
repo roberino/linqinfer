@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Utility.Expressions
 {
-    internal class ExpressionTreeReader
+    class ExpressionTreeReader
     {
         // (x + 1) * (y - 2)
 

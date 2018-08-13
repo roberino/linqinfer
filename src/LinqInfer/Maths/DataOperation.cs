@@ -9,7 +9,7 @@ namespace LinqInfer.Maths
 {
     public sealed class DataOperation : IExportableAsDataDocument, IImportableFromDataDocument, IEquatable<DataOperation>
     {
-        private readonly IList<ColumnVector1D> _parameters;
+        readonly IList<ColumnVector1D> _parameters;
 
         public DataOperation()
         {
@@ -89,11 +89,11 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        private bool IsMultiRow => _parameters.Count > 1;
+        bool IsMultiRow => _parameters.Count > 1;
 
-        private Vector AsVector() => _parameters[0];
+        Vector AsVector() => _parameters[0];
 
-        private Matrix AsMatrix() => new Matrix(_parameters);
+        Matrix AsMatrix() => new Matrix(_parameters);
 
         public bool Equals(DataOperation other)
         {

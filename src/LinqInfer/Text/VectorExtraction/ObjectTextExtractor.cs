@@ -7,10 +7,10 @@ using System.Reflection;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class ObjectTextExtractor<T> where T : class
+    class ObjectTextExtractor<T> where T : class
     {
-        private readonly Type _type = typeof(T);
-        private readonly ITokeniser _tokeniser;
+        readonly Type _type = typeof(T);
+        readonly ITokeniser _tokeniser;
 
         public ObjectTextExtractor(ITokeniser tokeniser)
         {
@@ -60,7 +60,7 @@ namespace LinqInfer.Text.VectorExtraction
             };
         }
 
-        private Func<T, string> CreateConverter(PropertyInfo prop, FeatureAttribute featureDef)
+        Func<T, string> CreateConverter(PropertyInfo prop, FeatureAttribute featureDef)
         {
             return x =>
             {

@@ -9,7 +9,7 @@ namespace LinqInfer.Maths
 {
     public sealed class SerialisableDataTransformation : ISerialisableDataTransformation, IEquatable<SerialisableDataTransformation>
     {
-        private readonly IList<DataOperation> _operations;
+        readonly IList<DataOperation> _operations;
 
         public SerialisableDataTransformation()
         {

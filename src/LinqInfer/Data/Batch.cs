@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Data
 {
-    internal sealed class Batch<T> : IBatch<T>
+    sealed class Batch<T> : IBatch<T>
     {
         internal Batch(IList<T> items, int batchNumber)
         {

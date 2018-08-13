@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class OneHotEncoding<T>
+    class OneHotEncoding<T>
     {
         public OneHotEncoding(ISet<T> classes)
         {

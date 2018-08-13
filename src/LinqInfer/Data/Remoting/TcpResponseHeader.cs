@@ -11,11 +11,11 @@ namespace LinqInfer.Data.Remoting
         internal const string ContentLengthHeader = "Content-Length";
         internal const string ContentTypeHeader = "Content-Type";
 
-        private readonly IDictionary<string, string[]> _headers;
+        readonly IDictionary<string, string[]> _headers;
 
-        private Func<long> _contentLength;
-        private Encoding _encoding;
-        private string _mimeType;
+        Func<long> _contentLength;
+        Encoding _encoding;
+        string _mimeType;
 
         internal TcpResponseHeader(Func<long> contentLength, IDictionary<string, string[]> headers = null, string httpProtocol = HttpHeaderFormatter.DefaultHttpProtocol)
         {
@@ -91,7 +91,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private string GetHttpHeader()
+        string GetHttpHeader()
         {
             var header = new StringBuilder();
 
@@ -122,7 +122,7 @@ namespace LinqInfer.Data.Remoting
             return header.ToString();
         }
 
-        private string ArrayToString(string headerName, string[] data)
+        string ArrayToString(string headerName, string[] data)
         {
             if (data == null) return null;
 

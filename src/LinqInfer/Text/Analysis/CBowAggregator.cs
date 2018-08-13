@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal sealed class CBowAggregator
+    sealed class CBowAggregator
     {
-        private readonly OneHotEncoding<string> _encoding;
+        readonly OneHotEncoding<string> _encoding;
 
         public CBowAggregator(
             IAsyncEnumerator<SyntacticContext> cbow,
@@ -95,7 +95,7 @@ namespace LinqInfer.Text.Analysis
                   .ToDictionary(x => x.f.Label, v => v.v);
         }
 
-        private IVector CreateVector(WordVectAggregation aggregate)
+        IVector CreateVector(WordVectAggregation aggregate)
         {
             var dvalues = new double[aggregate.Vector.Length];
 
@@ -108,7 +108,7 @@ namespace LinqInfer.Text.Analysis
             return v;
         }
 
-        private WordVectAggregation Extract(SyntacticContext context)
+        WordVectAggregation Extract(SyntacticContext context)
         {
             var total = new uint[_encoding.VectorSize];
 
@@ -117,7 +117,7 @@ namespace LinqInfer.Text.Analysis
             return new WordVectAggregation() { Vector = vector.ToUnsignedIntegerArray(), Count = 1 };
         }
 
-        private WordVectAggregation Aggregate(WordVectAggregation v1, WordVectAggregation v2)
+        WordVectAggregation Aggregate(WordVectAggregation v1, WordVectAggregation v2)
         {
             for (var i = 0; i < v1.Vector.Length; i++)
             {
@@ -129,7 +129,7 @@ namespace LinqInfer.Text.Analysis
             return v1;
         }
 
-        private class WordVectAggregation
+        class WordVectAggregation
         {
             public uint[] Vector { get; set; }
             public long Count { get; set; }

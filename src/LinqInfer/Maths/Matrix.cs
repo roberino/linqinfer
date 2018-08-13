@@ -17,9 +17,9 @@ namespace LinqInfer.Maths
     /// </summary>
     public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsDataDocument, IImportableFromDataDocument, IJsonExportable, IMatrix
     {
-        private Lazy<Vector> _mean;
-        private Lazy<Matrix> _covariance;
-        private Lazy<Matrix> _cosineSimularity;
+        Lazy<Vector> _mean;
+        Lazy<Matrix> _covariance;
+        Lazy<Matrix> _cosineSimularity;
         protected readonly IList<Vector> _rows;
 
         public Matrix(IEnumerable<Vector> rows)
@@ -521,12 +521,12 @@ namespace LinqInfer.Maths
             return x;
         }
 
-        private void OnModify()
+        void OnModify()
         {
             Modified?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Setup()
+        void Setup()
         {
             _mean = new Lazy<Vector>(() =>
                 _rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
@@ -536,7 +536,7 @@ namespace LinqInfer.Maths
             _cosineSimularity = new Lazy<Matrix>(CalculateCosineSimularityMatrix);
         }
 
-        private Matrix CalculateCovarianceMatrix()
+        Matrix CalculateCovarianceMatrix()
         {
             var data = new List<double[]>(Width);
 
@@ -562,7 +562,7 @@ namespace LinqInfer.Maths
             return new Matrix(data);
         }
 
-        private Matrix CalculateCosineSimularityMatrix()
+        Matrix CalculateCosineSimularityMatrix()
         {
             var data = new List<double[]>();
 
@@ -588,19 +588,19 @@ namespace LinqInfer.Maths
             return new Matrix(data);
         }
 
-        private bool DimensionallyEquivalent(Matrix other) // better math term? 
+        bool DimensionallyEquivalent(Matrix other) // better math term? 
         {
             if (other == null) return false;
 
             return (other.Width == Width || other.Height == Height);
         }
 
-        private static void AssertDimensionalCompatibility(Matrix m, Vector v)
+        static void AssertDimensionalCompatibility(Matrix m, Vector v)
         {
             if (m.Width != v.Size) throw new ArgumentException("Incompatible dimensions");
         }
 
-        private static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)
+        static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)
         {
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
         }
@@ -662,7 +662,7 @@ namespace LinqInfer.Maths
             output.WriteLine("]");
         }
 
-        private IEnumerable<ColumnVector1D> GetColumns()
+        IEnumerable<ColumnVector1D> GetColumns()
         {
             for (int i = 0; i < Width; i++)
             {

@@ -3,9 +3,9 @@ using System;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal abstract class LossFunctionBase : ILossFunction
+    abstract class LossFunctionBase : ILossFunction
     {
-        private bool? _useOneOfN;
+        bool? _useOneOfN;
 
         public ErrorAndLossVectors Calculate(IVector actualOutput, IVector targetOutput, Func<double, double> derivative)
         {

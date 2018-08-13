@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class GraphSink : IBuilderSink<IToken, WeightedGraph<string, double>>
+    class GraphSink : IBuilderSink<IToken, WeightedGraph<string, double>>
     {
         public GraphSink(
             Func<IToken, bool> targetTokenFunc,

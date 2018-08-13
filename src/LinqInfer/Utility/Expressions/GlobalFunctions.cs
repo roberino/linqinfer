@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal static class MathFunctions
+    static class MathFunctions
     {
         static readonly FunctionBinder _mathFunctions = new FunctionBinder(typeof(Math), BindingFlags.Static);
 

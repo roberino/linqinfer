@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    internal class IndexSink : IBuilderSink<HttpDocument, IDocumentIndex>
+    class IndexSink : IBuilderSink<HttpDocument, IDocumentIndex>
     {
-        private readonly DocumentIndex _index;
+        readonly DocumentIndex _index;
 
         public IndexSink(int maxCapacity = 1000)
         {

@@ -6,7 +6,7 @@ namespace LinqInfer.Data.Pipes
 {
     public sealed class AsyncBatch<T> : IBatch<T>
     {
-        private readonly Lazy<IList<T>> _items;
+        readonly Lazy<IList<T>> _items;
 
         public AsyncBatch(Task<IList<T>> itemsLoader, bool isLast, int batchNum)
         {

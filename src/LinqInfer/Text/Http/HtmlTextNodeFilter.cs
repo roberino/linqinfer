@@ -3,9 +3,9 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
 {
-    internal static class HtmlTextNodeFilter
+    static class HtmlTextNodeFilter
     {
-        private static HashSet<string> _semanticElements;
+        static HashSet<string> _semanticElements;
 
         static HtmlTextNodeFilter()
         {

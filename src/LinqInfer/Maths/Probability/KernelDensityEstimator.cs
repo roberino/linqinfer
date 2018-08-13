@@ -8,10 +8,10 @@ namespace LinqInfer.Maths.Probability
     /// <summary>
     /// 1 dimentional KDE
     /// </summary>
-    internal class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>
+    class KernelDensityEstimator : IDensityEstimationStrategy<Fraction>
     {
-        private readonly Func<IQueryable<Fraction>, Func<Fraction, Fraction>> _kernelFact;
-        private readonly float _bandwidth;
+        readonly Func<IQueryable<Fraction>, Func<Fraction, Fraction>> _kernelFact;
+        readonly float _bandwidth;
 
         public KernelDensityEstimator(
             float bandwidth = 0.2F)

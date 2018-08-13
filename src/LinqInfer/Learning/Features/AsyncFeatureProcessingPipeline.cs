@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class AsyncFeatureProcessingPipeline<T>
+    class AsyncFeatureProcessingPipeline<T>
         : AsyncPipe<ObjectVectorPair<T>>, IAsyncFeatureProcessingPipeline<T>
         where T : class
     {
-        private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
-        private readonly IAsyncEnumerator<T> _dataLoader;
+        readonly TransformingFeatureExtractor<T> _featureExtractor;
+        readonly IAsyncEnumerator<T> _dataLoader;
 
         internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
             : base(ExtractBatches(asyncDataLoader, featureExtractor))
         {
             _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
-            _featureExtractor = new MultiFunctionFeatureExtractor<T>(featureExtractor);
+            _featureExtractor = featureExtractor as TransformingFeatureExtractor<T> ?? new TransformingFeatureExtractor<T>(featureExtractor);
         }
 
         public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
@@ -41,7 +41,7 @@ namespace LinqInfer.Learning.Features
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
         public IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableDataTransformation transformation)
         {
-            _featureExtractor.PreprocessWith(transformation);
+            _featureExtractor.AddTransform(transformation);
 
             return this;
         }
@@ -51,7 +51,7 @@ namespace LinqInfer.Learning.Features
             return ExtractBatches(_dataLoader, _featureExtractor);
         }
 
-        private static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
+        static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
         {
             return dataLoader
                 .TransformEachBatch(b => b

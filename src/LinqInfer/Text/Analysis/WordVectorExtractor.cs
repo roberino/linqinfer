@@ -10,7 +10,7 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class WordVectorExtractor
+    class WordVectorExtractor
     {
         public async Task<VectorExtractionResult> ExtractVectorsAsync<T>(
             IAsyncTrainingSet<T, string> trainingSet, 

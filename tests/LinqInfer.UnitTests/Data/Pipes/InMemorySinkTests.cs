@@ -40,7 +40,7 @@ namespace LinqInfer.UnitTests.Data.Pipes
             Assert.That(sink.CanReceive, Is.True);
         }
 
-        private AsyncBatch<byte[]> LoadData(int n)
+        AsyncBatch<byte[]> LoadData(int n)
         {
             var data = (IList<byte[]>)Enumerable.Range(0, 10).Select(_ => new byte[] { 1, 3, 5, 8 }).ToList();
             return new AsyncBatch<byte[]>(Task.FromResult(data), n == 3, n);

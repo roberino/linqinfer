@@ -6,11 +6,11 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
-    internal class HtmlEntityMap
+    class HtmlEntityMap
     {
-        private readonly static Regex _entRegex;
-        private readonly static IDictionary<string, int> _entityMap;
-        private readonly static List<string> _validXmlEntities;
+        readonly static Regex _entRegex;
+        readonly static IDictionary<string, int> _entityMap;
+        readonly static List<string> _validXmlEntities;
 
         static HtmlEntityMap()
         {
@@ -79,7 +79,7 @@ namespace LinqInfer.Text
             return null;
         }
 
-        private string GetDecodedXmlEntity(string name)
+        string GetDecodedXmlEntity(string name)
         {
             var xmlIndex = _validXmlEntities.IndexOf(name);
 
@@ -354,7 +354,7 @@ namespace LinqInfer.Text
             Reg("yuml", 255);
         }
 
-        private static void Reg(string entityName, int decValue)
+        static void Reg(string entityName, int decValue)
         {
             _entityMap[entityName] = decValue;
         }

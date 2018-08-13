@@ -86,17 +86,17 @@ namespace LinqInfer.Text
             return doc;
         }
 
-        private XElement GetAttributesXml()
+        XElement GetAttributesXml()
         {
             return new XElement("attributes", Attributes.Select(kv => new XElement(kv.Key, new XAttribute("type", kv.Value.GetTypeCode()), kv.Value)));
         }
 
-        private XNode TokenToNode(IToken token)
+        XNode TokenToNode(IToken token)
         {
             return new XElement("t", new XAttribute("t", token.Type), new XAttribute("w", token.Weight), new XAttribute("i", token.Index), token.Text);
         }
 
-        private IDictionary<string, object> CreateAttributeDictionary()
+        IDictionary<string, object> CreateAttributeDictionary()
         {
             var attributes = new ConstrainableDictionary<string, object>();
 

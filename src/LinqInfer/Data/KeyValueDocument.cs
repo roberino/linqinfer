@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace LinqInfer.Data
 {
-    internal class KeyValueDocument : IExportableAsDataDocument, IImportableFromDataDocument
+    class KeyValueDocument : IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly IDictionary<string, string> _keyValues;
+        readonly IDictionary<string, string> _keyValues;
 
         public KeyValueDocument() : this(new Dictionary<string, string>())
         {

@@ -11,10 +11,10 @@ namespace LinqInfer.Text
     /// <summary>
     /// Crude HTML to Xml document parser.
     /// </summary>
-    internal class HtmlParser
+    class HtmlParser
     {
-        private readonly HtmlEntityMap _entityMap;
-        private readonly bool _ignoreEmptyRootTextNodes;
+        readonly HtmlEntityMap _entityMap;
+        readonly bool _ignoreEmptyRootTextNodes;
 
         public HtmlParser(bool ignoreEmptyRootTextNodes = false)
         {
@@ -35,7 +35,7 @@ namespace LinqInfer.Text
             return Filter(new ParserImpl(_entityMap).Parse(reader));
         }
 
-        private IEnumerable<XNode> Filter(IEnumerable<XNode> rootNodes)
+        IEnumerable<XNode> Filter(IEnumerable<XNode> rootNodes)
         {
             if (_ignoreEmptyRootTextNodes)
             {
@@ -48,17 +48,17 @@ namespace LinqInfer.Text
             return rootNodes;
         }
 
-        private class ParserImpl
+        class ParserImpl
         {
-            private XNode _rootNode;
-            private XmlNodeType _state;
-            private XNode _currentNode;
-            private StringBuilder _currentText;
-            private char _lastChar;
-            private int _depth;
-            private bool _quotationOpen;
-            private bool _aposOpen;
-            private HtmlEntityMap _entityMap;
+            XNode _rootNode;
+            XmlNodeType _state;
+            XNode _currentNode;
+            StringBuilder _currentText;
+            char _lastChar;
+            int _depth;
+            bool _quotationOpen;
+            bool _aposOpen;
+            HtmlEntityMap _entityMap;
 
             public ParserImpl(HtmlEntityMap entityMap)
             {
@@ -235,7 +235,7 @@ namespace LinqInfer.Text
                 return ((XElement)_rootNode).Nodes();
             }
 
-            private static bool IsValidXmlChar(char charv)
+            static bool IsValidXmlChar(char charv)
             {
                 var character = (int)charv;
 
@@ -250,7 +250,7 @@ namespace LinqInfer.Text
                 );
             }
 
-            private bool IsAttributeRead
+            bool IsAttributeRead
             {
                 get
                 {
@@ -258,7 +258,7 @@ namespace LinqInfer.Text
                 }
             }
 
-            private bool ReadNode()
+            bool ReadNode()
             {
                 if (_currentText.Length == 0) return false;
 
@@ -356,7 +356,7 @@ namespace LinqInfer.Text
                 return false;
             }
 
-            private XNamespace CurrentNamespace(string newNs = null)
+            XNamespace CurrentNamespace(string newNs = null)
             {
                 if (!string.IsNullOrEmpty(newNs))
                 {
@@ -378,14 +378,14 @@ namespace LinqInfer.Text
                 return XNamespace.None;
             }
 
-            private void DefaultState()
+            void DefaultState()
             {
                 _aposOpen = false;
                 _quotationOpen = false;
                 _state = XmlNodeType.Text;
             }
 
-            private bool MoveToParent()
+            bool MoveToParent()
             {
                 _currentNode = _currentNode.Parent;
 
@@ -399,7 +399,7 @@ namespace LinqInfer.Text
                 return true;
             }
 
-            private string GetCurrentEntity()
+            string GetCurrentEntity()
             {
                 var ent = _currentText.ToString().Substring(1);
 
@@ -420,7 +420,7 @@ namespace LinqInfer.Text
                 throw new ArgumentException();
             }
 
-            private XName GetValidName(string name = null, XNamespace ns = null)
+            XName GetValidName(string name = null, XNamespace ns = null)
             {
                 var ename = name ?? GetCurrentName();
 
@@ -432,7 +432,7 @@ namespace LinqInfer.Text
                     return XName.Get(parts.Last(), ns.NamespaceName);
             }
 
-            private string GetCurrentName()
+            string GetCurrentName()
             {
                 var name = _currentText.ToString().Substring(1);
 
@@ -443,7 +443,7 @@ namespace LinqInfer.Text
                 return n;
             }
 
-            private class AttributeReader
+            class AttributeReader
             {
                 public AttributeReader()
                 {
@@ -483,7 +483,7 @@ namespace LinqInfer.Text
                 }
             }
 
-            private IEnumerable<XAttribute> ReadAttributes(int skip = 0)
+            IEnumerable<XAttribute> ReadAttributes(int skip = 0)
             {
                 var textBlock = _currentText.ToString().Substring(skip);
                 
@@ -590,14 +590,14 @@ namespace LinqInfer.Text
                 yield break;
             }
 
-            private static readonly HashSet<string> _autoClosedElements = new HashSet<string>(new[] { "br", "link", "meta", "hr", "img", "input" });
+            static readonly HashSet<string> _autoClosedElements = new HashSet<string>(new[] { "br", "link", "meta", "hr", "img", "input" });
 
-            private bool IsAutoClosed(string elementName)
+            bool IsAutoClosed(string elementName)
             {
                 return _autoClosedElements.Contains(elementName);
             }
 
-            private enum TokenType : byte
+            enum TokenType : byte
             {
                 None = 0,
                 Quote = (byte)'"',
@@ -611,7 +611,7 @@ namespace LinqInfer.Text
                 Semi = (byte)';',
             }
 
-            private enum ReadState
+            enum ReadState
             {
                 None,
                 ReadName,

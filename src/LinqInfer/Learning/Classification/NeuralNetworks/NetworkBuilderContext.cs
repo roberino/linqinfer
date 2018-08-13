@@ -54,7 +54,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IFactory<WeightUpdateRule, string> WeightUpdateRuleFactory { get; }
         public IFactory<ISerialisableDataTransformation, string> TransformationFactory { get; }
 
-        private static Tuple<string, double> ParseActivatorArgs(string args)
+        static Tuple<string, double> ParseActivatorArgs(string args)
         {
             var matches = Regex.Matches(args, @"(\w+)\(([\d\.]+)\)");
 

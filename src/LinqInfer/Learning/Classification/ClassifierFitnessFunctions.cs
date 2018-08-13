@@ -44,7 +44,7 @@ namespace LinqInfer.Learning.Classification
             return ClassificationAccuracyPercentageInternal(classifier, testData);
         }
 
-        private static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TrainingPair<TInput, TClass>> testData)
+        static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TrainingPair<TInput, TClass>> testData)
         {
             var count = 0;
 

@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkObjectClassifier<TClass, TInput> :
-        INetworkClassifier<TClass, TInput> where TClass : IEquatable<TClass>
+    class MultilayerNetworkObjectClassifier<TClass, TInput> :
+        INetworkClassifier<TClass, TInput> 
+        where TClass : IEquatable<TClass>
+        where TInput : class
     {
         protected readonly Config _config;
 
@@ -28,7 +30,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        private MultilayerNetworkObjectClassifier(Config config)
+        MultilayerNetworkObjectClassifier(Config config)
         {
             Statistics = new ClassifierStats();
 
@@ -74,6 +76,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.ReadChildObject(_config.OutputMapper);
 
             Setup(_network);
+        }
+
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data)
+        {
+            var stats = new ClassifierStats();
+
+            stats.ImportData(data.Children[0]);
+
+            var featureExtractor = FeatureExtractorFactory<TInput>.Default.Create(data.Children[1]);
+
+            var network = MultilayerNetwork.CreateFromData(data.Children[2]);
+            var outputMapper = OutputMapper<TClass>.ImportData(data.Children[3]);
+
+            var mlnoc = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor, outputMapper, network)
+            {
+                Statistics = stats
+            };
+
+            return mlnoc;
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
@@ -135,7 +156,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Clone(true);
         }
 
-        private static Config Setup(
+        static Config Setup(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
@@ -150,7 +171,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        private void Setup(MultilayerNetwork network)
+        void Setup(MultilayerNetwork network)
         {
             _network = network;
         }

@@ -10,9 +10,9 @@ namespace LinqInfer.Maths.Graphs
 {
     public class WeightedGraph<T, C> where T : IEquatable<T> where C : IComparable<C>
     {
-        private readonly Lazy<OptimalPathSearch<T, C>> _pathSearch;
-        private readonly ConcurrentDictionary<T, WeightedGraphNode<T, C>> _workingData;
-        private readonly IDictionary<string, object> _cache;
+        readonly Lazy<OptimalPathSearch<T, C>> _pathSearch;
+        readonly ConcurrentDictionary<T, WeightedGraphNode<T, C>> _workingData;
+        readonly IDictionary<string, object> _cache;
         
         public WeightedGraph(IWeightedGraphStore<T, C> store, Func<C, C, C> weightAccumulator)
         {

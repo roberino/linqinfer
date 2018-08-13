@@ -3,11 +3,11 @@ using System.Xml;
 
 namespace LinqInfer.Utility
 {
-    internal class GenericTypeConverter<T>
+    class GenericTypeConverter<T>
     {
-        private readonly Func<string, T> _convertFromString;
-        private readonly Func<T, string> _convertToString;
-        private readonly TypeCode _typeCode;
+        readonly Func<string, T> _convertFromString;
+        readonly Func<T, string> _convertToString;
+        readonly TypeCode _typeCode;
 
         public GenericTypeConverter()
         {

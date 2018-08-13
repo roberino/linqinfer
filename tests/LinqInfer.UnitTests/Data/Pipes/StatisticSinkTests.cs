@@ -41,7 +41,7 @@ namespace LinqInfer.UnitTests.Data.Pipes
             Assert.That(sink.AverageItemsPerSecond, Is.EqualTo(2.554931016862545d));
         }
 
-        private async Task WhenBatchesReceived(StatisticSink<string> sink)
+        async Task WhenBatchesReceived(StatisticSink<string> sink)
         {
             var batch1 = new AsyncBatch<string>(LoadData("a", "b"), false, 1);
             var batch2 = new AsyncBatch<string>(LoadData("c", "d", "e"), true, 2);
@@ -54,7 +54,7 @@ namespace LinqInfer.UnitTests.Data.Pipes
             }
         }
 
-        private async Task<IList<string>> LoadData(params string[] items)
+        async Task<IList<string>> LoadData(params string[] items)
         {
             await Task.Delay(5);
 

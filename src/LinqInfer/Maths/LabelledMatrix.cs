@@ -11,8 +11,8 @@ namespace LinqInfer.Maths
     public sealed class LabelledMatrix<T> : Matrix, IEquatable<LabelledMatrix<T>>
         where T : IEquatable<T>
     {
-        private const string indexLabel = "index_";
-        private bool _labelsAreColsAndRows;
+        const string indexLabel = "index_";
+        bool _labelsAreColsAndRows;
 
         internal LabelledMatrix(
             Matrix baseMatrix,

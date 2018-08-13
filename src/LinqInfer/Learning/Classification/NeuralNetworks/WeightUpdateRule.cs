@@ -18,12 +18,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
     public sealed class WeightUpdateRule
     {
-        private double _learningRate;
-        private double _momentum;
-        private readonly Expression<Func<WeightUpdateParameters, double>> _rule;
-        private readonly Func<WeightUpdateParameters, double> _compiledRule;
+        double _learningRate;
+        double _momentum;
+        readonly Expression<Func<WeightUpdateParameters, double>> _rule;
+        readonly Func<WeightUpdateParameters, double> _compiledRule;
 
-        private WeightUpdateRule(double learningRate, double momentum, Expression<Func<WeightUpdateParameters, double>> expression)
+        WeightUpdateRule(double learningRate, double momentum, Expression<Func<WeightUpdateParameters, double>> expression)
         {
             _learningRate = learningRate;
             _momentum = momentum;

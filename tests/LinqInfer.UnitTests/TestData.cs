@@ -7,7 +7,7 @@ using LinqInfer.Learning.Features;
 
 namespace LinqInfer.UnitTests
 {
-    internal static class TestData
+    static class TestData
     {
         public static List<double[]> LinearClassA()
         {

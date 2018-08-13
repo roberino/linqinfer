@@ -4,10 +4,10 @@ using System;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class HuffmanTree<T> where T : IEquatable<T>, IComparable<T>
+    class HuffmanTree<T> where T : IEquatable<T>, IComparable<T>
     {
-        private readonly Node _root;
-        private readonly IDictionary<T, Node> _lookup;
+        readonly Node _root;
+        readonly IDictionary<T, Node> _lookup;
 
         public HuffmanTree(IEnumerable<T> corpus) : this(corpus.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count()))
         {
@@ -23,7 +23,7 @@ namespace LinqInfer.Maths.Probability
 
         public IDictionary<T, Node> Lookup { get { return _lookup; } }
 
-        private static Node Process(IDictionary<T, int> corpus)
+        static Node Process(IDictionary<T, int> corpus)
         {
             var queue = new Queue<Node>(corpus.OrderBy(w => w.Value).Select(w => new Node()
             {
@@ -46,7 +46,7 @@ namespace LinqInfer.Maths.Probability
             return root;
         }
 
-        private static IList<Node> RecurseTreeAndAssignCode(Node root, int size = 1024)
+        static IList<Node> RecurseTreeAndAssignCode(Node root, int size = 1024)
         {
             long x = 0;
 

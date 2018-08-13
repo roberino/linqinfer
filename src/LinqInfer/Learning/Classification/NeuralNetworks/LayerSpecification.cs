@@ -10,7 +10,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
 
-        private ISerialisableDataTransformation _outputTransformation;
+        ISerialisableDataTransformation _outputTransformation;
 
         public LayerSpecification(
             int layerSize, 

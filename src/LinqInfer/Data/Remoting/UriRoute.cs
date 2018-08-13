@@ -3,9 +3,9 @@ using System.Diagnostics.Contracts;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class UriRoute : IUriRoute
+    class UriRoute : IUriRoute
     {
-	private bool _bindToAnyHost;
+        bool _bindToAnyHost;
 
         public UriRoute(Uri baseUri, string template = null, Verb verbs = Verb.All, Func<IOwinContext, bool> filter = null)
         {

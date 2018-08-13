@@ -17,13 +17,13 @@ namespace LinqInfer.Data.Serialisation
     /// </summary>
     public class PortableDataDocument : IBinaryPersistable, IXmlExportable, IXmlImportable, IEquatable<PortableDataDocument>
     {
-        private const string PropertiesName = "Properties";
-        private const string BlobName = "Blob";
-        private const string DataName = "Data";
-        private const string ChildrenName = "Children";
-        private const string VectorName = "Vector";
+        const string PropertiesName = "Properties";
+        const string BlobName = "Blob";
+        const string DataName = "Data";
+        const string ChildrenName = "Children";
+        const string VectorName = "Vector";
 
-        private string _rootName;
+        string _rootName;
 
         public PortableDataDocument()
         {
@@ -164,11 +164,6 @@ namespace LinqInfer.Data.Serialisation
             });
         }
 
-        public bool HasProperty(string name)
-        {
-            return Properties.ContainsKey(name);
-        }
-
         public T PropertyOrDefault<T>(string key, T defaultValue)
         {
             string val;
@@ -193,16 +188,9 @@ namespace LinqInfer.Data.Serialisation
             return defaultValue;
         }
 
-        public IList<IVector> Vectors { get; private set; }
+        public IList<IVector> Vectors { get; }
 
-        public PortableDataDocument AddChild()
-        {
-            var doc = new PortableDataDocument();
-            Children.Add(doc);
-            return doc;
-        }
-
-        public IList<PortableDataDocument> Children { get; private set; }
+        public IList<PortableDataDocument> Children { get; }
 
         public void Load(Stream input)
         {
@@ -393,7 +381,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        private void SetProperties(PortableDataDocument doc, object obj)
+        static void SetProperties(PortableDataDocument doc, object obj)
         {
             if (obj != null)
             {
@@ -406,7 +394,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        private XDocument ExportAsXml(bool isRoot, bool base64V)
+        XDocument ExportAsXml(bool isRoot, bool base64V)
         {
             var date = DateTime.UtcNow;
 
@@ -452,7 +440,7 @@ namespace LinqInfer.Data.Serialisation
             return doc;
         }
 
-        private long AppendCheckSum(string val, long checksum)
+        long AppendCheckSum(string val, long checksum)
         {
             foreach (var c in val)
             {
@@ -462,7 +450,7 @@ namespace LinqInfer.Data.Serialisation
             return checksum;
         }
 
-        private void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
+        void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
         {
             while (true)
             {
@@ -479,7 +467,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        private void ImportXml(XElement rootNode)
+        void ImportXml(XElement rootNode)
         {
             var checksum = int.Parse(rootNode.Attribute("checksum")?.Value);
 
@@ -517,7 +505,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        private IEnumerable<XElement> ChildElements(XElement parent, string name)
+        IEnumerable<XElement> ChildElements(XElement parent, string name)
         {
             var e = parent.Element(XName.Get(name));
 

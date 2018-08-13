@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
@@ -8,9 +9,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
+    class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
     {
-        private IDictionary<T, int> _outputs;
+        IDictionary<T, int> _outputs;
 
         public OutputMapper()
         {
@@ -21,22 +22,27 @@ namespace LinqInfer.Learning.Features
             Load(input);
         }
 
-        public OutputMapper(IEnumerable<T> outputs = null)
+        public OutputMapper(IEnumerable<T> outputs)
         {
-            if (outputs != null) Initialise(outputs);
+            Initialise(outputs);
         }
 
-        public virtual void Initialise(IEnumerable<T> outputs)
+        public OutputMapper(IDictionary<T, int> outputs)
         {
-            int i = 0;
+            _outputs = outputs;
+        }
+
+        public void Initialise(IEnumerable<T> outputs)
+        {
+            var i = 0;
             _outputs = outputs.ToDictionary(o => o, o => i++);
             IndexLookup = _outputs.ToDictionary(o => o.Key.ToString(), o => o.Value);
             FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys);
         }
 
-        public virtual IEnumerable<ClassifyResult<T>> Map(IVector output)
+        public IEnumerable<ClassifyResult<T>> Map(IVector output)
         {
-            int i = 0;
+            var i = 0;
             var indexes = output.ToColumnVector().Select(o => new { value = o, index = i++ }).ToArray().OrderByDescending(o => o.value);
 
             foreach (var o in indexes)
@@ -52,28 +58,17 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public IEnumerable<T> OutputClasses
-        {
-            get
-            {
-                return _outputs.Keys;
-            }
-        }
+        public IEnumerable<T> OutputClasses => _outputs.Keys;
 
         public IDictionary<string, int> IndexLookup { get; private set; }
 
-        public int VectorSize { get { return _outputs == null ? 0 : _outputs.Count; } }
+        public int VectorSize => _outputs?.Count ?? 0;
 
         public IEnumerable<IFeature> FeatureMetadata { get; private set; }
 
         public virtual double[] ExtractVector(T obj)
         {
-            return ExtractColumnVector(obj).GetUnderlyingArray();
-        }
-
-        public virtual ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return ExtractIVector(obj).ToColumnVector();
+            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
         public IVector ExtractIVector(T obj)
@@ -83,14 +78,62 @@ namespace LinqInfer.Learning.Features
             return new OneOfNVector(VectorSize, _outputs[obj]);
         }
 
-        public virtual void Save(Stream stream)
+        public PortableDataDocument ExportData()
+        {
+            var doc = new PortableDataDocument();
+            var tc = Type.GetTypeCode(typeof(T));
+
+            if (tc == TypeCode.Object)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    Save(ms);
+
+                    doc.Blobs.Add(nameof(OutputClasses), ms.ToArray());
+                }
+
+                return doc;
+            }
+
+            foreach(var output in _outputs)
+            {
+                doc.Properties[output.Key.ToString()] = output.Value.ToString();
+            }
+
+            return doc;
+        }
+
+        public static OutputMapper<T> ImportData(PortableDataDocument data)
+        {
+            var type = typeof(T);
+            var tc = Type.GetTypeCode(type);
+
+            if (tc == TypeCode.Object)
+            {
+                using (var ms = new MemoryStream(data.Blobs[nameof(OutputClasses)]))
+                {
+                    return new OutputMapper<T>(ms);
+                }
+            }
+
+            var outputs = new Dictionary<T, int>();
+
+            foreach (var item in data.Properties)
+            {
+                outputs[(T) Convert.ChangeType(item.Key, type)] = int.Parse(item.Value);
+            }
+
+            return new OutputMapper<T>(outputs);
+        }
+
+        void Save(Stream stream)
         {
             var sz = new DictionarySerialiser<T, int>();
 
             sz.Write(_outputs, stream);
         }
 
-        public virtual void Load(Stream stream)
+        void Load(Stream stream)
         {
             var sz = new DictionarySerialiser<T, int>();
 

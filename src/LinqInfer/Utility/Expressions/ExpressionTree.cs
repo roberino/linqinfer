@@ -5,11 +5,11 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal class ExpressionTree
+    class ExpressionTree
     {
-        private readonly List<ExpressionTree> _children = new List<ExpressionTree>();
+        readonly List<ExpressionTree> _children = new List<ExpressionTree>();
 
-        private ExpressionTree()
+        ExpressionTree()
         {
         }
 
@@ -276,14 +276,14 @@ namespace LinqInfer.Utility.Expressions
 
         public override string ToString() => $"{Type}:{Value}";
 
-        private ExpressionTree TakeLastChild()
+        ExpressionTree TakeLastChild()
         {
             var arg = _children.Last();
             _children.Remove(arg);
             return arg;
         }
 
-        private ExpressionTree DetatchFromParent()
+        ExpressionTree DetatchFromParent()
         {
             var parent = Parent;
             parent?._children.Remove(this);

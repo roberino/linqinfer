@@ -8,12 +8,23 @@ namespace LinqInfer.UnitTests.Learning.Features
     public class ObjectFeatureExtractorTests
     {
         [Test]
-        public void CreateFeatureExtractor_SimpleObject()
+        public void CreateFeatureExtractor_ExtractedDataIsCorrect()
         {
-            var fo = new ObjectFeatureExtractorFactory();
-            var fe = fo.CreateFeatureExtractorFunc<FeatureObject>();
+            var fe = new ObjectFeatureExtractor<FeatureObject>();
 
-            var data = fe(new FeatureObject()
+            var data = fe.ExportData();
+
+            var fe2 = ExpressionFeatureExtractor<FeatureObject>.Create(data);
+
+            Assert.That(fe2, Is.Not.Null);
+        }
+
+        [Test]
+        public void CreateFeatureExtractorFunc_ExtractedDataIsCorrect()
+        {
+            var fe = new ObjectFeatureExtractor<FeatureObject>();
+
+            var data = fe.ExtractIVector(new FeatureObject()
             {
                 Height = 105.23,
                 Quantity = 16,
@@ -23,7 +34,7 @@ namespace LinqInfer.UnitTests.Learning.Features
                 Amount = 4323.31M
             });
 
-            Assert.That(data.Length, Is.EqualTo(5));
+            Assert.That(data.Size, Is.EqualTo(5));
 
             Assert.That(data[0], Is.EqualTo(12d));
             Assert.That(data[1], Is.EqualTo(105.23d));
@@ -33,7 +44,7 @@ namespace LinqInfer.UnitTests.Learning.Features
             Assert.That(data[4], Is.EqualTo(0.5d));
         }
 
-        private class FeatureObject
+        class FeatureObject
         {            
             public float Width { get; set; }
             public double Height { get; set; }

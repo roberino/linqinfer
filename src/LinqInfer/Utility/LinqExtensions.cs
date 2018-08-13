@@ -301,8 +301,8 @@ namespace LinqInfer.Utility
 
         class ParameterUpdateVisitor : ExpressionVisitor
         {
-            private ParameterExpression _oldParameter;
-            private ParameterExpression _newParameter;
+            ParameterExpression _oldParameter;
+            ParameterExpression _newParameter;
 
             public ParameterUpdateVisitor(ParameterExpression oldParameter, ParameterExpression newParameter)
             {

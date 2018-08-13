@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal static class FluentMultilayerNetworkBuilderExtensions
+    static class FluentMultilayerNetworkBuilderExtensions
     {
         /// <summary>
         /// Builds a softmax network configuration
@@ -68,12 +68,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
     public sealed partial class FluentNetworkBuilder : IFluentNetworkBuilder
     {
-        private readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
-        private readonly Range _defaultWeightRange;
-        private LearningParameters _learningParams;
-        private LayerSpecification _output;
-        private Action<LayerSpecification> _layerAction;
-        private int _inputVectorSize;
+        readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
+        readonly Range _defaultWeightRange;
+        LearningParameters _learningParams;
+        LayerSpecification _output;
+        Action<LayerSpecification> _layerAction;
+        int _inputVectorSize;
 
         internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
         {

@@ -4,7 +4,7 @@ namespace LinqInfer.Maths.Graphs
 {
     public class ColourPalette
     {
-        private readonly List<Colour> _colours;
+        readonly List<Colour> _colours;
 
         public ColourPalette()
         {
@@ -36,7 +36,7 @@ namespace LinqInfer.Maths.Graphs
 
         public bool Random { get; set; }
 
-        private Colour GetColour(byte lightness)
+        Colour GetColour(byte lightness)
         {
             return new Colour()
             {

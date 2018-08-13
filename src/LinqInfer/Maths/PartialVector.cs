@@ -3,10 +3,10 @@ using System;
 
 namespace LinqInfer.Maths
 {
-    internal class PartialVector : IVector
+    class PartialVector : IVector
     {
-        private readonly double[] _data;
-        private readonly int _startIndex;
+        readonly double[] _data;
+        readonly int _startIndex;
 
         public PartialVector(double[] data, int startIndex, int size)
         {

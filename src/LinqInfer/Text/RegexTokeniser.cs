@@ -6,8 +6,8 @@ namespace LinqInfer.Text
 {
     public class RegexTokeniser : ITokeniser
     {
-        private static readonly Regex _defaultRegex = new Regex("[a-z0-9'’-]+", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex _wordRegex;
+        static readonly Regex _defaultRegex = new Regex("[a-z0-9'’-]+", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        readonly Regex _wordRegex;
 
         public RegexTokeniser(string inputPattern = null, RegexOptions options = RegexOptions.None)
         {

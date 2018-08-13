@@ -345,7 +345,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
         static Expression<Func<MyParamsWithFractions, Fraction>> FractionExp(Expression<Func<MyParamsWithFractions, Fraction>> exp) => exp;
 
-        private class MyParams
+        class MyParams
         {
             public long Field1 { get; set; }
             public int X { get; set; }
@@ -356,13 +356,13 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             public bool PF() => PFValue;
         }
 
-        private class MyParamsWithVector
+        class MyParamsWithVector
         {
             public IVector Input1 { get; set; }
             public IVector Input2 { get; set; }
         }
 
-        private class MyParamsWithFractions
+        class MyParamsWithFractions
         {
             public Fraction Value1 { get; set; }
             public Fraction Value2 { get; set; }

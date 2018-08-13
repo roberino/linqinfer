@@ -3,12 +3,12 @@ using System.IO;
 
 namespace LinqInfer.Data.Storage
 {
-    internal class DelegateWriteStream : Stream
+    class DelegateWriteStream : Stream
     {
-        private readonly Stream _innerStream;
-        private readonly Stream _buffer;
-        private long _pos;
-        private bool _disposed;
+        readonly Stream _innerStream;
+        readonly Stream _buffer;
+        long _pos;
+        bool _disposed;
 
         public DelegateWriteStream(Stream innerStream)
         {

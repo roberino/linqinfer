@@ -31,9 +31,9 @@ namespace LinqInfer.UnitTests.Learning.Features
             Assert.That(tx.Length, Is.EqualTo(2));
         }
 
-        private class MockFeatures : IFeatureDataSource
+        class MockFeatures : IFeatureDataSource
         {
-            private readonly IList<double[]> _data;
+            readonly IList<double[]> _data;
 
             public MockFeatures(IList<double[]> data)
             {

@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace LinqInfer.Utility
 {
-    internal static class DebugOutput
+    static class DebugOutput
     {
 #if DEBUG
-        private static readonly Stopwatch _timer;
+        static readonly Stopwatch _timer;
 
         static DebugOutput()
         {

@@ -5,13 +5,13 @@ namespace LinqInfer.Utility.Expressions
 {
     class StringNavigator<T> where T : struct
     {
-        private readonly Func<T, char, T> _tokenClassifier;
-        private readonly Func<T, bool> _accumulationRule;
-        private readonly StringBuilder _buffer;
+        readonly Func<T, char, T> _tokenClassifier;
+        readonly Func<T, bool> _accumulationRule;
+        readonly StringBuilder _buffer;
 
-        private T _tokenClass;
-        private int _startPos;
-        private int _pos;
+        T _tokenClass;
+        int _startPos;
+        int _pos;
 
         public StringNavigator(string input, Func<T, char, T> tokenClassifier, Func<T, bool> accumulationRule)
         {

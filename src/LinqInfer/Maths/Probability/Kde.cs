@@ -6,11 +6,11 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class Kde<T> : IExportableAsDataDocument, IImportableFromDataDocument
+    class Kde<T> : IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly Func<IDictionary<string, double>, Func<T, Fraction>> _functionFactory;
+        readonly Func<IDictionary<string, double>, Func<T, Fraction>> _functionFactory;
 
-        private Lazy<Func<T, Fraction>> _function;
+        Lazy<Func<T, Fraction>> _function;
 
         public Kde(Func<IDictionary<string, double>, Func<T, Fraction>> functionFactory)
         {
@@ -53,7 +53,7 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        private void Refresh()
+        void Refresh()
         {
             _function = new Lazy<Func<T, Fraction>>(() => _functionFactory(Parameters));
         }

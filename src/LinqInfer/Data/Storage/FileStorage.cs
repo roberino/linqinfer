@@ -7,7 +7,7 @@ namespace LinqInfer.Data.Storage
 {
     public sealed class FileStorage : IVirtualFileStore
     {
-        private readonly DirectoryInfo _storageDir;
+        readonly DirectoryInfo _storageDir;
 
         public FileStorage(DirectoryInfo storageDir)
         {

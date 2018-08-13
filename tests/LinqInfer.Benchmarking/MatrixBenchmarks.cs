@@ -10,8 +10,8 @@ namespace LinqInfer.Benchmarking
     [MarkdownExporter]
     public class MatrixBenchmarks
     {
-        private Matrix _matrix1;
-        private Matrix _matrix2;
+        Matrix _matrix1;
+        Matrix _matrix2;
 
         [Params(5, 100, 500)]
         public int Width { get; set; }

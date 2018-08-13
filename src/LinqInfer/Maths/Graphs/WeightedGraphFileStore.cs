@@ -13,15 +13,15 @@ namespace LinqInfer.Maths.Graphs
 {
     public class WeightedGraphFileStore : IWeightedGraphStore<string, double>
     {
-        private const string JsonFileExt = ".jnod";
-        private const int LockTimeoutMs = 500;
-        private readonly ReaderWriterLockSlim _lock;
-        
-        private readonly DirectoryInfo _storageDir;
-        private readonly FileInfo _indexFile;
-        private readonly IDictionary<string, string> _index;
-        private readonly IObjectSerialiser _serialiser;
-        private readonly string _dataFileExt;
+        const string JsonFileExt = ".jnod";
+        const int LockTimeoutMs = 500;
+        readonly ReaderWriterLockSlim _lock;
+
+        readonly DirectoryInfo _storageDir;
+        readonly FileInfo _indexFile;
+        readonly IDictionary<string, string> _index;
+        readonly IObjectSerialiser _serialiser;
+        readonly string _dataFileExt;
 
         public WeightedGraphFileStore(string storagePath, 
             IObjectSerialiser serialiser, 
@@ -202,12 +202,12 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        private FileInfo GetNodeFile(string fileId)
+        FileInfo GetNodeFile(string fileId)
         {
             return new FileInfo(Path.Combine(_storageDir.FullName, fileId + JsonFileExt));
         }
 
-        private async Task<GraphNodeData> GetNodeData(string label, bool createIfMissing)
+        async Task<GraphNodeData> GetNodeData(string label, bool createIfMissing)
         {
             string fileId;
 
@@ -237,7 +237,7 @@ namespace LinqInfer.Maths.Graphs
             return data;
         }
 
-        private string GenerateId(string seed)
+        string GenerateId(string seed)
         {
             int n;
             string key;
@@ -273,7 +273,7 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        private class GraphNodeData
+        class GraphNodeData
         {
             public GraphNodeData()
             {

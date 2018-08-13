@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkExporter
+    class MultilayerNetworkExporter
     {
         /// <summary>
         /// Exports the raw data
@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return CreateFromVectorDocumentV2(doc);
         }
 
-        private static MultilayerNetwork CreateFromVectorDocumentV2(PortableDataDocument doc)
+        static MultilayerNetwork CreateFromVectorDocumentV2(PortableDataDocument doc)
         {
             var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);

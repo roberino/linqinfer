@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Maths.Graphs
 {
-    internal class GexfFormatter
+    class GexfFormatter
     {
         public const string GEXFNamespace = "http://www.gexf.net/1.2draft";
         public const string GEXFVisualisationNamespace = "http://www.gexf.net/1.1draft/viz";
@@ -147,17 +147,17 @@ namespace LinqInfer.Maths.Graphs
             return doc;
         }
 
-        private XElement GefxElement(string name)
+        XElement GefxElement(string name)
         {
             return new XElement(XName.Get(name, GEXFNamespace));
         }
 
-        private XElement GefxElement(string name, params object[] content)
+        XElement GefxElement(string name, params object[] content)
         {
             return new XElement(XName.Get(name, GEXFNamespace), content);
         }
 
-        private string TranslateType(TypeCode typeCode)
+        string TranslateType(TypeCode typeCode)
         {
             switch (typeCode)
             {

@@ -12,7 +12,7 @@ namespace LinqInfer.Data.Storage
     /// </summary>
     public class InMemoryBlobStore : BlobStoreBase
     {
-        private readonly ConcurrentDictionary<string, Blob> _data;
+        readonly ConcurrentDictionary<string, Blob> _data;
         
         public InMemoryBlobStore()
         {

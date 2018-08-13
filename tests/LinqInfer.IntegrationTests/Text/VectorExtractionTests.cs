@@ -14,8 +14,8 @@ namespace LinqInfer.IntegrationTests.Text
     [TestFixture]
     public class VectorExtractionTests
     {
-        private IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
-        private IAsyncTrainingSet<WordData, string> _aggTrainingSet;
+        IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
+        IAsyncTrainingSet<WordData, string> _aggTrainingSet;
 
         [Test]
         public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
@@ -26,7 +26,7 @@ namespace LinqInfer.IntegrationTests.Text
 
         }
 
-        private void LogPipeStats(IPipeStatistics stats)
+        void LogPipeStats(IPipeStatistics stats)
         {
             Console.WriteLine($"Elapsed: {stats.Elapsed}");
             Console.WriteLine($"Batches received: {stats.BatchesReceived}");
@@ -35,7 +35,7 @@ namespace LinqInfer.IntegrationTests.Text
             Console.WriteLine($"Average batches per second: {stats.AverageBatchesPerSecond}");
         }
 
-        private async Task ThenBigramVectorsCanBeExtracted()
+        async Task ThenBigramVectorsCanBeExtracted()
         {
             var result = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
 
@@ -50,7 +50,7 @@ namespace LinqInfer.IntegrationTests.Text
             }
         }
 
-        private async Task<IAsyncTrainingSet<BiGram, string>> GivenAnAsyncTextTrainingSet()
+        async Task<IAsyncTrainingSet<BiGram, string>> GivenAnAsyncTextTrainingSet()
         {
             var corpus = CorpusDataSource.GetCorpus();
 

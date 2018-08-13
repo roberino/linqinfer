@@ -8,16 +8,16 @@ namespace LinqInfer.Data.Storage
 {
     public sealed class InMemoryFileStorage : IVirtualFileStore
     {
-        private readonly IDictionary<string, InMemoryFileStorage> _childContainers;
-        private readonly IDictionary<string, VirtualFile> _files;
-        private readonly InMemoryFileStorage _parent;
-        private readonly string _name;
+        readonly IDictionary<string, InMemoryFileStorage> _childContainers;
+        readonly IDictionary<string, VirtualFile> _files;
+        readonly InMemoryFileStorage _parent;
+        readonly string _name;
 
         public InMemoryFileStorage() : this(null, null)
         {
         }
 
-        private InMemoryFileStorage(InMemoryFileStorage parent = null, string name = null)
+        InMemoryFileStorage(InMemoryFileStorage parent = null, string name = null)
         {
             _parent = parent;
             _name = name;
@@ -96,9 +96,9 @@ namespace LinqInfer.Data.Storage
             return Task.FromResult(_files.Values.Cast<IVirtualFile>().ToList());
         }
 
-        private class VirtualFileData
+        class VirtualFileData
         {
-            private readonly Lazy<Stream> _fileData;
+            readonly Lazy<Stream> _fileData;
 
             public VirtualFileData()
             {

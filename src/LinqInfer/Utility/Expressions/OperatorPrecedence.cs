@@ -2,9 +2,9 @@
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal static class OperatorPrecedence
+    static class OperatorPrecedence
     {
-        private static readonly IDictionary<string, int> _precedence;
+        static readonly IDictionary<string, int> _precedence;
 
         static OperatorPrecedence()
         {

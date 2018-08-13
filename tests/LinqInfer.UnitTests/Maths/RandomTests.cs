@@ -73,7 +73,7 @@ namespace LinqInfer.UnitTests.Maths
             Write("Max int - 1", int.MaxValue - 1, b);
         }
 
-        private void Write(string label, object val, byte[] data)
+        void Write(string label, object val, byte[] data)
         {
             Console.Write(label);
             Console.Write(" ");

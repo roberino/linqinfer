@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class OutputValues : IPropagatedOutput
+    class OutputValues : IPropagatedOutput
     {
         public OutputValues(IVector lastOutput)
         {

@@ -10,7 +10,7 @@ namespace LinqInfer.Maths.Probability
     /// <typeparam name="T">The type of hypothesis</typeparam>
     public class Hypothetheses<T>
     {
-        private readonly IDictionary<T, IHypotheticalOutcome<T>> _hypos;
+        readonly IDictionary<T, IHypotheticalOutcome<T>> _hypos;
 
         internal Hypothetheses(IEnumerable<IHypotheticalOutcome<T>> hypos)
         {
@@ -118,12 +118,12 @@ namespace LinqInfer.Maths.Probability
             if (ev != null) ev.Invoke(this, EventArgs.Empty);
         }
 
-        private IDictionary<T, Fraction> CalculateDistribution(Func<T, Fraction> likelyhoodFunc)
+        IDictionary<T, Fraction> CalculateDistribution(Func<T, Fraction> likelyhoodFunc)
         {
             return CalculateDistribution(Hypotheses.Select(h => h.Outcome).Select(likelyhoodFunc).ToArray());
         }
 
-        private IDictionary<T, Fraction> CalculateDistribution(params Fraction[] newEvents)
+        IDictionary<T, Fraction> CalculateDistribution(params Fraction[] newEvents)
         {
             int i = 0;
 

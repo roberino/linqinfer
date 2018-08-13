@@ -9,14 +9,14 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkAsyncSink<TClass>
+    class MultilayerNetworkAsyncSink<TClass>
         : IBuilderSink<TrainingPair<IVector, IVector>, IVectorClassifier>
         where TClass : IEquatable<TClass>
     {
-        private readonly IClassifierTrainer _trainingContext;
-        private readonly LearningParameters _learningParameters;
+        readonly IClassifierTrainer _trainingContext;
+        readonly LearningParameters _learningParameters;
 
-        private readonly ValueStore _errorHistory;
+        readonly ValueStore _errorHistory;
         
         public MultilayerNetworkAsyncSink(
             IClassifierTrainer trainer,

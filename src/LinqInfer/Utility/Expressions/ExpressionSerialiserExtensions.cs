@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal static class ExpressionSerialiserExtensions
+    static class ExpressionSerialiserExtensions
     {
         public static Expression<Func<TInput, TOutput>> AsExpression<TInput, TOutput>(
             this string expression)
@@ -29,7 +29,7 @@ namespace LinqInfer.Utility.Expressions
             return ExportExpression(expression);
         }
 
-        private static string ExportExpression(this Expression expression)
+        static string ExportExpression(this Expression expression)
         {
             if (expression is BinaryExpression binaryExpression)
             {
@@ -97,14 +97,14 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        private static string ExportWithBracketsIfRequired(Expression exp)
+        static string ExportWithBracketsIfRequired(Expression exp)
         {
             var exps = exp.ExportExpression();
 
             return exp is ConstantExpression ? $"{exps}" : $"({exps})";
         }
 
-        private static string ExportConstantValue(ConstantExpression constant, MemberInfo member)
+        static string ExportConstantValue(ConstantExpression constant, MemberInfo member)
         {
             switch (member)
             {
@@ -117,7 +117,7 @@ namespace LinqInfer.Utility.Expressions
             throw new NotSupportedException(member.GetType().Name);
         }
 
-        private static string ToPreciseString(this object value)
+        static string ToPreciseString(this object value)
         {
             if (value == null)
             {
@@ -139,7 +139,7 @@ namespace LinqInfer.Utility.Expressions
             return value.ToString();
         }
 
-        private static string ExportBinaryExpression(BinaryExpression expression, string symbol)
+        static string ExportBinaryExpression(BinaryExpression expression, string symbol)
         {
             return $"({ExportExpression(expression.Left)} {symbol} {ExportExpression(expression.Right)})";
         }

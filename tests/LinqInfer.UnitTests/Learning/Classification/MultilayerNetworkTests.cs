@@ -80,7 +80,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             Assert.That(network.Specification.Equals(network2.Specification));
         }
 
-        private MultilayerNetwork SetupTestNetwork(NetworkSpecification specification)
+        MultilayerNetwork SetupTestNetwork(NetworkSpecification specification)
         {
             var network = new MultilayerNetwork(specification);
 
@@ -89,7 +89,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             return network;
         }
 
-        private void AdjustData(MultilayerNetwork network)
+        void AdjustData(MultilayerNetwork network)
         {
             network.ForEachLayer(l =>
             {

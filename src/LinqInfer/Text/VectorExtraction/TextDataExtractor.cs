@@ -9,15 +9,15 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class TextDataExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsDataDocument, IImportableFromDataDocument
+    class TextDataExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private const int EXTENDED_FEATURE_COUNT = 4;
-        private readonly IList<IFeature> _features;
-        private readonly IDictionary<string, int> _words;
+        const int EXTENDED_FEATURE_COUNT = 4;
+        readonly IList<IFeature> _features;
+        readonly IDictionary<string, int> _words;
 
-        private bool _normalise;
-        private int[] _normalisingFrequencies;
-        private int _normalisingFrequencyDefault;
+        bool _normalise;
+        int[] _normalisingFrequencies;
+        int _normalisingFrequencyDefault;
 
         internal TextDataExtractor(bool normalise = true)
         {
@@ -107,14 +107,14 @@ namespace LinqInfer.Text.VectorExtraction
                 .ToArray();
         }
 
-        private int GetNormalisingFrequency(int index)
+        int GetNormalisingFrequency(int index)
         {
             var x = _normalise ? (index < _normalisingFrequencies.Length) ? _normalisingFrequencies[index] : _normalisingFrequencyDefault : 1;
 
             return x == 0 ? 1 : x;
         }
 
-        private double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
+        double[] ExtractVectorDenormal(IEnumerable<IToken> tokens)
         {
             var vectorRaw = new double[VectorSize];
 
@@ -215,7 +215,7 @@ namespace LinqInfer.Text.VectorExtraction
             SetupFeatures(true);
         }
 
-        private void SetupFeatures(bool ignoreExisting = false)
+        void SetupFeatures(bool ignoreExisting = false)
         {
             if (!ignoreExisting && _features.Count > 0) throw new InvalidOperationException();
 

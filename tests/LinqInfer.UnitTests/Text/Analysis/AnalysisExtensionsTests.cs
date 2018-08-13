@@ -12,9 +12,9 @@ namespace LinqInfer.UnitTests.Text.Analysis
     [TestFixture]
     public class AnalysisExtensionsTests
     {
-        private const int _numberOfCorpusItems = 22;
-        private readonly Corpus _testCorpus;
-        private readonly ISemanticSet _testVocab;
+        const int _numberOfCorpusItems = 22;
+        readonly Corpus _testCorpus;
+        readonly ISemanticSet _testVocab;
 
         public AnalysisExtensionsTests()
         {
@@ -118,7 +118,7 @@ namespace LinqInfer.UnitTests.Text.Analysis
             }
         }
 
-        private char Offset(char c, int o)
+        char Offset(char c, int o)
         {
             return (char)((int)c + o);
         }

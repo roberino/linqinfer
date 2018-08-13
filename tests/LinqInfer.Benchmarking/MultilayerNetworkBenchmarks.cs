@@ -42,7 +42,7 @@ namespace LinqInfer.Benchmarking
             CreateAsync().Wait();
         }
 
-        private async Task CreateAsync()
+        async Task CreateAsync()
         {
             var trainingSet = await _dataSet
                   .AsAsyncEnumerator()

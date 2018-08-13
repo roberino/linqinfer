@@ -1,26 +1,22 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LinqInfer.Data.Serialisation;
-using LinqInfer.Data.Storage;
 
 namespace LinqInfer.Learning.Features
 {
     public sealed class FeatureProcessingPipeline<T> : IFeatureProcessingPipeline<T> where T : class
     {
-        private readonly MultiFunctionFeatureExtractor<T> _featureExtractor;
-        private readonly IQueryable<T> _data;
-        private readonly IList<IBlobStore> _outputs;
+        TransformingFeatureExtractor<T> _featureExtractor;
 
         internal FeatureProcessingPipeline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
-            _data = data;
-            _featureExtractor = new MultiFunctionFeatureExtractor<T>(featureExtractor);
-            _outputs = new List<IBlobStore>();
+            Data = data;
+
+            _featureExtractor = new TransformingFeatureExtractor<T>(featureExtractor);
         }
 
         internal FeatureProcessingPipeline() : this(Enumerable.Empty<T>().AsQueryable())
@@ -30,35 +26,12 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Returns the original data source
         /// </summary>
-        public IQueryable<T> Data
-        {
-            get
-            {
-                return _data;
-            }
-        }
-
-        /// <summary>
-        /// Returns the outputs
-        /// </summary>
-        public IEnumerable<IBlobStore> Outputs
-        {
-            get
-            {
-                return _outputs;
-            }
-        }
+        public IQueryable<T> Data { get; }
 
         /// <summary>
         /// Returns the feature extractor
         /// </summary>
-        public IFloatingPointFeatureExtractor<T> FeatureExtractor
-        {
-            get
-            {
-                return _featureExtractor;
-            }
-        }
+        public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
 
         /// <summary>
         /// Returns the size of the vector returned
@@ -84,35 +57,8 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Retores the state of the pipeline from a previously exported <see cref="PortableDataDocument"/>
         /// </summary>
-        public void RestoreState(PortableDataDocument data) => _featureExtractor.ImportData(data);
-
-        /// <summary>
-        /// Filters features by property
-        /// </summary>
-        public IFeatureProcessingPipeline<T> FilterFeaturesByProperty(Action<PropertySelector<T>> selector)
-        {
-            var ps = new PropertySelector<T>();
-
-            selector(ps);
-
-            if (ps.SelectedProperties.Any())
-            {
-                FilterFeatures(f => ps.SelectedProperties.Contains(f.Label));
-            }
-
-            return this;
-        }
-
-        /// <summary>
-        /// Filters features using the specified predicate function
-        /// </summary>
-        public IFeatureProcessingPipeline<T> FilterFeatures(Func<IFeature, bool> featureFilter)
-        {
-            _featureExtractor.FilterFeatures(featureFilter);
-
-            return this;
-        }
-
+        public void RestoreState(PortableDataDocument data) => _featureExtractor = TransformingFeatureExtractor<T>.Create(data);
+        
         public IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
         {
             var minMax = ExtractColumnVectors().MinMaxAndMeanOfEachDimension();
@@ -153,7 +99,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="numberOfDimensions">The (max) number of features to retain</param>
         /// <param name="sampleSize">The size of the sample to use for analysis</param>
-        /// <param name="parameters">The parameters used to affect the clustering process</param>
+        /// <param name="configure">Configure the parameters used to affect the clustering process</param>
         /// <returns>The feature processing pipeline with the transform applied</returns>
         public IFeatureProcessingPipeline<T> KohonenSomFeatureReduction(int numberOfDimensions, int sampleSize = 100, Action<ClusteringParameters> configure = null)
         {
@@ -186,24 +132,14 @@ namespace LinqInfer.Learning.Features
         /// <returns>The current <see cref="FeatureProcessingPipeline{T}"/></returns>
         public IFeatureProcessingPipeline<T> PreprocessWith(ISerialisableDataTransformation transformation)
         {
-            _featureExtractor.PreprocessWith(transformation);
+            _featureExtractor.AddTransform(transformation);
 
             return this;
         }
 
         internal FeatureProcessingPipeline<T> Limit(int numberOfSamples)
         {
-            return new FeatureProcessingPipeline<T>(_data.Take(numberOfSamples), FeatureExtractor);
-        }
-
-        internal void OutputResults(IBinaryPersistable result, string name)
-        {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Name is missing");
-
-            foreach (var output in _outputs)
-            {
-                output.Store(name, result);
-            }
+            return new FeatureProcessingPipeline<T>(Data.Take(numberOfSamples), FeatureExtractor);
         }
 
         public ExecutionPipline<TResult> ProcessWith<TResult>(Func<IFeatureProcessingPipeline<T>, string, TResult> processor)
@@ -253,7 +189,7 @@ namespace LinqInfer.Learning.Features
         {
             var fe = FeatureExtractor;
 
-            foreach (var batch in _data.Chunk())
+            foreach (var batch in Data.Chunk())
             {
                 foreach (var item in batch)
                 {
@@ -269,7 +205,7 @@ namespace LinqInfer.Learning.Features
         {
             var fe = FeatureExtractor;
 
-            foreach (var batch in _data.Chunk(batchSize))
+            foreach (var batch in Data.Chunk(batchSize))
             {
                 yield return batch.Select(b => new ObjectVectorPair<T>(b, fe.ExtractIVector(b))).ToList();
             }

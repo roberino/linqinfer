@@ -21,7 +21,7 @@ namespace LinqInfer.TextCrawler
             Console.ReadKey();
         }
 
-        private static async Task Run(Options options)
+        static async Task Run(Options options)
         {
             if(options.OutputPath == "i")
             {
@@ -33,7 +33,7 @@ namespace LinqInfer.TextCrawler
             }
         }
 
-        private static async Task Index(Options options)
+        static async Task Index(Options options)
         {
             var index = await new Uri(options.Url).CreateIndexAsync(new CancellationTokenSource(15000).Token);
 
@@ -45,7 +45,7 @@ namespace LinqInfer.TextCrawler
             }
         }
 
-        private static async Task Extract(Options options)
+        static async Task Extract(Options options)
         {
             var vectors = await new Uri(options.Url).ExtractVectors(
                 new CancellationTokenSource(1200000).Token,

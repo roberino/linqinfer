@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal class AsyncEnumerator<T> : IAsyncEnumerator<T>
+    class AsyncEnumerator<T> : IAsyncEnumerator<T>
     {
-        private readonly IEnumerable<Task<IList<T>>> _batchLoader;
-        private readonly IList<Func<T, bool>> _filters;
-        private readonly long? _limit;
+        readonly IEnumerable<Task<IList<T>>> _batchLoader;
+        readonly IList<Func<T, bool>> _filters;
+        readonly long? _limit;
 
-        private bool _isDisposed;
+        bool _isDisposed;
 
         public AsyncEnumerator(
             IEnumerable<Task<IList<T>>> batchLoader, 
@@ -117,7 +117,7 @@ namespace LinqInfer.Data.Pipes
             return new AsyncEnumerator<T>(_batchLoader, EstimatedTotalCount, maxNumberOfItems, _filters);
         }
 
-        private async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
+        async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
         {
             ArgAssert.AssertNonNull(processor, nameof(processor));
 
@@ -164,7 +164,7 @@ namespace LinqInfer.Data.Pipes
             return true;
         }
 
-        private IList<T> Filter(IList<T> items)
+        IList<T> Filter(IList<T> items)
         {
             if (_filters.Count == 0) return items;
 

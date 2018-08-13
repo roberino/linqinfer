@@ -5,8 +5,8 @@ namespace LinqInfer.Data.Remoting
 {
     public sealed class RouteBinder
     {
-        private readonly RoutingHandler _routes;
-        private readonly FunctionBinder _binder;
+        readonly RoutingHandler _routes;
+        readonly FunctionBinder _binder;
 
         internal RouteBinder(IUriRoute route, RoutingHandler handler, FunctionBinder binder)
         {

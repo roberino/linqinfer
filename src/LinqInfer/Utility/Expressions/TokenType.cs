@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal static class TokenTypeExtensions
+    static class TokenTypeExtensions
     {
         public static string AsString(this ExpressionType expressionType)
         {
@@ -167,7 +167,7 @@ namespace LinqInfer.Utility.Expressions
         }
     }
 
-    internal enum TokenType
+    enum TokenType
     {
         Unknown,
         Root,

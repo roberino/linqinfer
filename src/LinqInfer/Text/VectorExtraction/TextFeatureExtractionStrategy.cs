@@ -12,8 +12,8 @@ namespace LinqInfer.Text.VectorExtraction
     class TextFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
         where T : class
     {
-        private readonly int _maxVectorSize;
-        private readonly ITokeniser _tokeniser;
+        readonly int _maxVectorSize;
+        readonly ITokeniser _tokeniser;
 
         public TextFeatureExtractionStrategy(int maxVectorSize = 128, ITokeniser tokeniser = null)
         {
@@ -26,12 +26,12 @@ namespace LinqInfer.Text.VectorExtraction
             return new Builder(Properties, _maxVectorSize, _tokeniser);
         }
 
-        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
-            private readonly int _maxVectorSize;
-            private readonly DocumentIndex _index;
-            private readonly IList<PropertyExtractor<T>> _properties;
-            private int _counter;
+            readonly int _maxVectorSize;
+            readonly DocumentIndex _index;
+            readonly IList<PropertyExtractor<T>> _properties;
+            int _counter;
 
             public Builder(IList<PropertyExtractor<T>> properties, int maxVectorSize = 128, ITokeniser tokeniser = null)
             {
@@ -63,7 +63,7 @@ namespace LinqInfer.Text.VectorExtraction
                 return Task.FromResult(true);
             }
 
-            private string GetText(T item)
+            string GetText(T item)
             {
                 var sb = new StringBuilder();
 

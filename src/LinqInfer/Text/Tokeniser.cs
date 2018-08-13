@@ -74,7 +74,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private Token YieldToken(StringBuilder currentToken, Token lastToken, TokenType type, int i)
+        Token YieldToken(StringBuilder currentToken, Token lastToken, TokenType type, int i)
         {
             Token nextToken = null;
 

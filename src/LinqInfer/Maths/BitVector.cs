@@ -9,7 +9,7 @@ namespace LinqInfer.Maths
 {
     public class BitVector : IEnumerable<bool>, IVector
     {
-        private readonly byte[] _data;
+        readonly byte[] _data;
 
         public BitVector(params bool[] values)
         {
@@ -28,7 +28,7 @@ namespace LinqInfer.Maths
             Size = vectorSize;
         }
 
-        private BitVector(byte[] data, int size)
+        BitVector(byte[] data, int size)
         {
             ArgAssert.AssertNonNull(data, nameof(data));
             ArgAssert.AssertLessThan(data.Length / 8, size, nameof(size));
@@ -239,7 +239,7 @@ namespace LinqInfer.Maths
             return new BitVector(data.Select(x => x >= threshold).ToArray());
         }
 
-        private static byte[] Encode(bool[] values)
+        static byte[] Encode(bool[] values)
         {
             Contract.Requires(values != null);
 
@@ -253,7 +253,7 @@ namespace LinqInfer.Maths
             return data;
         }
 
-        private static byte[] Encode(IEnumerable<int> hotIndexes, int vectorSize)
+        static byte[] Encode(IEnumerable<int> hotIndexes, int vectorSize)
         {
             Contract.Requires(hotIndexes != null);
 
@@ -267,7 +267,7 @@ namespace LinqInfer.Maths
             return data;
         }
 
-        private static byte[] GetByteStore(int len)
+        static byte[] GetByteStore(int len)
         {
             return new byte[len / 8 + 1];
         }

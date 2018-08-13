@@ -18,15 +18,8 @@ namespace LinqInfer.UnitTests.Learning
     [TestFixture]
     public class AsyncPipelineExtensionsTests
     {
-        class D
-        {
-            public int x { get; set; }
-            public int y { get; set; }
-            public string c { get;set; }
-        }
-
         [Test]
-        public async Task BasicSoftmax()
+        public async Task AttachMultilayerNetworkClassifier_SoftmaxClassifierWithLinearDataSet_ClassifiesCorrectly()
         {
             var data = new[]
             {
@@ -69,8 +62,7 @@ namespace LinqInfer.UnitTests.Learning
             {
                 b.ConfigureSoftmaxNetwork(4, p =>
                 {
-                    p.ErrorHistoryCount = 150;
-                    p.HaltingFunction = (_, s) => s.AverageError < 0.4 || s.Trend > 0.1;
+                    p.HaltingFunction = (_, s) => s.AverageError < 0.4;
                     p.LearningRate = 0.005;
                 });
             });
@@ -215,7 +207,7 @@ namespace LinqInfer.UnitTests.Learning
             return pipeline;
         }
 
-        private static AsyncBatch<TestData.Pirate> Load(int n)
+        static AsyncBatch<TestData.Pirate> Load(int n)
         {
             var items = Task.FromResult(
                     (IList<TestData.Pirate>)Enumerable.Range(0, 10)

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Utility
 {
-    internal class DynamicEqualityComparer<T> : IEqualityComparer<T>
+    class DynamicEqualityComparer<T> : IEqualityComparer<T>
     {
-        private readonly Func<T, T, bool> _compareFunc;
-        private readonly Func<T, int> _hashCodeFunc;
-        private readonly bool _isClass;
+        readonly Func<T, T, bool> _compareFunc;
+        readonly Func<T, int> _hashCodeFunc;
+        readonly bool _isClass;
 
         public DynamicEqualityComparer(Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
         {

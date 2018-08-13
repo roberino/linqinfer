@@ -7,10 +7,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public class ActivatorExpression
     {
-        private readonly Expression<Func<double, double>> _activatorExpression;
-        private readonly Expression<Func<double, double>> _derivativeExpression;
-        private readonly Lazy<Func<double, double>> _activator;
-        private readonly Lazy<Func<double, double>> _derivative;
+        readonly Expression<Func<double, double>> _activatorExpression;
+        readonly Expression<Func<double, double>> _derivativeExpression;
+        readonly Lazy<Func<double, double>> _activator;
+        readonly Lazy<Func<double, double>> _derivative;
 
         public ActivatorExpression(string name,
             Expression<Func<double, double>> activatorExpression,

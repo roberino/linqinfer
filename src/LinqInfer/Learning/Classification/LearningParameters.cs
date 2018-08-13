@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification
     {
         internal const double DefaultLearningRate = 0.1f;
 
-        private Func<LearningParameters, TrainingStatus, bool> _haltingFunction;
+        Func<LearningParameters, TrainingStatus, bool> _haltingFunction;
 
         public LearningParameters()
         {
@@ -98,7 +98,7 @@ namespace LinqInfer.Learning.Classification
             ArgAssert.AssertGreaterThanZero(LearningRate, nameof(LearningRate));
         }
 
-        private void SetDefaultHaltingFunction()
+        void SetDefaultHaltingFunction()
         {
             _haltingFunction = (p, s) => (p.MaxIterations.HasValue && s.Iteration >= p.MaxIterations.Value) || s.AverageError <= p.MinimumError;
         }

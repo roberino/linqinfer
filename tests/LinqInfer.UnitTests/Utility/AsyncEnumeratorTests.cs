@@ -33,7 +33,7 @@ namespace LinqInfer.UnitTests.Utility
             Assert.That(results.Zip(expected, (s1, s2) => s1 == s2).All(x => x));
         }
 
-        private IEnumerable<Task<IList<string>>> GetData()
+        IEnumerable<Task<IList<string>>> GetData()
         {
             foreach (var n in Enumerable.Range(0, 10))
             {

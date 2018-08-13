@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class TcpReceiveContext : IDisposable
+    class TcpReceiveContext : IDisposable
     {
         public TcpReceiveContext(Socket client)
         {

@@ -10,8 +10,8 @@ namespace LinqInfer.Text
 {
     public class SemanticSet : IImportableExportableSemanticSet
     {
-        private readonly IDictionary<string, int> _words;
-        private readonly Lazy<IDictionary<int, string>> _wordset;
+        readonly IDictionary<string, int> _words;
+        readonly Lazy<IDictionary<int, string>> _wordset;
 
         public SemanticSet(ISet<string> words)
         {

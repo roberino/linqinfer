@@ -1,4 +1,5 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -8,8 +9,8 @@ namespace LinqInfer.Learning.Features
 {
     public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>
     {
-        private readonly OneHotEncoding<TCategory> _encoder;
-        private readonly Func<TInput, TCategory> _categorySelector;
+        readonly OneHotEncoding<TCategory> _encoder;
+        readonly Func<TInput, TCategory> _categorySelector;
 
         internal CategoricalFeatureExtractor(Func<TInput, TCategory> categorySelector, IEnumerable<IFeature> features, ISet<TCategory> categories = null)
         {
@@ -32,14 +33,7 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public virtual void Save(Stream stream)
-        {
-            var sz = new DictionarySerialiser<TCategory, int>();
-
-            sz.Write(_encoder.Lookup, stream);
-        }
-
-        public virtual void Load(Stream stream)
+        void Load(Stream stream)
         {
             var sz = new DictionarySerialiser<TCategory, int>();
 
@@ -49,6 +43,22 @@ namespace LinqInfer.Learning.Features
             {
                 _encoder.Lookup[item.Key] = item.Value;
             }
+        }
+
+        public PortableDataDocument ExportData()
+        {
+            var doc = new PortableDataDocument();
+
+            using (var ms = new MemoryStream())
+            {
+                var sz = new DictionarySerialiser<TCategory, int>();
+
+                sz.Write(_encoder.Lookup, ms);
+
+                doc.Blobs.Add(nameof(_encoder.Lookup), ms.ToArray());
+            }
+
+            return doc;
         }
     }
 }

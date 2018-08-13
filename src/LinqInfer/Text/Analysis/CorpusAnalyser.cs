@@ -7,15 +7,15 @@ using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class CorpusAnalyser
+    class CorpusAnalyser
     {
-        private readonly int _vectorSize = 1024;
+        readonly int _vectorSize = 1024;
 
-        private readonly DocumentIndex _index;
-        private readonly DiscreteMarkovChain<string> _markovChain;
-        private readonly Matrix _documentTermMatrix;
+        readonly DocumentIndex _index;
+        readonly DiscreteMarkovChain<string> _markovChain;
+        readonly Matrix _documentTermMatrix;
 
-        private IFloatingPointFeatureExtractor<IEnumerable<IToken>> _featureExtractor;
+        IFloatingPointFeatureExtractor<IEnumerable<IToken>> _featureExtractor;
 
         public CorpusAnalyser(IEnumerable<TokenisedTextDocument> samples)
         {
@@ -76,7 +76,7 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        private Matrix Analyse(IEnumerable<TokenisedTextDocument> samples)
+        Matrix Analyse(IEnumerable<TokenisedTextDocument> samples)
         {
             foreach (var sample in samples) Append(sample);
 
@@ -85,7 +85,7 @@ namespace LinqInfer.Text.Analysis
             return new Matrix(samples.Select(s => _featureExtractor.ExtractIVector(s.Tokens).ToColumnVector()));
         }
 
-        private void Append(TokenisedTextDocument document)
+        void Append(TokenisedTextDocument document)
         {
             _index.IndexDocument(document);
 

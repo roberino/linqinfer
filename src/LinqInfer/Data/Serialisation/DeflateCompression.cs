@@ -3,9 +3,9 @@ using System.IO.Compression;
 
 namespace LinqInfer.Data.Serialisation
 {
-    internal class DeflateCompression<T> : IBinaryPersistable where T : IBinaryPersistable
+    class DeflateCompression<T> : IBinaryPersistable where T : IBinaryPersistable
     {
-        private readonly T _instance;
+        readonly T _instance;
 
         public DeflateCompression(T instance)
         {

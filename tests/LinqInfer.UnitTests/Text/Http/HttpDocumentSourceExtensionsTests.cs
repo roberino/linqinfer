@@ -12,9 +12,9 @@ namespace LinqInfer.UnitTests.Text.Http
     [TestFixture]
     public class HttpDocumentSourceExtensionsTests
     {
-        private readonly Uri _defaultUrl = new Uri("http://x/");
+        readonly Uri _defaultUrl = new Uri("http://x/");
 
-        private IAsyncEnumerator<HttpDocument> CreateDocumentSource()
+        IAsyncEnumerator<HttpDocument> CreateDocumentSource()
         {
             var doc = new HttpDocument(_defaultUrl, "big bad wolf".Tokenise());
 

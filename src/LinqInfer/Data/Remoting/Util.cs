@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal static class Util
+    static class Util
     {
         public const string UriSchemeHttp = "http";
 

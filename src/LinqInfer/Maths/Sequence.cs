@@ -11,7 +11,7 @@ namespace LinqInfer.Maths
     /// </summary>
     public sealed class Sequence<T> : IEnumerable<T>, IEquatable<IEnumerable<T>>, IStructuralEquatable where T : IEquatable<T>
     {
-        private readonly T[] _values;
+        readonly T[] _values;
 
         /// <summary>
         /// Creates a new sequence of a given size

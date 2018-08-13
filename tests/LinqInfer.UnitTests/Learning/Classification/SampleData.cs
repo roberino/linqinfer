@@ -6,7 +6,7 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.UnitTests.Learning.Classification
 {
-    internal static class SampleData
+    static class SampleData
     {
         public static IEnumerable<TrainingPair<IVector, IVector>> SetupData()
         {

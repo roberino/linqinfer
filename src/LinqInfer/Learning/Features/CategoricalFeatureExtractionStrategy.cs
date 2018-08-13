@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class CategoricalFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
+    class CategoricalFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
     {
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
@@ -20,9 +20,9 @@ namespace LinqInfer.Learning.Features
             return new Builder(Properties);
         }
 
-        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
-            private readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
+            readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
 
             public Builder(IEnumerable<PropertyExtractor<T>> properties)
             {
@@ -64,7 +64,7 @@ namespace LinqInfer.Learning.Features
                 return Task.FromResult(true);
             }
 
-            private string GetValue(T item, PropertyExtractor<T> property)
+            string GetValue(T item, PropertyExtractor<T> property)
             {
                 return property.GetValue(item)?.ToString() ?? string.Empty;
             }

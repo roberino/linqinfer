@@ -18,39 +18,39 @@ namespace LinqInfer.Maths
     /// conditioned, or even singular, so the validity of the equation
     /// A = V*D*Inverse(V) depends upon V.cond().
     /// </summary>
-    internal class EigenvalueDecomposition
+    class EigenvalueDecomposition
     {
         #region	 Class variables
 
         /// <summary>Row and column dimension (square matrix).
         /// @serial matrix dimension.
         /// </summary>
-        private int n;
+        int n;
 
         /// <summary>Symmetry flag.
         /// @serial internal symmetry flag.
         /// </summary>
-        private bool issymmetric;
+        bool issymmetric;
 
         /// <summary>Arrays for internal storage of eigenvalues.
         /// @serial internal storage of eigenvalues.
         /// </summary>
-        private double[] d, e;
+        double[] d, e;
 
         /// <summary>Array for internal storage of eigenvectors.
         /// @serial internal storage of eigenvectors.
         /// </summary>
-        private double[][] V;
+        double[][] V;
 
         /// <summary>Array for internal storage of nonsymmetric Hessenberg form.
         /// @serial internal storage of nonsymmetric Hessenberg form.
         /// </summary>
-        private double[][] H;
+        double[][] H;
 
         /// <summary>Working storage for nonsymmetric algorithm.
         /// @serial working storage for nonsymmetric algorithm.
         /// </summary>
-        private double[] ort;
+        double[] ort;
 
         /// <summary>Check for symmetry, then construct the eigenvalue decomposition</summary>
         public EigenvalueDecomposition(Matrix matrix)
@@ -191,7 +191,7 @@ namespace LinqInfer.Maths
 
         // Symmetric Householder reduction to tridiagonal form.
 
-        private void tred2()
+        void tred2()
         {
             //  This is derived from the Algol procedures tred2 by
             //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
@@ -328,7 +328,7 @@ namespace LinqInfer.Maths
             e[0] = 0.0;
         }
 
-        private static double Hypot(double a, double b)
+        static double Hypot(double a, double b)
         {
             double r;
             if (Math.Abs(a) > Math.Abs(b))
@@ -350,7 +350,7 @@ namespace LinqInfer.Maths
 
         // Symmetric tridiagonal QL algorithm.
 
-        private void tql2()
+        void tql2()
         {
             //  This is derived from the Algol procedures tql2, by
             //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
@@ -484,7 +484,7 @@ namespace LinqInfer.Maths
 
         // Nonsymmetric reduction to Hessenberg form.
 
-        private void orthes()
+        void orthes()
         {
             //  This is derived from the Algol procedures orthes and ortran,
             //  by Martin and Wilkinson, Handbook for Auto. Comp.,
@@ -597,9 +597,9 @@ namespace LinqInfer.Maths
 
         // Complex scalar division.
 
-        private double cdivr, cdivi;
+        double cdivr, cdivi;
 
-        private void cdiv(double xr, double xi, double yr, double yi)
+        void cdiv(double xr, double xi, double yr, double yi)
         {
             double r, d;
             if (System.Math.Abs(yr) > System.Math.Abs(yi))
@@ -621,7 +621,7 @@ namespace LinqInfer.Maths
 
         // Nonsymmetric reduction from Hessenberg to real Schur form.
 
-        private void hqr2()
+        void hqr2()
         {
             //  This is derived from the Algol procedure hqr2,
             //  by Martin and Wilkinson, Handbook for Auto. Comp.,

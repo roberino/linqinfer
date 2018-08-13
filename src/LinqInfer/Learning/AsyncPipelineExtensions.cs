@@ -3,10 +3,12 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning
 {
@@ -51,6 +53,17 @@ namespace LinqInfer.Learning
         /// Creates an asyncronous pipeline, given a feature extractor
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
+            this IEnumerable<TInput> dataset,
+            IFloatingPointFeatureExtractor<TInput> featureExtractor)
+            where TInput : class
+        {
+            return new AsyncFeatureProcessingPipeline<TInput>(dataset.AsAsyncEnumerator(), featureExtractor);
+        }
+
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor
+        /// </summary>
+        internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             IFloatingPointFeatureExtractor<TInput> featureExtractor)
             where TInput : class
@@ -63,11 +76,11 @@ namespace LinqInfer.Learning
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
-            Func<TInput, IVector> featureExtractorFunction,
+            Expression<Func<TInput, IVector>> featureExtractorFunction,
             int vectorSize)
             where TInput : class
         {
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunction, vectorSize);
+            var featureExtractor = new ExpressionFeatureExtractor<TInput>(featureExtractorFunction, vectorSize);
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
         }
 

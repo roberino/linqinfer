@@ -4,10 +4,10 @@ using System.Text;
 
 namespace LinqInfer.Text
 {
-    internal class StreamTokeniser
+    class StreamTokeniser
     {
-        private readonly ITokeniser _tokeniser;
-        private readonly Encoding _encoding;
+        readonly ITokeniser _tokeniser;
+        readonly Encoding _encoding;
 
         public StreamTokeniser(Encoding encoding = null, ITokeniser tokeniser = null)
         {

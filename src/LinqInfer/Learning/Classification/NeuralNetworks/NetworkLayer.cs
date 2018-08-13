@@ -9,12 +9,12 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class NetworkLayer : ILayer
+    class NetworkLayer : ILayer
     {
-        private readonly IList<INeuron> _neurons;
-        private readonly Func<int, IList<INeuron>> _neuronsFactory;
-        private readonly LayerSpecification _spec;
-        private Vector _output;
+        readonly IList<INeuron> _neurons;
+        readonly Func<int, IList<INeuron>> _neuronsFactory;
+        readonly LayerSpecification _spec;
+        Vector _output;
 
         public NetworkLayer(int inputVectorSize, LayerSpecification specification)
         {
@@ -129,7 +129,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neurons.ForEach(func);
         }
 
-        private void OnCalculate(ColumnVector1D vector)
+        void OnCalculate(ColumnVector1D vector)
         {
             Calculation?.Invoke(this, new ColumnVector1DEventArgs(vector));
         }

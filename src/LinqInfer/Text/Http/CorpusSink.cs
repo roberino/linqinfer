@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    internal class CorpusSink : IBuilderSink<HttpDocument, ICorpus>
+    class CorpusSink : IBuilderSink<HttpDocument, ICorpus>
     {
-        private readonly Corpus _corpus;
-        private int _received;
+        readonly Corpus _corpus;
+        int _received;
 
         public CorpusSink(int maxCapacity = 1000)
         {

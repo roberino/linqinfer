@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetwork :
+    class MultilayerNetwork :
         ICloneableObject<MultilayerNetwork>,
         IHasNetworkTopology,
         IVectorClassifier,
         ISerialisableDataTransformation
     {
-        private INetworkSignalFilter _rootLayer;
-        private bool _initd;
+        INetworkSignalFilter _rootLayer;
+        bool _initd;
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
         {
@@ -119,7 +119,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        private void InitialiseLayers()
+        void InitialiseLayers()
         {
             Specification.Initialise();
 
@@ -241,7 +241,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Clone(true);
         }
 
-        private IEnumerable<INeuron> AllNeurons()
+        IEnumerable<INeuron> AllNeurons()
         {
             foreach (var layer in Layers)
             {

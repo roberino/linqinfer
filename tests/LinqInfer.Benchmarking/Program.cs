@@ -19,7 +19,7 @@ namespace LinqInfer.Benchmarking
             //}
         }
 
-        private static void TestMatrixManual()
+        static void TestMatrixManual()
         {
             var test = new MatrixBenchmarks()
             {
@@ -31,7 +31,7 @@ namespace LinqInfer.Benchmarking
             test.Matrix_Multiply();
         }
 
-        private static void TestNetManual()
+        static void TestNetManual()
         {
             var test = new MultilayerNetworkBenchmarks()
             {

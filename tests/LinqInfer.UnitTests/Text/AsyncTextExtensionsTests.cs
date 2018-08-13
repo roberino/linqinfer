@@ -29,7 +29,7 @@ namespace LinqInfer.UnitTests.Text
             Assert.That(objectVectorPairs.All(v => v.Vector.Size > 0));
         }
 
-        private static AsyncBatch<UnitTests.TestData.Pirate> Load(int n)
+        static AsyncBatch<UnitTests.TestData.Pirate> Load(int n)
         {
             var items = Task.FromResult(
                     (IList<UnitTests.TestData.Pirate>)Enumerable.Range(0, 10)

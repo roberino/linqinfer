@@ -3,7 +3,7 @@ using System.IO.Compression;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class DeflateCompressionProvider : ICompressionProvider
+    class DeflateCompressionProvider : ICompressionProvider
     {
         public string Name { get { return "deflate"; } }
 

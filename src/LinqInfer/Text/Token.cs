@@ -11,7 +11,7 @@ namespace LinqInfer.Text
         }
     }
 
-    internal class Token : IToken
+    class Token : IToken
     {
         public Token(string value, int index, TokenType? type = null)
         {

@@ -7,8 +7,8 @@ namespace LinqInfer.Data.Remoting
 {
     class MessageSink<T> : IAsyncSink<T>
     {
-        private readonly IMessagePublisher _messagePublisher;
-        private readonly Func<IBatch<T>, Message> _messageConverter;
+        readonly IMessagePublisher _messagePublisher;
+        readonly Func<IBatch<T>, Message> _messageConverter;
 
         public MessageSink(IMessagePublisher messagePublisher, Func<IBatch<T>, Message> messageConverter)
         {

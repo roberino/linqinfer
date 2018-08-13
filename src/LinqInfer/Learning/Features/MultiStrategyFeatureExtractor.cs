@@ -1,21 +1,18 @@
-﻿using LinqInfer.Data;
+﻿using System;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class MultiStrategyFeatureExtractor<T> : 
+    class MultiStrategyFeatureExtractor<T> : 
         IFloatingPointFeatureExtractor<T>,
-        IExportableAsDataDocument,
         IImportableFromDataDocument
     {
-        private readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
+        readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
 
-        public MultiStrategyFeatureExtractor(IFloatingPointFeatureExtractor<T>[] featureExtractionStrategies)
+        public MultiStrategyFeatureExtractor(params IFloatingPointFeatureExtractor<T>[] featureExtractionStrategies)
         {
             _featureExtractionStrategies = featureExtractionStrategies;
         }
@@ -44,17 +41,14 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public void Load(Stream input)
+        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc,
+            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader)
         {
-            var xml = XDocument.Load(input);
-            var doc = new PortableDataDocument(xml);
+            var featureExtractionStrategies = doc.Children
+                .Select(baseFeatureExtractorLoader)
+                .ToArray();
 
-            ImportData(doc);
-        }
-
-        public void Save(Stream output)
-        {
-            ExportData().ExportAsXml().Save(output);
+            return new MultiStrategyFeatureExtractor<T>(featureExtractionStrategies);
         }
 
         public PortableDataDocument ExportData()

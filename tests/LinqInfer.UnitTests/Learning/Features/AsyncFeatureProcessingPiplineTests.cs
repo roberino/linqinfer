@@ -14,17 +14,17 @@ namespace LinqInfer.UnitTests.Learning.Features
         [Test]
         public async Task ExtractBatches_WhenGivenADataLoadingFunction_ReturnsExpectedObjectsAndExtractedVectors()
         {
-            var fe = new DelegatingFloatingPointFeatureExtractor<string>(x => Vector.FromCsv(x).GetUnderlyingArray(), 2, new[] { "a", "b" });
+            var fe = new ExpressionFeatureExtractor<string>(x => Vector.FromCsv(x, ','), 2);
 
             var pipeline = new AsyncFeatureProcessingPipeline<string>(Loader().AsAsyncEnumerator(), fe);
 
-            int n = 0;
+            var n = 0;
 
             foreach(var batch in pipeline.ExtractBatches().Items)
             {
                 var items = await batch;
 
-                int m = 0;
+                var m = 0;
 
                 foreach(var item in items)
                 {
@@ -39,7 +39,7 @@ namespace LinqInfer.UnitTests.Learning.Features
             }
         }
 
-        private IEnumerable<Task<IList<string>>> Loader()
+        static IEnumerable<Task<IList<string>>> Loader()
         {
             return Enumerable.Range(0, 10)
                 .Select(n => Task<IList<string>>.Factory.StartNew(() =>

@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal class Scope
+    class Scope
     {
-        private readonly IDictionary<Type, FunctionBinder> _binders;
+        readonly IDictionary<Type, FunctionBinder> _binders;
 
         public Scope(Expression currentContext, Scope globalContext = null, bool? isRoot = null, Type conversionType = null)
         {

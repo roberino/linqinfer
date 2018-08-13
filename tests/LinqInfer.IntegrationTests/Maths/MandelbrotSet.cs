@@ -11,7 +11,7 @@ namespace LinqInfer.IntegrationTests.Maths
     [TestFixture]
     public class MandelbrotSet : TestFixtureBase
     {
-        private XDocument GetTemplate()
+        XDocument GetTemplate()
         {
             return GetResourceAsXml("CanvasTemplate.html");
         }
@@ -76,7 +76,7 @@ namespace LinqInfer.IntegrationTests.Maths
             SaveArtifact("mandelbrot.html", doc.Save);
         }
 
-        private void Print(string msg, params object[] args)
+        void Print(string msg, params object[] args)
         {
 
         }

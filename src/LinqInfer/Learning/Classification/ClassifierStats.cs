@@ -7,8 +7,8 @@ namespace LinqInfer.Learning.Classification
 {
     public sealed class ClassifierStats : IExportableAsDataDocument, IImportableFromDataDocument, ICloneableObject<ClassifierStats>
     {
-        private long _classificationCount;
-        private long _trainingInterationCount;
+        long _classificationCount;
+        long _trainingInterationCount;
 
         internal ClassifierStats()
         {

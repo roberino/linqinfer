@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    internal class FunctionBinder
+    class FunctionBinder
     {
         readonly IDictionary<string, MethodInfo[]> _methods;
 

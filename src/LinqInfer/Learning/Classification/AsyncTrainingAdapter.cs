@@ -8,13 +8,13 @@ using System.Threading;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class AsyncTrainingAdapter<TInput, TClass, TProcessor>
+    class AsyncTrainingAdapter<TInput, TClass, TProcessor>
         : IAsyncSink<TrainingPair<IVector, IVector>>
         where TInput : class
         where TClass : IEquatable<TClass>
         where TProcessor : IAssistedLearningProcessor
     {
-        private readonly Func<int, double, bool> _haltingFunction;
+        readonly Func<int, double, bool> _haltingFunction;
 
         public AsyncTrainingAdapter(TProcessor learningProcessor, Func<int, double, bool> haltingFunction)
         {

@@ -9,10 +9,10 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
+    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly OneHotEncoding<string> _encoder;
-        private readonly Func<T, string[]> _objectToStringTransform;
+        readonly OneHotEncoding<string> _encoder;
+        readonly Func<T, string[]> _objectToStringTransform;
 
         public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
         {

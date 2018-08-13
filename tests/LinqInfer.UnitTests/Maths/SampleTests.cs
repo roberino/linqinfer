@@ -49,9 +49,9 @@ namespace LinqInfer.UnitTests.Maths
             Console.WriteLine("Probability of a jack given a face card: " + calc.PosterierProbabilityOfEventBGivenA(jacks, faces));
         }
 
-        private static Card Card_(char c, int n) { return new Card(c, n); }
+        static Card Card_(char c, int n) { return new Card(c, n); }
 
-        private class Card : Tuple<char, int>
+        class Card : Tuple<char, int>
         {
             public Card(char f, int n) : base(f, n)
             {

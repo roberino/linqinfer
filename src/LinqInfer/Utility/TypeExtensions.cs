@@ -3,26 +3,59 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LinqInfer.Utility
 {
-    public static class TypeExtensions
+    static class TypeExtensions
     {
-        private static readonly Type NullableType = typeof(Nullable<>);
+        static readonly Type NullableType = typeof(Nullable<>);
 
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
             return obj
                 .GetType()
-                .GetTypeInfo()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanRead)
                 .ToDictionary(k => k.Name, v => v.GetValue(obj));
         }
 
-        public static IEnumerable<Type> FindTypesFromSameAssembly<T>(this object obj, Func<Type, bool> predicate = null)
+        public static string ToDictionaryString<T>(this IDictionary<string, T> values)
         {
-            return obj.GetType().GetTypeInf().Assembly.FindTypes<T>(predicate);
+            return values
+                .Aggregate(new StringBuilder(), (s, kv) => s.Append($"{kv.Key}={Regex.Escape(kv.Value?.ToString() ?? string.Empty)}|"))
+                .ToString();
+        }
+
+        public static IDictionary<string, T> FromDictionaryString<T>(this string data)
+        {
+            var type = typeof(T);
+
+            return data
+                .Split('|')
+                .Select(v => new {k = v[0], v = v[1]})
+                .ToDictionary(x => x.k.ToString(), x => (T) Convert.ChangeType(x.v, type));
+        }
+
+        public static T ToObject<T>(this IDictionary<string, object> properties)
+            where T : new()
+        {
+            var result = new T();
+
+            var writable = typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite);
+
+            foreach (var prop in writable)
+            {
+                if (properties.TryGetValue(prop.Name, out object val))
+                {
+                    prop.SetValue(result, Convert.ChangeType(val, prop.PropertyType));
+                }
+            }
+
+            return result;
         }
 
         public static IEnumerable<Type> FindTypes<T>(this Assembly asm, Func<Type, bool> predicate = null)
@@ -48,22 +81,6 @@ namespace LinqInfer.Utility
             return x => match.Invoke(null, new object[] { x }) as T;
         }
 
-#if NET_STD
-        public static TypeInfo GetTypeInf<T>()
-        {
-            return typeof(T).GetTypeInfo();
-        }
-
-        public static TypeInfo GetTypeInf(this Type type)
-        {
-            return type.GetTypeInfo();
-        }
-
-        public static MethodInfo GetMethodInf(this Delegate func)
-        {
-            return func.GetMethodInfo();
-        }
-#else
         public static Type GetTypeInf<T>()
         {
             return typeof(T);
@@ -73,12 +90,6 @@ namespace LinqInfer.Utility
         {
             return type;
         }
-
-        public static MethodInfo GetMethodInf(this Delegate func)
-        {
-            return func.Method;
-        }
-#endif
 
         /// <summary>
         /// Lists flags from an enum

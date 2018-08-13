@@ -10,10 +10,10 @@ namespace LinqInfer.Learning
     /// <summary>
     /// See  https://en.wikipedia.org/wiki/K-means_clustering and https://en.wikipedia.org/wiki/Self-organizing_map
     /// </summary>
-    internal class FeatureMapperV3<T> where T : class
+    class FeatureMapperV3<T> where T : class
     {
-        private const int BATCH_SIZE = 1000;
-        private readonly ClusteringParameters _parameters;
+        const int BATCH_SIZE = 1000;
+        readonly ClusteringParameters _parameters;
 
         public FeatureMapperV3(int outputNodeCount = 10, float learningRate = 0.5f, int trainingEpochs = 1000, float? radius = null)
         {
@@ -63,7 +63,7 @@ namespace LinqInfer.Learning
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
         }
 
-        private async Task RunAsync(IAsyncFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append, CancellationToken cancellationToken)
+        async Task RunAsync(IAsyncFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append, CancellationToken cancellationToken)
         {
             await pipeline
                    .ExtractBatches()
@@ -80,7 +80,7 @@ namespace LinqInfer.Learning
                    }, cancellationToken);
         }
 
-        private void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append)
+        void Run(IFeatureProcessingPipeline<T> pipeline, HashSet<ClusterNode<T>> outputNodes, int iteration, bool append)
         {
             foreach (var batch in pipeline.ExtractBatches())
             {

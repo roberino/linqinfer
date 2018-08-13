@@ -53,7 +53,7 @@ namespace LinqInfer.UnitTests.Data.Pipes
             Assert.That(data.All(s => s.StartsWith("5_")));
         }
 
-        private static AsyncBatch<string> Load(int n)
+        static AsyncBatch<string> Load(int n)
         {
             var items = Task.FromResult(
                     (IList<string>)Enumerable.Range(0, 10)

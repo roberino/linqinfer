@@ -9,8 +9,8 @@ namespace LinqInfer.Text
 {
     public class EnglishDictionary : ISemanticSet
     {
-        private static readonly ISemanticSet _baseSet;
-        private readonly ISemanticSet _set;
+        static readonly ISemanticSet _baseSet;
+        readonly ISemanticSet _set;
 
         static EnglishDictionary()
         {
@@ -22,7 +22,7 @@ namespace LinqInfer.Text
             _set = _baseSet.Clone(true);
         }
 
-        private EnglishDictionary(SemanticSet wordSet)
+        EnglishDictionary(SemanticSet wordSet)
         {
             _set = wordSet;
         }
@@ -93,7 +93,7 @@ namespace LinqInfer.Text
             return _set.Clone(deep);
         }
 
-        private static HashSet<string> ReadFile(string name)
+        static HashSet<string> ReadFile(string name)
         {
             var data = new HashSet<string>();
 
@@ -117,7 +117,7 @@ namespace LinqInfer.Text
             return data;
         }
 
-        private static Stream GetResource(string name)
+        static Stream GetResource(string name)
         {
             var asm = typeof(EnglishDictionary).GetTypeInf().Assembly; // Assembly.GetExecutingAssembly();
             var names = asm.GetManifestResourceNames();

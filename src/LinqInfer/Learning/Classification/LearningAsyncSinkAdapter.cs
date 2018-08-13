@@ -10,9 +10,9 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class LearningAsyncSinkAdapter : IAsyncSink<TrainingPair<IVector, IVector>>
+    class LearningAsyncSinkAdapter : IAsyncSink<TrainingPair<IVector, IVector>>
     {
-        private readonly IAssistedLearningProcessor _processor;
+        readonly IAssistedLearningProcessor _processor;
 
         public LearningAsyncSinkAdapter(IAssistedLearningProcessor learningProcessor)
         {

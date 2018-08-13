@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal abstract class AsyncPipeBase<T> : IAsyncPipe<T>
+    abstract class AsyncPipeBase<T> : IAsyncPipe<T>
     {
-        private readonly List<IAsyncSink<T>> _sinks;
+        readonly List<IAsyncSink<T>> _sinks;
 
         public AsyncPipeBase()
         {

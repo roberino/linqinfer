@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class AsyncSocketWriterReader
+    class AsyncSocketWriterReader
     {
-        private readonly Socket _socket;
-        private readonly byte[] _readBuffer;
-        private readonly byte[] _writeBuffer;
+        readonly Socket _socket;
+        readonly byte[] _readBuffer;
+        readonly byte[] _writeBuffer;
 
         public AsyncSocketWriterReader(Socket socket, int bufferSize = 1024)
         {

@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class HypotheticalOutcome<T> : IHypotheticalOutcome<T>
+    class HypotheticalOutcome<T> : IHypotheticalOutcome<T>
     {
         public HypotheticalOutcome(T outcome, Fraction prior, string name = null)
         {

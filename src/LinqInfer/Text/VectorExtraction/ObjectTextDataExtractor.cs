@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class ObjectTextDataExtractor<T> : TextDataExtractor, IFloatingPointFeatureExtractor<T> where T : class
+    class ObjectTextDataExtractor<T> : TextDataExtractor, IFloatingPointFeatureExtractor<T> where T : class
     {
-        private readonly Func<T, IEnumerable<IToken>> _tokeniser;
+        readonly Func<T, IEnumerable<IToken>> _tokeniser;
 
         public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser)
         {

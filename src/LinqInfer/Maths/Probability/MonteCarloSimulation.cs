@@ -8,11 +8,11 @@ namespace LinqInfer.Maths.Probability
 {
     public class MonteCarloSimulation
     {
-        private readonly Func<ColumnVector1D, bool> _qualifyingFunc;
-        private readonly Func<Fraction, Fraction> _outputFunc;
-        private readonly int _vectorSize;
+        readonly Func<ColumnVector1D, bool> _qualifyingFunc;
+        readonly Func<Fraction, Fraction> _outputFunc;
+        readonly int _vectorSize;
 
-        private int _maxIterations;
+        int _maxIterations;
 
         public MonteCarloSimulation(Func<ColumnVector1D, bool> qualifyingFunc, int vectorSize = 2, Func<Fraction, Fraction> outputFunc = null)
         {

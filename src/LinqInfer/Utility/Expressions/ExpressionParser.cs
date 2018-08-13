@@ -22,7 +22,7 @@ namespace LinqInfer.Utility.Expressions
             return expressionTree.Build(new Scope(context)).Single();
         }
 
-        private static (string paramName, string body) GetExpressionParts(string expression)
+        static (string paramName, string body) GetExpressionParts(string expression)
         {
             var i = expression.IndexOf("=>", StringComparison.Ordinal);
 

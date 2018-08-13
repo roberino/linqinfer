@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LinqInfer.IntegrationTests
 {
-    internal static class TestData
+    static class TestData
     {
         public static IQueryable<Pirate> CreateQueryablePirates()
         {

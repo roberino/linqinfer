@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class UriRouteMapper : IUriRouteMapper
+    class UriRouteMapper : IUriRouteMapper
     {
-        private readonly UriRoute _route;
-        private readonly IList<RoutePart> _parts;
-        private readonly Func<IOwinContext, bool> _filter;
+        readonly UriRoute _route;
+        readonly IList<RoutePart> _parts;
+        readonly Func<IOwinContext, bool> _filter;
 
         public UriRouteMapper(UriRoute route, Func<IOwinContext, bool> filter = null)
         {
@@ -133,7 +133,7 @@ namespace LinqInfer.Data.Remoting
             return parameters;
         }
 
-        private IEnumerable<RoutePart> Parse(string template)
+        IEnumerable<RoutePart> Parse(string template)
         {
             if (string.IsNullOrEmpty(template)) throw new ArgumentException("Invalid route template - empty");
 

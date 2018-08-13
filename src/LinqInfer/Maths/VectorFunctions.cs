@@ -7,6 +7,11 @@ namespace LinqInfer.Maths
 {
     public static class VectorFunctions
     {
+        public static IVector ToVector(this double[] values)
+        {
+            return new ColumnVector1D(values);
+        }
+
         /// <summary>
         /// Creates a labelled matrix from a dictionary of string / vector pairs
         /// </summary>

@@ -7,9 +7,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class BackPropagationLearning : IAssistedLearningProcessor
+    class BackPropagationLearning : IAssistedLearningProcessor
     {
-        private readonly MultilayerNetwork _network;
+        readonly MultilayerNetwork _network;
 
         public BackPropagationLearning(MultilayerNetwork network)
         {
@@ -143,7 +143,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }, false);
         }
 
-        private void Validate(IVector output, IVector inputVector, IVector targetOutput)
+        void Validate(IVector output, IVector inputVector, IVector targetOutput)
         {
 #if DEBUG
             if (output.ToColumnVector().Any(double.IsNaN))

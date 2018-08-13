@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class PassThruCompressionProvider : ICompressionProvider
+    class PassThruCompressionProvider : ICompressionProvider
     {
         public string Name { get { return null; } }
 
@@ -16,9 +16,9 @@ namespace LinqInfer.Data.Remoting
             return input;
         }
 
-        private class PassThruStream : Stream
+        class PassThruStream : Stream
         {
-            private readonly Stream _innerStream;
+            readonly Stream _innerStream;
 
             public PassThruStream(Stream innerStream)
             {

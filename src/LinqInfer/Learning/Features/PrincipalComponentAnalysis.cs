@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class PrincipalComponentAnalysis
+    class PrincipalComponentAnalysis
     {
-        private readonly IEnumerable<IVector> _sampleFeatureSet;
+        readonly IEnumerable<IVector> _sampleFeatureSet;
 
         public PrincipalComponentAnalysis(IFeatureDataSource sampleFeatureSet)
         {
@@ -68,7 +68,7 @@ namespace LinqInfer.Learning.Features
             return new SerialisableDataTransformation(featureSet, mean);
         }
 
-        private Tuple<Vector, Matrix> GetEigenvalueDecomposition(Matrix sampleMatrix)
+        Tuple<Vector, Matrix> GetEigenvalueDecomposition(Matrix sampleMatrix)
         {
             var matrix = sampleMatrix;
             var meanAdjMatrix = matrix.MeanAdjust();

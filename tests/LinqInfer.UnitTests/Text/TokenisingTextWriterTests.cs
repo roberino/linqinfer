@@ -193,7 +193,7 @@ namespace LinqInfer.UnitTests.Text
             }
         }
 
-        private void TestWriteNum<T>(T value, Action<TokenisingTextWriter, T> action)
+        void TestWriteNum<T>(T value, Action<TokenisingTextWriter, T> action)
         {
             var writer = new TokenisingTextWriter();
 

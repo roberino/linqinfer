@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class ObjectClassifier<TClass, TInput, TVector> : IObjectClassifier<TClass, TInput> where TVector : struct
+    class ObjectClassifier<TClass, TInput, TVector> : IObjectClassifier<TClass, TInput> where TVector : struct
     {
-        private readonly IClassifier<TClass, TVector> _classifier;
+        readonly IClassifier<TClass, TVector> _classifier;
         protected readonly IFeatureExtractor<TInput, TVector> _featureExtract;
 
         public ObjectClassifier(

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal class AsyncPipe<T> : AsyncPipeBase<T>
+    class AsyncPipe<T> : AsyncPipeBase<T>
     {
         public AsyncPipe(IAsyncSource<T> source)
         {

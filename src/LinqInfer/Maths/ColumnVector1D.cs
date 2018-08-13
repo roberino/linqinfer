@@ -13,7 +13,7 @@ namespace LinqInfer.Maths
     /// </summary>
     public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>, IDisposable
     {
-        private Lazy<double> _euclideanLength;
+        Lazy<double> _euclideanLength;
 
         internal ColumnVector1D(Vector vector) : base(vector, false)
         {

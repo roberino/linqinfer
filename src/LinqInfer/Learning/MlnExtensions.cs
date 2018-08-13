@@ -7,6 +7,13 @@ namespace LinqInfer.Learning
 {
     public static class MlnExtensions
     {
+        public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
+            this PortableDataDocument existingClassifierData)
+            where TInput : class where TClass : IEquatable<TClass>
+        {
+            return MultilayerNetworkObjectClassifier<TClass, TInput>.Create(existingClassifierData);
+        }
+
         /// <summary>
         /// Attaches a classifier to the output of the training pipeline
         /// using previously created classifier data
