@@ -91,7 +91,14 @@ namespace LinqInfer.Utility.Expressions
                     var iffalse = ExportWithBracketsIfRequired(ce.IfFalse);
 
                     return $"({test} ? {iftrue} : {iffalse})";
+                case ExpressionType.NewArrayInit:
+                {
+                    var arrayExp = (NewArrayExpression) expression;
+                    var elems = arrayExp.Expressions.Select(a => a.ExportExpression());
+                    var elemsstr = string.Join(", ", elems);
 
+                    return $"[{elemsstr}]";
+                }
                 default:
                     throw new NotSupportedException(expression.NodeType.ToString());
             }

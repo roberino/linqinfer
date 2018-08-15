@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
@@ -7,7 +6,6 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning
 {
@@ -35,7 +33,7 @@ namespace LinqInfer.Learning
         public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Expression<Func<T, IVector>> vectorExpression, string[] featureLabels = null) where T : class
         {
             var vectorFunc = vectorExpression.Compile();
-            var size = featureLabels == null ? vectorFunc(DefaultOf<T>()).Size : featureLabels.Length;
+            var size = featureLabels?.Length ?? vectorFunc(DefaultOf<T>()).Size;
             var featureExtractor = new ExpressionFeatureExtractor<T>(vectorExpression, size, Feature.CreateDefaults(featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString())));
             var pipeline = new FeatureProcessingPipeline<T>(data, featureExtractor);
 
@@ -69,7 +67,7 @@ namespace LinqInfer.Learning
         /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
-            return new FeatureProcessingPipeline<T>(data, featureExtractor);
+            return new FeatureProcessingPipeline<T>(data, featureExtractor ?? new ObjectFeatureExtractor<T>());
         }
 
         /// <summary>

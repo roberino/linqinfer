@@ -34,6 +34,8 @@ namespace LinqInfer.Utility
 
             return data
                 .Split('|')
+                .Where(a => a.Trim().Length > 0)
+                .Select(a => a.Split('='))
                 .Select(v => new {k = v[0], v = v[1]})
                 .ToDictionary(x => x.k.ToString(), x => (T) Convert.ChangeType(x.v, type));
         }
@@ -51,7 +53,18 @@ namespace LinqInfer.Utility
             {
                 if (properties.TryGetValue(prop.Name, out object val))
                 {
-                    prop.SetValue(result, Convert.ChangeType(val, prop.PropertyType));
+                    object res;
+
+                    if (prop.PropertyType.IsEnum && val is string)
+                    {
+                        res = Enum.Parse(prop.PropertyType, val.ToString());
+                    }
+                    else
+                    {
+                        res = Convert.ChangeType(val, prop.PropertyType);
+                    }
+
+                    prop.SetValue(result, res);
                 }
             }
 

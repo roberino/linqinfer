@@ -15,8 +15,8 @@ namespace LinqInfer.Learning.Features
         internal FeatureProcessingPipeline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
         {
             Data = data;
-
-            _featureExtractor = new TransformingFeatureExtractor<T>(featureExtractor);
+            
+            _featureExtractor = featureExtractor as TransformingFeatureExtractor<T> ?? new TransformingFeatureExtractor<T>(featureExtractor ?? new ObjectFeatureExtractor<T>());
         }
 
         internal FeatureProcessingPipeline() : this(Enumerable.Empty<T>().AsQueryable())

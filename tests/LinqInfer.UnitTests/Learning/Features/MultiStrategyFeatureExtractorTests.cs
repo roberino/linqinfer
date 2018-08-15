@@ -44,23 +44,18 @@ namespace LinqInfer.UnitTests.Learning.Features
         [Test]
         public void GivenMultipleFeatureExtractors_CanExportAndImportAsVectorDocuments()
         {
-            var fe0a = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 1d ), 1);
-            var fe1a = new TransformingFeatureExtractor<string>(new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 2d, 3d), 2));
+            var fe0A = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 1d ), 1);
+            var fe1A = new TransformingFeatureExtractor<string>(new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 2d, 3d), 2));
 
-            var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(new IFloatingPointFeatureExtractor<string>[] { fe0a, fe1a });
+            var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(fe0A, fe1A);
+            
+            var transform = new SerialisableDataTransformation(new DataOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)));
 
-            var fe0b = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 1d ), 1);
-            var fe1b = new TransformingFeatureExtractor<string>(new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 2d, 3d ), 2));
-
-            var multiStrategyFeatureExtractor2 = new MultiStrategyFeatureExtractor<string>(new IFloatingPointFeatureExtractor<string>[] { fe0b, fe1b });
-
-            var transform = new SerialisableDataTransformation(new[] { new DataOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)) });
-
-            fe1a.AddTransform(transform);
+            fe1A.AddTransform(transform);
 
             var data = multiStrategyFeatureExtractor1.ExportData();
 
-            multiStrategyFeatureExtractor2.ImportData(data);
+            var multiStrategyFeatureExtractor2 = MultiStrategyFeatureExtractor<string>.Create(data);
 
             var vect1 = multiStrategyFeatureExtractor1.ExtractIVector("a");
             var vect2 = multiStrategyFeatureExtractor2.ExtractIVector("a");

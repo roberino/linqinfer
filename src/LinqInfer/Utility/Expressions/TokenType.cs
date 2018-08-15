@@ -149,6 +149,10 @@ namespace LinqInfer.Utility.Expressions
                     return TokenType.Split;
                 case '_':
                     return TokenType.Name;
+                case '[':
+                    return TokenType.ArrayOpen;
+                case ']':
+                    return TokenType.ArrayClose;
                 case '.':
                     if (currentTokenContext == TokenType.Literal) return TokenType.Literal;
                     if (currentTokenContext == TokenType.Name) return TokenType.Navigate;
@@ -181,6 +185,8 @@ namespace LinqInfer.Utility.Expressions
         Separator,
         Condition,
         Split,
-        Negation
+        Negation,
+        ArrayOpen,
+        ArrayClose
     }
 }

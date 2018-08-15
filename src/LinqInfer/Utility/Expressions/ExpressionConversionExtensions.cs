@@ -58,6 +58,9 @@ namespace LinqInfer.Utility.Expressions
 
                         break;
                     }
+                case TokenType.ArrayOpen:
+                    yield return expressionTree.AsArray(context);
+                    break;
                 case TokenType.Literal:
                     yield return expressionTree.AsLiteral(context);
                     break;
@@ -77,6 +80,17 @@ namespace LinqInfer.Utility.Expressions
             expressionTree.ValidateArgs(1, 1);
 
             return expressionTree.Children.Single().Build(context).Single();
+        }
+
+        static Expression AsArray(this ExpressionTree expressionTree, Scope context)
+        {
+            var elements = expressionTree.Children.Select(c => c.Build(context).Single()).ToArray();
+
+            var types = elements.Select(e => e.Type).Distinct().ToList();
+
+            var type = types.Count == 1 ? types[0] : typeof(object);
+
+            return Expression.NewArrayInit(type, elements);
         }
 
         static Expression AsCondition(this ExpressionTree expressionTree, Scope context)

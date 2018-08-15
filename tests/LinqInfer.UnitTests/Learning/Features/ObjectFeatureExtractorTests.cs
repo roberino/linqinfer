@@ -8,13 +8,13 @@ namespace LinqInfer.UnitTests.Learning.Features
     public class ObjectFeatureExtractorTests
     {
         [Test]
-        public void CreateFeatureExtractor_ExtractedDataIsCorrect()
+        public void ExportData_NewExtractorCanBeCreatedFromData()
         {
             var fe = new ObjectFeatureExtractor<FeatureObject>();
 
             var data = fe.ExportData();
 
-            var fe2 = ExpressionFeatureExtractor<FeatureObject>.Create(data);
+            var fe2 = ObjectFeatureExtractor<FeatureObject>.Create(data);
 
             Assert.That(fe2, Is.Not.Null);
         }

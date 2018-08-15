@@ -98,7 +98,7 @@ namespace LinqInfer.Learning
         {
             var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);
             var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum);
-            var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
+            var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor ?? new ObjectFeatureExtractor<TInput>());
 
             return pipeline;
         }

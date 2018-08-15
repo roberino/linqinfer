@@ -7,8 +7,8 @@ using System.Linq;
 namespace LinqInfer.Learning.Features
 {
     class MultiStrategyFeatureExtractor<T> : 
-        IFloatingPointFeatureExtractor<T>,
-        IImportableFromDataDocument
+        IFloatingPointFeatureExtractor<T>
+        where T : class
     {
         readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
 
@@ -33,17 +33,14 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public void ImportData(PortableDataDocument doc)
-        {
-            for (var i = 0; i < _featureExtractionStrategies.Length; i++)
-            {
-                doc.ReadChildObject(_featureExtractionStrategies[i], i);
-            }
-        }
-
         public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc,
-            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader)
+            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader = null)
         {
+            if (baseFeatureExtractorLoader == null)
+            {
+                baseFeatureExtractorLoader = FeatureExtractorFactory<T>.Default.Create;
+            }
+
             var featureExtractionStrategies = doc.Children
                 .Select(baseFeatureExtractorLoader)
                 .ToArray();

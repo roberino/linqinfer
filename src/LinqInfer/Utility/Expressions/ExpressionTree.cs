@@ -104,6 +104,8 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree MoveToGroup() => MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen, false, true);
 
+        public ExpressionTree MoveToArray() => MoveToAncestorOrRoot(e => e.Type == TokenType.ArrayOpen, false, true);
+
         public ExpressionTree MoveToAncestorOrRoot(Func<ExpressionTree, bool> predicate, bool greedy = false, bool includeSelf = false)
         {
             if (Type == TokenType.Root) return this;

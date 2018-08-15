@@ -34,13 +34,13 @@ namespace LinqInfer.Learning.Features
             get
             {
                 return new FeatureExtractorFactory<T>(
-                    (nameof(TransformingFeatureExtractor<T>),
+                    (NameOf<TransformingFeatureExtractor<T>>(),
                         d => TransformingFeatureExtractor<T>.Create(d.Data, d.Factory.Create)),
-                    (nameof(ExpressionFeatureExtractor<T>),
+                    (NameOf<ExpressionFeatureExtractor<T>>(),
                         d => ExpressionFeatureExtractor<T>.Create(d.Data)),
-                    (nameof(MultiStrategyFeatureExtractor<T>),
+                    (NameOf<MultiStrategyFeatureExtractor<T>>(),
                         d => MultiStrategyFeatureExtractor<T>.Create(d.Data, d.Factory.Create)),
-                    (nameof(ObjectFeatureExtractor<T>),
+                    (NameOf<ObjectFeatureExtractor<T>>(),
                         d => ObjectFeatureExtractor<T>.Create(d.Data)));
             }
         }
@@ -50,6 +50,11 @@ namespace LinqInfer.Learning.Features
             var factory = _featureExtractorFactories[doc.TypeName];
 
             return factory(new FeatureExtractorLoadContext<T>(doc, this));
+        }
+
+        static string NameOf<TX>()
+        {
+            return typeof(TX).Name;
         }
     }
 }

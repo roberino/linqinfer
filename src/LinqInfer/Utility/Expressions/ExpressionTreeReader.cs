@@ -31,6 +31,12 @@
 
                             continue;
                         }
+                    case TokenType.ArrayClose:
+                        {
+                            state = state.MoveToArray().Parent;
+
+                            continue;
+                        }
                     case TokenType.Split:
                         {
                             state.SegmentIndex++;

@@ -56,12 +56,16 @@ namespace LinqInfer.Maths
         {
             if (!range.HasValue) range = Range.MinusOneToOne;
 
-            var adjustedMax = minMax.Max.ToColumnVector() - minMax.Min.ToColumnVector();
-            var scaleValue = adjustedMax / (range.Value.Max - range.Value.Min);
-            var rangeMin = Vector.UniformVector(adjustedMax.Size, range.Value.Min);
+            // subtract actual min
+            // divide by actual range
+            // multiply by desired range
+            // add desired min
+
+            var scaleVect = (minMax.Max.ToColumnVector() - minMax.Min.ToColumnVector()) / range.Value.Size;
+            var rangeMin = Vector.UniformVector(scaleVect.Size, -range.Value.Min);
 
             var minTranspose = new DataOperation(VectorOperationType.Subtract, minMax.Min.ToColumnVector());
-            var scale = new DataOperation(VectorOperationType.Divide, scaleValue);
+            var scale = new DataOperation(VectorOperationType.SafeDivide, scaleVect);
             var rangeTranspose = new DataOperation(VectorOperationType.Subtract, rangeMin);
 
             var transform = new SerialisableDataTransformation(minTranspose, scale, rangeTranspose);

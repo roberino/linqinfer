@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace LinqInfer.Learning.Features
 {
     class CategoricalFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
+        where T : class
     {
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
