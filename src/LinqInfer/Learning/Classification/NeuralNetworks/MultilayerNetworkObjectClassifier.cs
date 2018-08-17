@@ -19,7 +19,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetworkObjectClassifier(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,
-            ICategoricalOutputMapper<TClass> outputMapper = null,
+            ICategoricalOutputMapper<TClass> outputMapper,
             MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
             Statistics = new ClassifierStats();
@@ -56,26 +56,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             root.WriteChildObject(_config.OutputMapper);
 
             return root;
-        }
-
-        public void ImportData(PortableDataDocument doc)
-        {
-            doc.ReadChildObject(Statistics, null, true);
-
-            doc.ReadChildObject(_config.FeatureExtractor);
-
-            if (_network == null)
-            {
-                _network = MultilayerNetwork.CreateFromData(doc.GetChildDoc<MultilayerNetwork>());
-            }
-            else
-            {
-                _network.ImportData(doc.GetChildDoc<MultilayerNetwork>());
-            }
-
-            doc.ReadChildObject(_config.OutputMapper);
-
-            Setup(_network);
         }
 
         public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data)
@@ -127,7 +107,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString()
         {
-            return _network == null ? "Un-initialised classifier" : "NN classifier" + _network.ToString();
+            return _network == null ? "Un-initialised classifier" : "NN classifier" + _network;
         }
 
         public IDynamicClassifier<TClass, TInput> Clone(bool deep)
@@ -151,18 +131,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        public object Clone()
-        {
-            return Clone(true);
-        }
-
         static Config Setup(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
-            if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-
             return new Config()
             {
                 NormalisingSample = normalisingSample,

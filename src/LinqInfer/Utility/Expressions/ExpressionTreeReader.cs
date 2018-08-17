@@ -25,6 +25,12 @@
                 {
                     case TokenType.Space:
                         continue;
+                    case TokenType.ArrayOpen:
+                    case TokenType.GroupOpen:
+                        state = state
+                            .InsertChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition)
+                            .InsertChild(TokenType.Separator, null, reader.StartPosition);
+                        continue;
                     case TokenType.GroupClose:
                         {
                             state = state.MoveToGroup().Parent;
@@ -67,7 +73,7 @@
                 state = state.InsertChild(reader.TokenClass, reader.CurrentToken, reader.StartPosition);
             }
 
-            state = state.MoveToGroup();
+            state = state.MoveToGroupOrArray();
 
             if (state.Depth != 0)
             {

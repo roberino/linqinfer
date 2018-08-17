@@ -68,7 +68,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (IsOperation && Value.IsBooleanOperator()) return true;
 
-                return Type == TokenType.GroupOpen && _children.Count == 1 && _children[0].IsBoolean;
+                return (Type == TokenType.GroupOpen || Type == TokenType.Separator) && _children.Count == 1 && _children[0].IsBoolean;
             }
         }
 
@@ -90,6 +90,8 @@ namespace LinqInfer.Utility.Expressions
 
         public bool IsEmpty => _children.Count == 0;
 
+        public ExpressionTree LastDescendantOrSelf => _children.Count == 1 ? _children[0].LastDescendantOrSelf : this;
+
         public ExpressionTree MoveToEmptyAncestorOrSelf()
         {
             var next = this;
@@ -103,6 +105,8 @@ namespace LinqInfer.Utility.Expressions
         }
 
         public ExpressionTree MoveToGroup() => MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen, false, true);
+
+        public ExpressionTree MoveToGroupOrArray() => MoveToAncestorOrRoot(e => e.Type == TokenType.GroupOpen || e.Type == TokenType.ArrayOpen, false, true);
 
         public ExpressionTree MoveToArray() => MoveToAncestorOrRoot(e => e.Type == TokenType.ArrayOpen, false, true);
 
@@ -143,21 +147,9 @@ namespace LinqInfer.Utility.Expressions
         {
             var state = this;
 
-            if (Type == TokenType.Separator)
+            if (Type != TokenType.GroupOpen && Type != TokenType.ArrayOpen)
             {
-                state = MoveToGroup();
-            }
-            else
-            {
-                var sep = new ExpressionTree()
-                {
-                    Type = TokenType.Separator,
-                    Position = position
-                };
-
-                sep.AddChild(TakeLastChild());
-
-                AddChild(sep);
+                state = MoveToGroupOrArray();
             }
 
             state.SegmentIndex++;

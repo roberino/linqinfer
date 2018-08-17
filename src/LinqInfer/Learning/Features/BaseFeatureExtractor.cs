@@ -57,31 +57,12 @@ namespace LinqInfer.Learning.Features
 
             if (_customFeatureLabels)
             {
-                foreach (var feature in FeatureMetadata)
-                {
-                    doc.Properties[FeaturePrefix + feature.Key] = feature.ToDictionary().ToDictionaryString();
-                }
+                doc.AppendFeatureAttributes(FeatureMetadata.ToArray(), VectorSize);
             }
 
             doc.SetPropertyFromExpression(() => VectorSize);
 
             return doc;
-        }
-
-        protected static (int vectorSize, IFeature[] features) LoadAttributes(PortableDataDocument data)
-        {
-            var vectorSize = data.PropertyOrDefault(nameof(VectorSize), 0);
-
-            if (vectorSize <= 0)
-            {
-                throw new InvalidDataException("Invalid vector size");
-            }
-
-            return (vectorSize, data
-                .Properties
-                .Where(p => p.Key.StartsWith(FeaturePrefix))
-                .Select(x => x.Value.FromDictionaryString<string>())
-                .Select(Feature.FromDictionary).ToArray());
         }
     }
 }

@@ -117,35 +117,21 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsMemberAccessor(this ExpressionTree expressionTree, Scope context)
         {
-            var pe = context.CurrentContext as ParameterExpression;
-
-            Scope newContext;
-
-            if (pe != null)
-            {
-                if (context.IsRoot && pe.Name == expressionTree.Value)
-                {
-                    newContext = context.NewScope(pe);
-                }
-                else
-                {
-                    if (expressionTree.IsMethod())
-                    {
-                        return expressionTree.AsMethodCall(context);
-                    }
-
-                    newContext =
-                        context.NewScope(Expression.PropertyOrField(context.CurrentContext, expressionTree.Value));
-                }
-            }
-            else
+            var newContext = context.IsRoot ? context.SelectParameterScope(expressionTree.Value) : null;
+            
+            if (newContext == null)
             {
                 if (expressionTree.IsMethod())
                 {
                     return expressionTree.AsMethodCall(context);
                 }
+
+                if (context.IsRoot && expressionTree.IsMethodPath())
+                {
+                    return expressionTree.AsStaticMethodCall(context);
+                }
                 
-                newContext = context.NewScope(Expression.PropertyOrField(context.CurrentContext, expressionTree.Value));
+                newContext = context.SelectChildScope(expressionTree.Value);
             }
 
             if (expressionTree.Children.Any())
@@ -154,6 +140,25 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return newContext.CurrentContext;
+        }
+
+        static Expression AsStaticMethodCall(this ExpressionTree expressionTree, Scope context)
+        {
+            var type = string.Empty;
+
+            var next = expressionTree;
+
+            while (!next.IsMethod())
+            {
+                type += next.Value;
+                next = next.Children.Single();
+            }
+
+            type = type.TrimEnd('.');
+
+            var args = next.Children.SelectMany(c => c.Build(context.GlobalContext));
+            var binder = context.GetStaticBinder(type);
+            return binder.GetFunction(next.Value, args);
         }
 
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
@@ -167,6 +172,23 @@ namespace LinqInfer.Utility.Expressions
         {
             return (expressionTree.Type == TokenType.Name &&
                     expressionTree.Children.SingleOrNull()?.Type == TokenType.GroupOpen);
+        }
+
+        static bool IsMethodPath(this ExpressionTree expressionTree)
+        {
+            var child = expressionTree;
+
+            while (child.Children.Count == 1)
+            {
+                if (child.IsMethod())
+                {
+                    return true;
+                }
+
+                child = child.Children.Single();
+            }
+
+            return false;
         }
 
         static Expression AsGlobalFunction(this ExpressionTree expression, Scope context)

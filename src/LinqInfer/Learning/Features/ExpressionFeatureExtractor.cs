@@ -29,7 +29,7 @@ namespace LinqInfer.Learning.Features
 
         public static ExpressionFeatureExtractor<T> Create(PortableDataDocument data)
         {
-            var attribs = LoadAttributes(data);
+            var attribs = data.LoadFeatureAttributes();
             
             var exp = data.Properties["Extractor"].AsExpression<T, IVector>();
             

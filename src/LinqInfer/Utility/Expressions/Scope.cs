@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -35,6 +36,13 @@ namespace LinqInfer.Utility.Expressions
             return GetBinder(CurrentContext.Type);
         }
 
+        public FunctionBinder GetStaticBinder(string typeName)
+        {
+            var type = typeof(FunctionBinder).Assembly.ExportedTypes.Single(t => t.Name == typeName);
+
+            return new FunctionBinder(type, BindingFlags.Static);
+        }
+
         public FunctionBinder GetBinder(Type type)
         {
             if (_binders == null) return GlobalContext.GetBinder(type);
@@ -45,6 +53,21 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return binder;
+        }
+
+        public Scope SelectParameterScope(string name)
+        {
+            if (CurrentContext is ParameterExpression p && p.Name == name)
+            {
+                return new Scope(CurrentContext, GlobalContext);
+            }
+
+            return null;
+        }
+
+        public Scope SelectChildScope(string name)
+        {
+            return new Scope(Expression.PropertyOrField(CurrentContext, name), GlobalContext);
         }
 
         public Scope NewScope(Expression newContext)

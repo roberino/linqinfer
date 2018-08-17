@@ -48,7 +48,16 @@ namespace LinqInfer.Utility.Expressions
                     {
                         obj = callExp.Object.ExportExpression() + ".";
                     }
+                    else
+                    {
+                        if (callExp.Method.DeclaringType != typeof(Math) && callExp.Method.DeclaringType != null)
+                        {
+                            obj = callExp.Method.DeclaringType.Name + ".";
+                        }
+                    }
+
                     return $"{obj}{callExp.Method.Name}({argss})";
+
                 case ExpressionType.Constant:
                     var constExp = (ConstantExpression)expression;
                     return constExp.Value.ToString();
