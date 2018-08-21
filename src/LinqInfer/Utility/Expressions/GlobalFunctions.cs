@@ -52,6 +52,7 @@ namespace LinqInfer.Utility.Expressions
                 case nameof(Vector):
                 case nameof(BitVector):
                 case nameof(OneOfNVector):
+                case nameof(Matrix):
                 case nameof(Convert):
                     return true;
             }
@@ -75,6 +76,8 @@ namespace LinqInfer.Utility.Expressions
                     return BitVector(parameters);
                 case nameof(OneOfNVector):
                     return OneOfNVector(parameters);
+                case nameof(Matrix):
+                    return Matrix(parameters);
                 case nameof(Convert):
                     return Convert(parameters);
             }
@@ -116,6 +119,16 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Convert(parameters.Single(), typeof(string));
         }
 
+        static Expression Matrix(IEnumerable<Expression> parameters)
+        {
+            if (parameters.Count() == 1 && parameters.Single().Type == typeof(double[][]))
+            {
+                return Expression.New(MatrixMethod, parameters.Single());
+            }
+
+            throw new ArgumentException();
+        }
+
         static Expression BitVector(IEnumerable<Expression> parameters)
         {
             return Expression.New(BitVectorMethod, Expression.NewArrayInit(typeof(bool), ConvertAll<bool>(parameters.ToArray())));
@@ -151,7 +164,9 @@ namespace LinqInfer.Utility.Expressions
 
             return Expression.Call(VectorMethod, paramArr);
         }
-
+        
+        static readonly ConstructorInfo MatrixMethod = typeof(Matrix).GetConstructors()
+            .First(c => c.GetParameters().FirstOrDefault()?.ParameterType == typeof(double[][]));
         
         static readonly ConstructorInfo OneOfNMethod = typeof(OneOfNVector)
             .GetConstructors().First();

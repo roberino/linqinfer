@@ -41,7 +41,7 @@ namespace LinqInfer.Utility.Expressions
             switch (expression.NodeType)
             {
                 case ExpressionType.Call:
-                    var callExp = (MethodCallExpression) expression;
+                    var callExp = (MethodCallExpression)expression;
                     var args = callExp.Arguments.Select(a => a.ExportExpression());
                     var argss = string.Join(", ", args);
                     var obj = string.Empty;
@@ -61,18 +61,18 @@ namespace LinqInfer.Utility.Expressions
                     return $"{obj}{callExp.Method.Name}({argss})";
 
                 case ExpressionType.Constant:
-                    var constExp = (ConstantExpression) expression;
+                    var constExp = (ConstantExpression)expression;
                     return constExp.Value.ToString();
                 case ExpressionType.Lambda:
-                    var lam = ((LambdaExpression) expression);
+                    var lam = ((LambdaExpression)expression);
                     var parms = lam.Parameters.Select(p => p.ExportExpression());
                     var paramss = string.Join(", ", parms);
                     return $"{paramss} => {lam.Body.ExportExpression()}";
                 case ExpressionType.Parameter:
-                    return ((ParameterExpression) expression).Name;
+                    return ((ParameterExpression)expression).Name;
                 case ExpressionType.MemberAccess:
 
-                    var memExp = (MemberExpression) expression;
+                    var memExp = (MemberExpression)expression;
 
                     if (memExp.Expression is ConstantExpression constantExpression)
                     {
@@ -83,19 +83,19 @@ namespace LinqInfer.Utility.Expressions
 
                     return $"{path}.{memExp.Member.Name}";
                 case ExpressionType.Convert:
-                {
-                    var unex = (UnaryExpression) expression;
-                    return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name})";
-                }
+                    {
+                        var unex = (UnaryExpression)expression;
+                        return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name})";
+                    }
                 case ExpressionType.Negate:
-                {
-                    var unex = (UnaryExpression) expression;
-                    var exp = ExportWithBracketsIfRequired(unex.Operand);
+                    {
+                        var unex = (UnaryExpression)expression;
+                        var exp = ExportWithBracketsIfRequired(unex.Operand);
 
-                    return $"-{exp}";
-                }
+                        return $"-{exp}";
+                    }
                 case ExpressionType.Conditional:
-                    var ce = (ConditionalExpression) expression;
+                    var ce = (ConditionalExpression)expression;
 
                     var test = ce.Test.ExportExpression();
                     var iftrue = ExportWithBracketsIfRequired(ce.IfTrue);
@@ -103,15 +103,15 @@ namespace LinqInfer.Utility.Expressions
 
                     return $"({test} ? {iftrue} : {iffalse})";
                 case ExpressionType.NewArrayInit:
-                {
-                    var arrayExp = (NewArrayExpression) expression;
-                    var elems = arrayExp.Expressions.Select(a => a.ExportExpression());
-                    var elemsstr = string.Join(", ", elems);
+                    {
+                        var arrayExp = (NewArrayExpression)expression;
+                        var elems = arrayExp.Expressions.Select(a => a.ExportExpression());
+                        var elemsstr = string.Join(", ", elems);
 
-                    return $"[{elemsstr}]";
-                }
+                        return $"[{elemsstr}]";
+                    }
                 case ExpressionType.New:
-                    return CreateNew((NewExpression) expression);
+                    return CreateNew((NewExpression)expression);
                 default:
                     throw new NotSupportedException(expression.NodeType.ToString());
             }
@@ -145,7 +145,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (newExp.Arguments.IsSingleArg<bool[]>())
                 {
-                    var args = string.Join(",", newExp.Arguments.Select(a => a.ExportExpression()));
+                    var args = newExp.Arguments.Select(a => a.ExportExpression()).Single();
 
                     return $"{nameof(BitVector)}({args})";
                 }
@@ -156,6 +156,16 @@ namespace LinqInfer.Utility.Expressions
                 var args = string.Join(",", newExp.Arguments.Select(a => a.ExportExpression()));
 
                 return $"{nameof(OneOfNVector)}({args})";
+            }
+
+            if (newExp.Constructor.DeclaringType == typeof(Matrix))
+            {
+                if (newExp.Arguments.IsSingleArg<double[][]>())
+                {
+                    var args = newExp.Arguments.Select(a => a.ExportExpression()).Single();
+
+                    return $"{nameof(Matrix)}({args})";
+                }
             }
 
             throw new NotSupportedException(newExp.Constructor.DeclaringType?.Name);
@@ -195,7 +205,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TypeCode.Double:
                 case TypeCode.Single:
-                    return ((double) value).ToString("R");
+                    return ((double)value).ToString("R");
                 case TypeCode.String:
                     throw new NotSupportedException($"Unsupported constant: {type.Name}");
                 case TypeCode.Object:

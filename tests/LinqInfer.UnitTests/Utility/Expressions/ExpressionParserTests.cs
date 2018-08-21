@@ -110,6 +110,19 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
+        public void Parse_GivenMatrixExpression_ReturnsMatrix()
+        {
+            var exp = "x => Matrix([[x, 1], [x + 2, 2]])".AsExpression<double, Matrix>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result[0, 0], Is.EqualTo(3));
+            Assert.That(result[0, 1], Is.EqualTo(1));
+            Assert.That(result[1, 0], Is.EqualTo(5));
+            Assert.That(result[1, 1], Is.EqualTo(2));
+        }
+
+        [Test]
         public void ExportAsString_GivenNewVector_ReturnsVectorExp()
         {
             var exp = Exp(1d, new Vector(1d, 2d), x => new Vector(x, 2d));
