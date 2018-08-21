@@ -193,23 +193,11 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsGlobalFunction(this ExpressionTree expression, Scope context)
         {
-            if (MathFunctions.IsDefined(expression.Value))
-            {
-                var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
+            if (!GlobalFunctions.IsDefined(expression.Value)) return null;
 
-                return MathFunctions.GetFunction(expression.Value, args);
-            }
+            var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
 
-            if (expression.Value == "Convert")
-            {
-                var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
-
-                expression.ValidateArgs(args, 2, 2);
-
-                return Expression.Convert(args.First(), (Type)((ConstantExpression)args.Last()).Value);
-            }
-
-            return null;
+            return GlobalFunctions.GetFunction(expression.Value, args);
         }
 
         static Expression AsTypeConstant(this ExpressionTree expression)
@@ -220,6 +208,12 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TypeCode.Double:
                     return Expression.Constant(typeof(double));
+                case TypeCode.Boolean:
+                    return Expression.Constant(typeof(bool));
+                case TypeCode.Int32:
+                    return Expression.Constant(typeof(int));
+                case TypeCode.String:
+                    return Expression.Constant(typeof(string));
                 default:
                     return null;
             }
@@ -232,7 +226,7 @@ namespace LinqInfer.Utility.Expressions
                 case "true":
                     return Expression.Constant(true);
                 case "false":
-                    return Expression.Constant(true);
+                    return Expression.Constant(false);
                 default:
                     return null;
             }

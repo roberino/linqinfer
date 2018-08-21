@@ -52,6 +52,73 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
+        public void Parse_GivenVectorArrayExpression_ReturnsVector()
+        {
+            var exp = "x => Vector([1.2, 1.1, x])".AsExpression<double, IVector>();
+
+            var result = exp.Compile().Invoke(1.3);
+
+            Assert.That(result[0], Is.EqualTo(1.2));
+            Assert.That(result[1], Is.EqualTo(1.1));
+            Assert.That(result[2], Is.EqualTo(1.3));
+        }
+
+        [Test]
+        public void Parse_GivenVectorExpression_ReturnsVector()
+        {
+            var exp = "x => Vector(1.2, 1.1, x)".AsExpression<double, IVector>();
+
+            var result = exp.Compile().Invoke(1.3);
+
+            Assert.That(result[0], Is.EqualTo(1.2));
+            Assert.That(result[1], Is.EqualTo(1.1));
+            Assert.That(result[2], Is.EqualTo(1.3));
+        }
+
+        [Test]
+        public void Parse_GivenBitVectorExpression_ReturnsBitVector()
+        {
+            var exp = "x => BitVector(true, false, x) * BitVector(false, false, x)".AsExpression<bool, BitVector>();
+
+            var result = exp.Compile().Invoke(true);
+
+            Assert.That(result.ValueAt(0), Is.False);
+            Assert.That(result.ValueAt(1), Is.False);
+            Assert.That(result.ValueAt(2), Is.True);
+        }
+
+        [Test]
+        public void Parse_GivenOneOfNVectorExpression_ReturnsOneOfNVector()
+        {
+            var exp = "x => OneOfNVector(2, x)".AsExpression<int, OneOfNVector>();
+
+            var result = exp.Compile().Invoke(1);
+
+            Assert.That(result.ActiveIndex, Is.EqualTo(1));
+            Assert.That(result.Size, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Parse_GivenOneOfNVectorExpressionWithOutActiveIndex_ReturnsOneOfNVector()
+        {
+            var exp = "x => OneOfNVector(x)".AsExpression<int, OneOfNVector>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result.ActiveIndex.HasValue, Is.False);
+            Assert.That(result.Size, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void ExportAsString_GivenNewVector_ReturnsVectorExp()
+        {
+            var exp = Exp(1d, new Vector(1d, 2d), x => new Vector(x, 2d));
+            var expStr = exp.ExportAsString();
+
+            Assert.That(expStr, Is.EqualTo("x => Vector([x, 2])"));
+        }
+
+        [Test]
         public void Parse_GivenInvertedCondition_EvaluatesCorrectly()
         {
             var exp = "x => !x.PF() ? -1 : 2".AsExpression<MyParams, int>();

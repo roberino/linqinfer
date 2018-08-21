@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using LinqInfer.Maths;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -39,7 +41,7 @@ namespace LinqInfer.Utility.Expressions
             switch (expression.NodeType)
             {
                 case ExpressionType.Call:
-                    var callExp = (MethodCallExpression)expression;
+                    var callExp = (MethodCallExpression) expression;
                     var args = callExp.Arguments.Select(a => a.ExportExpression());
                     var argss = string.Join(", ", args);
                     var obj = string.Empty;
@@ -59,18 +61,18 @@ namespace LinqInfer.Utility.Expressions
                     return $"{obj}{callExp.Method.Name}({argss})";
 
                 case ExpressionType.Constant:
-                    var constExp = (ConstantExpression)expression;
+                    var constExp = (ConstantExpression) expression;
                     return constExp.Value.ToString();
                 case ExpressionType.Lambda:
-                    var lam = ((LambdaExpression)expression);
+                    var lam = ((LambdaExpression) expression);
                     var parms = lam.Parameters.Select(p => p.ExportExpression());
                     var paramss = string.Join(", ", parms);
                     return $"{paramss} => {lam.Body.ExportExpression()}";
                 case ExpressionType.Parameter:
-                    return ((ParameterExpression)expression).Name;
+                    return ((ParameterExpression) expression).Name;
                 case ExpressionType.MemberAccess:
 
-                    var memExp = (MemberExpression)expression;
+                    var memExp = (MemberExpression) expression;
 
                     if (memExp.Expression is ConstantExpression constantExpression)
                     {
@@ -81,17 +83,17 @@ namespace LinqInfer.Utility.Expressions
 
                     return $"{path}.{memExp.Member.Name}";
                 case ExpressionType.Convert:
-                    {
-                        var unex = (UnaryExpression)expression;
-                        return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name})";
-                    }
+                {
+                    var unex = (UnaryExpression) expression;
+                    return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name})";
+                }
                 case ExpressionType.Negate:
-                    {
-                        var unex = (UnaryExpression)expression;
-                        var exp = ExportWithBracketsIfRequired(unex.Operand);
+                {
+                    var unex = (UnaryExpression) expression;
+                    var exp = ExportWithBracketsIfRequired(unex.Operand);
 
-                        return $"-{exp}";
-                    }
+                    return $"-{exp}";
+                }
                 case ExpressionType.Conditional:
                     var ce = (ConditionalExpression) expression;
 
@@ -108,9 +110,55 @@ namespace LinqInfer.Utility.Expressions
 
                     return $"[{elemsstr}]";
                 }
+                case ExpressionType.New:
+                    return CreateNew((NewExpression) expression);
                 default:
                     throw new NotSupportedException(expression.NodeType.ToString());
             }
+        }
+
+        static bool IsSingleArg<T>(this IReadOnlyCollection<Expression> args)
+        {
+            return args.Count == 1 && args.Single().Type == typeof(T);
+        }
+
+        static string CreateNew(NewExpression newExp)
+        {
+            if (newExp.Constructor.DeclaringType == typeof(Vector) || newExp.Constructor.DeclaringType == typeof(ColumnVector1D))
+            {
+                if (newExp.Arguments.IsSingleArg<double[]>())
+                {
+                    var args = newExp.Arguments.Select(a => a.ExportExpression()).Single();
+
+                    var exp = $"{nameof(Vector)}({args})";
+
+                    if (newExp.Constructor.DeclaringType == typeof(ColumnVector1D))
+                    {
+                        exp += $".{nameof(Vector.ToColumnVector)}()";
+                    }
+
+                    return exp;
+                }
+            }
+
+            if (newExp.Constructor.DeclaringType == typeof(BitVector))
+            {
+                if (newExp.Arguments.IsSingleArg<bool[]>())
+                {
+                    var args = string.Join(",", newExp.Arguments.Select(a => a.ExportExpression()));
+
+                    return $"{nameof(BitVector)}({args})";
+                }
+            }
+
+            if (newExp.Constructor.DeclaringType == typeof(OneOfNVector))
+            {
+                var args = string.Join(",", newExp.Arguments.Select(a => a.ExportExpression()));
+
+                return $"{nameof(OneOfNVector)}({args})";
+            }
+
+            throw new NotSupportedException(newExp.Constructor.DeclaringType?.Name);
         }
 
         static string ExportWithBracketsIfRequired(Expression exp)
@@ -148,11 +196,28 @@ namespace LinqInfer.Utility.Expressions
                 case TypeCode.Double:
                 case TypeCode.Single:
                     return ((double) value).ToString("R");
-                case TypeCode.Object:
+                case TypeCode.String:
                     throw new NotSupportedException($"Unsupported constant: {type.Name}");
+                case TypeCode.Object:
+                    if (!(value is IVector vect)) throw new NotSupportedException($"Unsupported constant: {type.Name}");
+
+                    switch (vect)
+                    {
+                        case OneOfNVector oneOfN:
+                            if (oneOfN.ActiveIndex.HasValue)
+                            {
+                                return $"{nameof(OneOfNVector)}({oneOfN.Size}, {oneOfN.ActiveIndex})";
+                            }
+
+                            return $"{nameof(OneOfNVector)}({oneOfN.Size})";
+                        case BitVector bitVect:
+                            return $"{nameof(BitVector)}({string.Join(",", bitVect.Select(b => b.ToString()))})";
+                    }
+
+                    return $"{nameof(Vector)}({vect.ToColumnVector().ToCsv(int.MaxValue)})";
             }
 
-            return value.ToString();
+            return value.ToString().ToLower();
         }
 
         static string ExportBinaryExpression(BinaryExpression expression, string symbol)
