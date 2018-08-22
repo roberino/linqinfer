@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Data.Storage;
 using LinqInfer.Maths;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace LinqInfer.UnitTests.Data.Serialisation
 {
@@ -40,12 +39,9 @@ namespace LinqInfer.UnitTests.Data.Serialisation
         {
             var doc = new PortableDataDocument();
 
-            doc.Version = 1;
             doc.Properties["title"] = "abc";
 
             var checksum1 = doc.Checksum;
-
-            doc.Version = 2;
 
             var checksum2 = doc.Checksum;
 
@@ -61,8 +57,6 @@ namespace LinqInfer.UnitTests.Data.Serialisation
         public void SaveAndLoad_DocWithChildren()
         {
             var doc = new PortableDataDocument();
-
-            doc.Version = 2;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
 
@@ -115,10 +109,8 @@ namespace LinqInfer.UnitTests.Data.Serialisation
         {
             var doc = new PortableDataDocument();
 
-            doc.Version = 1;
             doc.Properties["title"] = "abc";
             doc.Properties["value1"] = "12";
-            //doc.Properties["null"] = null;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
             doc.Vectors.Add(ColumnVector1D.Create(0.2, 3.9));
@@ -135,7 +127,6 @@ namespace LinqInfer.UnitTests.Data.Serialisation
                 Assert.That(doc2.Properties.Count, Is.EqualTo(2));
                 Assert.That(doc2.Properties["title"], Is.EqualTo("abc"));
                 Assert.That(doc2.Properties["value1"], Is.EqualTo("12"));
-                //Assert.That(doc2.Properties["null"], Is.EqualTo(""));
 
                 Assert.That(doc.Vectors[1][1], Is.EqualTo(3.9));
             }
@@ -164,8 +155,6 @@ namespace LinqInfer.UnitTests.Data.Serialisation
         PortableDataDocument CreateTestDoc()
         {
             var doc = new PortableDataDocument();
-
-            doc.Version = 2;
 
             doc.Vectors.Add(ColumnVector1D.Create(1.2, 7.4));
 

@@ -10,7 +10,7 @@ namespace LinqInfer.Data.Serialisation
             Instance = instance;
         }
 
-        public T Instance { get; private set; }
+        public T Instance { get; }
 
         public void Load(Stream input)
         {

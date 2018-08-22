@@ -35,13 +35,13 @@ namespace LinqInfer.Data.Remoting
 
         public bool BindToAnyHost { get { return _bindToAnyHost || BaseUri.Host == "0.0.0.0"; } set { _bindToAnyHost = value; } }
 
-        public IUriRouteMapper Mapper { get; private set; }
+        public IUriRouteMapper Mapper { get; }
 
-        public Uri BaseUri { get; private set; }
+        public Uri BaseUri { get; }
 
-        public string Template { get; private set; }
+        public string Template { get; }
 
-        public Verb Verbs { get; private set; }
+        public Verb Verbs { get; }
 
         public override string ToString()
         {

@@ -66,7 +66,7 @@ namespace LinqInfer.Learning.Features
                 _data = data;
             }
 
-            public TClass Key { get; private set; }
+            public TClass Key { get; }
 
             public IEnumerator<ObjectVectorPair<TInput>> GetEnumerator()
             {

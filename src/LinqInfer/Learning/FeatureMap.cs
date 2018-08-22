@@ -43,7 +43,7 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Returns the features that where used by the mappper
         /// </summary>
-        public IEnumerable<IFeature> Features { get; private set; }
+        public IEnumerable<IFeature> Features { get; }
 
         public IEnumerator<ClusterNode<T>> GetEnumerator()
         {

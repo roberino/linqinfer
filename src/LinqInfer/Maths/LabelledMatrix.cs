@@ -39,7 +39,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns labels and respective row indexes
         /// </summary>
-        public IDictionary<T, int> LabelIndexes { get; private set; }
+        public IDictionary<T, int> LabelIndexes { get; }
 
         /// <summary>
         /// Returns the covariance matrix with labels

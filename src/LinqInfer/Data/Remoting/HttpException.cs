@@ -10,6 +10,6 @@ namespace LinqInfer.Data.Remoting
             Status = (HttpStatusCode)status;
         }
 
-        public HttpStatusCode Status { get; private set; }
+        public HttpStatusCode Status { get; }
     }
 }

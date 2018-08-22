@@ -18,7 +18,7 @@ namespace LinqInfer.Data.Remoting
         /// <summary>
         /// Returns the route
         /// </summary>
-        public IUriRoute Route { get; private set; }
+        public IUriRoute Route { get; }
 
         /// <summary>
         /// Creates a new binder for a specific method

@@ -282,7 +282,7 @@ namespace LinqInfer.Maths.Graphs
             }
 
             public string Id { get; set; }
-            public DateTime Created { get; set; }
+            public DateTime Created { get; }
             public DateTime Modified { get; set; }
             public string Label { get; set; }
 

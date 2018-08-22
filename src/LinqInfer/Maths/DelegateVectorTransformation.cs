@@ -20,9 +20,9 @@ namespace LinqInfer.Maths
         {
         }
 
-        public int InputSize { get; private set; }
+        public int InputSize { get; }
 
-        public int OutputSize { get; private set; }
+        public int OutputSize { get; }
 
         public IVector Apply(IVector vector)
         {

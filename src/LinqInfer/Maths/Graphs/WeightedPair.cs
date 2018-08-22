@@ -10,8 +10,8 @@ namespace LinqInfer.Maths.Graphs
             Weight = weight;
         }
 
-        public T Value { get; private set; }
+        public T Value { get; }
 
-        public C Weight { get; private set; }
+        public C Weight { get; }
     }
 }

@@ -115,7 +115,7 @@ namespace LinqInfer.Maths.Probability
                 }
             }
 
-            public IEnumerable<Node> Children { get; private set; }
+            public IEnumerable<Node> Children { get; }
         }
 
         public class Item

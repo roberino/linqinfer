@@ -94,8 +94,8 @@ namespace LinqInfer.Data.Remoting
         }
 
         public Uri RequestUri { get; private set; }
-        public TcpRequest Request { get; private set; }
-        public TcpResponse Response { get; private set; }
+        public TcpRequest Request { get; }
+        public TcpResponse Response { get; }
 
         public async Task WriteTo(Stream output)
         {

@@ -74,7 +74,7 @@ namespace LinqInfer.Learning.Features
 
             foreach (var output in Lookup)
             {
-                doc.Properties[output.Key.ToString()] = output.Value.ToString();
+                doc.Properties["_" + output.Key] = output.Value.ToString();
             }
 
             return doc;
@@ -95,9 +95,9 @@ namespace LinqInfer.Learning.Features
 
             var outputs = new Dictionary<T, int>();
 
-            foreach (var item in data.Properties)
+            foreach (var item in data.Properties.Where(k => k.Key.StartsWith("_")))
             {
-                outputs[(T) Convert.ChangeType(item.Key, type)] = int.Parse(item.Value);
+                outputs[(T) Convert.ChangeType(item.Key.Substring(1), type)] = int.Parse(item.Value);
             }
 
             return new OneHotEncoding<T>(outputs);

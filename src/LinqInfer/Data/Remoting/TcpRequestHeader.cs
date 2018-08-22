@@ -94,11 +94,11 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        public IDictionary<string, string[]> Query { get; private set; }
+        public IDictionary<string, string[]> Query { get; }
 
-        public string HttpVerb { get; private set; }
+        public string HttpVerb { get; }
 
-        public string HttpProtocol { get; private set; }
+        public string HttpProtocol { get; }
 
         public string Path { get; internal set; }
 
@@ -120,9 +120,9 @@ namespace LinqInfer.Data.Remoting
             return supportedMimeTypes.First();
         }
 
-        public TransportProtocol TransportProtocol { get; private set; }
+        public TransportProtocol TransportProtocol { get; }
 
-        public IDictionary<string, string[]> Headers { get; private set; }
+        public IDictionary<string, string[]> Headers { get; }
 
         public long ContentLength { get; private set; }
 

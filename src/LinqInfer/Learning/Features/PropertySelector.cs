@@ -19,6 +19,6 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
-        internal IList<string> SelectedProperties { get; private set; }
+        internal IList<string> SelectedProperties { get; }
     }
 }

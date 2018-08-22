@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,8 +36,6 @@ namespace LinqInfer.Data.Serialisation
             Blobs = new Dictionary<string, byte[]>();
             Vectors = new List<IVector>();
             Children = new List<PortableDataDocument>();
-
-            Version = 1;
             Timestamp = DateTime.UtcNow;
         }
 
@@ -62,11 +61,6 @@ namespace LinqInfer.Data.Serialisation
         public XmlVectorSerialisationMode VectorToXmlSerialisationMode { get; set; } = XmlVectorSerialisationMode.Default;
 
         /// <summary>
-        /// A version number assigned to the document
-        /// </summary>
-        public int Version { get; set; }
-
-        /// <summary>
         /// The time of creation
         /// </summary>
         public DateTime Timestamp { get; private set; }
@@ -80,16 +74,19 @@ namespace LinqInfer.Data.Serialisation
             {
                 long checksum = 0;
 
-                checksum ^= Version;
-
-                foreach(var prop in Properties)
+                foreach (var prop in Properties)
                 {
                     checksum ^= prop.Key.GetHashCode() ^ prop.Value.GetHashCode();
                 }
 
-                foreach(var val in Vectors)
+                foreach (var val in Vectors)
                 {
                     checksum ^= val.GetHashCode();
+                }
+
+                foreach (var blob in Blobs)
+                {
+                    checksum ^= blob.Key.GetHashCode() ^ StructuralComparisons.StructuralEqualityComparer.GetHashCode(blob.Value);
                 }
 
                 foreach (var cld in Children)
@@ -97,7 +94,7 @@ namespace LinqInfer.Data.Serialisation
                     checksum ^= cld.Checksum;
                 }
 
-                return checksum;
+                return Math.Abs(checksum);
             }
         }
 
@@ -137,7 +134,7 @@ namespace LinqInfer.Data.Serialisation
             return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
         }
 
-        public IDictionary<string, string> Properties { get;  }
+        public IDictionary<string, string> Properties { get; }
 
         public IDictionary<string, byte[]> Blobs { get; }
 
@@ -301,7 +298,7 @@ namespace LinqInfer.Data.Serialisation
                     SetProperties(childDoc, attributes);
 
                     childDoc.SetType(childType);
-                    
+
                     Children.Add(childDoc);
                 }
                 else
@@ -311,7 +308,7 @@ namespace LinqInfer.Data.Serialisation
                         var childDoc = new PortableDataDocument();
 
                         SetProperties(childDoc, attributes);
-                        childDoc.SetType(childType);                        
+                        childDoc.SetType(childType);
                         childDoc.Properties["Data"] = ((IBinaryPersistable)obj).ToClob();
 
                         Children.Add(childDoc);
@@ -332,9 +329,7 @@ namespace LinqInfer.Data.Serialisation
         {
             var levelc = reader.ReadInt32();
 
-			if(levelc != level) throw new ArgumentException("Invalid data");
-
-            Version = reader.ReadInt32();
+            if (levelc != level) throw new ArgumentException("Invalid data");
 
             var checksum = reader.ReadInt64();
 
@@ -400,11 +395,13 @@ namespace LinqInfer.Data.Serialisation
 
             var en = _rootName ?? (isRoot ? "Doc" : "Node");
 
-            var doc = new XDocument(new XElement(en,
-                new XAttribute("version", Version),
-                new XAttribute("checksum", Checksum)));
+            var doc = new XDocument(new XElement(en));
 
-            if (isRoot) doc.Root.SetAttributeValue("exported", date);
+            if (isRoot)
+            {
+                doc.Root.SetAttributeValue("exported", date);
+                doc.Root.SetAttributeValue("checksum", Checksum);
+            }
 
             if (Properties.Any())
             {
@@ -417,7 +414,7 @@ namespace LinqInfer.Data.Serialisation
             if (Vectors.Any())
             {
                 var dataNode = new XElement(DataName,
-                    Vectors.Select(v => new XElement(VectorName, 
+                    Vectors.Select(v => new XElement(VectorName,
                     VectorSerialiser.Serialize(v, base64V))));
                 doc.Root.Add(dataNode);
             }
@@ -469,9 +466,7 @@ namespace LinqInfer.Data.Serialisation
 
         void ImportXml(XElement rootNode)
         {
-            var checksum = int.Parse(rootNode.Attribute("checksum")?.Value);
-
-            Version = int.Parse(rootNode.Attribute("version")?.Value);
+            var checksum = int.Parse(rootNode.Attribute("checksum")?.Value ?? "0");
 
             foreach (var prop in ChildElements(rootNode, PropertiesName))
             {
@@ -480,11 +475,12 @@ namespace LinqInfer.Data.Serialisation
 
             foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == VectorName))
             {
-                var vd = VectorSerialiser.Deserialize(vect.Value, VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
+                var vd = VectorSerialiser.Deserialize(vect.Value,
+                    VectorToXmlSerialisationMode == XmlVectorSerialisationMode.Base64);
 
                 Vectors.Add(vd);
             }
-            
+
             foreach (var blob in ChildElements(rootNode, BlobName + "s").Where(e => e.Name.LocalName == BlobName))
             {
                 Blobs[blob.Attribute("key").Value] = Convert.FromBase64String(blob.Value.Trim());
@@ -492,7 +488,11 @@ namespace LinqInfer.Data.Serialisation
 
             foreach (var child in ChildElements(rootNode, ChildrenName))
             {
-                var cdoc = new PortableDataDocument() { ValidateOnImport = ValidateOnImport, VectorToXmlSerialisationMode = VectorToXmlSerialisationMode };
+                var cdoc = new PortableDataDocument()
+                {
+                    ValidateOnImport = ValidateOnImport,
+                    VectorToXmlSerialisationMode = VectorToXmlSerialisationMode
+                };
 
                 cdoc.ImportXml(child);
 
@@ -517,14 +517,13 @@ namespace LinqInfer.Data.Serialisation
             var date = DateTime.UtcNow;
 
             writer.Write(level);
-            writer.Write(Version);
             writer.Write(Checksum);
             writer.Write(date.ToBinary());
 
             writer.Write(PropertiesName);
             writer.Write(Properties.Count);
 
-            foreach(var prop in Properties)
+            foreach (var prop in Properties)
             {
                 writer.Write(prop.Key);
                 writer.Write(prop.Value);
@@ -543,7 +542,7 @@ namespace LinqInfer.Data.Serialisation
             writer.Write(BlobName);
             writer.Write(Blobs.Count);
 
-            foreach(var blob in Blobs)
+            foreach (var blob in Blobs)
             {
                 writer.Write(blob.Key);
                 writer.Write(blob.Value.Length);
@@ -553,7 +552,7 @@ namespace LinqInfer.Data.Serialisation
             writer.Write(ChildrenName);
             writer.Write(Children.Count);
 
-            foreach(var child in Children)
+            foreach (var child in Children)
             {
                 child.Write(writer, level + 1);
             }

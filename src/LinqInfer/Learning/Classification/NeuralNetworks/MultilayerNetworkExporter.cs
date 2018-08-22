@@ -17,8 +17,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 doc.Properties["_" + prop.Key] = prop.Value;
             }
 
-            doc.Version = 2;
-
             doc.Properties["Label"] = "Network";
 
             doc.WriteChildObject(network.Specification);
@@ -42,10 +40,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetwork Import(PortableDataDocument doc)
         {
-            return CreateFromVectorDocumentV2(doc);
+            return CreateFromVectorDocument(doc);
         }
 
-        static MultilayerNetwork CreateFromVectorDocumentV2(PortableDataDocument doc)
+        static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
         {
             var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);

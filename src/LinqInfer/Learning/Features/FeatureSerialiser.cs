@@ -17,14 +17,14 @@ namespace LinqInfer.Learning.Features
                 doc.Properties[FeaturePrefix + feature.Key] = feature.ToDictionary().ToDictionaryString();
             }
 
-            doc.Properties["VectorSize"] = vectorSize.GetValueOrDefault(features.Count()).ToString();
+            doc.Properties[nameof(IFloatingPointFeatureExtractor<object>.VectorSize)] = vectorSize.GetValueOrDefault(features.Count()).ToString();
 
             return doc;
         }
 
         public static (int vectorSize, IFeature[] features) LoadFeatureAttributes(this PortableDataDocument data)
         {
-            var vectorSize = data.PropertyOrDefault("VectorSize", 0);
+            var vectorSize = data.PropertyOrDefault(nameof(IFloatingPointFeatureExtractor<object>.VectorSize), 0);
 
             if (vectorSize <= 0)
             {

@@ -81,7 +81,7 @@ namespace LinqInfer.Learning.Classification
 
             public int ClassFrequency { get; set; }
 
-            public IDictionary<int, int> CategoricalFrequencies { get; set; }
+            public IDictionary<int, int> CategoricalFrequencies { get; }
         }
     }
 }

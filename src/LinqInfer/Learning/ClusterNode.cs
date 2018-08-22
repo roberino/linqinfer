@@ -38,7 +38,7 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Returns the weights associated with the cluster.
         /// </summary>
-        public ColumnVector1D Weights { get; private set; }
+        public ColumnVector1D Weights { get; }
 
         /// <summary>
         /// Return true if the node has been initialised.

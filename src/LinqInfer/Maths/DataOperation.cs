@@ -82,7 +82,6 @@ namespace LinqInfer.Maths
             var doc = new PortableDataDocument();
 
             doc.Properties["Operation"] = Operation.ToString();
-            doc.Properties["Version"] = "1";
 
             foreach (var vect in _parameters) doc.Vectors.Add(vect);
 

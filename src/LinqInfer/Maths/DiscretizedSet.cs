@@ -24,17 +24,17 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the minimum value of the set
         /// </summary>
-        public V Min { get; private set; }
+        public V Min { get; }
 
         /// <summary>
         /// Returns the maximum value of the set
         /// </summary>
-        public V Max { get; private set; }
+        public V Max { get; }
 
         /// <summary>
         /// Returns the width of each bin
         /// </summary>
-        public W Width { get; private set; }
+        public W Width { get; }
 
         /// <summary>
         /// Returns a dictionary of bins and value counts

@@ -71,7 +71,7 @@ namespace LinqInfer.Data.Storage
             };
         }
 
-        public string Name { get; private set; }
+        public string Name { get; }
         public bool Exists { get; internal set; }
         public DateTime? Created { get; internal set; }
         public DateTime? Modified { get; internal set; }

@@ -173,7 +173,7 @@ namespace LinqInfer.Maths.Graphs
             return vertex;
         }
 
-        internal IWeightedGraphStore<T, C> Storage { get; private set; }
+        internal IWeightedGraphStore<T, C> Storage { get; }
 
         internal IDictionary<string, object> Cache { get { return _cache; } }
 

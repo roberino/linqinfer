@@ -41,7 +41,9 @@ namespace LinqInfer.Learning.Features
                     (NameOf<MultiStrategyFeatureExtractor<T>>(),
                         d => MultiStrategyFeatureExtractor<T>.Create(d.Data, d.Factory.Create)),
                     (NameOf<ObjectFeatureExtractor<T>>(),
-                        d => ObjectFeatureExtractor<T>.Create(d.Data)));
+                        d => ObjectFeatureExtractor<T>.Create(d.Data)),
+                    (NameOf<FeatureMapDataExtractor<T>>(),
+                        d => FeatureMapDataExtractor<T>.Create(d.Data, d.Factory.Create)));
             }
         }
 
