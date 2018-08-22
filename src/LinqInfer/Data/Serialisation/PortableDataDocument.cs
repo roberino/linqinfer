@@ -334,6 +334,10 @@ namespace LinqInfer.Data.Serialisation
 
         protected void Read(BinaryReader reader, int level)
         {
+            _rootName = reader.ReadString();
+
+            if (string.IsNullOrEmpty(_rootName)) _rootName = null;
+
             var levelc = reader.ReadInt32();
 
             if (levelc != level) throw new ArgumentException("Invalid data");
@@ -342,37 +346,32 @@ namespace LinqInfer.Data.Serialisation
 
             Timestamp = DateTime.FromBinary(reader.ReadInt64());
 
-            var actions = new Dictionary<string, Action<int, BinaryReader>>();
-
-            actions[PropertiesName] = (n, r) =>
+            var actions = new Dictionary<string, Action<int, BinaryReader>>
             {
-                Properties[r.ReadString()] = r.ReadString();
-            };
+                [PropertiesName] = (n, r) => { Properties[r.ReadString()] = r.ReadString(); },
+                [DataName] = (n, r) =>
+                {
+                    var len = r.ReadInt32();
+                    var vect = ColumnVector1D.FromByteArray(r.ReadBytes(len));
 
-            actions[DataName] = (n, r) =>
-            {
-                var len = r.ReadInt32();
-                var vect = ColumnVector1D.FromByteArray(r.ReadBytes(len));
+                    Vectors.Add(vect);
+                },
+                [BlobName] = (n, r) =>
+                {
+                    var key = r.ReadString();
+                    var len = r.ReadInt32();
+                    var blob = r.ReadBytes(len);
 
-                Vectors.Add(vect);
-            };
+                    Blobs[key] = blob;
+                },
+                [ChildrenName] = (n, r) =>
+                {
+                    var child = new PortableDataDocument();
 
-            actions[BlobName] = (n, r) =>
-            {
-                var key = r.ReadString();
-                var len = r.ReadInt32();
-                var blob = r.ReadBytes(len);
+                    child.Read(r, level + 1);
 
-                Blobs[key] = blob;
-            };
-
-            actions[ChildrenName] = (n, r) =>
-            {
-                var child = new PortableDataDocument();
-
-                child.Read(r, level + 1);
-
-                Children.Add(child);
+                    Children.Add(child);
+                }
             };
 
             ReadSections(reader, n => actions[n]);
@@ -442,16 +441,6 @@ namespace LinqInfer.Data.Serialisation
             }
 
             return doc;
-        }
-
-        long AppendCheckSum(string val, long checksum)
-        {
-            foreach (var c in val)
-            {
-                checksum ^= c;
-            }
-
-            return checksum;
         }
 
         void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
@@ -525,6 +514,7 @@ namespace LinqInfer.Data.Serialisation
         {
             var date = DateTime.UtcNow;
 
+            writer.Write(_rootName ?? string.Empty);
             writer.Write(level);
             writer.Write(Checksum);
             writer.Write(date.ToBinary());
