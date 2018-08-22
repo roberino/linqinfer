@@ -11,23 +11,17 @@ using LinqInfer.Maths;
 namespace LinqInfer.Learning
 {
     public class FeatureMap<T> : IEnumerable<ClusterNode<T>>, IHasNetworkTopology
+        where T : class
     {
         readonly IEnumerable<ClusterNode<T>> _nodes;
-        readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
         readonly ClusteringParameters _parameters;
 
         internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IFloatingPointFeatureExtractor<T> featureExtractor, ClusteringParameters parameters)
         {
             _nodes = nodes;
-            _featureExtractor = featureExtractor;
             _parameters = parameters;
 
-            Features = featureExtractor.FeatureMetadata;
-        }
-
-        public ClusterNode<T> CreateNewNode(T member)
-        {
-            return new ClusterNode<T>(_featureExtractor, new ColumnVector1D(_featureExtractor.ExtractVector(member)), _parameters);
+            FeatureExtractor = featureExtractor;
         }
 
         public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor()
@@ -43,7 +37,18 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Returns the features that where used by the mappper
         /// </summary>
-        public IEnumerable<IFeature> Features { get; }
+        public IEnumerable<IFeature> Features => FeatureExtractor.FeatureMetadata;
+
+        internal IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
+
+        /// <summary>
+        /// Sets the export mode
+        /// </summary>
+        public GraphExportMode ExportMode
+        {
+            get => _parameters.ExportMode;
+            set => _parameters.ExportMode = value;
+        }
 
         public IEnumerator<ClusterNode<T>> GetEnumerator()
         {
@@ -53,21 +58,6 @@ namespace LinqInfer.Learning
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _nodes.GetEnumerator();
-        }
-
-        /// <summary>
-        /// Sets the export mode
-        /// </summary>
-        public GraphExportMode ExportMode
-        {
-            get
-            {
-                return _parameters.ExportMode;
-            }
-            set
-            {
-                _parameters.ExportMode = value;
-            }
         }
 
         public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
@@ -127,22 +117,14 @@ namespace LinqInfer.Learning
                 i++;
             }
 
-            await FinalisePosition(graph, vs.Origin, vs.Bounds);
+            await FinalisePositionAsync(graph, vs.Origin, vs.Bounds);
 
             await graph.SaveAsync();
 
             return graph;
         }
 
-        internal IFloatingPointFeatureExtractor<T> FeatureExtractor
-        {
-            get
-            {
-                return _featureExtractor;
-            }
-        }
-
-        async Task FinalisePosition(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
+        async Task FinalisePositionAsync(WeightedGraph<string, double> graph, Point3D origin, Point3D bounds)
         {
             if (ExportMode == GraphExportMode.Spatial3D)
             {
@@ -156,10 +138,10 @@ namespace LinqInfer.Learning
             {
                 ColumnVector1D vect;
 
-                if (_featureExtractor.VectorSize > 3)
+                if (FeatureExtractor.VectorSize > 3)
                 {
                     var members = node.GetMembers();
-                    var pipe = members.Select(m => _featureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
+                    var pipe = members.Select(m => FeatureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
                     var reduce = pipe.PrincipalComponentReduction(3);
                     var fe = reduce.FeatureExtractor;
 
@@ -224,17 +206,17 @@ namespace LinqInfer.Learning
 
                 var maxCount = (double)members.Max(m => m.Value);
 
-                if (_featureExtractor.VectorSize > 3)
+                if (FeatureExtractor.VectorSize > 3)
                 {
-                    var pipe = members.Select(m => _featureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
+                    var pipe = members.Select(m => FeatureExtractor.ExtractIVector(m.Key)).AsQueryable().CreatePipeline();
                     var reduce = pipe.PrincipalComponentReduction(3);
                     var fe = reduce.FeatureExtractor;
 
-                    extractor = v => fe.ExtractIVector(_featureExtractor.ExtractIVector(v));
+                    extractor = v => fe.ExtractIVector(FeatureExtractor.ExtractIVector(v));
                 }
                 else
                 {
-                    extractor = _featureExtractor.ExtractIVector;
+                    extractor = FeatureExtractor.ExtractIVector;
                 }
 
                 return (i, m, c) =>

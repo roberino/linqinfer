@@ -1,9 +1,8 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -72,7 +71,7 @@ namespace LinqInfer.Maths
         {
             _parameters.Clear();
 
-            Operation = (VectorOperationType)Enum.Parse(typeof(VectorOperationType), doc.Properties["Operation"]);
+            Operation = (VectorOperationType)Enum.Parse(typeof(VectorOperationType), doc.Name);
 
             foreach (var vect in doc.Vectors.Select(v => v.ToColumnVector())) _parameters.Add(vect);
         }
@@ -81,14 +80,12 @@ namespace LinqInfer.Maths
         {
             var doc = new PortableDataDocument();
 
-            doc.Properties["Operation"] = Operation.ToString();
+            doc.SetName(Operation.ToString());
 
             foreach (var vect in _parameters) doc.Vectors.Add(vect);
 
             return doc;
         }
-
-        bool IsMultiRow => _parameters.Count > 1;
 
         Vector AsVector() => _parameters[0];
 

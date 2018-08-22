@@ -43,9 +43,11 @@ namespace LinqInfer.UnitTests.Data.Serialisation
 
             var checksum1 = doc.Checksum;
 
+            doc.Properties["title"] = "cba";
+            
             var checksum2 = doc.Checksum;
 
-            doc.Properties["title"] = "cba";
+            doc.Children.Add(new PortableDataDocument());
 
             var checksum3 = doc.Checksum;
 
@@ -73,9 +75,9 @@ namespace LinqInfer.UnitTests.Data.Serialisation
 
                 var doc2 = store.Restore("a", new PortableDataDocument());
 
-                Assert.That(doc.Vectors[0][1], Is.EqualTo(7.4));
-                Assert.That(doc.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
-                Assert.That(doc.Children[0].Vectors[1][1], Is.EqualTo(0.14));
+                Assert.That(doc2.Vectors[0][1], Is.EqualTo(7.4));
+                Assert.That(doc2.Children[0].Vectors[0][0], Is.EqualTo(8.2432));
+                Assert.That(doc2.Children[0].Vectors[1][1], Is.EqualTo(0.14));
             }
         }
 

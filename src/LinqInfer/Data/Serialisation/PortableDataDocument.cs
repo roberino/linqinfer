@@ -72,7 +72,7 @@ namespace LinqInfer.Data.Serialisation
         {
             get
             {
-                long checksum = 0;
+                long checksum = Properties.Count ^ Vectors.Count ^ Children.Count;
 
                 foreach (var prop in Properties)
                 {
@@ -125,6 +125,11 @@ namespace LinqInfer.Data.Serialisation
             catch (XmlException) { }
         }
 
+        internal void SetName(string name)
+        {
+            _rootName = XmlConvert.VerifyName(name);
+        }
+
         internal string AssemblyQualifiedName => PropertyOrDefault(nameof(AssemblyQualifiedName), string.Empty);
 
         internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
@@ -133,6 +138,8 @@ namespace LinqInfer.Data.Serialisation
         {
             return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
         }
+
+        public string Name => _rootName;
 
         public IDictionary<string, string> Properties { get; }
 
@@ -466,6 +473,8 @@ namespace LinqInfer.Data.Serialisation
 
         void ImportXml(XElement rootNode)
         {
+            _rootName = rootNode.Name.LocalName;
+
             var checksum = int.Parse(rootNode.Attribute("checksum")?.Value ?? "0");
 
             foreach (var prop in ChildElements(rootNode, PropertiesName))
@@ -490,7 +499,7 @@ namespace LinqInfer.Data.Serialisation
             {
                 var cdoc = new PortableDataDocument()
                 {
-                    ValidateOnImport = ValidateOnImport,
+                    ValidateOnImport = false,
                     VectorToXmlSerialisationMode = VectorToXmlSerialisationMode
                 };
 
