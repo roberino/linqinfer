@@ -8,7 +8,6 @@ namespace LinqInfer.Learning.Features
 {
     class AsyncFeatureProcessingPipeline<T>
         : AsyncPipe<ObjectVectorPair<T>>, IAsyncFeatureProcessingPipeline<T>
-        where T : class
     {
         readonly TransformingFeatureExtractor<T> _featureExtractor;
         readonly IAsyncEnumerator<T> _dataLoader;

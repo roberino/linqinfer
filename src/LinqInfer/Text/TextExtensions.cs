@@ -145,7 +145,7 @@ namespace LinqInfer.Text
 
             var trainingSet =
                 data.AsAsyncEnumerator()
-                    .CreatePipeine(featureExtractor)
+                    .CreatePipeline(featureExtractor)
                     .AsTrainingSet(classifyingFunction, outputs);
 
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(

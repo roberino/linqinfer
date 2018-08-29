@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
     <Version>4.2.0</Version>
-    <LangVersion>7</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\*.txt" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />

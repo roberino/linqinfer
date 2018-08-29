@@ -9,7 +9,7 @@ namespace LinqInfer.Learning
     {
         public static INetworkClassifier<TClass, TInput> OpenAsMultilayerNetworkClassifier<TInput, TClass>(
             this PortableDataDocument existingClassifierData)
-            where TInput : class where TClass : IEquatable<TClass>
+            where TClass : IEquatable<TClass>
         {
             return MultilayerNetworkObjectClassifier<TClass, TInput>.Create(existingClassifierData);
         }
@@ -20,7 +20,8 @@ namespace LinqInfer.Learning
         /// </summary>
         public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            PortableDataDocument existingClassifierData) where TInput : class where TClass : IEquatable<TClass>
+            PortableDataDocument existingClassifierData) 
+            where TClass : IEquatable<TClass>
         {
             var targetDoc = existingClassifierData.FindChild<MultilayerNetwork>() ?? existingClassifierData;
             var network = MultilayerNetwork.CreateFromData(targetDoc);
@@ -42,7 +43,8 @@ namespace LinqInfer.Learning
         /// <param name="networkBuilder">A delegate which builds the network specification</param>
         public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            Action<FluentNetworkBuilder> networkBuilder) where TInput : class where TClass : IEquatable<TClass>
+            Action<FluentNetworkBuilder> networkBuilder) 
+            where TClass : IEquatable<TClass>
         {
             var builder = new FluentNetworkBuilder(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
 

@@ -91,6 +91,8 @@ namespace LinqInfer.Utility.Expressions
                     return ExpressionType.Not;
                 case "?":
                     return ExpressionType.Conditional;
+                case "=>":
+                    return ExpressionType.Lambda;
             }
 
             throw new NotSupportedException(token);

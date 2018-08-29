@@ -156,16 +156,33 @@ namespace LinqInfer.Utility.Expressions
 
             type = type.TrimEnd('.');
 
-            var args = next.Children.SelectMany(c => c.Build(context.GlobalContext));
-            var binder = context.GetStaticBinder(type);
-            return binder.GetFunction(next.Value, args);
+            var args = next.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
+
+            try
+            {
+                var binder = context.GetStaticBinder(type);
+                return binder.GetFunction(next.Value, args);
+            }
+            catch (MemberAccessException)
+            {
+                throw new CompileException(type, expressionTree.Position, CompileErrorReason.UnknownFunction);
+            }
         }
 
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
         {
             var args = expressionTree.Children.SelectMany(c => c.Build(context.GlobalContext));
             var binder = context.GetBinder();
-            return binder.GetFunction(context.CurrentContext, expressionTree.Value, args);
+
+            try
+            {
+                return binder.GetFunction(context.CurrentContext, expressionTree.Value, args);
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.UnknownFunction);
+            }
         }
 
         static bool IsMethod(this ExpressionTree expressionTree)
@@ -197,7 +214,14 @@ namespace LinqInfer.Utility.Expressions
 
             var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
 
-            return GlobalFunctions.GetFunction(expression.Value, args);
+            try
+            {
+                return GlobalFunctions.GetFunction(expression.Value, args);
+            }
+            catch (ArgumentException)
+            {
+                throw new CompileException(expression.Value, expression.Position, CompileErrorReason.InvalidArgs);
+            }
         }
 
         static Expression AsTypeConstant(this ExpressionTree expression)
@@ -259,12 +283,28 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        static Expression AsLamdaExpression(this ExpressionTree expressionTree, Scope context)
+        {
+            expressionTree.ValidateArgs(2, 2);
+
+            throw new NotSupportedException("Lamdas not supported");
+
+            //var paramNames = expressionTree.Children.First();
+            //var parameters = new[] {Expression.Parameter(typeof(double), paramNames.Value)};
+        }
+
         static Expression AsOperatorExpression(this ExpressionTree expressionTree, Scope context)
         {
             expressionTree.ValidateArgs(1, 2);
 
-            var first = expressionTree.Children.First().Build(context).Single();
             var expressionType = expressionTree.Value.AsExpressionType();
+
+            if (expressionType == ExpressionType.Lambda)
+            {
+                return expressionTree.AsLamdaExpression(context);
+            }
+            
+            var first = expressionTree.Children.First().Build(context).Single();
 
             if (expressionType == ExpressionType.Not)
             {

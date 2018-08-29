@@ -1,11 +1,27 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    public class ExpressionParser<TInput, TOutput>
+    class ExpressionParser<TInput, TOutput>
     {
+        readonly Assembly[] _assemblies;
+        readonly Type[] _types;
+
+        public ExpressionParser(params Assembly[] assemblies)
+        {
+            _assemblies = assemblies;
+            _types = new Type[0];
+        }
+
+        public ExpressionParser(params Type[] types)
+        {
+            _assemblies = new Assembly[0];
+            _types = types;
+        }
+
         public Expression<Func<TInput, TOutput>> Parse(string expression)
         {
             var parts = GetExpressionParts(expression);
@@ -17,9 +33,13 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Lambda<Func<TInput, TOutput>>(body, parameter);
         }
 
-        internal Expression Build(Expression context, ExpressionTree expressionTree)
+        internal Expression Build(ParameterExpression context, ExpressionTree expressionTree)
         {
-            return expressionTree.Build(new Scope(context)).Single();
+            var scope = new Scope(context)
+                .RegisterAssemblies(_assemblies)
+                .RegisterStaticTypes(_types);
+
+            return expressionTree.Build(scope).Single();
         }
 
         static (string paramName, string body) GetExpressionParts(string expression)

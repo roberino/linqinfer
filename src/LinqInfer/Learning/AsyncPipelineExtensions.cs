@@ -52,10 +52,9 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Creates an asyncronous pipeline, given a feature extractor
         /// </summary>
-        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
+        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IEnumerable<TInput> dataset,
             IFloatingPointFeatureExtractor<TInput> featureExtractor)
-            where TInput : class
         {
             return new AsyncFeatureProcessingPipeline<TInput>(dataset.AsAsyncEnumerator(), featureExtractor);
         }
@@ -63,7 +62,18 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Creates an asyncronous pipeline, given a feature extractor
         /// </summary>
-        internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
+        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
+            this IEnumerable<TInput> dataset,
+            Expression<Func<TInput, IVector>> featureSelectExpression, int inputVectorSize)
+        {
+            var fe = new ExpressionFeatureExtractor<TInput>(featureSelectExpression, inputVectorSize);
+            return CreatePipeline(dataset, fe);
+        }
+
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor
+        /// </summary>
+        internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             IFloatingPointFeatureExtractor<TInput> featureExtractor)
             where TInput : class
@@ -116,7 +126,6 @@ namespace LinqInfer.Learning
             this IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             params TClass[] outputs)
-            where TInput : class
             where TClass : IEquatable<TClass>
         {
             var omf = new OutputMapperFactory<TInput, TClass>();

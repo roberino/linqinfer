@@ -21,6 +21,8 @@ namespace LinqInfer.Utility.Expressions
         UnknownToken,
         EndOfStream,
         TooManyArgs,
-        NotEnoughArgs
+        NotEnoughArgs,
+        InvalidArgs,
+        UnknownFunction
     }
 }

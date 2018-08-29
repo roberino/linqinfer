@@ -1,8 +1,10 @@
 ﻿using LinqInfer.Utility.Expressions;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using LinqInfer.Maths;
+using System.Linq;
 
 namespace LinqInfer.UnitTests.Utility.Expressions
 {
@@ -49,6 +51,36 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var result = exp.Compile().Invoke(2.2);
 
             Assert.That(result, Is.EqualTo(10));
+        }
+        
+        [Test]
+        public void Parse_StaticMethodFromExternalAsm_BindsCorrectly()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetPiX)}(x)".AsExpression<int, double>();
+
+            var result = exp.Compile().Invoke(5);
+
+            Assert.That(result, Is.EqualTo(StaticExampleMethods.GetPiX(5)));
+        }
+
+        [Test]
+        [Ignore("WIP")]
+        public void Parse_InnerLamda_BindsCorrectly()
+        {
+            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<int>>();
+
+            var result = exp.Compile().Invoke(new[] {1, 2});
+        }
+
+        [Test]
+        public void Parse_StaticLinqMethod_BindsCorrectly()
+        {
+            var exp = $"x => {nameof(Enumerable)}.{nameof(Enumerable.Range)}(x, 5)".AsExpression<int, IEnumerable<int>>();
+
+            var result = exp.Compile().Invoke(7).ToArray();
+
+            Assert.That(result.Count(), Is.EqualTo(5));
+            Assert.That(result.First(), Is.EqualTo(7));
         }
 
         [Test]

@@ -11,7 +11,6 @@ using LinqInfer.Maths;
 namespace LinqInfer.Learning
 {
     public class FeatureMap<T> : IEnumerable<ClusterNode<T>>, IHasNetworkTopology
-        where T : class
     {
         readonly IEnumerable<ClusterNode<T>> _nodes;
         readonly ClusteringParameters _parameters;

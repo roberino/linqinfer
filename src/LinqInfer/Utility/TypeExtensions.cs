@@ -181,6 +181,30 @@ namespace LinqInfer.Utility
         }
 
         /// <summary>
+        /// Returns true for numeric type codes
+        /// </summary>
+        public static bool IsNumeric(this TypeCode tc)
+        {
+            switch (tc)
+            {
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                case TypeCode.Decimal:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
         /// Returns true if a type is a simple numeric, date or string type. Null values will return false.
         /// </summary>
         public static bool IsPrimativeOrString(this object objInstance)

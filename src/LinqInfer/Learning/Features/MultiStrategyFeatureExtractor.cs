@@ -6,9 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    class MultiStrategyFeatureExtractor<T> : 
-        IFloatingPointFeatureExtractor<T>
-        where T : class
+    class MultiStrategyFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
     {
         readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
 

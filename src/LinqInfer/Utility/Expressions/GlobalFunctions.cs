@@ -131,7 +131,25 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression BitVector(IEnumerable<Expression> parameters)
         {
-            return Expression.New(BitVectorMethod, Expression.NewArrayInit(typeof(bool), ConvertAll<bool>(parameters.ToArray())));
+            Expression arrParam = null;
+
+            var paramArray = parameters.ToArray();
+
+            if (paramArray.Length == 1 && paramArray.Single().Type == typeof(bool[]))
+            {
+                arrParam = paramArray.Single();
+            }
+            else
+            {
+                if (paramArray.Any(p => p.Type != typeof(bool)))
+                {
+                    paramArray = ConvertAll<bool>(paramArray).ToArray();
+                }
+
+                arrParam = Expression.NewArrayInit(typeof(bool), paramArray);
+            }
+
+            return Expression.New(BitVectorMethod, arrParam);
         }
 
         static Expression OneOfNVector(IEnumerable<Expression> parameters)

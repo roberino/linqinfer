@@ -7,7 +7,6 @@ using System.Linq;
 namespace LinqInfer.Learning.Features
 {
     class FeatureMapDataExtractor<T> : IFloatingPointFeatureExtractor<T>
-        where T : class
     {
         readonly IFloatingPointFeatureExtractor<T> _baseFeatureExtractor;
         Matrix _weights;

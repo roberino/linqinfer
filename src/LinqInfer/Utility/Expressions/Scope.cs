@@ -9,8 +9,13 @@ namespace LinqInfer.Utility.Expressions
     class Scope
     {
         readonly IDictionary<Type, FunctionBinder> _binders;
+        readonly List<Type[]> _assemblyTypes;
 
-        public Scope(Expression currentContext, Scope globalContext = null, bool? isRoot = null, Type conversionType = null)
+        public Scope(params ParameterExpression[] parameters) : this((Expression)parameters.First())
+        {
+        }
+
+        Scope(Expression currentContext, Scope globalContext = null, bool? isRoot = null, Type conversionType = null)
         {
             CurrentContext = currentContext;
             GlobalContext = globalContext ?? this;
@@ -20,7 +25,25 @@ namespace LinqInfer.Utility.Expressions
             if (IsRoot)
             {
                 _binders = new Dictionary<Type, FunctionBinder>();
+                _assemblyTypes = new List<Type[]>
+                {
+                    typeof(FunctionBinder).Assembly.ExportedTypes.ToArray(),
+                    new[] {typeof(Enumerable)}
+                };
             }
+        }
+
+        public Scope RegisterAssemblies(IEnumerable<Assembly> assembly)
+        {
+            _assemblyTypes.AddRange(assembly.Select(a => a.ExportedTypes.ToArray()));
+
+            return this;
+        }
+
+        public Scope RegisterStaticTypes(IEnumerable<Type> types)
+        {
+            _assemblyTypes.Add(types.ToArray());
+            return this;
         }
 
         public bool IsRoot { get; }
@@ -38,7 +61,22 @@ namespace LinqInfer.Utility.Expressions
 
         public FunctionBinder GetStaticBinder(string typeName)
         {
-            var type = typeof(FunctionBinder).Assembly.ExportedTypes.Single(t => t.Name == typeName);
+            if (!IsRoot)
+            {
+                return GlobalContext.GetStaticBinder(typeName);
+            }
+
+            var type = _assemblyTypes[0].SingleOrDefault(t => t.Name == typeName);
+
+            if (type == null && _assemblyTypes.Count > 1)
+            {
+                type = _assemblyTypes.SelectMany(a => a).SingleOrDefault(t => t.Name == typeName);
+            }
+
+            if (type == null)
+            {
+                throw new MemberAccessException();
+            }
 
             return new FunctionBinder(type, BindingFlags.Static);
         }

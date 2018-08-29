@@ -8,7 +8,6 @@ using System.Linq;
 namespace LinqInfer.Learning.Features
 {
     class TransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>
-        where TInput : class
     {
         readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
         readonly List<ISerialisableDataTransformation> _transformations;

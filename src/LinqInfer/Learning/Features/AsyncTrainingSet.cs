@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 namespace LinqInfer.Learning.Features
 {
     class AsyncTrainingSet<TInput, TClass> : AsyncPipe<TrainingPair<IVector, IVector>>, IAsyncTrainingSet<TInput, TClass>
-        where TInput : class
         where TClass : IEquatable<TClass>
     {
         internal AsyncTrainingSet(

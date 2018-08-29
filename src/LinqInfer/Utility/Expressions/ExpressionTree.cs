@@ -72,6 +72,11 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        public bool IsLamda => new[] {this}.Concat(Descendants).Any(d =>
+            d.Type == TokenType.Operator && d.Value.AsExpressionType() == ExpressionType.Lambda);
+
+        public IEnumerable<ExpressionTree> Descendants => Children.Concat(Children.SelectMany(c => c.Descendants));
+
         public ExpressionTree LocalRoot
         {
             get
@@ -89,8 +94,6 @@ namespace LinqInfer.Utility.Expressions
         public bool IsFull => Type.Capacity() == _children.Count;
 
         public bool IsEmpty => _children.Count == 0;
-
-        public ExpressionTree LastDescendantOrSelf => _children.Count == 1 ? _children[0].LastDescendantOrSelf : this;
 
         public ExpressionTree MoveToEmptyAncestorOrSelf()
         {
@@ -235,8 +238,6 @@ namespace LinqInfer.Utility.Expressions
 
         public ExpressionTree InsertChild(TokenType type, string value, int position)
         {
-            //var context = MoveToEmptyAncestorOrSelf();
-
             var child = new ExpressionTree()
             {
                 Type = type,

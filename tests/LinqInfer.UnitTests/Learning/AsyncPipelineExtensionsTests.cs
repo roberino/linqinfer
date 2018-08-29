@@ -19,6 +19,35 @@ namespace LinqInfer.UnitTests.Learning
     public class AsyncPipelineExtensionsTests
     {
         [Test]
+        public async Task OpenAsMultilayerNetworkClassifier_ExportedClassifierWithExpression()
+        {
+            var data = Enumerable.Range(0, 10).Select(n => ( x : n, y : n * 7 ));
+
+            var s = string.Empty;
+            
+            var pipeline = await data
+                .CreatePipeline(x => new BitVector(x.x > 5, x.y > 14), 2)
+                .CentreAndScaleAsync();
+
+            var trainingSet = pipeline.AsTrainingSet(x => x.x > 5 ? "a" : "b", "a", "b");
+
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
+            {
+                b.ConfigureSoftmaxNetwork(2);
+            });
+
+            await trainingSet.RunAsync(CancellationToken.None, 550);
+
+            var doc = classifier.ExportData();
+
+            var classifier2 = doc.OpenAsMultilayerNetworkClassifier<(int x, int y), string>();
+
+            var results = classifier2.Classify((3, 33));
+
+            Assert.That(results.Any());
+        }
+
+        [Test]
         public async Task AttachMultilayerNetworkClassifier_SoftmaxClassifierWithLinearDataSet_ClassifiesCorrectly()
         {
             var data = new[]
@@ -57,7 +86,7 @@ namespace LinqInfer.UnitTests.Learning
             Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
 
             var trainingSet = pipeline.AsTrainingSet(x => x.c, "a", "b");
-            
+
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
                 b.ConfigureSoftmaxNetwork(4, p =>
@@ -132,7 +161,7 @@ namespace LinqInfer.UnitTests.Learning
                     CancellationToken.None,
                     new DefaultFeatureExtractionStrategy<TestData.Pirate>(),
                     new CategoricalFeatureExtractionStrategy<TestData.Pirate>());
-            
+
             var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
             Assert.That(data.Count, Is.EqualTo(100));
@@ -148,7 +177,7 @@ namespace LinqInfer.UnitTests.Learning
             var publisher = Substitute.For<IMessagePublisher>();
 
             await trainingData.SendAsync(publisher, CancellationToken.None);
-            
+
             await publisher.Received().PublishAsync(Arg.Is<Message>(m => m.Id != null && m.Properties["_Type"] != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
         }
 
@@ -188,8 +217,8 @@ namespace LinqInfer.UnitTests.Learning
                 counter++;
 
                 Assert.That(b.Items.Count, Is.EqualTo(10));
-                
-                foreach(var item in b.Items)
+
+                foreach (var item in b.Items)
                 {
                     Console.WriteLine(item);
                 }

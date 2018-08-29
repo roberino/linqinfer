@@ -16,7 +16,7 @@ namespace LinqInfer.Learning.Features
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
             return base.CanHandle(propertyExtractor) && 
-                propertyExtractor.ConversionFunction != null;
+                propertyExtractor.HasValue;
         }
 
         public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()

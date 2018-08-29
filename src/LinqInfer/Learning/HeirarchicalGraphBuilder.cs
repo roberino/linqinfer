@@ -65,7 +65,7 @@ namespace LinqInfer.Learning
 
             var asyncEnumerable = Data.Pipes.From.Enumerable(input);
 
-            var pipeline = asyncEnumerable.CreatePipeine(featureExtractor);
+            var pipeline = asyncEnumerable.CreatePipeline(featureExtractor);
 
             var map = await sofm.MapAsync(pipeline, cancellationToken);
 

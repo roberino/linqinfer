@@ -7,12 +7,19 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Utility.Expressions
 {
-    static class ExpressionSerialiserExtensions
+    public static class ExpressionSerialiserExtensions
     {
         public static Expression<Func<TInput, TOutput>> AsExpression<TInput, TOutput>(
-            this string expression)
+            this string expression, params Type[] referenceFunctionTypes)
         {
-            return new ExpressionParser<TInput, TOutput>().Parse(expression);
+            if (referenceFunctionTypes.Length != 0)
+            {
+                return new ExpressionParser<TInput, TOutput>(referenceFunctionTypes).Parse(expression);
+            }
+
+            var asmTargs = GetTargetAssemblies(Assembly.GetCallingAssembly());
+
+            return new ExpressionParser<TInput, TOutput>(asmTargs).Parse(expression);
         }
 
         public static Func<TOutput> AsFunc<TInput, TOutput>(
@@ -20,7 +27,8 @@ namespace LinqInfer.Utility.Expressions
             TInput input,
             TOutput defaultValue)
         {
-            var exp = new ExpressionParser<TInput, TOutput>().Parse(expression);
+            var asmTargs = GetTargetAssemblies(Assembly.GetCallingAssembly());
+            var exp = new ExpressionParser<TInput, TOutput>(asmTargs).Parse(expression);
             var func = exp.Compile();
 
             return () => func(input);
@@ -29,6 +37,16 @@ namespace LinqInfer.Utility.Expressions
         public static string ExportAsString<TInput, TOutput>(this Expression<Func<TInput, TOutput>> expression)
         {
             return ExportExpression(expression);
+        }
+
+        static Assembly[] GetTargetAssemblies(Assembly callingAssembly)
+        {
+            var asmTargs = new[] {callingAssembly, Assembly.GetExecutingAssembly()};
+            var thisAsm = typeof(ExpressionSerialiserExtensions).Assembly;
+            
+            var asms = asmTargs.Distinct((x, y) => string.Equals(x.FullName, y.FullName)).Where(a => a.FullName != thisAsm.FullName).ToArray();
+
+            return asms;
         }
 
         static string ExportExpression(this Expression expression)

@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Features
         public IFeatureExtractorFactory<T> Factory { get; }
     }
 
-    class FeatureExtractorFactory<T> : IFeatureExtractorFactory<T> where T : class
+    class FeatureExtractorFactory<T> : IFeatureExtractorFactory<T>
     {
         readonly IDictionary<string,
                 Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>>>

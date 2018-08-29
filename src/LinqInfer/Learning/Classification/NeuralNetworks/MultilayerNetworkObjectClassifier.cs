@@ -11,7 +11,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     class MultilayerNetworkObjectClassifier<TClass, TInput> :
         INetworkClassifier<TClass, TInput> 
         where TClass : IEquatable<TClass>
-        where TInput : class
     {
         protected readonly Config _config;
 

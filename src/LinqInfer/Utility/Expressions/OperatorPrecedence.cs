@@ -21,7 +21,8 @@ namespace LinqInfer.Utility.Expressions
                 ["=="] = 20,
                 ["!="] = 20,
                 ["&&"] = 10,
-                ["||"] = 10
+                ["||"] = 10,
+                ["=>"] = 0
             };
         }
 
