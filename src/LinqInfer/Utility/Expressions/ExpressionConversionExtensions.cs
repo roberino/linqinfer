@@ -9,8 +9,8 @@ namespace LinqInfer.Utility.Expressions
     {
         public static Expression Convert<T>(this Expression expression)
         {
-            return expression.Type != typeof(T) ? 
-                Expression.Convert(expression, typeof(T)) : 
+            return expression.Type != typeof(T) ?
+                Expression.Convert(expression, typeof(T)) :
                 expression;
         }
 
@@ -24,16 +24,16 @@ namespace LinqInfer.Utility.Expressions
                         break;
                     }
                 case TokenType.Condition:
-                {
-                    yield return expressionTree.AsCondition(context);
-                    break;
-                }
+                    {
+                        yield return expressionTree.AsCondition(context);
+                        break;
+                    }
                 case TokenType.Name:
                     {
                         if (context.IsRoot)
                         {
-                            var glob = expressionTree.AsGlobalFunction(context) ?? 
-                                expressionTree.AsTypeConstant() ?? 
+                            var glob = expressionTree.AsGlobalFunction(context) ??
+                                expressionTree.AsTypeConstant() ??
                                 expressionTree.AsGlobalNamedConstant();
 
                             if (glob != null)
@@ -72,6 +72,25 @@ namespace LinqInfer.Utility.Expressions
                     break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
+            }
+        }
+
+        static IEnumerable<UnboundParameter> BuildParameter(this ExpressionTree expressionTree, Scope context)
+        {
+            if (expressionTree.IsLamda)
+            {
+                yield return new UnboundParameter(expressionTree, context)
+                {
+                    Resolver = (t, c) => Build(t, c).Single(),
+                    ParameterNames = expressionTree.Children.First().Names.ToArray()
+                };
+
+                yield break;
+            }
+
+            foreach (var item in Build(expressionTree, context))
+            {
+                yield return new UnboundParameter(expressionTree, context, item);
             }
         }
 
@@ -118,7 +137,7 @@ namespace LinqInfer.Utility.Expressions
         static Expression AsMemberAccessor(this ExpressionTree expressionTree, Scope context)
         {
             var newContext = context.IsRoot ? context.SelectParameterScope(expressionTree.Value) : null;
-            
+
             if (newContext == null)
             {
                 if (expressionTree.IsMethod())
@@ -130,7 +149,7 @@ namespace LinqInfer.Utility.Expressions
                 {
                     return expressionTree.AsStaticMethodCall(context);
                 }
-                
+
                 newContext = context.SelectChildScope(expressionTree.Value);
             }
 
@@ -155,13 +174,21 @@ namespace LinqInfer.Utility.Expressions
             }
 
             type = type.TrimEnd('.');
-
-            var args = next.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
+            
+            var args = next.Content.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
 
             try
             {
                 var binder = context.GetStaticBinder(type);
-                return binder.GetFunction(next.Value, args);
+
+                var binding = binder.GetFunctionBinding(next.Value, args);
+
+                return binding();
+            }
+            catch (ArgumentException ex)
+            {
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.InvalidArgs);
             }
             catch (MemberAccessException)
             {
@@ -171,12 +198,19 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
         {
-            var args = expressionTree.Children.SelectMany(c => c.Build(context.GlobalContext));
+            var args = expressionTree.Content.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
             var binder = context.GetBinder();
 
             try
             {
-                return binder.GetFunction(context.CurrentContext, expressionTree.Value, args);
+                var binding = binder.GetFunctionBinding(expressionTree.Value, args, context.CurrentContext);
+
+                return binding();
+            }
+            catch (ArgumentException)
+            {
+                throw new CompileException(expressionTree.Value, expressionTree.Position,
+                    CompileErrorReason.InvalidArgs);
             }
             catch (KeyNotFoundException)
             {
@@ -212,7 +246,7 @@ namespace LinqInfer.Utility.Expressions
         {
             if (!GlobalFunctions.IsDefined(expression.Value)) return null;
 
-            var args = expression.Children.SelectMany(c => c.Build(context.GlobalContext)).ToArray();
+            var args = expression.Children.SelectMany(c => c.Build(context.RootScope)).ToArray();
 
             try
             {
@@ -285,12 +319,11 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsLamdaExpression(this ExpressionTree expressionTree, Scope context)
         {
-            expressionTree.ValidateArgs(2, 2);
+            var iscope = (InferredScope) context;
 
-            throw new NotSupportedException("Lamdas not supported");
+            var body = Build(expressionTree.Children.Last(), iscope).Single();
 
-            //var paramNames = expressionTree.Children.First();
-            //var parameters = new[] {Expression.Parameter(typeof(double), paramNames.Value)};
+            return Expression.Lambda(body, iscope.Parameters);
         }
 
         static Expression AsOperatorExpression(this ExpressionTree expressionTree, Scope context)
@@ -303,7 +336,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 return expressionTree.AsLamdaExpression(context);
             }
-            
+
             var first = expressionTree.Children.First().Build(context).Single();
 
             if (expressionType == ExpressionType.Not)

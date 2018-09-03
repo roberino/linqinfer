@@ -13,13 +13,21 @@ namespace LinqInfer.Utility.Expressions
 
         public Scope(params ParameterExpression[] parameters) : this((Expression)parameters.First())
         {
+            Parameters = parameters;
         }
 
-        Scope(Expression currentContext, Scope globalContext = null, bool? isRoot = null, Type conversionType = null)
+        public Scope(Scope globalContext, Type conversionType, params ParameterExpression[] parameters) : this(parameters.First(), globalContext, false, conversionType)
         {
+            Parameters = parameters;
+        }
+
+        Scope(Expression currentContext, Scope parent = null, bool? isRoot = null, Type conversionType = null)
+        {
+            Parameters = new ParameterExpression[0];
+
             CurrentContext = currentContext;
-            GlobalContext = globalContext ?? this;
-            IsRoot = isRoot.GetValueOrDefault(globalContext == null);
+            ParentScope = parent;
+            IsRoot = isRoot.GetValueOrDefault(parent == null);
             ConversionType = conversionType;
 
             if (IsRoot)
@@ -32,6 +40,8 @@ namespace LinqInfer.Utility.Expressions
                 };
             }
         }
+
+        public ParameterExpression[] Parameters { get; }
 
         public Scope RegisterAssemblies(IEnumerable<Assembly> assembly)
         {
@@ -48,7 +58,11 @@ namespace LinqInfer.Utility.Expressions
 
         public bool IsRoot { get; }
 
-        public Scope GlobalContext { get; }
+        public bool IsGlobalRoot => ParentScope == null;
+
+        public Scope ParentScope { get; }
+
+        public Scope RootScope => IsGlobalRoot ? this : ParentScope.RootScope;
 
         public Expression CurrentContext { get; }
 
@@ -61,9 +75,9 @@ namespace LinqInfer.Utility.Expressions
 
         public FunctionBinder GetStaticBinder(string typeName)
         {
-            if (!IsRoot)
+            if (!IsGlobalRoot)
             {
-                return GlobalContext.GetStaticBinder(typeName);
+                return ParentScope.GetStaticBinder(typeName);
             }
 
             var type = _assemblyTypes[0].SingleOrDefault(t => t.Name == typeName);
@@ -83,8 +97,8 @@ namespace LinqInfer.Utility.Expressions
 
         public FunctionBinder GetBinder(Type type)
         {
-            if (_binders == null) return GlobalContext.GetBinder(type);
-            
+            if (!IsGlobalRoot) return ParentScope.GetBinder(type);
+
             if (!_binders.TryGetValue(type, out FunctionBinder binder))
             {
                 _binders[type] = binder = new FunctionBinder(type, BindingFlags.Instance);
@@ -95,27 +109,21 @@ namespace LinqInfer.Utility.Expressions
 
         public Scope SelectParameterScope(string name)
         {
-            if (CurrentContext is ParameterExpression p && p.Name == name)
-            {
-                return new Scope(CurrentContext, GlobalContext);
-            }
+            var parameter = Parameters.FirstOrDefault(p => string.Equals(p.Name, name));
 
-            return null;
+            if (parameter != null) return new Scope(parameter, this);
+
+            return !IsGlobalRoot ? ParentScope.SelectParameterScope(name) : null;
         }
 
         public Scope SelectChildScope(string name)
         {
-            return new Scope(Expression.PropertyOrField(CurrentContext, name), GlobalContext);
-        }
-
-        public Scope NewScope(Expression newContext)
-        {
-            return new Scope(newContext, GlobalContext);
+            return new Scope(Expression.PropertyOrField(CurrentContext, name), this);
         }
 
         public Scope NewConversionScope(Type conversionType)
         {
-            return new Scope(CurrentContext, GlobalContext, IsRoot, conversionType);
+            return new Scope(CurrentContext, this, IsRoot, conversionType);
         }
     }
 }

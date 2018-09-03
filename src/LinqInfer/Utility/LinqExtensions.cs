@@ -10,6 +10,19 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static IEnumerable<O> SelectIf<T, O>(this IEnumerable<T> values, Func<IEnumerable<T>, bool> condition, Func<T, O> selector)
+        {
+            if (!condition(values))
+            {
+                return Enumerable.Empty<O>();
+            }
+
+            return values.Select(selector);
+        }
+
+        /// <summary>
+        /// Returns null if zero or more than one element exists
+        /// </summary>
         public static T SingleOrNull<T>(this IEnumerable<T> values) where T : class
         {
             T value = null;
@@ -105,6 +118,11 @@ namespace LinqInfer.Utility
             }
 
             return results;
+        }
+
+        public static IEnumerable<(T1 a, T2 b)> Zip<T1, T2>(this IEnumerable<T1> items1, IEnumerable<T2> items2)
+        {
+            return items1.Zip(items2, (x, y) => (x, y));
         }
 
         /// <summary>

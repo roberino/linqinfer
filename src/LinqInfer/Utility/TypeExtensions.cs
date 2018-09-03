@@ -117,13 +117,23 @@ namespace LinqInfer.Utility
             }
         }
 
+        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>)});
+
+        /// <summary>
+        /// Returns true if a type is an anonymous type
+        /// </summary>
+        public static bool IsFunc(this Type type)
+        {
+            return type.Namespace == typeof(Func<>).Namespace && type.IsGenericType && FuncTypes.Contains(type.GetGenericTypeDefinition());
+        }
+
         /// <summary>
         /// Returns true if a type is an anonymous type
         /// </summary>
         public static bool IsAnonymous<T>()
         {
             var type = GetTypeInf<T>();
-            return type.GetCustomAttributes(false).Any(a => a.GetType() == typeof(CompilerGeneratedAttribute))
+            return type.GetCustomAttributes(false).Any(a => a is CompilerGeneratedAttribute)
                 && type.IsGenericType && type.Name.Contains("AnonymousType")
                 && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
         }
@@ -178,6 +188,24 @@ namespace LinqInfer.Utility
             var type = objInstance.GetType();
 
             return Type.GetTypeCode(type);
+        }
+
+        /// <summary>
+        /// Returns true if a type has generic parameters
+        /// </summary>
+        public static bool HasGenericParameters(this Type type)
+        {
+            if (type.IsGenericParameter)
+            {
+                return true;
+            }
+
+            if (type.IsGenericType)
+            {
+                return type.GenericTypeArguments.Any(HasGenericParameters);
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -64,10 +64,9 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        [Ignore("WIP")]
         public void Parse_InnerLamda_BindsCorrectly()
         {
-            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<int>>();
+            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<double>>();
 
             var result = exp.Compile().Invoke(new[] {1, 2});
         }

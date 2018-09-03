@@ -95,6 +95,47 @@ namespace LinqInfer.Utility.Expressions
 
         public bool IsEmpty => _children.Count == 0;
 
+        public IEnumerable<string> Names
+        {
+            get
+            {
+                if (Type == TokenType.Name)
+                {
+                    yield return Value;
+                    yield break;
+                }
+
+                foreach (var child in Children)
+                {
+                    foreach (var name in child.Names)
+                    {
+                        yield return name;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<ExpressionTree> Content
+        {
+            get
+            {
+                foreach (var child in Children)
+                {
+                    if (child.Type != TokenType.GroupOpen
+                        && child.Type != TokenType.Separator)
+                    {
+                        yield return child;
+                        continue;
+                    }
+
+                    foreach (var content in child.Content)
+                    {
+                        yield return content;
+                    }
+                }
+            }
+        }
+
         public ExpressionTree MoveToEmptyAncestorOrSelf()
         {
             var next = this;
