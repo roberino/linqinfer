@@ -33,7 +33,7 @@ namespace LinqInfer.Utility.Expressions
 
         public Func<ExpressionTree, Scope, Expression> Resolver { get; set; }
 
-        public void Resolve()
+        public Expression Resolve()
         {
             if (Expression == null)
             {
@@ -42,6 +42,8 @@ namespace LinqInfer.Utility.Expressions
                 Expression = Resolver(Source, inferredScope);
                 Type = Expression.Type;
             }
+
+            return Expression;
         }
     }
 }

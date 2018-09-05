@@ -1,27 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
     class Scope
     {
-        readonly IDictionary<Type, FunctionBinder> _binders;
-        readonly List<Type[]> _assemblyTypes;
+        readonly IFunctionProvider _functionProvider;
 
-        public Scope(params ParameterExpression[] parameters) : this((Expression)parameters.First())
+        public Scope(IFunctionProvider functions, params ParameterExpression[] parameters) : this(null, null, true, functions)
         {
             Parameters = parameters;
         }
 
-        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(parameters.First(), globalContext, true)
+        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(null, globalContext, true)
         {
             Parameters = parameters;
         }
 
-        Scope(Expression currentContext, Scope parent = null, bool? isRoot = null, Type conversionType = null)
+        Scope(
+            Expression currentContext, 
+            Scope parent = null,
+            bool? isRoot = null, 
+            IFunctionProvider functions = null,
+            Type conversionType = null)
         {
             Parameters = new ParameterExpression[0];
 
@@ -29,32 +31,11 @@ namespace LinqInfer.Utility.Expressions
             ParentScope = parent;
             IsRoot = isRoot.GetValueOrDefault(parent == null);
             ConversionType = conversionType;
-
-            if (IsRoot)
-            {
-                _binders = new Dictionary<Type, FunctionBinder>();
-                _assemblyTypes = new List<Type[]>
-                {
-                    typeof(FunctionBinder).Assembly.ExportedTypes.ToArray(),
-                    new[] {typeof(Enumerable)}
-                };
-            }
+            
+            _functionProvider = functions;
         }
 
         public ParameterExpression[] Parameters { get; }
-
-        public Scope RegisterAssemblies(IEnumerable<Assembly> assembly)
-        {
-            _assemblyTypes.AddRange(assembly.Select(a => a.ExportedTypes.ToArray()));
-
-            return this;
-        }
-
-        public Scope RegisterStaticTypes(IEnumerable<Type> types)
-        {
-            _assemblyTypes.Add(types.ToArray());
-            return this;
-        }
 
         public bool IsRoot { get; }
 
@@ -68,43 +49,11 @@ namespace LinqInfer.Utility.Expressions
 
         public Type ConversionType { get; }
 
-        public FunctionBinder GetBinder()
+        public IFunctionProvider Functions => IsGlobalRoot ? _functionProvider : RootScope.Functions;
+
+        public IFunctionBinder GetBinder()
         {
-            return GetBinder(CurrentContext.Type);
-        }
-
-        public FunctionBinder GetStaticBinder(string typeName)
-        {
-            if (!IsGlobalRoot)
-            {
-                return ParentScope.GetStaticBinder(typeName);
-            }
-
-            var type = _assemblyTypes[0].SingleOrDefault(t => t.Name == typeName);
-
-            if (type == null && _assemblyTypes.Count > 1)
-            {
-                type = _assemblyTypes.SelectMany(a => a).SingleOrDefault(t => t.Name == typeName);
-            }
-
-            if (type == null)
-            {
-                throw new MemberAccessException();
-            }
-
-            return new FunctionBinder(type, BindingFlags.Static);
-        }
-
-        public FunctionBinder GetBinder(Type type)
-        {
-            if (!IsGlobalRoot) return ParentScope.GetBinder(type);
-
-            if (!_binders.TryGetValue(type, out FunctionBinder binder))
-            {
-                _binders[type] = binder = new FunctionBinder(type, BindingFlags.Instance);
-            }
-
-            return binder;
+            return Functions.GetBinder(CurrentContext.Type);
         }
 
         public Scope SelectParameterScope(string name)
@@ -123,7 +72,7 @@ namespace LinqInfer.Utility.Expressions
 
         public Scope NewConversionScope(Type conversionType)
         {
-            return new Scope(CurrentContext, this, IsRoot, conversionType);
+            return new Scope(CurrentContext, this, IsRoot, null, conversionType);
         }
     }
 }

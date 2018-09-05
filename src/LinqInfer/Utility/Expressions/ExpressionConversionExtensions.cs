@@ -179,11 +179,9 @@ namespace LinqInfer.Utility.Expressions
 
             try
             {
-                var binder = context.GetStaticBinder(type);
+                var binder = context.Functions.GetStaticBinder(type);
 
-                var binding = binder.GetFunctionBinding(next.Value, args);
-
-                return binding();
+                return binder.BindToFunction(next.Value, args);
             }
             catch (ArgumentException)
             {
@@ -203,9 +201,7 @@ namespace LinqInfer.Utility.Expressions
 
             try
             {
-                var binding = binder.GetFunctionBinding(expressionTree.Value, args, context.CurrentContext);
-
-                return binding();
+                return binder.BindToFunction(expressionTree.Value, args, context.CurrentContext);
             }
             catch (ArgumentException)
             {
@@ -244,13 +240,15 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsGlobalFunction(this ExpressionTree expression, Scope context)
         {
-            if (!GlobalFunctions.IsDefined(expression.Value)) return null;
+            var gfb = context.Functions.GetGlobalBinder();
 
-            var args = expression.Children.SelectMany(c => c.Build(context.RootScope)).ToArray();
+            if (!gfb.IsDefined(expression.Value)) return null;
 
+            var args = expression.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
+            
             try
             {
-                return GlobalFunctions.GetFunction(expression.Value, args);
+                return gfb.BindToFunction(expression.Value, args);
             }
             catch (ArgumentException)
             {

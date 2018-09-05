@@ -7,14 +7,14 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Utility.Expressions
 {
-    static class GlobalFunctions
+    class GlobalFunctions : IGlobalFunctionBinder
     {
-        public static bool IsDefined(string name)
+        public bool IsDefined(string name)
         {
             return MathFunctions.IsDefined(name) || ConversionFunctions.IsDefined(name);
         }
 
-        public static Expression GetFunction(string name, IEnumerable<Expression> parameters)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters)
         {
             if (MathFunctions.IsDefined(name))
             {
@@ -34,9 +34,9 @@ namespace LinqInfer.Utility.Expressions
             return _mathFunctions.IsDefined(name);
         }
 
-        public static Expression GetFunction(string name, IEnumerable<Expression> parameters)
+        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundParameter> parameters)
         {
-            return _mathFunctions.GetFunction(name, parameters);
+            return _mathFunctions.BindToFunction(name, parameters);
         }
     }
 
@@ -60,8 +60,10 @@ namespace LinqInfer.Utility.Expressions
             return false;
         }
 
-        public static Expression GetFunction(string name, IEnumerable<Expression> parameters)
+        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundParameter> unboundParameters)
         {
+            var parameters = unboundParameters.Select(u => u.Resolve()).ToArray();
+
             switch (name)
             {
                 case nameof(ToInteger):

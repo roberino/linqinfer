@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace LinqInfer.Utility.Expressions
 {
-    class FunctionBinder
+    class FunctionBinder : IFunctionBinder
     {
         readonly IDictionary<string, MethodInfo[]> _methods;
 
@@ -26,7 +26,7 @@ namespace LinqInfer.Utility.Expressions
             return _methods.ContainsKey(name);
         }
 
-        public Func<Expression> GetFunctionBinding(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
         {
             var method = BindToMethod(name, parameters);
 
@@ -50,19 +50,7 @@ namespace LinqInfer.Utility.Expressions
                 method =  method.MakeGenericMethod(genTypes);
             }
 
-            return () => Expression.Call(instance, method, args);
-        }
-
-        public Expression GetFunction(string name, IEnumerable<Expression> parameters)
-        {
-            var method = _methods[name].FirstOrDefault(m => IsParameterMatch(m.GetParameters(), parameters.Select(p => p.Type)));
-
-            if (method == null)
-            {
-                throw new ArgumentException();
-            }
-
-            return Expression.Call(null, method, Convert(parameters, method.GetParameters()));
+            return Expression.Call(instance, method, args);
         }
 
         MethodInfo BindToMethod(string name, IReadOnlyCollection<UnboundParameter> parameters)

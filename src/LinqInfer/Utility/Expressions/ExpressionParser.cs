@@ -1,25 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
     class ExpressionParser<TInput, TOutput>
     {
-        readonly Assembly[] _assemblies;
-        readonly Type[] _types;
+        readonly IFunctionProvider _functionProvider;
 
-        public ExpressionParser(params Assembly[] assemblies)
+        public ExpressionParser(IFunctionProvider functionProvider)
         {
-            _assemblies = assemblies;
-            _types = new Type[0];
-        }
-
-        public ExpressionParser(params Type[] types)
-        {
-            _assemblies = new Assembly[0];
-            _types = types;
+            _functionProvider = functionProvider;
         }
 
         public Expression<Func<TInput, TOutput>> Parse(string expression)
@@ -35,9 +26,7 @@ namespace LinqInfer.Utility.Expressions
 
         internal Expression Build(ParameterExpression context, ExpressionTree expressionTree)
         {
-            var scope = new Scope(context)
-                .RegisterAssemblies(_assemblies)
-                .RegisterStaticTypes(_types);
+            var scope = new Scope(_functionProvider, context);
 
             return expressionTree.Build(scope).Single();
         }
