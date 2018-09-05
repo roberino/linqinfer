@@ -11,6 +11,7 @@ namespace LinqInfer.Utility
     static class TypeExtensions
     {
         static readonly Type NullableType = typeof(Nullable<>);
+        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>)});
 
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
@@ -94,16 +95,6 @@ namespace LinqInfer.Utility
             return x => match.Invoke(null, new object[] { x }) as T;
         }
 
-        public static Type GetTypeInf<T>()
-        {
-            return typeof(T);
-        }
-
-        public static Type GetTypeInf(this Type type)
-        {
-            return type;
-        }
-
         /// <summary>
         /// Lists flags from an enum
         /// </summary>
@@ -116,8 +107,6 @@ namespace LinqInfer.Utility
                 if (input.HasFlag(value)) yield return value;
             }
         }
-
-        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>)});
 
         /// <summary>
         /// Returns true if a type is an anonymous type
@@ -162,7 +151,7 @@ namespace LinqInfer.Utility
                 .MakeGenericType(innerType)
                 .GetTypeInfo()
                 .GetConstructor(new [] { innerType })
-                .Invoke(new [] { value });
+                ?.Invoke(new [] { value });
         }
 
         /// <summary>
@@ -310,6 +299,26 @@ namespace LinqInfer.Utility
             }
 
             return null;
+        }
+
+        public static bool IsCompatibleArrayAndGeneric(this Type argType, Type genericType)
+        {
+            if (genericType.IsGenericTypeDefinition && argType.IsSubclassOf(typeof(Array)))
+            {   
+                return genericType == typeof(IEnumerable<>) || genericType == typeof(IList<>) || genericType == typeof(ICollection<>);
+            }
+
+            return false;
+        }
+
+        internal static Type GetTypeInf<T>()
+        {
+            return typeof(T);
+        }
+
+        internal static Type GetTypeInf(this Type type)
+        {
+            return type;
         }
     }
 }

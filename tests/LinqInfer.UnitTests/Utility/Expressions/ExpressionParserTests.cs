@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
         [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
-        public void Parse_GivenExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
+        public void AsExpression_ExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
 
@@ -34,7 +34,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => 4 + 5 * x", 2, 14)]
         [TestCase("x => Pow(2.71, 0-(x))", 2.2, 0.11154948255890629)]
         [TestCase("x => Pow(2.71, -(x))", 2.2, 0.11154948255890629)]
-        public void Parse_GivenNumericExpressions_ParsesCorrectly(string expression, double x, double expected)
+        public void AsExpression_NumericExpressions_ParsesCorrectly(string expression, double x, double expected)
         {
             var exp = expression.AsExpression<double, double>();
 
@@ -44,7 +44,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenConditionWithAddition_EvaluatesCorrectly()
+        public void AsExpression_ConditionWithAddition_EvaluatesCorrectly()
         {
             var exp = "x => x > 1 + 1 ? 10 : 5".AsExpression<double, double>();
 
@@ -54,7 +54,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
         
         [Test]
-        public void Parse_StaticMethodFromExternalAsm_BindsCorrectly()
+        public void AsExpression_StaticMethodFromExternalAsm_BindsCorrectly()
         {
             var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetPiX)}(x)".AsExpression<int, double>();
 
@@ -62,9 +62,43 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(result, Is.EqualTo(StaticExampleMethods.GetPiX(5)));
         }
+        
+        [Test]
+        public void AsExpression_InnerLamdaWithExpression_BindsCorrectly()
+        {
+            var exp = "x => StaticExampleMethods.GetXOrZero(x, a => a > 1.1)".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(5.123d);
+
+            Assert.AreEqual(result, StaticExampleMethods.GetXOrZero(5.123d, a => a > 1.1));
+        }
 
         [Test]
-        public void Parse_InnerLamda_BindsCorrectly()
+        public void AsExpression_LinqWhere_BindsCorrectly()
+        {
+            var expStr = Exp(new[] { 1d }, 1d, x => x.Where(n => n > 1).Sum())
+                .ExportAsString();
+
+            var exp = expStr.AsExpression<double[], double>();
+
+            var result = exp.Compile().Invoke(new[] {1d, 2d, 3d, 5d, 8d});
+
+            Assert.AreEqual(result, 18d);
+        }
+
+        [Test]
+        public void AsExpression_InnerLamdaWithExpression2_BindsCorrectly()
+        {
+            var expStr = Exp(1d, 1d, x => StaticExampleMethods.GetXOrZero(x, a => a > 1.1)).ExportAsString();
+            var exp = expStr.AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(5.123d);
+
+            Assert.AreEqual(result, StaticExampleMethods.GetXOrZero(5.123d, a => a > 1.1));
+        }
+
+        [Test]
+        public void AsExpression_InnerLamda_BindsCorrectly()
         {
             var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<double>>();
 
@@ -72,7 +106,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_StaticLinqMethod_BindsCorrectly()
+        public void AsExpression_StaticLinqMethod_BindsCorrectly()
         {
             var exp = $"x => {nameof(Enumerable)}.{nameof(Enumerable.Range)}(x, 5)".AsExpression<int, IEnumerable<int>>();
 
@@ -83,7 +117,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenVectorArrayExpression_ReturnsVector()
+        public void ParseVectorArrayExpression_ReturnsVector()
         {
             var exp = "x => Vector([1.2, 1.1, x])".AsExpression<double, IVector>();
 
@@ -95,7 +129,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenVectorExpression_ReturnsVector()
+        public void AsExpression_VectorExpression_ReturnsVector()
         {
             var exp = "x => Vector(1.2, 1.1, x)".AsExpression<double, IVector>();
 
@@ -107,7 +141,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenBitVectorExpression_ReturnsBitVector()
+        public void AsExpression_BitVectorExpression_ReturnsBitVector()
         {
             var exp = "x => BitVector(true, false, x) * BitVector(false, false, x)".AsExpression<bool, BitVector>();
 
@@ -119,7 +153,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenOneOfNVectorExpression_ReturnsOneOfNVector()
+        public void AsExpression_OneOfNVectorExpression_ReturnsOneOfNVector()
         {
             var exp = "x => OneOfNVector(2, x)".AsExpression<int, OneOfNVector>();
 
@@ -130,7 +164,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenOneOfNVectorExpressionWithOutActiveIndex_ReturnsOneOfNVector()
+        public void AsExpression_OneOfNVectorExpressionWithOutActiveIndex_ReturnsOneOfNVector()
         {
             var exp = "x => OneOfNVector(x)".AsExpression<int, OneOfNVector>();
 
@@ -141,7 +175,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenMatrixExpression_ReturnsMatrix()
+        public void AsExpression_MatrixExpression_ReturnsMatrix()
         {
             var exp = "x => Matrix([[x, 1], [x + 2, 2]])".AsExpression<double, Matrix>();
 
@@ -154,7 +188,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void ExportAsString_GivenNewVector_ReturnsVectorExp()
+        public void ExportAsString_NewVector_ReturnsVectorExp()
         {
             var exp = Exp(1d, new Vector(1d, 2d), x => new Vector(x, 2d));
             var expStr = exp.ExportAsString();
@@ -163,7 +197,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenInvertedCondition_EvaluatesCorrectly()
+        public void AsExpression_InvertedCondition_EvaluatesCorrectly()
         {
             var exp = "x => !x.PF() ? -1 : 2".AsExpression<MyParams, int>();
 
@@ -175,7 +209,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivedInvertedConditionWithNumericOperation_EvaluatesCorrectly()
+        public void AsExpression_InvertedConditionWithNumericOperation_EvaluatesCorrectly()
         {
             var exp = "x => 5 + (!x.PF() ? -1 : 2)".AsExpression<MyParams, int>();
 
@@ -187,7 +221,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenOperatorsInNonPrecedenceOrder_EvaluatesInCorrectOrder()
+        public void AsExpression_OperatorsInNonPrecedenceOrder_EvaluatesInCorrectOrder()
         {
             var exp = "x => 4 + 5 * x".AsExpression<double, double>();
 
@@ -197,7 +231,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenNegatedFunctionParams_ParsesCorrectly()
+        public void AsExpression_NegatedFunctionParams_ParsesCorrectly()
         {
             var exp = "x => Pow(2.71, 0-(x))".AsExpression<double, double>();
 
@@ -207,13 +241,13 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [TestCase("!x.PF() ? (-1 : 2")]
-        public void Parse_GivenInvalidExpression_ThrowsCompileError(string expression)
+        public void AsExpression_InvalidExpression_ThrowsCompileError(string expression)
         {
             Assert.Throws<ArgumentException>(() => expression.AsExpression<MyParams, double>());
         }
 
         [Test]
-        public void Parse_ThenExport_ReturnsSameExpressionString()
+        public void AsExpression_ThenExport_ReturnsSameExpressionString()
         {
             var expStr = "x => Convert((((x > 0.5) ? 1 : 0)), Double)";
 
@@ -225,7 +259,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithCondition_ParsesCorrectly()
+        public void AsExpression_ExpressionWithCondition_ParsesCorrectly()
         {
             var exp0 = Exp(x => x.Z > 0 ? 1.1 : 2.2);
 
@@ -241,7 +275,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithMemberCondition_ParsesCorrectly()
+        public void AsExpression_ExpressionWithMemberCondition_ParsesCorrectly()
         {
             var exp0 = Exp(x => x.P ? 1.1 : 2.2);
 
@@ -257,7 +291,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithGrouping_GroupPrecedencyIsPreserved()
+        public void AsExpression_ExpressionWithGrouping_GroupPrecedencyIsPreserved()
         {
             var exp0 = Exp(x => (x.Z + 1) * (x.Z + 2));
             var expression = exp0.ExportAsString();
@@ -273,7 +307,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithMinus_CorrectResultReturned()
+        public void AsExpression_ExpressionWithMinus_CorrectResultReturned()
         {
             var expression = "_ => 5.1 - -6.2";
 
@@ -285,7 +319,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithClosure_CorrectResultReturned()
+        public void AsExpression_ExpressionWithClosure_CorrectResultReturned()
         {
             var i = new { x = 1 };
             var z = 123;
@@ -304,7 +338,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenAnonymousParameterExpression_CorrectResultReturned()
+        public void AsExpression_AnonymousParameterExpression_CorrectResultReturned()
         {
             var i = new { x = 1, y = "s" };
 
@@ -322,7 +356,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithFractions_CorrectResultReturned()
+        public void AsExpression_ExpressionWithFractions_CorrectResultReturned()
         {
             var exp = FractionExp(x => x.Value1 + x.Value2);
 
@@ -342,7 +376,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithVectorOperation_CorrectResultReturned()
+        public void AsExpression_ExpressionWithVectorOperation_CorrectResultReturned()
         {
             var exp = VectExp(x => x.Input1.ToColumnVector() * x.Input2.ToColumnVector());
 
@@ -366,7 +400,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithVector_CorrectResultReturned()
+        public void AsExpression_ExpressionWithVector_CorrectResultReturned()
         {
             var exp = VectExp(x => x.Input1.MultiplyBy(x.Input2));
 
@@ -393,7 +427,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => x.Z + ((1 * x.Z)) - 2", 4d)]
         [TestCase("x => (x.Z + 1) * x.Z - 2", 10d)]
         [TestCase("x => ((x.Z + 1) * x.Z) - 2", 10d)]
-        public void Parse_GivenNumerousOperators_CreatesCorrectPrecedence(string expression, double expectedResult)
+        public void AsExpression_NumerousOperators_CreatesCorrectPrecedence(string expression, double expectedResult)
         {
             var func = expression.AsExpression<MyParams, double>().Compile();
 
@@ -403,7 +437,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithFieldAccessor_CorrectResultReturned()
+        public void AsExpression_ExpressionWithFieldAccessor_CorrectResultReturned()
         {
             var exp = Exp(x => x.Field1 * (long)2);
 
@@ -415,7 +449,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithArrayAndConversion_CorrectResultReturned()
+        public void AsExpression_ExpressionWithArrayAndConversion_CorrectResultReturned()
         {
             var exps = "x => [Convert((x), Double), 2]";
 
@@ -428,7 +462,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithVectorFunction_CorrectResultReturned()
+        public void AsExpression_ExpressionWithVectorFunction_CorrectResultReturned()
         {
             var exp = Exp(1, new Vector(0), x => ColumnVector1D.Create(x, 2));
 
@@ -442,7 +476,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenExpressionWithMathFunction_CorrectResultReturned()
+        public void AsExpression_ExpressionWithMathFunction_CorrectResultReturned()
         {
             var exp = Exp(x => Math.Sqrt(x.Z)); // "x => Sqrt(x.Z)"
 
@@ -454,7 +488,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenMultiplyExpressionWithConversion_CorrectResultReturned()
+        public void AsExpression_MultiplyExpressionWithConversion_CorrectResultReturned()
         {
             var exp = Exp(x => x.X * x.Y); // "x => Convert((x.X * x.Y), Double)"
             var exps = exp.ExportAsString();
@@ -467,7 +501,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void Parse_GivenAdditionExpression_CorrectResultReturned()
+        public void AsExpression_AdditionExpression_CorrectResultReturned()
         {
             var exp = Exp(x => x.Z + 2.2d);
 

@@ -175,7 +175,7 @@ namespace LinqInfer.Utility.Expressions
 
             type = type.TrimEnd('.');
             
-            var args = next.Content.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
+            var args = next.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
 
             try
             {
@@ -185,7 +185,7 @@ namespace LinqInfer.Utility.Expressions
 
                 return binding();
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
                 throw new CompileException(expressionTree.Value, expressionTree.Position,
                     CompileErrorReason.InvalidArgs);
@@ -198,7 +198,7 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsMethodCall(this ExpressionTree expressionTree, Scope context)
         {
-            var args = expressionTree.Content.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
+            var args = expressionTree.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
             var binder = context.GetBinder();
 
             try

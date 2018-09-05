@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
@@ -27,11 +26,17 @@ namespace LinqInfer.Utility.Expressions
 
         public TypeCompatibility GetTypeCompatibility(ParameterInfo paramType, Type argType)
         {
-            if (argType.IsGenericType &&
-                paramType.ParameterType.IsGenericType)
+            if (paramType.ParameterType.IsGenericType)
             {
-                if (argType.GetGenericTypeDefinition() == paramType.ParameterType.GetGenericTypeDefinition()
+                var genType = paramType.ParameterType.GetGenericTypeDefinition();
+
+                if (argType.IsGenericType && argType.GetGenericTypeDefinition() == genType
                     && IsGenericArgMatch(argType.GenericTypeArguments, paramType.ParameterType.GenericTypeArguments))
+                {
+                    return TypeCompatibility.CompatibleGeneric;
+                }
+
+                if (argType.IsCompatibleArrayAndGeneric(genType))
                 {
                     return TypeCompatibility.CompatibleGeneric;
                 }
@@ -74,12 +79,20 @@ namespace LinqInfer.Utility.Expressions
                 return true;
             }
 
-            if (allowGenerics && tcX == TypeCode.Object && 
-                targetType.IsGenericType && sourceType.IsGenericType && 
-                targetType.GetGenericTypeDefinition() == sourceType.GetGenericTypeDefinition() && 
-                targetType.HasGenericParameters())
+            if (tcX == TypeCode.Object)
             {
-                return false;
+                if (sourceType.IsSubclassOf(targetType))
+                {
+                    return false;
+                }
+
+                if (allowGenerics &&
+                    targetType.IsGenericType && sourceType.IsGenericType &&
+                    targetType.GetGenericTypeDefinition() == sourceType.GetGenericTypeDefinition() &&
+                    targetType.HasGenericParameters())
+                {
+                    return false;
+                }
             }
 
             return null;

@@ -86,6 +86,9 @@ namespace LinqInfer.Utility.Expressions
                     var parms = lam.Parameters.Select(p => p.ExportExpression());
                     var paramss = string.Join(", ", parms);
                     return $"{paramss} => {lam.Body.ExportExpression()}";
+                case ExpressionType.Quote:
+                    var uni = (UnaryExpression) expression;
+                    return uni.Operand.ExportExpression();
                 case ExpressionType.Parameter:
                     return ((ParameterExpression)expression).Name;
                 case ExpressionType.MemberAccess:

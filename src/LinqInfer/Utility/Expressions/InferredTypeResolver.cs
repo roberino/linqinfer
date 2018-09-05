@@ -91,6 +91,11 @@ namespace LinqInfer.Utility.Expressions
                 return;
             }
 
+            if (arg.IsCompatibleArrayAndGeneric(parameter.GetGenericTypeDefinition()))
+            {
+                _mappings[parameter.GenericTypeArguments.Single()] = arg.GetElementType();
+            }
+
             foreach (var (a, b) in parameter.GenericTypeArguments.Zip(arg.GenericTypeArguments))
             {
                 Infer(a, b);

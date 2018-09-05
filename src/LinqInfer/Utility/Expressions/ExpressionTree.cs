@@ -13,9 +13,9 @@ namespace LinqInfer.Utility.Expressions
         {
         }
 
-        public static ExpressionTree Root => new ExpressionTree() {Type = TokenType.Root};
+        public static ExpressionTree Root => new ExpressionTree() { Type = TokenType.Root };
 
-        public ExpressionTree Parent { get;  private set; }
+        public ExpressionTree Parent { get; private set; }
         public TokenType Type { get; private set; }
         public string Value { get; private set; }
         public int Position { get; private set; }
@@ -72,8 +72,16 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public bool IsLamda => new[] {this}.Concat(Descendants).Any(d =>
-            d.Type == TokenType.Operator && d.Value.AsExpressionType() == ExpressionType.Lambda);
+        public bool IsLamda
+        {
+            get
+            {
+                var content = MoveToContent();
+
+                return content.Type == TokenType.Operator &&
+                        content.Value.AsExpressionType() == ExpressionType.Lambda;
+            }
+        }
 
         public IEnumerable<ExpressionTree> Descendants => Children.Concat(Children.SelectMany(c => c.Descendants));
 
@@ -115,25 +123,18 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public IEnumerable<ExpressionTree> Content
-        {
-            get
-            {
-                foreach (var child in Children)
-                {
-                    if (child.Type != TokenType.GroupOpen
-                        && child.Type != TokenType.Separator)
-                    {
-                        yield return child;
-                        continue;
-                    }
+        public IEnumerable<ExpressionTree> Parameters => Children.Single().Children.Select(child => child.MoveToContent());
 
-                    foreach (var content in child.Content)
-                    {
-                        yield return content;
-                    }
-                }
+        public ExpressionTree MoveToContent()
+        {
+            var targ = this;
+
+            while ((targ.Type == TokenType.GroupOpen || targ.Type == TokenType.Separator) && _children.Count == 1)
+            {
+                targ = targ.Children.Single();
             }
+
+            return targ;
         }
 
         public ExpressionTree MoveToEmptyAncestorOrSelf()
@@ -250,7 +251,7 @@ namespace LinqInfer.Utility.Expressions
                 Position = position
             };
 
-            if ((Type == TokenType.Operator || Type == TokenType.Condition) 
+            if ((Type == TokenType.Operator || Type == TokenType.Condition)
                 && !IsFull)
             {
                 return AddChild(newNode);
@@ -295,7 +296,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 Type = TokenType.Negation;
             }
-            
+
             return child.MoveToEmptyAncestorOrSelf();
         }
 

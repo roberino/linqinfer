@@ -16,7 +16,7 @@ namespace LinqInfer.Utility.Expressions
             Parameters = parameters;
         }
 
-        public Scope(Scope globalContext, Type conversionType, params ParameterExpression[] parameters) : this(parameters.First(), globalContext, false, conversionType)
+        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(parameters.First(), globalContext, true)
         {
             Parameters = parameters;
         }

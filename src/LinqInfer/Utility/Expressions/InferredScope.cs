@@ -7,8 +7,7 @@ namespace LinqInfer.Utility.Expressions
     {
         public InferredScope(Scope parent, 
             Type outputType,
-            Type subType,
-            params ParameterExpression[] parameters) : base(parent, null, parameters)
+            params ParameterExpression[] parameters) : base(parent, parameters)
         {
             OutputType = outputType;
         }

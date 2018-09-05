@@ -65,18 +65,6 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Call(null, method, Convert(parameters, method.GetParameters()));
         }
 
-        public Expression GetFunction(Expression instance, string name, IEnumerable<Expression> parameters)
-        {
-            var method = _methods[name].FirstOrDefault(m => IsParameterMatch(m.GetParameters(), parameters.Select(p => p.Type)));
-            
-            if (method == null)
-            {
-                throw new ArgumentException();
-            }
-
-            return Expression.Call(instance, method, Convert(parameters, method.GetParameters()));
-        }
-
         MethodInfo BindToMethod(string name, IReadOnlyCollection<UnboundParameter> parameters)
         {
             var method = _methods[name]
@@ -103,17 +91,12 @@ namespace LinqInfer.Utility.Expressions
 
         static int ParameterScore(IReadOnlyCollection<ParameterInfo> parameters, IReadOnlyCollection<UnboundParameter> args)
         {
-            var s = 0;
-
             if (parameters.Count != args.Count)
             {
                 return 0;
             }
-
-            if (parameters.Count == 0)
-            {
-                return 1001;
-            }
+            
+            var s = 1001;
 
             foreach (var pair in parameters.Zip(args, (p, a) => (p, a)))
             {
