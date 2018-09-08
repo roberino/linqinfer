@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    class ExpressionParser<TInput, TOutput>
+    class ExpressionParser
     {
         readonly IFunctionProvider _functionProvider;
 
@@ -13,34 +14,95 @@ namespace LinqInfer.Utility.Expressions
             _functionProvider = functionProvider;
         }
 
-        public Expression<Func<TInput, TOutput>> Parse(string expression)
+        public LambdaExpression Parse(string expression, Type[] parameterTypes, Type outputType = null)
+        {
+            return Parse(expression, p => parameterTypes[p.Index], outputType);
+        }
+
+        public LambdaExpression Parse(string expression, Func<Parameter, Type> parameterBinder, Type outputType = null)
+        {
+            var (body, parameterExpressions) = ParseAndBindToExpression(expression, parameterBinder);
+            
+            var convertedBody = outputType == null ? body : body.Convert(outputType);
+
+            return Expression.Lambda(convertedBody, parameterExpressions);
+        }
+
+        public (Expression body, Parameter[] parameters) Parse(string expression, Type outputType = null)
+        {
+            var paramTypes = new List<Parameter>();
+
+            var (body, parameterExpressions) = ParseAndBindToExpression(expression, p =>
+            {
+                paramTypes.Add(p);
+                return p.Type;
+            });
+            
+            var convertedBody = outputType == null ? body : body.Convert(outputType);
+
+            return (Expression.Lambda(convertedBody, parameterExpressions), paramTypes.ToArray());
+        }
+
+        public Expression<Func<TInput, TOutput>> Parse<TInput, TOutput>(string expression)
+        {
+            var (body, parameterExpressions) = ParseAndBindToExpression(expression, p => p.Index > 0 ? throw new ArgumentException() : typeof(TInput));
+
+            return Expression.Lambda<Func<TInput, TOutput>>(body.Convert<TOutput>(), parameterExpressions);
+        }
+
+        (Expression body, ParameterExpression[] parameters) ParseAndBindToExpression(string expression, Func<Parameter, Type> parameterBinder)
         {
             var parts = GetExpressionParts(expression);
             var extr = new ExpressionTreeReader();
             var root = extr.Read(parts.body);
-            var parameter = Expression.Parameter(typeof(TInput), parts.paramName);
-            var body = Build(parameter, root).Convert<TOutput>();
+            var parameterTree = extr.Read(parts.paramNames);
 
-            return Expression.Lambda<Func<TInput, TOutput>>(body, parameter);
+            var parameters = Parameters(parameterTree)
+                .Select((p, i) =>
+                    Expression.Parameter(parameterBinder(new Parameter(p.name, p.type, i)), p.name))
+                .ToArray();
+
+            var body = Build(root, parameters);
+
+            return (body, parameters);
         }
 
-        internal Expression Build(ParameterExpression context, ExpressionTree expressionTree)
+        static IEnumerable<(string name, Type type)> Parameters(ExpressionTree expressionTree)
         {
-            var scope = new Scope(_functionProvider, context);
+            if (expressionTree.Children.Count == 1 && expressionTree.Children.Single().Type == TokenType.Name)
+            {
+                yield return (expressionTree.Children.Single().Value, typeof(object));
+                yield break;
+            }
+
+            foreach (var p in expressionTree.Parameters)
+            {
+                if (p.Children.Any())
+                {
+                    yield return (p.Value, p.Children.Single().AsType());
+                    continue;
+                }
+                yield return (p.Value, typeof(object));
+            }
+        }
+
+        Expression Build(ExpressionTree expressionTree, params ParameterExpression[] parameters)
+        {
+            var scope = new Scope(_functionProvider, parameters);
 
             return expressionTree.Build(scope).Single();
         }
 
-        static (string paramName, string body) GetExpressionParts(string expression)
+        static (string paramNames, string body) GetExpressionParts(string expression)
         {
             var i = expression.IndexOf("=>", StringComparison.Ordinal);
 
             if (i == -1) throw new ArgumentException("Missing lamda");
 
             var body = expression.Substring(i + 2, expression.Length - (i + 2));
-            var paramName = expression.Substring(0, i).Trim();
+            var paramNames = expression.Substring(0, i).Trim();
 
-            return (paramName, body);
+            return (paramNames, body);
         }
     }
 }

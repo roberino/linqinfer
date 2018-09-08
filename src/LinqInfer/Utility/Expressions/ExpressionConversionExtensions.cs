@@ -9,8 +9,13 @@ namespace LinqInfer.Utility.Expressions
     {
         public static Expression Convert<T>(this Expression expression)
         {
-            return expression.Type != typeof(T) ?
-                Expression.Convert(expression, typeof(T)) :
+            return expression.Convert(typeof(T));
+        }
+
+        public static Expression Convert(this Expression expression, Type type)
+        {
+            return expression.Type != type && type != typeof(object) ?
+                Expression.Convert(expression, type) :
                 expression;
         }
 
@@ -152,6 +157,16 @@ namespace LinqInfer.Utility.Expressions
 
                 newContext = context.SelectChildScope(expressionTree.Value);
             }
+            else
+            {
+                if (expressionTree.IsMethod() && newContext.CurrentContext.Type.IsSubclassOf(typeof(Expression)))
+                {
+                    var parameters = expressionTree.Parameters.SelectMany(p => p.Build(context)).ToArray();
+
+                    return Expression.Invoke(newContext.CurrentContext,
+                        parameters);
+                }
+            }
 
             if (expressionTree.Children.Any())
             {
@@ -253,25 +268,6 @@ namespace LinqInfer.Utility.Expressions
             catch (ArgumentException)
             {
                 throw new CompileException(expression.Value, expression.Position, CompileErrorReason.InvalidArgs);
-            }
-        }
-
-        static Expression AsTypeConstant(this ExpressionTree expression)
-        {
-            if (!Enum.TryParse(expression.Value, false, out TypeCode t)) return null;
-
-            switch (t)
-            {
-                case TypeCode.Double:
-                    return Expression.Constant(typeof(double));
-                case TypeCode.Boolean:
-                    return Expression.Constant(typeof(bool));
-                case TypeCode.Int32:
-                    return Expression.Constant(typeof(int));
-                case TypeCode.String:
-                    return Expression.Constant(typeof(string));
-                default:
-                    return null;
             }
         }
 

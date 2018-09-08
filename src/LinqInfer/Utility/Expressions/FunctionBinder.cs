@@ -26,6 +26,11 @@ namespace LinqInfer.Utility.Expressions
             return _methods.ContainsKey(name);
         }
 
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters)
+        {
+            return BindToFunction(name, parameters, null);
+        }
+
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
         {
             var method = BindToMethod(name, parameters);
@@ -70,11 +75,6 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return method.m;
-        }
-
-        static bool IsParameterMatch(IEnumerable<ParameterInfo> parameters, IEnumerable<Type> argTypes)
-        {
-            return new HashSet<Type>(parameters.Select(p => p.ParameterType), TypeEqualityComparer.Instance).SetEquals(argTypes);
         }
 
         static int ParameterScore(IReadOnlyCollection<ParameterInfo> parameters, IReadOnlyCollection<UnboundParameter> args)

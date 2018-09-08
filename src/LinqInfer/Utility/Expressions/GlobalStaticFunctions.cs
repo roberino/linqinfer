@@ -7,14 +7,14 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Utility.Expressions
 {
-    class GlobalFunctions : IGlobalFunctionBinder
+    class GlobalStaticFunctions : IFunctionBinder
     {
         public bool IsDefined(string name)
         {
             return MathFunctions.IsDefined(name) || ConversionFunctions.IsDefined(name);
         }
 
-        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
         {
             if (MathFunctions.IsDefined(name))
             {

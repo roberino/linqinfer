@@ -11,7 +11,12 @@ namespace LinqInfer.Utility
     static class TypeExtensions
     {
         static readonly Type NullableType = typeof(Nullable<>);
-        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>)});
+        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>), typeof(Func<,,,,,,,,>), typeof(Func<,,,,,,,,,>), typeof(Func<,,,,,,,,,,>)});
+
+        public static Type GetFuncType(int numberOfArgs)
+        {
+            return FuncTypes.Single(f => f.GetGenericArguments().Length == numberOfArgs + 1);
+        }
 
         public static IDictionary<string, object> ToDictionary(this object obj)
         {

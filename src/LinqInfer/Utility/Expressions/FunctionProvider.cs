@@ -7,13 +7,13 @@ namespace LinqInfer.Utility.Expressions
 {
     class FunctionProvider : IFunctionProvider
     {
-        readonly IGlobalFunctionBinder _globalFunctionBinder;
+        readonly IFunctionBinder _globalFunctionBinder;
         readonly IDictionary<Type, FunctionBinder> _binders;
         readonly List<Type[]> _assemblyTypes;
-        
-        public FunctionProvider()
+
+        public FunctionProvider(IFunctionBinder customGlobalBinder = null)
         {
-            _globalFunctionBinder = new GlobalFunctions();
+            _globalFunctionBinder = customGlobalBinder ?? new GlobalStaticFunctions();
             _binders = new Dictionary<Type, FunctionBinder>();
             _assemblyTypes = new List<Type[]>
             {
@@ -35,7 +35,7 @@ namespace LinqInfer.Utility.Expressions
             return this;
         }
 
-        public IGlobalFunctionBinder GetGlobalBinder()
+        public IFunctionBinder GetGlobalBinder()
         {
             return _globalFunctionBinder;
         }

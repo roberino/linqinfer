@@ -4,8 +4,8 @@ namespace LinqInfer.Utility.Expressions
 {
     interface IFunctionProvider
     {
-        IGlobalFunctionBinder GetGlobalBinder();
-        IFunctionBinder GetBinder(Type type);
+        IFunctionBinder GetGlobalBinder();
         IFunctionBinder GetStaticBinder(string typeName);
+        IFunctionBinder GetBinder(Type type);
     }
 }
