@@ -14,7 +14,7 @@ namespace LinqInfer.Utility.Expressions
 
         public static Expression Convert(this Expression expression, Type type)
         {
-            return expression.Type != type && type != typeof(object) ?
+            return expression.Type != type ?
                 Expression.Convert(expression, type) :
                 expression;
         }

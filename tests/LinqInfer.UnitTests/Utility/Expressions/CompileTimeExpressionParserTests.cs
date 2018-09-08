@@ -55,6 +55,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
         
         [Test]
+        [Ignore("WIP")]
         public void AsFunc_SingleTypedFuncParameter_ReturnsExpectedResult()
         {
             var sourceCode = SetupProvider();

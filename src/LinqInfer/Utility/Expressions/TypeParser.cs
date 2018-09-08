@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace LinqInfer.Utility.Expressions
 {
     static class TypeParser
     {
-        static IDictionary<string, Type> _lookup = new Dictionary<string, Type>()
+        static IDictionary<string, Type> _lookup = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
             ["int"] = typeof(int),
+            ["Int32"] = typeof(int),
             ["long"] = typeof(long),
+            ["Int64"] = typeof(long),
             ["string"] = typeof(string),
             ["float"] = typeof(float),
             ["double"] = typeof(double),
@@ -30,7 +31,7 @@ namespace LinqInfer.Utility.Expressions
                 var args = expression.Parameters.Select(p => p.AsType()).ToArray();
 
                 var funcType = TypeExtensions.GetFuncType(args.Length - 1);
-                
+
                 return typeof(Expression<>).MakeGenericType(funcType.MakeGenericType(args));
             }
 

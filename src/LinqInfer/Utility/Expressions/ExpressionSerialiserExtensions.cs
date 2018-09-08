@@ -62,7 +62,7 @@ namespace LinqInfer.Utility.Expressions
 
                 args.Add(arg);
 
-                return arg.GetType();
+                return p.Type == typeof(object) ? arg.GetType() : p.Type;
             });
 
             var compiled = lambda.Compile();

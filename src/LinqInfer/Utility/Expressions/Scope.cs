@@ -8,14 +8,12 @@ namespace LinqInfer.Utility.Expressions
     {
         readonly IFunctionProvider _functionProvider;
 
-        public Scope(IFunctionProvider functions, params ParameterExpression[] parameters) : this(null, null, true, functions)
+        public Scope(IFunctionProvider functions, params ParameterExpression[] parameters) : this(null, null, true, functions, null, parameters)
         {
-            Parameters = parameters;
         }
 
-        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(null, globalContext, true)
+        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(null, globalContext, true, null, null, parameters)
         {
-            Parameters = parameters;
         }
 
         Scope(
@@ -23,9 +21,10 @@ namespace LinqInfer.Utility.Expressions
             Scope parent = null,
             bool? isRoot = null, 
             IFunctionProvider functions = null,
-            Type conversionType = null)
+            Type conversionType = null, 
+            ParameterExpression[] parameters = null)
         {
-            Parameters = new ParameterExpression[0];
+            Parameters = parameters ?? new ParameterExpression[0];
 
             CurrentContext = currentContext;
             ParentScope = parent;
@@ -72,7 +71,7 @@ namespace LinqInfer.Utility.Expressions
 
         public Scope NewConversionScope(Type conversionType)
         {
-            return new Scope(CurrentContext, this, IsRoot, null, conversionType);
+            return new Scope(CurrentContext, this, IsRoot, null, conversionType, Parameters);
         }
     }
 }

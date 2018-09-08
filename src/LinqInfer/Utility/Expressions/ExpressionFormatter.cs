@@ -66,7 +66,7 @@ namespace LinqInfer.Utility.Expressions
                 case ExpressionType.Convert:
                     {
                         var unex = (UnaryExpression)expression;
-                        return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name})";
+                        return $"Convert(({unex.Operand.ExportExpression()}), {expression.Type.Name.ToLower()})";
                     }
                 case ExpressionType.Negate:
                     {

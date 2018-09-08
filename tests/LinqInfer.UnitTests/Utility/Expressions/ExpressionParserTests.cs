@@ -249,7 +249,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_ThenExport_ReturnsSameExpressionString()
         {
-            var expStr = "x => Convert((((x > 0.5) ? 1 : 0)), Double)";
+            var expStr = "x => Convert((((x > 0.5) ? 1 : 0)), double)";
 
             var exp = expStr.AsExpression<double, double>();
 
@@ -451,7 +451,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_ExpressionWithArrayAndConversion_CorrectResultReturned()
         {
-            var exps = "x => [Convert((x), Double), 2]";
+            var exps = "x => [Convert((x), double), 2]";
 
             var func = exps.AsExpression<int, double[]>().Compile();
 
