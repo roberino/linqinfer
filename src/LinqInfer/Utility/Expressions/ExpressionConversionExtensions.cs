@@ -331,7 +331,7 @@ namespace LinqInfer.Utility.Expressions
 
             var body = Build(expressionTree.Children.Last(), iscope).Single();
 
-            if (body.Type != iscope.OutputType)
+            if (body.Type != iscope.OutputType && !iscope.OutputType.IsGenericParameter)
             {
                 body = Expression.Convert(body, iscope.OutputType);
             }

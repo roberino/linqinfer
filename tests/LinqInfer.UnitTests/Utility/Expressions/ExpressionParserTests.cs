@@ -98,7 +98,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_InnerLamda_BindsCorrectly()
+        public void AsExpression_InnerLambda_BindsCorrectly()
         {
             var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<double>>();
 
