@@ -53,15 +53,44 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(result.Result, Is.EqualTo(124 * 5d));
         }
-        
+
         [Test]
         [Ignore("WIP")]
+        public void AsFunc_InnerLamda_ReturnsExpectedResult()
+        {
+            var sourceCode = SetupProvider();
+
+            var funcA = "x => FuncC(() => 15 + x)";
+
+            var func = funcA.AsFunc<double>(sourceCode, p => 5);
+
+            var result = func();
+
+            Assert.That(result.Result, Is.EqualTo(100d));
+        }
+        
+        [Test]
         public void AsFunc_SingleTypedFuncParameter_ReturnsExpectedResult()
         {
             var sourceCode = SetupProvider();
 
             var funcA = "(myFx: func(double, double)) => myFx(123)";
+            
+            var func = funcA.AsFunc<object>(sourceCode, p => Exp<double, double>(x => x * 15).Compile());
 
+            var result = func();
+
+            Assert.That(result.Result, Is.EqualTo(123 * 15d));
+        }
+
+        [Test]
+        [Ignore("WIP")]
+        public void AsFunc_SingleTypedExpParameter_ReturnsExpectedResult()
+        {
+            var sourceCode = SetupProvider();
+
+            var funcA = "(myFx: exp(double, double)) => myFx(123)";
+            
             var func = funcA.AsFunc<object>(sourceCode, p => Exp<double, double>(x => x * 15));
 
             var result = func();
@@ -101,6 +130,11 @@ namespace LinqInfer.UnitTests.Utility.Expressions
                 if (n == "FuncB")
                 {
                     return "x => x * 5";
+                }
+
+                if (n == "FuncC")
+                {
+                    return "(x:exp(int)) => x() * 5";
                 }
 
                 return null;

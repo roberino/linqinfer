@@ -19,15 +19,13 @@ namespace LinqInfer.Utility.Expressions
             _compiledExpressions = new Dictionary<string, LambdaExpression>();
         }
 
-        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
         {
             if (_inbuiltFunctionBinder.IsDefined(name))
             {
                 return _inbuiltFunctionBinder.BindToFunction(name, parameters, instance);
             }
-
-            var resolved = parameters.Select(p => p.Resolve()).ToArray();
-
+            
             var lambda = GetOrAdd(name, n =>
             {
                 var fp = new FunctionProvider(this);
@@ -36,10 +34,35 @@ namespace LinqInfer.Utility.Expressions
 
                 var parser = new ExpressionParser(fp);
 
-                return parser.Parse(sourceCode, p => resolved.ElementAt(p.Index).Type);
+                return parser.Parse(sourceCode, p => p.IsTypeKnown ? p.Type : parameters.ElementAt(p.Index).Type);
             });
 
-            return Expression.Invoke(lambda, resolved);
+            var resolved = new Expression[parameters.Count];
+
+            var i = 0;
+
+            foreach (var (arg, parameter) in parameters.Zip(lambda.Parameters))
+            {
+                if (arg.IsInferred)
+                {
+                    var inferredArgs = InferredTypeResolver.GetInferredArgs(parameter.Type);
+
+                    arg.InputTypes = inferredArgs.inputs;
+                    arg.OutputType = inferredArgs.output;
+                }
+
+                resolved[i++] = arg.Resolve();
+            }
+
+            try
+            {
+                return Expression.Invoke(lambda, resolved);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.Write(ex);
+                throw;
+            }
         }
 
         public bool IsDefined(string name)

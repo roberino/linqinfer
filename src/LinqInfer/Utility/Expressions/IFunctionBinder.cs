@@ -5,7 +5,7 @@ namespace LinqInfer.Utility.Expressions
 {
     interface IFunctionBinder
     {
-        Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null);
+        Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null);
         bool IsDefined(string name);
     }
 }

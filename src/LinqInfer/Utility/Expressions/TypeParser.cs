@@ -26,13 +26,19 @@ namespace LinqInfer.Utility.Expressions
                 return value;
             }
 
-            if (expression.Value == "func")
+            if (expression.Value == "func" || expression.Value == "exp")
             {
                 var args = expression.Parameters.Select(p => p.AsType()).ToArray();
 
-                var funcType = TypeExtensions.GetFuncType(args.Length - 1);
+                var funcGenType = TypeExtensions.GetFuncType(args.Length - 1);
+                var funcType = funcGenType.MakeGenericType(args);
 
-                return typeof(Expression<>).MakeGenericType(funcType.MakeGenericType(args));
+                if (expression.Value == "func")
+                {
+                    return funcType;
+                }
+
+                return typeof(Expression<>).MakeGenericType(funcType);
             }
 
             if (throwOnError)

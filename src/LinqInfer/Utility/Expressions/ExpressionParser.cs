@@ -57,33 +57,14 @@ namespace LinqInfer.Utility.Expressions
             var root = extr.Read(parts.body);
             var parameterTree = extr.Read(parts.paramNames);
 
-            var parameters = Parameters(parameterTree)
+            var parameters = Parameter.GetParameters(parameterTree)
                 .Select((p, i) =>
-                    Expression.Parameter(parameterBinder(new Parameter(p.name, p.type, i)), p.name))
+                    Expression.Parameter(parameterBinder(p), p.Name))
                 .ToArray();
 
             var body = Build(root, parameters);
 
             return (body, parameters);
-        }
-
-        static IEnumerable<(string name, Type type)> Parameters(ExpressionTree expressionTree)
-        {
-            if (expressionTree.Children.Count == 1 && expressionTree.Children.Single().Type == TokenType.Name)
-            {
-                yield return (expressionTree.Children.Single().Value, typeof(object));
-                yield break;
-            }
-
-            foreach (var p in expressionTree.Parameters)
-            {
-                if (p.Children.Any())
-                {
-                    yield return (p.Value, p.Children.Single().AsType());
-                    continue;
-                }
-                yield return (p.Value, typeof(object));
-            }
         }
 
         Expression Build(ExpressionTree expressionTree, params ParameterExpression[] parameters)

@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    class UnboundParameter
+    class UnboundArgument
     {
-        public UnboundParameter(ExpressionTree source, Scope scope, Expression expression = null)
+        public UnboundArgument(ExpressionTree source, Scope scope, Expression expression = null)
         {
             Source = source;
             Scope = scope;

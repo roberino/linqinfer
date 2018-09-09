@@ -15,7 +15,7 @@ namespace LinqInfer.Utility.Expressions
             _mappings = new Dictionary<Type, Type>();
         }
 
-        public void InferAll(MethodInfo method, IReadOnlyCollection<UnboundParameter> parameters)
+        public void InferAll(MethodInfo method, IReadOnlyCollection<UnboundArgument> parameters)
         {
             var actualParameters = method.GetParameters();
 

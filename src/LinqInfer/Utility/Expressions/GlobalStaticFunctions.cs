@@ -14,7 +14,7 @@ namespace LinqInfer.Utility.Expressions
             return MathFunctions.IsDefined(name) || ConversionFunctions.IsDefined(name);
         }
 
-        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundParameter> parameters, Expression instance = null)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
         {
             if (MathFunctions.IsDefined(name))
             {
@@ -34,7 +34,7 @@ namespace LinqInfer.Utility.Expressions
             return _mathFunctions.IsDefined(name);
         }
 
-        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundParameter> parameters)
+        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundArgument> parameters)
         {
             return _mathFunctions.BindToFunction(name, parameters);
         }
@@ -60,7 +60,7 @@ namespace LinqInfer.Utility.Expressions
             return false;
         }
 
-        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundParameter> unboundParameters)
+        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundArgument> unboundParameters)
         {
             var parameters = unboundParameters.Select(u => u.Resolve()).ToArray();
 

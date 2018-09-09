@@ -35,20 +35,7 @@ namespace LinqInfer.Utility.Expressions
                     }
                 case TokenType.Name:
                     {
-                        if (context.IsRoot)
-                        {
-                            var glob = expressionTree.AsGlobalFunction(context) ??
-                                expressionTree.AsTypeConstant() ??
-                                expressionTree.AsGlobalNamedConstant();
-
-                            if (glob != null)
-                            {
-                                yield return glob;
-                                break;
-                            }
-                        }
-
-                        yield return expressionTree.AsMemberAccessor(context);
+                        yield return expressionTree.AsNamedExpression(context);
                         break;
                     }
 
@@ -80,11 +67,11 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        static IEnumerable<UnboundParameter> BuildParameter(this ExpressionTree expressionTree, Scope context)
+        static IEnumerable<UnboundArgument> BuildParameter(this ExpressionTree expressionTree, Scope context)
         {
             if (expressionTree.IsLamda)
             {
-                yield return new UnboundParameter(expressionTree, context)
+                yield return new UnboundArgument(expressionTree, context)
                 {
                     Resolver = (t, c) => Build(t, c).Single(),
                     ParameterNames = expressionTree.Children.First().Names.ToArray()
@@ -95,7 +82,7 @@ namespace LinqInfer.Utility.Expressions
 
             foreach (var item in Build(expressionTree, context))
             {
-                yield return new UnboundParameter(expressionTree, context, item);
+                yield return new UnboundArgument(expressionTree, context, item);
             }
         }
 
@@ -139,6 +126,31 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Constant(value, context.ConversionType);
         }
 
+        static Expression AsNamedExpression(this ExpressionTree expressionTree, Scope context)
+        {
+            if (context.IsRoot)
+            {
+                Expression glob;
+
+                if (expressionTree.IsFunction)
+                {
+                    glob = expressionTree.AsGlobalFunction(context);
+                }
+                else
+                {
+                    glob = expressionTree.AsTypeConstant() ??
+                         expressionTree.AsGlobalNamedConstant();
+                }
+
+                if (glob != null)
+                {
+                    return glob;
+                }
+            }
+
+            return expressionTree.AsMemberAccessor(context);
+        }
+
         static Expression AsMemberAccessor(this ExpressionTree expressionTree, Scope context)
         {
             var newContext = context.IsRoot ? context.SelectParameterScope(expressionTree.Value) : null;
@@ -159,7 +171,9 @@ namespace LinqInfer.Utility.Expressions
             }
             else
             {
-                if (expressionTree.IsMethod() && newContext.CurrentContext.Type.IsSubclassOf(typeof(Expression)))
+                if (expressionTree.IsMethod() &&
+                    (newContext.CurrentContext.Type.IsSubclassOf(typeof(Expression))
+                    || newContext.CurrentContext.Type.IsFunc()))
                 {
                     var parameters = expressionTree.Parameters.SelectMany(p => p.Build(context)).ToArray();
 
@@ -189,7 +203,7 @@ namespace LinqInfer.Utility.Expressions
             }
 
             type = type.TrimEnd('.');
-            
+
             var args = next.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
 
             try
@@ -260,7 +274,7 @@ namespace LinqInfer.Utility.Expressions
             if (!gfb.IsDefined(expression.Value)) return null;
 
             var args = expression.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
-            
+
             try
             {
                 return gfb.BindToFunction(expression.Value, args);
@@ -313,9 +327,14 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression AsLamdaExpression(this ExpressionTree expressionTree, Scope context)
         {
-            var iscope = (InferredScope) context;
+            var iscope = (InferredScope)context;
 
             var body = Build(expressionTree.Children.Last(), iscope).Single();
+
+            if (body.Type != iscope.OutputType)
+            {
+                body = Expression.Convert(body, iscope.OutputType);
+            }
 
             return Expression.Lambda(body, iscope.Parameters);
         }
@@ -352,6 +371,11 @@ namespace LinqInfer.Utility.Expressions
             var right = expressionTree.Children.Last()
                 .Build(context.NewConversionScope(first.Type))
                 .Single();
+
+            if (right.Type != first.Type)
+            {
+                right = Expression.Convert(right, first.Type);
+            }
 
             return Expression.MakeBinary(expressionType, first, right);
         }
