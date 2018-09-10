@@ -55,14 +55,13 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        [Ignore("WIP")]
         public void AsFunc_InnerLamda_ReturnsExpectedResult()
         {
             var sourceCode = SetupProvider();
 
             var funcA = "x => FuncC(() => 15 + x)";
 
-            var func = funcA.AsFunc<double>(sourceCode, p => 5);
+            var func = funcA.AsFunc<int>(sourceCode, p => 5);
 
             var result = func();
 
@@ -76,7 +75,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var funcA = "(myFx: func(double, double)) => myFx(123)";
             
-            var func = funcA.AsFunc<object>(sourceCode, p => Exp<double, double>(x => x * 15).Compile());
+            var func = funcA.AsFunc<double>(sourceCode, p => Exp<double, double>(x => x * 15).Compile());
 
             var result = func();
 
@@ -84,14 +83,13 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        [Ignore("WIP")]
         public void AsFunc_SingleTypedExpParameter_ReturnsExpectedResult()
         {
             var sourceCode = SetupProvider();
 
-            var funcA = "(myFx: exp(double, double)) => myFx(123)";
+            var funcA = "(myFx: func(double, double)) => myFx(123)";
             
-            var func = funcA.AsFunc<object>(sourceCode, p => Exp<double, double>(x => x * 15));
+            var func = funcA.AsFunc<double>(sourceCode, p => Exp<double, double>(x => x * 15));
 
             var result = func();
 
@@ -134,7 +132,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
                 if (n == "FuncC")
                 {
-                    return "(x:exp(int)) => x() * 5";
+                    return "(x:func(int)) => x() * 5";
                 }
 
                 return null;

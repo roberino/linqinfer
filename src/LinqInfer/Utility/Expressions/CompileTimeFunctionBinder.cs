@@ -49,9 +49,12 @@ namespace LinqInfer.Utility.Expressions
 
                     arg.InputTypes = inferredArgs.inputs;
                     arg.OutputType = inferredArgs.output;
+                    resolved[i++] = arg.Resolve(); // Expression.Quote(
                 }
-
-                resolved[i++] = arg.Resolve();
+                else
+                {
+                    resolved[i++] = arg.Resolve();
+                }
             }
 
             try

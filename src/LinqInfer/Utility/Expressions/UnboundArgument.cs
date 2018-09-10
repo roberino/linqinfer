@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using static System.Reflection.BindingFlags;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -44,6 +45,20 @@ namespace LinqInfer.Utility.Expressions
             }
 
             return Expression;
+        }
+
+        public Expression Compile()
+        {
+            var lambda = (LambdaExpression) Expression;
+            var type = lambda.GetType();
+
+            var compileMethod = type.GetMethod(nameof(Expression<object>.Compile), Instance | Static);
+
+            var func = compileMethod.Invoke(lambda, new object[0]);
+
+            var c = Expression.Constant(func);
+
+            return c;
         }
     }
 }

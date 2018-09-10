@@ -65,18 +65,21 @@ namespace LinqInfer.Utility.Expressions
                 return !p.IsTypeKnown ? arg.GetType() : p.Type;
             });
 
-            var compiled = lambda.Compile();
+            var argExpressions = args
+                .Select(a => a is Expression lambdaExpression ? lambdaExpression : Expression.Constant(a))
+                .ToArray();
+
+            var boundLambda = Expression.Lambda<Func<TOutput>>(Expression.Invoke(lambda, argExpressions).Convert<TOutput>());
+
+            var compiled = boundLambda.Compile();
 
             return () =>
             {
                 try
                 {
-                    var result = compiled.DynamicInvoke(args.ToArray());
-                    var tresult = (TOutput) result;
-
-                    return new InvocationResult<TOutput>(tresult);
+                    return new InvocationResult<TOutput>(compiled());
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     return new InvocationResult<TOutput>(default, ex);
                 }
