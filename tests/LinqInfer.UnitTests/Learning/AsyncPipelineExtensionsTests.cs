@@ -22,14 +22,14 @@ namespace LinqInfer.UnitTests.Learning
         public async Task OpenAsMultilayerNetworkClassifier_ExportedClassifierWithExpression()
         {
             var data = Enumerable.Range(0, 10).Select(n => ( x : n, y : n * 7 ));
-
-            var s = string.Empty;
             
             var pipeline = await data
                 .CreatePipeline(x => new BitVector(x.x > 5, x.y > 14), 2)
                 .CentreAndScaleAsync();
 
-            var trainingSet = pipeline.AsTrainingSet(x => x.x > 5 ? "a" : "b", "a", "b");
+            var outputs = new[] {"a", "b"};
+
+            var trainingSet = pipeline.AsTrainingSet(x => x.x > 5 ? outputs[0] : outputs[1], outputs);
 
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
@@ -203,6 +203,8 @@ namespace LinqInfer.UnitTests.Learning
                     }
 
                 }, CancellationToken.None);
+
+            Assert.That(counter, Is.GreaterThan(0));
         }
 
         [Test]

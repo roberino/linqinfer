@@ -14,6 +14,7 @@ namespace LinqInfer.Utility.Expressions
             ["long"] = typeof(long),
             ["Int64"] = typeof(long),
             ["string"] = typeof(string),
+            ["char"] = typeof(char),
             ["float"] = typeof(float),
             ["double"] = typeof(double),
             ["object"] = typeof(object)

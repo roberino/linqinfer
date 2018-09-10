@@ -12,7 +12,7 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
-    <Version>4.2.0</Version>
+    <Version>4.3.0-unstable0045</Version>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
