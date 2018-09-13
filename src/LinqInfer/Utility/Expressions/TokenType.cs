@@ -157,7 +157,7 @@ namespace LinqInfer.Utility.Expressions
                     return TokenType.ArrayClose;
                 case '.':
                     if (currentTokenContext == TokenType.Literal) return TokenType.Literal;
-                    if (currentTokenContext == TokenType.Name) return TokenType.Navigate;
+                    if (currentTokenContext == TokenType.Name || currentTokenContext == TokenType.ArrayClose || currentTokenContext == TokenType.GroupClose) return TokenType.Navigate;
                     return TokenType.Unknown;
                 default:
                     if (char.IsDigit(c))

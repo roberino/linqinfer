@@ -51,7 +51,7 @@ namespace LinqInfer.Utility.Expressions
                         break;
                     }
                 case TokenType.ArrayOpen:
-                    yield return expressionTree.AsArray(context);
+                    yield return expressionTree.AsArrayOrIndexer(context);
                     break;
                 case TokenType.Literal:
                     yield return expressionTree.AsLiteral(context);
@@ -65,6 +65,11 @@ namespace LinqInfer.Utility.Expressions
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
             }
+        }
+
+        static UnboundArgument[] BuildParameters(this ExpressionTree expressionTree, Scope context)
+        {
+            return expressionTree.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
         }
 
         static IEnumerable<UnboundArgument> BuildParameter(this ExpressionTree expressionTree, Scope context)
@@ -93,9 +98,14 @@ namespace LinqInfer.Utility.Expressions
             return expressionTree.Children.Single().Build(context).Single();
         }
 
-        static Expression AsArray(this ExpressionTree expressionTree, Scope context)
+        static Expression AsArrayOrIndexer(this ExpressionTree expressionTree, Scope context)
         {
             var elements = expressionTree.Children.Select(c => c.Build(context).Single()).ToArray();
+
+            if (expressionTree.Parent.IsIndexedAccessor)
+            {
+                return context.SelectIndexScope(elements).CurrentContext;
+            }
 
             var types = elements.Select(e => e.Type).Distinct().ToList();
 
@@ -130,7 +140,7 @@ namespace LinqInfer.Utility.Expressions
         {
             if (context.IsRoot)
             {
-                Expression glob;
+                Expression glob = null;
 
                 if (expressionTree.IsFunction)
                 {
@@ -138,8 +148,11 @@ namespace LinqInfer.Utility.Expressions
                 }
                 else
                 {
-                    glob = expressionTree.AsTypeConstant() ??
-                         expressionTree.AsGlobalNamedConstant();
+                    if (expressionTree.Children.Count == 0)
+                    {
+                        glob = expressionTree.AsTypeConstant() ??
+                               expressionTree.AsGlobalNamedConstant();
+                    }
                 }
 
                 if (glob != null)
@@ -157,37 +170,83 @@ namespace LinqInfer.Utility.Expressions
 
             if (newContext == null)
             {
+                if (context.CurrentContext == null)
+                {
+                    if (context.IsRoot && expressionTree.IsMethodPath())
+                    {
+                        return expressionTree.AsStaticMethodCall(context);
+                    }
+
+                    return Expression.Constant(context.TokenCache.Get(expressionTree.Value));
+                }
+
                 if (expressionTree.IsMethod())
                 {
                     return expressionTree.AsMethodCall(context);
-                }
-
-                if (context.IsRoot && expressionTree.IsMethodPath())
-                {
-                    return expressionTree.AsStaticMethodCall(context);
                 }
 
                 newContext = context.SelectChildScope(expressionTree.Value);
             }
             else
             {
-                if (expressionTree.IsMethod() &&
-                    (newContext.CurrentContext.Type.IsSubclassOf(typeof(Expression))
-                    || newContext.CurrentContext.Type.IsFunc()))
+                if (expressionTree.IsLambdaCall(newContext))
                 {
-                    var parameters = expressionTree.Parameters.SelectMany(p => p.Build(context)).ToArray();
-
-                    return Expression.Invoke(newContext.CurrentContext,
-                        parameters);
+                    return expressionTree.InvokeLambda(newContext);
                 }
             }
 
-            if (expressionTree.Children.Any())
+            return FollowPath(expressionTree.Children, newContext);
+        }
+
+        static bool IsLambdaCall(this ExpressionTree expressionTree, Scope context)
+        {
+            return expressionTree.IsMethod() &&
+                   (context.CurrentContext.Type.IsSubclassOf(typeof(Expression))
+                    || context.CurrentContext.Type.IsFunc());
+        }
+
+        static Expression InvokeLambda(this ExpressionTree expressionTree, Scope context)
+        {
+            var parameters = expressionTree.BuildParameters(context.RootScope);
+
+            var result = Expression.Invoke(context.CurrentContext, parameters.Select(p => p.Resolve()));
+
+            var nextScope = context.SelectChildScope(result);
+                
+            if (expressionTree.Children.Count <= 1) return nextScope.CurrentContext;
+
+            return FollowPath(expressionTree.Children.Skip(1), nextScope);
+        }
+
+        static Expression FollowPath(this IEnumerable<ExpressionTree> paths, Scope context)
+        {
+            var nextScope = context;
+
+            foreach (var path in paths)
             {
-                return expressionTree.Children.Single().Build(newContext).Single();
+                if (path.Type == TokenType.ArrayOpen)
+                {
+                    nextScope = nextScope.SelectIndexScope(path.BuildParameters(context.RootScope)
+                        .Select(p => p.Resolve()));
+                    continue;
+                }
+
+                if (path.Type == TokenType.Name)
+                {
+                    nextScope = nextScope.SelectChildScope(path.AsMemberAccessor(nextScope));
+
+                    continue;
+                }
+
+                if (path.Type == TokenType.Navigate)
+                {
+                    return FollowPath(path.Children, nextScope);
+                }
+
+                throw new CompileException(path.Value, path.Position, CompileErrorReason.UnknownToken);
             }
 
-            return newContext.CurrentContext;
+            return nextScope.CurrentContext;
         }
 
         static Expression AsStaticMethodCall(this ExpressionTree expressionTree, Scope context)
@@ -204,13 +263,19 @@ namespace LinqInfer.Utility.Expressions
 
             type = type.TrimEnd('.');
 
-            var args = next.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
+            var args = next.BuildParameters(context.RootScope);
 
             try
             {
                 var binder = context.Functions.GetStaticBinder(type);
 
-                return binder.BindToFunction(next.Value, args);
+                var result = binder.BindToFunction(next.Value, args);
+
+                var nextScope = context.SelectChildScope(result);
+                
+                if (next.Children.Count <= 1) return nextScope.CurrentContext;
+
+                return FollowPath(next.Children.Skip(1), nextScope);
             }
             catch (ArgumentException)
             {
@@ -230,7 +295,13 @@ namespace LinqInfer.Utility.Expressions
 
             try
             {
-                return binder.BindToFunction(expressionTree.Value, args, context.CurrentContext);
+                var result = binder.BindToFunction(expressionTree.Value, args, context.CurrentContext);
+
+                var nextScope = context.SelectChildScope(result);
+                
+                if (expressionTree.Children.Count <= 1) return nextScope.CurrentContext;
+
+                return FollowPath(expressionTree.Children.Skip(1), nextScope);
             }
             catch (ArgumentException)
             {
@@ -247,41 +318,48 @@ namespace LinqInfer.Utility.Expressions
         static bool IsMethod(this ExpressionTree expressionTree)
         {
             return (expressionTree.Type == TokenType.Name &&
-                    expressionTree.Children.SingleOrNull()?.Type == TokenType.GroupOpen);
+                    expressionTree.Children.Count > 0 &&
+                    expressionTree.Children.FirstOrDefault()?.Type == TokenType.GroupOpen);
         }
 
         static bool IsMethodPath(this ExpressionTree expressionTree)
         {
             var child = expressionTree;
 
-            while (child.Children.Count == 1)
+            while (child.Children.Count >= 1)
             {
                 if (child.IsMethod())
                 {
                     return true;
                 }
 
-                child = child.Children.Single();
+                child = child.Children.First();
             }
 
             return false;
         }
 
-        static Expression AsGlobalFunction(this ExpressionTree expression, Scope context)
+        static Expression AsGlobalFunction(this ExpressionTree expressionTree, Scope context)
         {
             var gfb = context.Functions.GetGlobalBinder();
 
-            if (!gfb.IsDefined(expression.Value)) return null;
+            if (!gfb.IsDefined(expressionTree.Value)) return null;
 
-            var args = expression.Parameters.SelectMany(c => c.BuildParameter(context.RootScope)).ToArray();
+            var args = expressionTree.BuildParameters(context.RootScope);
 
             try
             {
-                return gfb.BindToFunction(expression.Value, args);
+                var result = gfb.BindToFunction(expressionTree.Value, args);
+
+                var nextScope = context.SelectChildScope(result);
+                
+                if (expressionTree.Children.Count <= 1) return nextScope.CurrentContext;
+
+                return FollowPath(expressionTree.Children.Skip(1), nextScope);
             }
             catch (ArgumentException)
             {
-                throw new CompileException(expression.Value, expression.Position, CompileErrorReason.InvalidArgs);
+                throw new CompileException(expressionTree.Value, expressionTree.Position, CompileErrorReason.InvalidArgs);
             }
         }
 

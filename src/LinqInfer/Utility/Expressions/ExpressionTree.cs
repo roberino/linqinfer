@@ -83,6 +83,9 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        public bool IsIndexedAccessor =>
+            Type == TokenType.Name && _children.Count == 1 && _children[0].Type == TokenType.ArrayOpen;
+
         public IEnumerable<ExpressionTree> Descendants => Children.Concat(Children.SelectMany(c => c.Descendants));
 
         public ExpressionTree LocalRoot
@@ -123,7 +126,7 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public IEnumerable<ExpressionTree> Parameters => Children.Single().Children.Select(child => child.MoveToContent());
+        public IEnumerable<ExpressionTree> Parameters => Children.First().Children.Select(child => child.MoveToContent());
 
         public ExpressionTree MoveToContent()
         {

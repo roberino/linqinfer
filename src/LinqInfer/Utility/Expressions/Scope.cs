@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -7,6 +8,7 @@ namespace LinqInfer.Utility.Expressions
     class Scope
     {
         readonly IFunctionProvider _functionProvider;
+        readonly TokenCache _tokenCache;
 
         public Scope(IFunctionProvider functions, params ParameterExpression[] parameters) : this(null, null, true, functions, null, parameters)
         {
@@ -32,6 +34,11 @@ namespace LinqInfer.Utility.Expressions
             ConversionType = conversionType;
             
             _functionProvider = functions;
+
+            if (IsGlobalRoot)
+            {
+                _tokenCache = new TokenCache();
+            }
         }
 
         public ParameterExpression[] Parameters { get; }
@@ -50,6 +57,8 @@ namespace LinqInfer.Utility.Expressions
 
         public IFunctionProvider Functions => IsGlobalRoot ? _functionProvider : RootScope.Functions;
 
+        public TokenCache TokenCache => IsGlobalRoot ? _tokenCache : RootScope.TokenCache;
+
         public IFunctionBinder GetBinder()
         {
             return Functions.GetBinder(CurrentContext.Type);
@@ -64,9 +73,34 @@ namespace LinqInfer.Utility.Expressions
             return !IsGlobalRoot ? ParentScope.SelectParameterScope(name) : null;
         }
 
-        public Scope SelectChildScope(string name)
+        public Scope SelectChildScope(string name, IEnumerable<Expression> indexExpressions = null)
         {
-            return new Scope(Expression.PropertyOrField(CurrentContext, name), this);
+            if (indexExpressions == null)
+            {
+                return SelectChildScope(Expression.PropertyOrField(CurrentContext, name));
+            }
+
+            return SelectChildScope(Expression.MakeIndex(CurrentContext,
+                CurrentContext.Type.GetProperty(name,
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public),
+                indexExpressions));
+        }
+
+        public Scope SelectChildScope(Expression expression)
+        {
+            return new Scope(expression, this);
+        }
+
+        public Scope SelectIndexScope(IEnumerable<Expression> indexExpressions)
+        {
+            if (CurrentContext.Type.IsArray)
+            {
+                var intt = typeof(int);
+                var convertedIndexes = indexExpressions.Select(e => e.Type == intt ? e : Expression.Convert(e, intt));
+                return new Scope(Expression.ArrayIndex(CurrentContext, convertedIndexes), this);
+            }
+
+            throw new NotSupportedException("Invalid array");
         }
 
         public Scope NewConversionScope(Type conversionType)

@@ -52,6 +52,46 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(result, Is.EqualTo(10));
         }
+
+        [Test]
+        public void AsExpression_UnknownToken_ReturnsTokenObject()
+        {
+            var exp = "x => token1".AsExpression<double, Token>();
+
+            var result = exp.Compile().Invoke(2.2);
+
+            Assert.That(result, Is.EqualTo(new Token("token1")));
+        }
+
+        [Test]
+        public void AsExpression_ArrayIndexer_ReturnsArrayElement()
+        {
+            var exp = "x => x[2]".AsExpression<double[], double>();
+
+            var result = exp.Compile().Invoke(new[] {1.1d, 2.2d, 3.3d, 4.4d});
+
+            Assert.That(result, Is.EqualTo(3.3d));
+        }
+
+        [Test]
+        public void AsExpression_ArrayIndexerOnFunc_ReturnsArrayElement()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetPiArray)}(x)[1]".AsExpression<int, double>();
+
+            var result = exp.Compile().Invoke(2);
+
+            Assert.That(result, Is.EqualTo(StaticExampleMethods.GetPiArray(2)[1]));
+        }
+
+        [Test]
+        public void AsExpression_ArrayIndexerAndPropertyOnFunc_ReturnsArrayElement()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetObjectArray)}(x)[1].Val".AsExpression<int, double>();
+
+            var result = exp.Compile().Invoke(2);
+
+            Assert.That(result, Is.EqualTo(StaticExampleMethods.GetObjectArray(2)[1].Val));
+        }
         
         [Test]
         public void AsExpression_StaticMethodFromExternalAsm_BindsCorrectly()

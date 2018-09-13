@@ -7,11 +7,10 @@ namespace LinqInfer.Maths
         ReturnNan,
         ReturnZero,
         ReturnOne,
-        ReturnZeroOrOne,
         ThrowError
     }
 
-    public static class ZeroDivideBehaviourExtensions
+    static class ZeroDivideBehaviourExtensions
     {
         public static Func<double, double, double> CreateDivider(this ZeroDivideBehaviour behaviour)
         {

@@ -9,7 +9,7 @@ using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Utility
 {
-    public static class DictionarySerialiserFactory
+    static class DictionarySerialiserFactory
     {
         public static DictionarySerialiser<TKey, TValue> ForInstance<TKey, TValue>(IDictionary<TKey, TValue> data, Encoding encoding = null)
         {
@@ -17,7 +17,7 @@ namespace LinqInfer.Utility
         }
     }
 
-    public class DictionarySerialiser<TKey, TValue>
+    class DictionarySerialiser<TKey, TValue>
     {
         protected readonly Encoding _encoding;
 
