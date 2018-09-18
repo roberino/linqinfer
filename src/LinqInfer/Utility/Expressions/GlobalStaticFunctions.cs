@@ -8,6 +8,7 @@ namespace LinqInfer.Utility.Expressions
     class GlobalStaticFunctions : IFunctionBinder
     {
         //Xml
+        //Csv
         //File
         //Folder
         //Bind

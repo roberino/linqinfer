@@ -46,7 +46,7 @@ namespace LinqInfer.IntegrationTests.Text
             using (var fs = File.OpenWrite(@"C:\dev\vect.csv"))
             using (var writer = new StreamWriter(fs))
             {
-                await vects.LabelledCosineSimularityMatrix.WriteAsCsvAsync(writer);
+                await vects.CreateCosineSimularityMatrix().WriteAsCsvAsync(writer);
             }
         }
 

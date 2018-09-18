@@ -29,7 +29,6 @@ namespace LinqInfer.Utility.Expressions
                 case nameof(OneOfNVector):
                 case nameof(Matrix):
                 case nameof(Convert):
-                // case nameof(Xml):
                     return true;
             }
 
