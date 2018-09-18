@@ -1,10 +1,9 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -44,12 +43,17 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the covariance matrix with labels
         /// </summary>
-        public LabelledMatrix<T> LabelledCovarianceMatrix => new LabelledMatrix<T>(Rotate().CovarianceMatrix, LabelIndexes, true);
+        public LabelledMatrix<T> CreateCovarianceMatrix() => new LabelledMatrix<T>(Rotate().CovarianceMatrix, LabelIndexes, true);
 
         /// <summary>
         /// Returns the cosine simularity matrix with labels
         /// </summary>
-        public LabelledMatrix<T> LabelledCosineSimularityMatrix => new LabelledMatrix<T>(Rotate().CosineSimularityMatrix, LabelIndexes, true);
+        public LabelledMatrix<T> CreateCosineSimularityMatrix()
+        {
+            var rotated = Rotate();
+            var cosineSim = rotated.CosineSimularityMatrix;
+            return new LabelledMatrix<T>(cosineSim, LabelIndexes, true);
+        }
 
         public override PortableDataDocument ExportData()
         {

@@ -44,6 +44,22 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
+        public void ExportAsString_ArrayIndexAccessor_ReturnValidString()
+        {
+            var expString = Exp(new int[1], 1, a => a[1]).ExportAsString();
+
+            Assert.That(expString, Is.EqualTo("a => a[1]"));
+        }
+
+        [Test]
+        public void ExportAsString_PropertyIndexAccessor_ReturnValidString()
+        {
+            var expString = Exp(new ParamsWithIndexedProperty(), 1, a => a[1]).ExportAsString();
+
+            Assert.That(expString, Is.EqualTo("a => a[1]"));
+        }
+
+        [Test]
         public void AsExpression_ConditionWithAddition_EvaluatesCorrectly()
         {
             var exp = "x => x > 1 + 1 ? 10 : 5".AsExpression<double, double>();
@@ -520,7 +536,8 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = Exp(x => Math.Sqrt(x.Z)); // "x => Sqrt(x.Z)"
 
-            var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
+            var expStr = exp.ExportAsString();
+            var func = expStr.AsExpression<MyParams, double>().Compile();
 
             var result = func(new MyParams() { Z = 9 });
 
@@ -570,6 +587,11 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             public bool P { get; set; }
             public bool PFValue { get; set; } = true;
             public bool PF() => PFValue;
+        }
+
+        class ParamsWithIndexedProperty
+        {
+            public int this[int n] => n * 7;
         }
 
         class MyParamsWithVector

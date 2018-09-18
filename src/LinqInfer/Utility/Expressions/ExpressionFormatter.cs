@@ -13,6 +13,11 @@ namespace LinqInfer.Utility.Expressions
         {
             if (expression is BinaryExpression binaryExpression)
             {
+                if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
+                {
+                    return $"{binaryExpression.Left.ExportExpression()}[{binaryExpression.Right.ExportExpression()}]";
+                }
+
                 return ExportBinaryExpression(binaryExpression, binaryExpression.NodeType.AsString());
             }
 
@@ -20,23 +25,8 @@ namespace LinqInfer.Utility.Expressions
             {
                 case ExpressionType.Call:
                     var callExp = (MethodCallExpression)expression;
-                    var args = callExp.Arguments.Select(a => a.ExportExpression());
-                    var argss = string.Join(", ", args);
-                    var obj = string.Empty;
 
-                    if (callExp.Object != null)
-                    {
-                        obj = callExp.Object.ExportExpression() + ".";
-                    }
-                    else
-                    {
-                        if (callExp.Method.DeclaringType != typeof(Math) && callExp.Method.DeclaringType != null)
-                        {
-                            obj = callExp.Method.DeclaringType.Name + ".";
-                        }
-                    }
-
-                    return $"{obj}{callExp.Method.Name}({argss})";
+                    return ExportCall(callExp);
 
                 case ExpressionType.Constant:
                     var constExp = (ConstantExpression)expression;
@@ -150,6 +140,35 @@ namespace LinqInfer.Utility.Expressions
             }
 
             throw new NotSupportedException(newExp.Constructor.DeclaringType?.Name);
+        }
+
+        static string ExportCall(MethodCallExpression callExp)
+        {
+            var args = callExp.Arguments.Select(a => a.ExportExpression());
+            var argss = string.Join(", ", args);
+
+            var obj = string.Empty;
+
+            if (callExp.Object != null)
+            {
+                obj = callExp.Object.ExportExpression();
+
+                if (callExp.Method.IsSpecialName && callExp.Method.Name == "get_Item")
+                {
+                    return $"{obj}[{argss}]";
+                }
+            }
+            else
+            {
+                if (callExp.Method.DeclaringType != typeof(Math) && callExp.Method.DeclaringType != null)
+                {
+                    obj = callExp.Method.DeclaringType.Name;
+                }
+            }
+
+            if (obj.Length > 0) obj += ".";
+
+            return $"{obj}{callExp.Method.Name}({argss})";
         }
 
         static string ExportWithBracketsIfRequired(Expression exp)

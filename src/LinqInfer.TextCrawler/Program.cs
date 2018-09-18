@@ -47,8 +47,8 @@ namespace LinqInfer.TextCrawler
 
         static async Task Extract(Options options)
         {
-            var vectors = await new Uri(options.Url).ExtractVectors(
-                new CancellationTokenSource(1200000).Token,
+            var vectors = await new Uri(options.Url).ExtractVectorsAsync(
+                new CancellationTokenSource(TimeSpan.FromSeconds(15)).Token,
                 c => c.MaxNumberOfDocuments = 150,
                 "good", "bad", "ugly", "pretty",
                 "man", "woman", "king", "queen", "animal", "child", "goat",
@@ -60,7 +60,7 @@ namespace LinqInfer.TextCrawler
             using (var fs = File.OpenWrite(options.OutputPath))
             using (var writer = new StreamWriter(fs))
             {
-                await vectors.LabelledCosineSimularityMatrix.WriteAsCsvAsync(writer);
+                await vectors.CreateCosineSimularityMatrix().WriteAsCsvAsync(writer);
             }
         }
     }

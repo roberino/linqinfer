@@ -48,22 +48,22 @@ namespace LinqInfer.Text.Http
             return pipe;
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectors(
+        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(
             this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig, params string[] vocabulary)
         {
             var vocabset = new SemanticSet(new HashSet<string>(vocabulary));
 
-            return await ExtractVectors(uri, cancellationToken, crawlerConfig, vocabset);
+            return await ExtractVectorsAsync(uri, cancellationToken, crawlerConfig, vocabset);
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectors(this Uri uri,
+        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this Uri uri,
             CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null,
             ISemanticSet vocabulary = null)
         {
-            return (await ExtractVectorsInternal(uri, cancellationToken, crawlerConfig, vocabulary)).Vectors;
+            return (await ExtractVectorsInternalAsync(uri, cancellationToken, crawlerConfig, vocabulary)).Vectors;
         }
 
-        static async Task<VectorExtractionResult> ExtractVectorsInternal(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
+        static async Task<VectorExtractionResult> ExtractVectorsInternalAsync(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
         {
             using (var httpServices = new HttpDocumentServices())
             {

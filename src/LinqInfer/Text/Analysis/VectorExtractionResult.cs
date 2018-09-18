@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 
 namespace LinqInfer.Text.Analysis

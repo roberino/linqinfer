@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
 using System;
 using System.Collections;
@@ -7,7 +7,6 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -31,7 +30,7 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Invalid sizes");
             }
 
-            Rows = new IndexableEnumerable<IVector>(_rows);
+            Rows = new IndexableEnumerable<IVector>(_rows, i => _rows[i]);
             Columns = new IndexableEnumerable<IVector>(GetColumns());
 
             foreach (var r in _rows)
@@ -62,7 +61,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns a mean of each dimension
         /// </summary>
-        public Vector MeanVector=> _mean.Value;
+        public Vector MeanVector => _mean.Value;
 
         /// <summary>
         /// Returns the covariance matrix
@@ -126,7 +125,7 @@ namespace LinqInfer.Maths
         {
             double total = 0;
 
-            for(var i = 0; i < Height; i++)
+            for (var i = 0; i < Height; i++)
             {
                 total += Rows[i][index];
             }
@@ -151,7 +150,7 @@ namespace LinqInfer.Maths
         {
             var mu_x = MeanVector[x];
             var mu_y = MeanVector[y];
-            
+
             double t = 0;
 
             foreach (var v in Rows)
@@ -193,7 +192,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public Matrix Rotate(bool clockwise = true)
         {
-            var newData = new List<double[]>();
+            var newData = new List<Vector>();
 
             if (clockwise)
             {
@@ -204,7 +203,7 @@ namespace LinqInfer.Maths
                     {
                         row[x] = this[Height - x - 1, y];
                     }
-                    newData.Add(row);
+                    newData.Add(new Vector(row));
                 }
             }
             else
@@ -216,7 +215,7 @@ namespace LinqInfer.Maths
                     {
                         row[x] = this[x, Width - y - 1];
                     }
-                    newData.Add(row);
+                    newData.Add(new Vector(row));
                 }
             }
 
@@ -249,7 +248,7 @@ namespace LinqInfer.Maths
 
         internal Matrix ConcatRows(params Vector[] rows)
         {
-            foreach(var row in rows)
+            foreach (var row in rows)
             {
                 _rows.Add(row);
             }
@@ -269,7 +268,7 @@ namespace LinqInfer.Maths
 
             _rows.Clear();
 
-            foreach(var row in other._rows)
+            foreach (var row in other._rows)
             {
                 _rows.Add(row);
             }
@@ -311,6 +310,25 @@ namespace LinqInfer.Maths
         public static Matrix RandomMatrix(int width, int height, Range range)
         {
             return new Matrix(Enumerable.Range(0, height).Select(n => Functions.RandomVector(width, range)));
+        }
+
+        public static Matrix CalculateMatrix(int width, int height, Func<int, int, double> valueFactory)
+        {
+            var data = new List<Vector>(height);
+
+            for (int y = 0; y < height; y++)
+            {
+                var row = new double[width];
+
+                for (int x = 0; x < width; x++)
+                {
+                    row[x] = valueFactory(x, y);
+                }
+
+                data.Add(new Vector(row));
+            }
+
+            return new Matrix(data);
         }
 
         internal static Matrix Multiply(Matrix a, Matrix b)
@@ -538,54 +556,18 @@ namespace LinqInfer.Maths
 
         Matrix CalculateCovarianceMatrix()
         {
-            var data = new List<double[]>(Width);
-
-            foreach (var d in Enumerable.Range(0, Width))
-            {
-                var row = new double[Width];
-
-                foreach (var x in Enumerable.Range(0, Width))
-                {
-                    if (x == d)
-                    {
-                        row[x] = Variance(x);
-                    }
-                    else
-                    {
-                        row[x] = Covariance(x, d);
-                    }
-                }
-
-                data.Add(row);
-            }
-
-            return new Matrix(data);
+            return CalculateMatrix(
+                Width, Width, 
+                (x, y) => x == y ? Variance(x) : Covariance(x, y));
         }
 
         Matrix CalculateCosineSimularityMatrix()
         {
-            var data = new List<double[]>();
+            var mr = Rotate();
 
-            foreach (var d in Enumerable.Range(0, Width))
-            {
-                var row = new double[Width];
-
-                foreach (var x in Enumerable.Range(0, Width))
-                {
-                    if (x == d)
-                    {
-                        row[x] = 0;
-                    }
-                    else
-                    {
-                        row[x] = CosineDistance(x, d);
-                    }
-                }
-
-                data.Add(row);
-            }
-
-            return new Matrix(data);
+            return CalculateMatrix(
+                Width, Width,
+                (x, y) => x == y ? 0 : mr.CosineDistance(x, y));
         }
 
         bool DimensionallyEquivalent(Matrix other) // better math term? 
@@ -593,11 +575,6 @@ namespace LinqInfer.Maths
             if (other == null) return false;
 
             return (other.Width == Width || other.Height == Height);
-        }
-
-        static void AssertDimensionalCompatibility(Matrix m, Vector v)
-        {
-            if (m.Width != v.Size) throw new ArgumentException("Incompatible dimensions");
         }
 
         static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)

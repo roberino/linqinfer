@@ -8,17 +8,12 @@ using System.Reflection;
 namespace LinqInfer.Utility.Expressions
 {
     //Xml
+    //Csv
     //File
     //Folder
     //Bind
     //ToJson
     //ToFile
-    //Print
-    //Execute()
-    //Then(x => x + 1, e => 123)
-    //Graph(x)
-    //.Edge(y, 14)
-
 
     static class ConversionFunctions
     {
