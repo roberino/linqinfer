@@ -9,7 +9,7 @@ using System.Xml.Linq;
 namespace LinqInfer.IntegrationTests.Maths
 {
     [TestFixture]
-    public class MandelbrotSet : TestFixtureBase
+    public class FunctionIteratorUsingMandelbrotSet : TestFixtureBase
     {
         XDocument GetTemplate()
         {

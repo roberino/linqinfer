@@ -8,11 +8,11 @@ namespace LinqInfer.Maths.Probability
     /// Represents a set of hypotheses
     /// </summary>
     /// <typeparam name="T">The type of hypothesis</typeparam>
-    public class Hypothetheses<T>
+    public class Hypothetical<T>
     {
         readonly IDictionary<T, IHypotheticalOutcome<T>> _hypos;
 
-        internal Hypothetheses(IEnumerable<IHypotheticalOutcome<T>> hypos)
+        internal Hypothetical(IEnumerable<IHypotheticalOutcome<T>> hypos)
         {
             _hypos = hypos.ToDictionary(h => h.Outcome);
         }
@@ -25,14 +25,14 @@ namespace LinqInfer.Maths.Probability
         /// <summary>
         /// Returns the hypothetical outcomes
         /// </summary>
-        public IEnumerable<IHypotheticalOutcome<T>> Hypotheses { get { return _hypos.Values; } }
+        public IEnumerable<IHypotheticalOutcome<T>> Hypotheses => _hypos.Values;
 
         /// <summary>
         /// Returns a hypothetical outcome by outcome type
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public IHypotheticalOutcome<T> this[T item] { get { return _hypos[item]; } }
+        public IHypotheticalOutcome<T> this[T item] => _hypos[item];
 
         /// <summary>
         /// Returns the current posterior probability of an outcome

@@ -4,7 +4,7 @@ using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
 
-namespace LinqInfer.UnitTests.Maths
+namespace LinqInfer.UnitTests.Maths.Probability
 {
     [TestFixture]
     public class MarkovChainTests
