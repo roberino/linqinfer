@@ -27,7 +27,7 @@ Feature extraction is key to many of the classification algorithms.
 Feature pipelines represent a pipeline of feature data which can be 
 transformed and pumped into various forms. There are a few mechanisms
 for reducing the dimensionality of the input data, such as principle component 
-analysis and custom transformations.
+analysis.
 
 When data is extracted, it is represented as an enumeration of column vectors which 
 can be transformed and filtered before being consumed for classifier training.
@@ -35,41 +35,69 @@ can be transformed and filtered before being consumed for classifier training.
 Feature pipelines come in [asynchronous](docs/async-pipelines.md) and synchronous flavours. 
 
 Async pipelines support a more complex, batch orientated processing model
-which allows for parallel processing of data.
+which allows for parallel processing of data. Create asyncronous enumerators
+using the Data.Pipes namespace. You can create from simple enumerators
+or from loading functions.
 
 Synchronous pipelines are derived from IQueryable data sets.
 
 #### Learning
 
 This is a collection of machine learning algorithms which are available through extention 
-functions and operate on IQueryable sets of data.
+functions and operate on IQueryable sets of data or on asyncronous enumerators.
 
 * Self organising feature maps
 * Simple statistical classifier
 * Multi-layer neural network classifier
 
-##### Examples
+##### Example
 
 ```cs
 
-var pipeline = queryableSampleDataset.CreatePipeline();
+var cancel = new CancellationTokenSource();
 
-// Self Organising Feature Map
+// MyDataLoader returns an enumeration of data
+// There are various other ways to create 
+// an async enumerator
 
-var featureMap = = pipeline.ToSofm().Execute();
+var data = MyDataLoader().AsAsyncEnumerator();
 
-// Naive Bayes Classifier
+// Apply transformations and create a set for training
+// You need to supply an expression which can classify your data
+// for training 
 
-var classifier1 = pipeline.ToNaiveBayesClassifier(p => p.ClassificationGroup).Execute();
+var trainingSet = await data
+    .BuildPipelineAsync(cancel.Token)
+    .CentreAndScaleAsync(Range.ZeroToOne)
+    .AsTrainingSetAsync(x => x.classification, cancel.Token);
 
-// Multi-layer Neural Network Classifier
+// Attach a network model to the training set
+// You can attach numerous models and train them in parallel
 
-var classifier2 = pipeline.ToMultilayerNetworkClassifier(p => p.ClassificationGroup, 0.3f).Execute();
+var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
+{
+    b.ConfigureSoftmaxNetwork(4, p =>
+    {
+        p.LearningRate = 0.005;
+    });
+});
 
-// or create a training set first
+// Run the training procedure (over 550 epochs)
 
-var trainingSet = pipeline.AsTrainingSet(p => p.ClassificationGroup);
-var classifier3 = trainingSet.ToMultilayerNetworkClassifier().Execute();
+await trainingSet.RunAsync(cancel.Token, 550);
+
+// Test the classifier
+
+var results = classifier.Classify(new
+{
+    x = 10,
+    y = 10,
+    classification = "?"
+});
+
+// Export the classifier
+
+var exportedNetwork = classifier.ExportData();
 
 ```
 

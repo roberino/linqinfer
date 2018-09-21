@@ -52,36 +52,34 @@ namespace LinqInfer.UnitTests.Learning
                 {
                     x = 10,
                     y = 15,
-                    c = "a"
+                    classification = "a"
                 },
                 new
                 {
                     x = 11,
                     y = 23,
-                    c = "a"
+                    classification = "a"
                 },
                 new
                 {
                     x = -11,
                     y = -23,
-                    c = "b"
+                    classification = "b"
                 },
                 new
                 {
                     x = -15,
                     y = -25,
-                    c = "b"
+                    classification = "b"
                 }
             };
 
-            var pipeline = await data.AsAsyncEnumerator()
-                .BuildPipelineAsync(CancellationToken.None);
+            var cancel = new CancellationTokenSource();
 
-            pipeline = await pipeline.CentreAndScaleAsync(Range.ZeroToOne);
-
-            Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
-
-            var trainingSet = pipeline.AsTrainingSet(x => x.c, "a", "b");
+            var trainingSet = await data.AsAsyncEnumerator()
+                .BuildPipelineAsync(cancel.Token)
+                .CentreAndScaleAsync(Range.ZeroToOne)
+                .AsTrainingSetAsync(x => x.classification, cancel.Token);
 
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
             {
@@ -92,13 +90,13 @@ namespace LinqInfer.UnitTests.Learning
                 });
             });
 
-            await trainingSet.RunAsync(CancellationToken.None, 550);
+            await trainingSet.RunAsync(cancel.Token, 550);
 
             var results = classifier.Classify(new
             {
                 x = 10,
                 y = 10,
-                c = "?"
+                classification = "?"
             });
 
             var exportedNetwork = classifier.ExportData();
