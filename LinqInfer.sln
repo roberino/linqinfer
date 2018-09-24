@@ -52,7 +52,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Benchmarking", "t
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.ImageLearningTests", "tests\LinqInfer.ImageLearningTests\LinqInfer.ImageLearningTests.csproj", "{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqInfer.Compiler", "LinqInfer.Compiler\LinqInfer.Compiler.csproj", "{C48912A7-0423-4310-AFEB-A082E0A4B769}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqInfer.Compiler", "src\LinqInfer.Compiler\LinqInfer.Compiler.csproj", "{10CC6D95-0BCB-4080-AE91-F423C87ED12E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,10 +84,10 @@ Global
 		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C48912A7-0423-4310-AFEB-A082E0A4B769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C48912A7-0423-4310-AFEB-A082E0A4B769}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C48912A7-0423-4310-AFEB-A082E0A4B769}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C48912A7-0423-4310-AFEB-A082E0A4B769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10CC6D95-0BCB-4080-AE91-F423C87ED12E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10CC6D95-0BCB-4080-AE91-F423C87ED12E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10CC6D95-0BCB-4080-AE91-F423C87ED12E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10CC6D95-0BCB-4080-AE91-F423C87ED12E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,7 +100,7 @@ Global
 		{300FD62F-8A3C-401B-84AE-592F978C6DB9} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 		{99FFBAAA-6682-4665-BC93-F0CDEDCF5799} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
 		{4B3EAA88-B969-49BF-8434-B8D6CD40CD3C} = {1FDA159C-6FAB-46FA-BC24-21736A48A986}
-		{C48912A7-0423-4310-AFEB-A082E0A4B769} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
+		{10CC6D95-0BCB-4080-AE91-F423C87ED12E} = {CB31A68F-767E-4D9C-9C28-DD97DE757791}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {37958736-31B5-4708-B641-737A0D069293}

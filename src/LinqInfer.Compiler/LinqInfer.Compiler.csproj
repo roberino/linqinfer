@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\LinqInfer\LinqInfer.csproj" />
+    <ProjectReference Include="..\LinqInfer\LinqInfer.csproj" />
   </ItemGroup>
 
 </Project>
