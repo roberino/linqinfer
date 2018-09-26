@@ -4,6 +4,6 @@
     {
         bool Exists(string name);
 
-        string GetSourceCode(string name);
+        SourceCode GetSourceCode(string name);
     }
 }

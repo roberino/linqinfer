@@ -4,19 +4,24 @@ namespace LinqInfer.Utility.Expressions
 {
     class DelegatingSourceCodeProvider : ISourceCodeProvider
     {
-        readonly Func<string, string> _sourceCodeFunction;
+        readonly Func<string, SourceCode> _sourceCodeFunction;
 
-        public DelegatingSourceCodeProvider(Func<string, string> sourceCodeFunction)
+        public DelegatingSourceCodeProvider(Func<string, SourceCode> sourceCodeFunction)
         {
             _sourceCodeFunction = sourceCodeFunction;
         }
 
-        public bool Exists(string name)
+        public DelegatingSourceCodeProvider(Func<string, string> sourceCodeFunction)
         {
-            return _sourceCodeFunction(name) != null;
+            _sourceCodeFunction = n => new SourceCode(n, KnownMimeTypes.Function, sourceCodeFunction(n));
         }
 
-        public string GetSourceCode(string name)
+        public bool Exists(string name)
+        {
+            return (_sourceCodeFunction(name)?.Found).GetValueOrDefault();
+        }
+
+        public SourceCode GetSourceCode(string name)
         {
             return _sourceCodeFunction(name);
         }

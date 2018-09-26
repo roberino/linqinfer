@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LinqInfer.Compiler": {
+      "commandName": "Project",
+      "commandLineArgs": "-x 15"
+    }
+  }
+}

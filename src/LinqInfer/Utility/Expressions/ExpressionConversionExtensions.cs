@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -357,8 +358,9 @@ namespace LinqInfer.Utility.Expressions
 
                 return FollowPath(expressionTree.Children.Skip(1), nextScope);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                Trace.Write(ex);
                 throw new CompileException(expressionTree.Value, expressionTree.Position, CompileErrorReason.InvalidArgs);
             }
         }

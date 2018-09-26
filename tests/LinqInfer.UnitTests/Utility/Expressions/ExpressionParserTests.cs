@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
         [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
-        public void AsExpression_ExpressionsWithConditions_ParsesCorrectly(string expression, double z, double expected)
+        public void AsExpression_ConditionalExpressions_ParsesCorrectly(string expression, double z, double expected)
         {
             var exp = expression.AsExpression<MyParams, double>();
 
@@ -315,7 +315,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithCondition_ParsesCorrectly()
+        public void AsExpression_Condition_ParsesCorrectly()
         {
             var exp0 = Exp(x => x.Z > 0 ? 1.1 : 2.2);
 
@@ -331,7 +331,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithMemberCondition_ParsesCorrectly()
+        public void AsExpression_MemberCondition_ParsesCorrectly()
         {
             var exp0 = Exp(x => x.P ? 1.1 : 2.2);
 
@@ -347,7 +347,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithGrouping_GroupPrecedencyIsPreserved()
+        public void AsExpression_Grouping_GroupPrecedencyIsPreserved()
         {
             var exp0 = Exp(x => (x.Z + 1) * (x.Z + 2));
             var expression = exp0.ExportAsString();
@@ -363,7 +363,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithMinus_CorrectResultReturned()
+        public void AsExpression_Minus_CorrectResultReturned()
         {
             var expression = "_ => 5.1 - -6.2";
 
@@ -375,7 +375,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithClosure_CorrectResultReturned()
+        public void AsExpression_Closure_CorrectResultReturned()
         {
             var i = new { x = 1 };
             var z = 123;
@@ -412,7 +412,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithFractions_CorrectResultReturned()
+        public void AsExpression_Fractions_CorrectResultReturned()
         {
             var exp = FractionExp(x => x.Value1 + x.Value2);
 
@@ -432,7 +432,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithVectorOperation_CorrectResultReturned()
+        public void AsExpression_VectorOperation_CorrectResultReturned()
         {
             var exp = VectExp(x => x.Input1.ToColumnVector() * x.Input2.ToColumnVector());
 
@@ -456,7 +456,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithVector_CorrectResultReturned()
+        public void AsExpression_Vector_CorrectResultReturned()
         {
             var exp = VectExp(x => x.Input1.MultiplyBy(x.Input2));
 
@@ -493,7 +493,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithFieldAccessor_CorrectResultReturned()
+        public void AsExpression_FieldAccessor_CorrectResultReturned()
         {
             var exp = Exp(x => x.Field1 * (long)2);
 
@@ -505,7 +505,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithArrayAndConversion_CorrectResultReturned()
+        public void AsExpression_ArrayAndConversion_CorrectResultReturned()
         {
             var exps = "x => [Convert((x), double), 2]";
 
@@ -518,7 +518,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithVectorFunction_CorrectResultReturned()
+        public void AsExpression_VectorFunction_CorrectResultReturned()
         {
             var exp = Exp(1, new Vector(0), x => ColumnVector1D.Create(x, 2));
 
@@ -532,7 +532,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
-        public void AsExpression_ExpressionWithMathFunction_CorrectResultReturned()
+        public void AsExpression_MathFunction_CorrectResultReturned()
         {
             var exp = Exp(x => Math.Sqrt(x.Z)); // "x => Sqrt(x.Z)"
 

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    class ExpressionParser
+    class ExpressionParser : ISourceCodeParser
     {
         readonly IFunctionProvider _functionProvider;
 
@@ -14,18 +14,30 @@ namespace LinqInfer.Utility.Expressions
             _functionProvider = functionProvider;
         }
 
-        public LambdaExpression Parse(string expression, Type[] parameterTypes, Type outputType = null)
+        public bool CanParse(SourceCode sourceCode)
         {
-            return Parse(expression, p => parameterTypes[p.Index], outputType);
+            return sourceCode.MimeType == KnownMimeTypes.Function;
         }
 
-        public LambdaExpression Parse(string expression, Func<Parameter, Type> parameterBinder, Type outputType = null)
+        public LambdaExpression Parse(SourceCode sourceCode, Type[] parameterTypes, Type outputType = null)
         {
-            var (body, parameterExpressions) = ParseAndBindToExpression(expression, parameterBinder);
-            
-            var convertedBody = outputType == null ? body : body.Convert(outputType);
+            return Parse(sourceCode, p => parameterTypes[p.Index], outputType);
+        }
 
-            return Expression.Lambda(convertedBody, parameterExpressions);
+        public LambdaExpression Parse(SourceCode sourceCode, Func<Parameter, Type> parameterBinder, Type outputType = null)
+        {
+            try
+            {
+                var (body, parameterExpressions) = ParseAndBindToExpression(sourceCode.Code, parameterBinder);
+
+                var convertedBody = outputType == null ? body : body.Convert(outputType);
+
+                return Expression.Lambda(convertedBody, parameterExpressions);
+            }
+            catch (CompileException ex)
+            {
+                throw new CompileException(ex.Token, ex.Position, ex.Reason, sourceCode);
+            }
         }
 
         public (Expression body, Parameter[] parameters) Parse(string expression, Type outputType = null)
@@ -37,7 +49,7 @@ namespace LinqInfer.Utility.Expressions
                 paramTypes.Add(p);
                 return p.Type;
             });
-            
+
             var convertedBody = outputType == null ? body : body.Convert(outputType);
 
             return (Expression.Lambda(convertedBody, parameterExpressions), paramTypes.ToArray());

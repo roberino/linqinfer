@@ -43,6 +43,11 @@ namespace LinqInfer.Utility.Expressions
                 }
                 else
                 {
+                    if (p.Type == TokenType.Separator)
+                    {
+                        continue;
+                    }
+
                     yield return new Parameter(p.Value, i++);
                 }
 

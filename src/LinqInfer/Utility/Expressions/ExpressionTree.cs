@@ -58,7 +58,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (Type != TokenType.Name) return false;
 
-                return _children.Count == 1 && _children[0].Type == TokenType.GroupOpen;
+                return _children.Count >= 1 && _children[0].Type == TokenType.GroupOpen;
             }
         }
 

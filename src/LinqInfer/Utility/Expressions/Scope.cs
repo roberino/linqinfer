@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -19,11 +21,11 @@ namespace LinqInfer.Utility.Expressions
         }
 
         Scope(
-            Expression currentContext, 
+            Expression currentContext,
             Scope parent = null,
-            bool? isRoot = null, 
+            bool? isRoot = null,
             IFunctionProvider functions = null,
-            Type conversionType = null, 
+            Type conversionType = null,
             ParameterExpression[] parameters = null)
         {
             Parameters = parameters ?? new ParameterExpression[0];
@@ -32,7 +34,7 @@ namespace LinqInfer.Utility.Expressions
             ParentScope = parent;
             IsRoot = isRoot.GetValueOrDefault(parent == null);
             ConversionType = conversionType;
-            
+
             _functionProvider = functions;
 
             if (IsGlobalRoot)
@@ -77,14 +79,30 @@ namespace LinqInfer.Utility.Expressions
         {
             if (indexExpressions == null)
             {
-                return SelectChildScope(Expression.PropertyOrField(CurrentContext, name));
+                try
+                {
+                    return SelectChildScope(Expression.PropertyOrField(CurrentContext, name));
+                }
+                catch (ArgumentException)
+                {
+                    if (typeof(IDictionary<string, object>).IsAssignableFrom(CurrentContext.Type))
+                    {
+                        return SelectChildScope(Expression.MakeIndex(CurrentContext,
+                            GetProperty("Item"),
+                            new[] { Expression.Constant(name) }));
+                    }
+
+                    throw;
+                }
             }
 
             return SelectChildScope(Expression.MakeIndex(CurrentContext,
-                CurrentContext.Type.GetProperty(name,
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public),
+                GetProperty(name),
                 indexExpressions));
         }
+
+        PropertyInfo GetProperty(string name) => CurrentContext.Type.GetProperty(name,
+            BindingFlags.Instance | BindingFlags.Public);
 
         public Scope SelectChildScope(Expression expression)
         {

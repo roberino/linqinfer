@@ -4,7 +4,7 @@ namespace LinqInfer.Utility.Expressions
 {
     public sealed class CompileException : Exception
     {
-        public CompileException(string token, int position, CompileErrorReason reason) : base($"Compile error at char {position} - {reason}")
+        public CompileException(string token, int position, CompileErrorReason reason, SourceCode source = null) : base($"Compile error at char {position}: {token} - {reason} source: {source?.Name}")
         {
             Token = token;
             Position = position;

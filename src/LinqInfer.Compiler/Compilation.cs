@@ -14,12 +14,12 @@ namespace LinqInfer.Compiler
             _sourceCode = new SourceCodeRepository(sourceDir);
         }
 
-        public Func<object> Compile(string[] args)
+        public Func<InvocationResult<object>> Compile(string[] args)
         {
             var main = _sourceCode.GetSourceCode("main");
             var parsedArgs = ParseArgs(args);
 
-            return main.AsFunc<object>(_sourceCode, p =>
+            return main.Code.AsFunc<object>(_sourceCode, p =>
             {
                 if (parsedArgs.TryGetValue(p.Name, out var v))
                 {
@@ -27,7 +27,7 @@ namespace LinqInfer.Compiler
                 }
 
                 return null;
-            });
+            }, new ObjectParser());
         }
 
         static IDictionary<string, string> ParseArgs(string[] args)
@@ -44,7 +44,7 @@ namespace LinqInfer.Compiler
                     continue;
                 }
 
-                results[lastKey ?? $"${i++}"] = arg;
+                results[lastKey?.Substring(1) ?? $"${i++}"] = arg;
             }
 
             return results;

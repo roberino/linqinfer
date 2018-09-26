@@ -8,14 +8,22 @@ namespace LinqInfer.Utility.Expressions
     class CompileTimeFunctionBinder : IFunctionBinder
     {
         readonly ISourceCodeProvider _sourceCodeProvider;
+        readonly ISourceCodeParser[] _sourceCodeParsers;
         readonly IFunctionBinder _inbuiltFunctionBinder;
         readonly IDictionary<string, LambdaExpression> _compiledExpressions;
+        readonly Func<SourceCode, IReadOnlyCollection<UnboundArgument>, LambdaExpression> _sourceParser;
 
-        public CompileTimeFunctionBinder(ISourceCodeProvider sourceCodeProvider, IFunctionBinder inbuiltFunctionBinder)
+        public CompileTimeFunctionBinder(ISourceCodeProvider sourceCodeProvider, IFunctionBinder inbuiltFunctionBinder, params ISourceCodeParser[] customSourceCodeParsers)
         {
             _sourceCodeProvider = sourceCodeProvider;
             _inbuiltFunctionBinder = inbuiltFunctionBinder;
             _compiledExpressions = new Dictionary<string, LambdaExpression>();
+
+            var fp = new FunctionProvider(this);
+
+            var parser = new ExpressionParser(fp);
+
+            _sourceCodeParsers = new ISourceCodeParser[] {parser}.Concat(customSourceCodeParsers).ToArray();
         }
 
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
@@ -27,13 +35,9 @@ namespace LinqInfer.Utility.Expressions
             
             var lambda = GetOrAdd(name, n =>
             {
-                var fp = new FunctionProvider(this);
-
                 var sourceCode = _sourceCodeProvider.GetSourceCode(name);
 
-                var parser = new ExpressionParser(fp);
-
-                return parser.Parse(sourceCode, p => p.IsTypeKnown ? p.Type : parameters.ElementAt(p.Index).Type);
+                return Parse(sourceCode, parameters);
             });
 
             var resolved = new Expression[parameters.Count];
@@ -48,7 +52,7 @@ namespace LinqInfer.Utility.Expressions
 
                     arg.InputTypes = inferredArgs.inputs;
                     arg.OutputType = inferredArgs.output;
-                    resolved[i++] = arg.Resolve(); // Expression.Quote(
+                    resolved[i++] = arg.Resolve();
                 }
                 else
                 {
@@ -72,6 +76,18 @@ namespace LinqInfer.Utility.Expressions
             return _inbuiltFunctionBinder.IsDefined(name)
                 || _compiledExpressions.ContainsKey(name)
                 || _sourceCodeProvider.Exists(name);
+        }
+
+        LambdaExpression Parse(SourceCode sourceCode, IReadOnlyCollection<UnboundArgument> args)
+        {
+            var parser = _sourceCodeParsers.FirstOrDefault(p => p.CanParse(sourceCode));
+
+            if (parser == null)
+            {
+                throw new NotSupportedException(sourceCode.MimeType);
+            }
+
+            return parser.Parse(sourceCode, p => p.IsTypeKnown ? p.Type : args.ElementAt(p.Index).Type);
         }
 
         LambdaExpression GetOrAdd(string name, Func<string, LambdaExpression> expressionFactory)

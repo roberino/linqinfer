@@ -39,20 +39,24 @@ namespace LinqInfer.Utility.Expressions
         }
 
         public static LambdaExpression AsExpression(
-            this string expression, ISourceCodeProvider sourceCodeProvider, Func<Parameter, Type> parameterBinder)
+            this string expression, 
+            ISourceCodeProvider sourceCodeProvider, 
+            Func<Parameter, Type> parameterBinder,
+            params ISourceCodeParser[] customParsers)
         {
             var functions = new CompileTimeFunctionBinder(sourceCodeProvider,
-                new GlobalStaticFunctions());
+                new GlobalStaticFunctions(), customParsers);
 
             var funcProvider = new FunctionProvider(functions);
 
-            return new ExpressionParser(funcProvider).Parse(expression, parameterBinder);
+            return new ExpressionParser(funcProvider).Parse(SourceCode.Default(expression), parameterBinder);
         }
 
         public static Func<InvocationResult<TOutput>> AsFunc<TOutput>(
             this string expression,
             ISourceCodeProvider sourceCodeProvider,
-            Func<Parameter, object> inputArgBinder)
+            Func<Parameter, object> inputArgBinder,
+            params ISourceCodeParser[] customParsers)
         {
             var args = new List<object>();
 
@@ -63,7 +67,7 @@ namespace LinqInfer.Utility.Expressions
                 args.Add(arg);
 
                 return !p.IsTypeKnown ? arg.GetType() : p.Type;
-            });
+            }, customParsers);
 
             var argExpressions = args
                 .Select(a => a is Expression lambdaExpression ? lambdaExpression : Expression.Constant(a))

@@ -1,16 +1,23 @@
-﻿using LinqInfer.Utility.Expressions;
-using System;
+﻿using System.Collections.Generic;
+using LinqInfer.Utility.Expressions;
 using System.IO;
+using System.Linq;
 
 namespace LinqInfer.Compiler
 {
     class SourceCodeRepository : ISourceCodeProvider
     {
-        readonly DirectoryInfo sourceDirectory;
+        static readonly Dictionary<string, string> SupportedExtensions = new Dictionary<string, string>()
+        {
+            ["fky"] = KnownMimeTypes.Function,
+            ["json"] = KnownMimeTypes.Json
+        };
+
+        readonly DirectoryInfo _sourceDirectory;
 
         public SourceCodeRepository(DirectoryInfo sourceDirectory)
         {
-            this.sourceDirectory = sourceDirectory;
+            _sourceDirectory = sourceDirectory;
         }
 
         public bool Exists(string name)
@@ -20,20 +27,47 @@ namespace LinqInfer.Compiler
             return file.Exists;
         }
 
-        public string GetSourceCode(string name)
+        public SourceCode GetSourceCode(string name)
         {
             var file = GetFile(name);
 
+            if (!file.Exists)
+            {
+                return SourceCode.NotFound(name);
+            }
+
             using (var reader = file.OpenText())
             {
-                return reader.ReadToEnd();
+                return new SourceCode(name, SupportedExtensions[file.Extension.Substring(1)], reader.ReadToEnd());
             }
         }
 
-        FileInfo GetFile(string name, string ext = ".fky")
+        FileInfo GetFile(string name)
         {
-            return new FileInfo(Path.Combine(sourceDirectory.FullName, 
-                name.Replace('.', Path.DirectorySeparatorChar) + ext));
+            FileInfo firstFile = null;
+
+            foreach (var type in SupportedExtensions.OrderBy(kv => kv.Value == KnownMimeTypes.Function ? 0 : 1))
+            {
+                var file = GetFile(name, type.Key);
+
+                if (firstFile == null)
+                {
+                    firstFile = file;
+                }
+
+                if (file.Exists)
+                {
+                    return file;
+                }
+            }
+
+            return firstFile;
+        }
+
+        FileInfo GetFile(string name, string ext)
+        {
+            return new FileInfo(Path.Combine(_sourceDirectory.FullName,
+                name.Replace('.', Path.DirectorySeparatorChar) + "." + ext));
         }
     }
 }
