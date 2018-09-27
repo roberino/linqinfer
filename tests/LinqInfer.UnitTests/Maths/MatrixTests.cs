@@ -179,7 +179,7 @@ namespace LinqInfer.UnitTests.Maths
 
             var r01 = m1.Columns[0].ToColumnVector().CosineDistance(m1.Columns[1].ToColumnVector());
             
-            Assert.That(dm[0, 1], Is.EqualTo(r01));
+            Assert.That(Math.Abs(dm[0, 1] - r01) < 0.0000001);
         }
 
         [Test]
