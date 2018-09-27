@@ -36,10 +36,10 @@ namespace LinqInfer.Maths.Graphs
             Bounds = bounds;
         }
 
-        public Point3D Origin { get; private set; }
+        public Point3D Origin { get; }
 
-        public Point3D Bounds { get; private set; }
+        public Point3D Bounds { get; }
 
-        public ColourPalette Palette { get; private set; }
+        public ColourPalette Palette { get; }
     }
 }

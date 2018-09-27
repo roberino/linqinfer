@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class VirtualCorpus : ICorpus
+    class VirtualCorpus : ICorpus
     {
-        private readonly IEnumerable<Task<IList<IToken>>> _tokenEnumerator;
+        readonly IEnumerable<Task<IList<IToken>>> _tokenEnumerator;
 
         public VirtualCorpus(IEnumerable<Task<IList<IToken>>> tokenEnumerator)
         {
@@ -25,7 +25,7 @@ namespace LinqInfer.Text.Analysis
             return ReadBlocksAsyncInternal().AsAsyncEnumerator();
         }
 
-        private IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
+        IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
         {
             foreach (var batchTask in _tokenEnumerator)
             {

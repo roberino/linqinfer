@@ -6,8 +6,8 @@ namespace LinqInfer.Text.Analysis
 {
     public class AsyncContinuousBagOfWords
     {
-        private readonly ICorpus _corpus;
-        private readonly ISemanticSet _widerVocabulary;
+        readonly ICorpus _corpus;
+        readonly ISemanticSet _widerVocabulary;
 
         internal AsyncContinuousBagOfWords(ICorpus corpus, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null, int paddingSize = 1)
         {

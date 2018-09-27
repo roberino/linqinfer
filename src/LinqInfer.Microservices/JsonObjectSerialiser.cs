@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;

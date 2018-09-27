@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class RoutingTable<T>
+    class RoutingTable<T>
     {
-        private readonly IList<RouteHandlerPair> _routes;
-        private readonly Func<IDictionary<string, string>, T, Task<bool>> _defaultRoute;
+        readonly IList<RouteHandlerPair> _routes;
+        readonly Func<IDictionary<string, string>, T, Task<bool>> _defaultRoute;
 
         public RoutingTable(Func<IDictionary<string, string>, T, Task<bool>> defaultRoute = null)
         {
@@ -62,7 +62,7 @@ namespace LinqInfer.Data.Remoting
             return _routes.Where(r => r.UriRoute.Mapper.TryMap(uri, Verb.All, out para)).Select(r => r.UriRoute);
         }
 
-        private Func<T, Task<bool>> Map(IEnumerable<RouteHandlerPair> applicableRoutes, Uri uri, Verb verb = Verb.Default, bool throwIfMissing = true)
+        Func<T, Task<bool>> Map(IEnumerable<RouteHandlerPair> applicableRoutes, Uri uri, Verb verb = Verb.Default, bool throwIfMissing = true)
         {
             foreach (var route in applicableRoutes)
             {
@@ -92,7 +92,7 @@ namespace LinqInfer.Data.Remoting
             throw new ArgumentException("Route not found: " + uri.PathAndQuery + " " + verb.ToString());
         }
 
-        private class RouteHandlerPair
+        class RouteHandlerPair
         {
             public IUriRoute UriRoute { get; set; }
 

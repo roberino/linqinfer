@@ -1,21 +1,20 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Learning;
-using LinqInfer.Text;
-using LinqInfer.Text.Analysis;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text.Analysis
+namespace LinqInfer.UnitTests.Text.Analysis
 {
     [TestFixture]
     public class AnalysisExtensionsTests
     {
-        private const int _numberOfCorpusItems = 22;
-        private readonly Corpus _testCorpus;
-        private readonly ISemanticSet _testVocab;
+        const int _numberOfCorpusItems = 22;
+        readonly Corpus _testCorpus;
+        readonly ISemanticSet _testVocab;
 
         public AnalysisExtensionsTests()
         {
@@ -24,14 +23,13 @@ namespace LinqInfer.Tests.Text.Analysis
         }
 
         [Test]
-        public async Task CreateLinearClassifier_ReturnsVectors()
+        public async Task CreateBiGramAsyncTrainingSet_ExtractVectors()
         {
             var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
-            var trainingData = cbow.AsNGramAsyncTrainingSet();
+            var trainingData = cbow.AsBiGramAsyncTrainingSet();
+            var vectors = await trainingData.ExtractVectorsAsync(CancellationToken.None, 8);
 
-            var classifier = await trainingData.CreateLinearClassifier();
-
-            Assert.That(classifier.Vectors, Is.Not.Null);
+            Assert.That(vectors, Is.Not.Null);
         }
 
         [Test]
@@ -120,7 +118,7 @@ namespace LinqInfer.Tests.Text.Analysis
             }
         }
 
-        private char Offset(char c, int o)
+        char Offset(char c, int o)
         {
             return (char)((int)c + o);
         }

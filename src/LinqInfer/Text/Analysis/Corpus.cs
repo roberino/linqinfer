@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {
     public sealed class Corpus : IBinaryPersistable, ICorpus
     {
-        private readonly IList<IToken> _tokens;
+        readonly IList<IToken> _tokens;
 
         public Corpus()
         {
@@ -90,7 +91,7 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        private IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
+        IEnumerable<Task<IList<IToken>>> ReadBlocksAsyncInternal()
         {
             foreach (var block in Blocks)
             {

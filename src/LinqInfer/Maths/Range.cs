@@ -17,9 +17,14 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a range 0 to 0
+        /// </summary>
+        public static readonly Range Zero = new Range(0);
+
+        /// <summary>
         /// Returns a range 0 to 1
         /// </summary>
-        public static readonly Range ZeroToOne = new Range(1, 0);
+        public static readonly Range ZeroToOne = new Range(1);
 
         /// <summary>
         /// Returns a range -1 to 1

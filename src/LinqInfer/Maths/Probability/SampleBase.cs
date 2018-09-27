@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal abstract class SampleBase<T>
+    abstract class SampleBase<T>
     {
         internal SampleBase() { }
 

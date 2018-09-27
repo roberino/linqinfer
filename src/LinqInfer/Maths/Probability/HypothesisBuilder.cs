@@ -2,7 +2,7 @@
 {
     public sealed class HypothesisBuilder<T>
     {
-        private readonly T _outcome;
+        readonly T _outcome;
 
         internal HypothesisBuilder(T outcome)
         {
@@ -21,8 +21,8 @@
 
         public sealed class FractionBuilder
         {
-            private readonly HypothesisBuilder<T> _owner;
-            private readonly int _numerator;
+            readonly HypothesisBuilder<T> _owner;
+            readonly int _numerator;
 
             internal FractionBuilder(HypothesisBuilder<T> owner, int numerator)
             {

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal class AsyncAggregator<TInput, TAggregationKey, TAggregation> 
+    class AsyncAggregator<TInput, TAggregationKey, TAggregation> 
         : IBuilderSink<TInput, IDictionary<TAggregationKey, TAggregation>>
     {
-        private readonly Func<TInput, KeyValuePair<TAggregationKey, TAggregation>> _selector;
-        private readonly Func<TAggregation, TAggregation, TAggregation> _aggregator;
-        private readonly ConcurrentDictionary<TAggregationKey, TAggregation> _results;
+        readonly Func<TInput, KeyValuePair<TAggregationKey, TAggregation>> _selector;
+        readonly Func<TAggregation, TAggregation, TAggregation> _aggregator;
+        readonly ConcurrentDictionary<TAggregationKey, TAggregation> _results;
 
         public AsyncAggregator(Func<TInput, KeyValuePair<TAggregationKey, TAggregation>> selector, Func<TAggregation, TAggregation, TAggregation> aggregator)
         {

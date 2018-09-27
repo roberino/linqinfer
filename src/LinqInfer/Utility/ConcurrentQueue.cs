@@ -6,14 +6,14 @@ using System.Threading;
 
 namespace LinqInfer.Utility
 {
-    internal class ConcurrentQueue<T> : IEnumerable<T>, IDisposable
+    class ConcurrentQueue<T> : IEnumerable<T>, IDisposable
     {
-        private readonly ManualResetEventSlim _dequeueWaitHandle;
-        private readonly ManualResetEventSlim _enqueueWaitHandle;
-        private readonly int _maxSize;
-        private readonly Queue<T> _innerQueue;
+        readonly ManualResetEventSlim _dequeueWaitHandle;
+        readonly ManualResetEventSlim _enqueueWaitHandle;
+        readonly int _maxSize;
+        readonly Queue<T> _innerQueue;
 
-        private bool _isClosed;
+        bool _isClosed;
 
         public ConcurrentQueue(int maxSize = 4096)
         {

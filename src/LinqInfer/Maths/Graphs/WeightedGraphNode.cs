@@ -9,15 +9,15 @@ namespace LinqInfer.Maths.Graphs
 {
     public sealed class WeightedGraphNode<T, C> where T : IEquatable<T> where C : IComparable<C>
     {
-        private readonly ReaderWriterLockSlim _lock;
-        private readonly WeightedGraph<T, C> _owner;
-        private readonly IDictionary<T, C> _workingEdges;
-        private readonly ConstrainableDictionary<string, object> _workingAttributes;
+        readonly ReaderWriterLockSlim _lock;
+        readonly WeightedGraph<T, C> _owner;
+        readonly IDictionary<T, C> _workingEdges;
+        readonly ConstrainableDictionary<string, object> _workingAttributes;
 
-        private bool _attribsLoaded;
-        private bool _attribsDirty;
-        private bool _loaded;
-        private bool _isDirty;
+        bool _attribsLoaded;
+        bool _attribsDirty;
+        bool _loaded;
+        bool _isDirty;
 
         internal WeightedGraphNode(WeightedGraph<T, C> owner, T label, bool isNew = false)
         {
@@ -274,7 +274,7 @@ namespace LinqInfer.Maths.Graphs
             }
         }
 
-        private void LoadSync()
+        void LoadSync()
         {
             if (!_loaded)
             {

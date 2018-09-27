@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LinqInfer.IntegrationTests
 {
-    internal static class TestData
+    static class TestData
     {
         public static IQueryable<Pirate> CreateQueryablePirates()
         {

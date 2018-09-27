@@ -75,7 +75,7 @@ namespace LinqInfer.IntegrationTests
         public void CombineClassifier_WithHypotheses()
         {
             var pirateSample = TestData.CreatePirates().ToList();
-            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => p.Age > 25 ? "old" : "young");
+            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => (p.Age + (p.IsCaptain ? 4 : 0) + p.Ships + p.Gold / 4) > 150 ? "A" : "B");
 
             var distribution = classifier.Invoke(new TestData.Pirate()
             {
@@ -87,31 +87,9 @@ namespace LinqInfer.IntegrationTests
 
             var hypos = distribution.Select(x => P.Hypothesis(x.Key, x.Value)).AsHypotheses();
 
-            hypos.Update(x => x == "old" ? (5).OutOf(6) : (1).OutOf(10));
+            hypos.Update(x => x == "A" ? (5).OutOf(6) : (1).OutOf(10));
 
-            var newPosterier = hypos["old"];
-        }
-
-        [Test]
-        public void SelfOrganisingFeatureMap()
-        {
-            const int max = 100;
-
-            var rnd = new Random(DateTime.Now.Millisecond);
-
-            var cubes = Enumerable.Range(1, 1000).Select(n => new
-            {
-                height = rnd.Next(max),
-                width = rnd.Next(max),
-                depth = rnd.Next(max)
-            }).AsQueryable();
-
-            var map = cubes.CreatePipeline().ToSofm(10, 0.5f, null, 10).Execute();
-            
-            foreach (var m in map)
-            {
-                Console.WriteLine(string.Format("{0}\t{1}\t{2}", m.Weights[0], m.Weights[1], m.Weights[2]));
-            }
+            var newPosterier = hypos["A"];
         }
     }
 }

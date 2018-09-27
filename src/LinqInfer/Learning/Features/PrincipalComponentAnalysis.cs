@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class PrincipalComponentAnalysis
+    class PrincipalComponentAnalysis
     {
-        private readonly IEnumerable<IVector> _sampleFeatureSet;
+        readonly IEnumerable<IVector> _sampleFeatureSet;
 
         public PrincipalComponentAnalysis(IFeatureDataSource sampleFeatureSet)
         {
@@ -52,8 +52,8 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="numberOfDimensions">The maximum number of dimensions to return</param>
         /// <param name="sampleSize">The sample size to use in the analysis</param>
-        /// <returns>A <see cref="ISerialisableVectorTransformation"/></returns>
-        public ISerialisableVectorTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
+        /// <returns>A <see cref="ISerialisableDataTransformation"/></returns>
+        public ISerialisableDataTransformation CreatePrincipalComponentTransformer(int numberOfDimensions, int sampleSize = 100)
         {
             var matrix = new Matrix(_sampleFeatureSet.Select(v => v.ToColumnVector()).Take(sampleSize));
             var mean = matrix.MeanVector;
@@ -65,10 +65,10 @@ namespace LinqInfer.Learning.Features
             var eigenMatrix = eigenDecom.Item2;
             var featureSet = eigenMatrix.SelectRows(orderedVectors.Select(v => v.Key).OrderBy(v => v).ToArray());
 
-            return new SerialisableVectorTransformation(featureSet, mean);
+            return new SerialisableDataTransformation(featureSet, mean);
         }
 
-        private Tuple<Vector, Matrix> GetEigenvalueDecomposition(Matrix sampleMatrix)
+        Tuple<Vector, Matrix> GetEigenvalueDecomposition(Matrix sampleMatrix)
         {
             var matrix = sampleMatrix;
             var meanAdjMatrix = matrix.MeanAdjust();

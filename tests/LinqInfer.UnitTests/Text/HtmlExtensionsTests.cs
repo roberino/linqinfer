@@ -1,9 +1,7 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
-using System.Linq;
-using System.Xml.Linq;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class HtmlExtensionsTests : TestFixtureBase

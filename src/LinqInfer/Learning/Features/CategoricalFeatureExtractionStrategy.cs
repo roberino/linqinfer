@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Utility.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class CategoricalFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
+    class CategoricalFeatureExtractionStrategy<T> : FeatureExtractionStrategy<T>
+        where T : class
     {
         public override bool CanHandle(PropertyExtractor<T> propertyExtractor)
         {
@@ -20,9 +22,9 @@ namespace LinqInfer.Learning.Features
             return new Builder(Properties);
         }
 
-        private class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
         {
-            private readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
+            readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
 
             public Builder(IEnumerable<PropertyExtractor<T>> properties)
             {
@@ -43,7 +45,9 @@ namespace LinqInfer.Learning.Features
                 {
                     var set = new HashSet<string>(plookup.Item2.Keys);
 
-                    var fe = new CategoricalFeatureExtractor<T, string>(x => GetValue(x, plookup.Item1), Feature.CreateDefaults(new[] { plookup.Item1.Property.Name }, FeatureVectorModel.Categorical), set);
+                    var exp = $"x => ToString(x.{plookup.Item1.Property.Name})".AsExpression<T, string>();
+
+                    var fe = new CategoricalFeatureExtractor<T, string>(exp, Feature.CreateDefaults(new[] { plookup.Item1.Property.Name }, FeatureVectorModel.Categorical), set);
 
                     extractors.Add(fe);
                 }
@@ -64,7 +68,7 @@ namespace LinqInfer.Learning.Features
                 return Task.FromResult(true);
             }
 
-            private string GetValue(T item, PropertyExtractor<T> property)
+            static string GetValue(T item, PropertyExtractor<T> property)
             {
                 return property.GetValue(item)?.ToString() ?? string.Empty;
             }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class SemanticSetBuilder
+    class SemanticSetBuilder
     {
-        private readonly SemanticSetSink _sink;
+        readonly SemanticSetSink _sink;
 
         public SemanticSetBuilder()
         {
@@ -31,7 +31,7 @@ namespace LinqInfer.Text.Analysis
             return new SemanticSet(new HashSet<string>(_sink.Words.OrderByDescending(w => w.Value).Select(w => w.Key)));
         }
 
-        private class SemanticSetSink : IAsyncSink<IToken>
+        class SemanticSetSink : IAsyncSink<IToken>
         {
             public SemanticSetSink()
             {

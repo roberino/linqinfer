@@ -1,12 +1,12 @@
-﻿using LinqInfer.Learning.Features;
+﻿using System.Collections.Generic;
+using System.Linq;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Classification
+namespace LinqInfer.UnitTests.Learning.Classification
 {
-    internal static class SampleData
+    static class SampleData
     {
         public static IEnumerable<TrainingPair<IVector, IVector>> SetupData()
         {

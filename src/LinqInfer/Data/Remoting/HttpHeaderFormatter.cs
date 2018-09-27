@@ -6,12 +6,12 @@ using System.Text;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpHeaderFormatter : IDisposable
+    class HttpHeaderFormatter : IDisposable
     {
-        private const string Ok = "200 OK";
-        private const string NotFound = "404 Not Found";
-        private const string Error = "500 Internal Server Error";
-        private const string HttpHead = "HTTP/{0} {1}";
+        const string Ok = "200 OK";
+        const string NotFound = "404 Not Found";
+        const string Error = "500 Internal Server Error";
+        const string HttpHead = "HTTP/{0} {1}";
 
         public const string DefaultHttpProtocol = "1.1";
         public const string ContentTypeHeaderName = "Content-Type";
@@ -19,8 +19,8 @@ namespace LinqInfer.Data.Remoting
         public const string AcceptHeaderName = "Accept";
         public const string CookieHeaderName = "Cookie";
 
-        private readonly TextWriter _writer;
-        private readonly bool _closeWriter;
+        readonly TextWriter _writer;
+        readonly bool _closeWriter;
 
         public HttpHeaderFormatter(TextWriter writer, bool closeWriter = false)
         {
@@ -94,7 +94,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private string GetStatus(int statusCode, string statusText)
+        string GetStatus(int statusCode, string statusText)
         {
             var status = (HttpStatusCode)statusCode;
             var text = string.IsNullOrEmpty(statusText) ? CamelCaseSplit(status.ToString()) : statusText;
@@ -102,7 +102,7 @@ namespace LinqInfer.Data.Remoting
             return string.Format("{0} {1}", statusCode, text);
         }
 
-        private static string CamelCaseSplit(string text)
+        static string CamelCaseSplit(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
 
@@ -121,12 +121,12 @@ namespace LinqInfer.Data.Remoting
             return result.ToString();
         }
 
-        private string FormatDate(DateTime date)
+        string FormatDate(DateTime date)
         {
             return date.ToUniversalTime().ToString("r");
         }
 
-        private string ArrayToString(string headerName, string[] data)
+        string ArrayToString(string headerName, string[] data)
         {
             if (data == null) return null;
 

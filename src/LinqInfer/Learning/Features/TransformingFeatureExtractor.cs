@@ -1,4 +1,5 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,143 +7,106 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class TransformingFeatureExtractor<TInput, TVector> : IFeatureExtractor<TInput, TVector>, IExportableAsVectorDocument, IImportableAsVectorDocument where TVector : struct
+    class TransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>
     {
-        private readonly IFeatureExtractor<TInput, TVector> _baseFeatureExtractor;
-        private readonly Func<TVector[], TVector[]> _transformation;
-        private readonly IList<IFeature> _selectedFeatures;
-        private readonly IList<IFeature> _transformedFeatures;
-        private readonly IDictionary<string, int> _indexLookup;
+        readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
+        readonly List<ISerialisableDataTransformation> _transformations;
 
-        private readonly int _vectorSize;
-        private readonly bool _isFiltered;
-        private readonly bool _hasCustomTransformation;
+        IList<IFeature> _transformedFeatures;
 
-        public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, int[] indexSelection = null) : this(baseFeatureExtractor, transformation, indexSelection == null ? null : (Func<IFeature, bool>)(f => indexSelection.Contains(f.Index)))
-        {
-        }
-
-        public TransformingFeatureExtractor(IFeatureExtractor<TInput, TVector> baseFeatureExtractor, Func<TVector[], TVector[]> transformation, Func<IFeature, bool> featureFilter)
+        public TransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
-            _hasCustomTransformation = transformation != null;
-            _transformation = transformation ?? (x => x);
-            _isFiltered = featureFilter != null;
-            _selectedFeatures = (!_isFiltered) ? baseFeatureExtractor.FeatureMetadata.ToList() : RebaseIndex(baseFeatureExtractor.FeatureMetadata.Where(featureFilter));
-            _indexLookup = _selectedFeatures.ToDictionary(f => f.Key, f => f.Index);
+            _transformations = new List<ISerialisableDataTransformation>();
+        }
 
-            if (transformation == null)
+        public IEnumerable<IFeature> FeatureMetadata => _transformedFeatures ??
+                                                        (_transformedFeatures =
+                                                            Feature.CreateDefaults(VectorSize, TypeCode.Double,
+                                                                "Transform {0}"));
+
+        public int VectorSize => _transformations.Any() ? _transformations.Last().OutputSize : _baseFeatureExtractor.VectorSize;
+
+        public void AddTransform(ISerialisableDataTransformation transformation)
+        {
+            if (VectorSize == transformation.InputSize)
             {
-                _vectorSize = _baseFeatureExtractor.VectorSize;
+                _transformations.Add(transformation);
+                _transformedFeatures = null;
             }
             else
             {
-                _vectorSize = _transformation(new TVector[_selectedFeatures.Count]).Length;
-
-                _transformedFeatures = Feature.CreateDefaults(_vectorSize, TypeCode.Double, "Transform {0}");
+                throw new ArgumentException($"Invalid input size - {transformation.InputSize}");
             }
-
-            FeatureFilter = featureFilter;
         }
 
-        internal Func<IFeature, bool> FeatureFilter { get; private set; }
-
-        internal Func<TVector[], TVector[]> Transformation { get { return _transformation; } }
-        
-        public IEnumerable<IFeature> FeatureMetadata
+        public double[] ExtractVector(TInput obj)
         {
-            get
+            return ExtractColumnVector(obj).GetUnderlyingArray();
+        }
+
+        public ColumnVector1D ExtractColumnVector(TInput obj)
+        {
+            return ExtractIVector(obj).ToColumnVector();
+        }
+
+        public IVector ExtractIVector(TInput obj)
+        {
+            var nextInput = _baseFeatureExtractor.ExtractIVector(obj);
+
+            foreach (var tx in _transformations)
             {
-                return _transformedFeatures ?? _selectedFeatures;
+                nextInput = tx.Apply(nextInput);
             }
+
+            return nextInput;
         }
 
-        public IDictionary<string, int> IndexLookup
+        public PortableDataDocument ExportData()
         {
-            get
+            var tranformations = new PortableDataDocument();
+
+            foreach (var tr in _transformations)
             {
-                return _indexLookup;
+                tranformations.Children.Add(tr.ExportData());
             }
-        }
 
-        public int InputSize { get { return _selectedFeatures.Count; } }
+            var doc = new PortableDataDocument();
 
-        public int VectorSize { get { return _vectorSize; } }
+            doc.SetType(this);
 
-        public TVector[] ExtractVector(TInput obj)
-        {
-            var bnv = _baseFeatureExtractor.ExtractVector(obj);
-
-            return FilterAndTransform(bnv);
-        }
-
-        public virtual void Load(Stream input)
-        {
-            var doc = new BinaryVectorDocument();
-            doc.Load(input);
-            FromVectorDocument(doc);
-        }
-
-        public virtual void Save(Stream output)
-        {
-            ToVectorDocument().Save(output);
-        }
-
-        public BinaryVectorDocument ToVectorDocument()
-        {
-            if (_hasCustomTransformation) throw new NotSupportedException("Custom transformations can't be serialised");
-
-            var doc = new BinaryVectorDocument();
-
-            doc.Properties["BaseFeatureExtractor"] = _baseFeatureExtractor.ToClob();
-
-            if (_isFiltered) doc.Properties["SelectedFeatures"] = string.Join(",", _selectedFeatures.Select(f => f.Key));
+            doc.Children.Add(tranformations);
+            doc.Children.Add(_baseFeatureExtractor.ExportData());
 
             return doc;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public static TransformingFeatureExtractor<TInput> Create(PortableDataDocument doc, Func<PortableDataDocument, IFloatingPointFeatureExtractor<TInput>> baseFeatureExtractorLoader = null)
         {
-            if (doc.Properties.ContainsKey("SelectedFeatures"))
+            if (doc.Children.Count != 2)
             {
-                var features = _baseFeatureExtractor.FeatureMetadata.ToDictionary(f => f.Key);
-                var selectedFeatures = doc.Properties["SelectedFeatures"].Split(',').Select(k => features[k]);
-
-                _selectedFeatures.Clear();
-
-                foreach (var feature in selectedFeatures) _selectedFeatures.Add(feature);
+                throw new InvalidDataException("Expecting 2 child docs");
             }
 
-            if (doc.Properties.ContainsKey("BaseFeatureExtractor"))
+            var baseExtractorDoc = doc.Children[1];
+
+            if (baseFeatureExtractorLoader == null)
             {
-                _baseFeatureExtractor.FromClob(doc.Properties["BaseFeatureExtractor"]);
+                baseFeatureExtractorLoader = FeatureExtractorFactory<TInput>.Default.Create;
             }
-        }
 
-        private TVector[] FilterAndTransform(TVector[] vector)
-        {
-            return _transformation(Filter(vector));
-        }
+            var bfe = baseFeatureExtractorLoader(baseExtractorDoc);
 
-        private TVector[] Filter(TVector[] vector)
-        {
-            return _isFiltered ? _selectedFeatures.Select(f => vector[f.Index]).ToArray() : vector;
-        }
+            var fe = new TransformingFeatureExtractor<TInput>(bfe);
+            
+            var transformationDoc = doc.Children[0];
 
-        private static IList<IFeature> RebaseIndex(IEnumerable<IFeature> features)
-        {
-            var i = 0;
-            return features
-                .OrderBy(f => f.Index)
-                .Select(f => (IFeature)new Feature()
-                {
-                    DataType = f.DataType,
-                    Key = f.Key,
-                    Label = f.Label,
-                    Model = f.Model,
-                    Index = i++
-                })
-                .ToList();
+            foreach(var child in transformationDoc.Children)
+            {
+                fe.AddTransform(SerialisableDataTransformation.LoadFromDocument(child));
+            }
+
+            return fe;
         }
     }
 }

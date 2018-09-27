@@ -7,11 +7,11 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class QueryableSample<T> : SampleBase<T>, IQueryableSample<T>
+    class QueryableSample<T> : SampleBase<T>, IQueryableSample<T>
     {
         protected readonly IQueryable<T> _sampleSpace;
         protected readonly Expression<Func<T, int>> _weightSelector;
-        private int _hypothesisCount = 0;
+        int _hypothesisCount = 0;
         protected bool _hasWeights;
 
         public QueryableSample(IQueryable<T> sampleSpace, string name = null, Expression<Func<T, int>> weightSelector = null)
@@ -63,7 +63,7 @@ namespace LinqInfer.Maths.Probability
             return new Tuple<IQueryableSample<T>, IQueryableSample<T>>(Subset(eventPredicate), Subset(eventPredicate.Invert()));
         }
 
-        private int WeightedSum(IQueryable<T> sample)
+        int WeightedSum(IQueryable<T> sample)
         {
             return _hasWeights ? sample.Select(_weightSelector).Sum() : sample.Count();
         }

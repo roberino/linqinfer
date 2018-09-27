@@ -7,8 +7,8 @@ namespace LinqInfer.Text.Analysis
 {
     public class ContinuousBagOfWords
     {
-        private readonly IEnumerable<IToken> _tokens;
-        private readonly ISemanticSet _widerVocabulary;
+        readonly IEnumerable<IToken> _tokens;
+        readonly ISemanticSet _widerVocabulary;
 
         internal ContinuousBagOfWords(IEnumerable<IToken> tokens, ISemanticSet targetVocabulary, ISemanticSet widerVocabulary = null)
         {
@@ -40,7 +40,7 @@ namespace LinqInfer.Text.Analysis
             return GetNGrams(_tokens, padding);
         }
 
-        private IEnumerable<SyntacticContext> GetNGrams(IEnumerable<IToken> tokens, int padding)
+        IEnumerable<SyntacticContext> GetNGrams(IEnumerable<IToken> tokens, int padding)
         {
             var bufferSize = padding * 2 + 1;
             var buffer = new IToken[bufferSize];
@@ -66,7 +66,7 @@ namespace LinqInfer.Text.Analysis
             if (nextContext != null) yield return nextContext;
         }
 
-        private SyntacticContext MoveNext(IToken[] buffer, int padding)
+        SyntacticContext MoveNext(IToken[] buffer, int padding)
         {
             if (IsFull(buffer))
             {
@@ -92,7 +92,7 @@ namespace LinqInfer.Text.Analysis
             return null;
         }
 
-        private IToken[] Extract(IToken[] buffer, int padding)
+        IToken[] Extract(IToken[] buffer, int padding)
         {
             var context = new IToken[padding * 2];
             var c = 0;
@@ -108,12 +108,12 @@ namespace LinqInfer.Text.Analysis
             return context;
         }
 
-        private bool IsFull(IToken[] buffer)
+        bool IsFull(IToken[] buffer)
         {
             return buffer[buffer.Length - 1] != null;
         }
 
-        private void Enqueue(IToken[] buffer, IToken token)
+        void Enqueue(IToken[] buffer, IToken token)
         {
             for (var i = 0; i < buffer.Length; i++)
             {
@@ -125,7 +125,7 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        private void Dequeue(IToken[] buffer)
+        void Dequeue(IToken[] buffer)
         {
             for (var i = 1; i < buffer.Length; i++)
             {

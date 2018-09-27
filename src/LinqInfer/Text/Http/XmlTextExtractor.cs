@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
 {
-    internal static class XmlTextExtractor
+    static class XmlTextExtractor
     {
         public static IEnumerable<IToken> ExtractTokens(XNode doc, Func<XNode, bool> nodeFilter, ITokeniser tokeniser)
         {

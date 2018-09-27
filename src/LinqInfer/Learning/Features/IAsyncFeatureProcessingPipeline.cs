@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Features
     /// which can be transformed and processed
     /// </summary>
     /// <typeparam name="T">The input type</typeparam>
-    public interface IAsyncFeatureProcessingPipeline<T> : IAsyncPipe<ObjectVectorPair<T>> where T : class
+    public interface IAsyncFeatureProcessingPipeline<T> : IAsyncPipe<ObjectVectorPair<T>>
     {
         /// <summary>
         /// Returns the feature extractor
@@ -25,7 +25,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Preprocesses the data with the vector transformation
         /// </summary>
-        IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableVectorTransformation transformation);
+        IAsyncFeatureProcessingPipeline<T> PreprocessWith(ISerialisableDataTransformation transformation);
 
         /// <summary>
         /// Centres and scales the data

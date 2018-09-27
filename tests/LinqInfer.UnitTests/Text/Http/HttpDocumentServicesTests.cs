@@ -1,10 +1,4 @@
-﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Data.Remoting;
-using LinqInfer.Text;
-using LinqInfer.Text.Http;
-using NSubstitute;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,18 +6,24 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Data.Pipes;
+using LinqInfer.Data.Remoting;
+using LinqInfer.Text;
+using LinqInfer.Text.Http;
+using NSubstitute;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text.Http
+namespace LinqInfer.UnitTests.Text.Http
 {
     [TestFixture]
     public class HttpDocumentServicesTests
     {
-        private readonly Uri _rootUrl = new Uri("http://test.x");
+        readonly Uri _rootUrl = new Uri("http://test.x");
 
-        private HttpDocumentServices _sut;
-        private IHttpClient _httpClient;
-        private IContentReader _contentReader;
-        private IList<HttpDocument> _results;
+        HttpDocumentServices _sut;
+        IHttpClient _httpClient;
+        IContentReader _contentReader;
+        IList<HttpDocument> _results;
 
         [Test]
         public async Task CreateDocumentSource_WhenNoLinksToFollow_Returns1Document()
@@ -64,7 +64,7 @@ namespace LinqInfer.Tests.Text.Http
             Assert.That(_results.Count, Is.EqualTo(numberOfLinks + 1));
         }
 
-        private async Task WhenIGetDocumentsFromSource(HttpDocumentCrawlerOptions crawlerOptions = null)
+        async Task WhenIGetDocumentsFromSource(HttpDocumentCrawlerOptions crawlerOptions = null)
         {
             var opts = crawlerOptions ?? new HttpDocumentCrawlerOptions() { BatchSize = 3, MaxNumberOfDocuments = 5 };
 
@@ -73,7 +73,7 @@ namespace LinqInfer.Tests.Text.Http
             _results = (await source.ToMemoryAsync(CancellationToken.None)).ToList();
         }
 
-        private HttpDocumentServices CreateSut()
+        HttpDocumentServices CreateSut()
         {
             _httpClient = Substitute.For<IHttpClient>();
             _contentReader = Substitute.For<IContentReader>();
@@ -83,7 +83,7 @@ namespace LinqInfer.Tests.Text.Http
             return _sut;
         }
 
-        private void WhenTheResponseIsReturned(Uri uri, HttpDocument httpDocument = null)
+        void WhenTheResponseIsReturned(Uri uri, HttpDocument httpDocument = null)
         {
             var content = new MemoryStream();
             var doc = httpDocument ?? HttpDocument.CreateEmpty(_rootUrl);

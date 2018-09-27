@@ -5,25 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class NetworkLayer : ILayer
+    class NetworkLayer : ILayer
     {
-        private readonly IList<INeuron> _neurons;
-        private readonly Func<int, IList<INeuron>> _neuronsFactory;
-        private readonly LayerSpecification _spec;
-        private Vector _output;
-
-        public NetworkLayer(
-            int inputVectorSize,
-            int neuronCount,
-            IActivatorFunction activator,
-            ILossFunction lossFunction,
-            Func<int, INeuron> neuronFactory = null)
-            : this(inputVectorSize, new LayerSpecification(neuronCount, activator, lossFunction, DefaultWeightUpdateRule.Create(), Range.MinusOneToOne))
-        {
-        }
+        readonly IList<INeuron> _neurons;
+        readonly Func<int, IList<INeuron>> _neuronsFactory;
+        readonly LayerSpecification _spec;
+        Vector _output;
 
         public NetworkLayer(int inputVectorSize, LayerSpecification specification)
         {
@@ -31,7 +22,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var nf = specification.NeuronFactory;
 
-            _neuronsFactory = new Func<int, IList<INeuron>>((c) =>
+            _neuronsFactory = c =>
             {
                 return Enumerable.Range(1, c).Select(n =>
                 {
@@ -39,7 +30,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     nx.Activator = specification.Activator.Activator;
                     return nx;
                 }).ToList();
-            });
+            };
 
             _neurons = _neuronsFactory(specification.LayerSize);
 
@@ -56,13 +47,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int Size => _neurons.Count;
 
-        public IActivatorFunction Activator => _spec.Activator;
+        public ActivatorExpression Activator => _spec.Activator;
 
         public ILossFunction LossFunction => _spec.LossFunction;
 
-        public IWeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
+        public WeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
-        public IVector LastOutput => _output;
+        public IVector Output => _output;
 
         public INeuron this[int index]
         {
@@ -138,14 +129,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neurons.ForEach(func);
         }
 
-        private void OnCalculate(ColumnVector1D vector)
+        void OnCalculate(ColumnVector1D vector)
         {
             Calculation?.Invoke(this, new ColumnVector1DEventArgs(vector));
         }
 
         public ILayer Clone(bool deep)
         {
-            var layer = new NetworkLayer(InputVectorSize, _neurons.Count, Activator, LossFunction);
+            var layer = new NetworkLayer(InputVectorSize, _spec);
 
             layer._neurons.Clear();
 
@@ -166,9 +157,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep) => Clone(deep);
 
-        public BinaryVectorDocument Export()
+        public PortableDataDocument Export()
         {
-            var layerDoc = new BinaryVectorDocument();
+            var layerDoc = new PortableDataDocument();
 
             layerDoc.Properties["Size"] = Size.ToString();
 
@@ -180,7 +171,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return layerDoc;
         }
 
-        public void Import(BinaryVectorDocument data)
+        public void Import(PortableDataDocument data)
         {
             int i = 0;
 

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal class BlockReader
+    class BlockReader
     {
         /// <summary>
         /// Reads tokens, taking only words and numbers

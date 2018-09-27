@@ -1,8 +1,9 @@
 ﻿using System;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
-    public class DataBatch : BinaryVectorDocument
+    public class DataBatch : PortableDataDocument
     {
         internal DataBatch()
         {
@@ -49,7 +50,7 @@ namespace LinqInfer.Data.Remoting
             set { Properties["ForwardTo"] = value.ToString(); }
         }
 
-        private Uri Parse(string value)
+        Uri Parse(string value)
         {
             if (value == null) return null;
 

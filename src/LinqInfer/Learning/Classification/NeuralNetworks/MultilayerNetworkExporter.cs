@@ -1,24 +1,21 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkExporter
+    class MultilayerNetworkExporter
     {
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public BinaryVectorDocument Export(MultilayerNetwork network)
+        public PortableDataDocument Export(MultilayerNetwork network)
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var prop in network.Properties)
             {
                 doc.Properties["_" + prop.Key] = prop.Value;
             }
-
-            doc.Version = 2;
 
             doc.Properties["Label"] = "Network";
 
@@ -41,14 +38,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        public MultilayerNetwork Import(BinaryVectorDocument doc)
+        public MultilayerNetwork Import(PortableDataDocument doc)
         {
-            if (doc.Version == 2) return CreateFromVectorDocumentV2(doc);
-
-            return CreateFromVectorDocumentV1(doc);
+            return CreateFromVectorDocument(doc);
         }
 
-        private static MultilayerNetwork CreateFromVectorDocumentV2(BinaryVectorDocument doc)
+        static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
         {
             var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
@@ -56,29 +51,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var network = new MultilayerNetwork(spec, properties);
 
             int i = 1;
-
-            foreach (var layer in network.Layers)
-            {
-                layer.Import(doc.Children[i++]);
-            }
-
-            return network;
-        }
-
-        private static MultilayerNetwork CreateFromVectorDocumentV1(BinaryVectorDocument doc)
-        {
-            var activator = Activators.Create(doc.Properties["Activator"], double.Parse(doc.Properties["ActivatorParameter"]));
-            var layerSizes = doc.Children.Select(c => int.Parse(c.Properties["Size"])).ToArray();
-
-            var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
-
-            var network = new MultilayerNetwork(new NetworkParameters(layerSizes, activator)
-            {
-                LearningRate = double.Parse(doc.Properties["LearningRate"]),
-                InitialWeightRange = new Range(double.Parse(doc.Properties["InitialWeightRangeMax"]), double.Parse(doc.Properties["InitialWeightRangeMin"]))
-            }, properties);
-
-            int i = 0;
 
             foreach (var layer in network.Layers)
             {

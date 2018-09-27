@@ -1,12 +1,12 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Graphs;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Maths;
+using LinqInfer.Maths.Graphs;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Maths.Graphs
+namespace LinqInfer.UnitTests.Maths.Graphs
 {
     [TestFixture]
     public class WeightedGraphTests : TestFixtureBase

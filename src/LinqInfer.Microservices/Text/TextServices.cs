@@ -1,5 +1,6 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Remoting;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using LinqInfer.Data.Storage;
 
 namespace LinqInfer.Microservices.Text
 {
@@ -142,7 +144,7 @@ namespace LinqInfer.Microservices.Text
 
                 using (var fs = mlnFile.GetWriteStream())
                 {
-                    classifier.ToVectorDocument().ExportAsXml().Save(fs);
+                    classifier.ExportData().ExportAsXml().Save(fs);
                     await termsFile.CommitWrites();
                 }
 
@@ -187,7 +189,7 @@ namespace LinqInfer.Microservices.Text
                 using (var fs = await file.ReadData())
                 {
                     var xml = XDocument.Load(fs);
-                    var dataDoc = new BinaryVectorDocument(xml);
+                    var dataDoc = new PortableDataDocument(xml);
 
                     classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
                 }
@@ -231,7 +233,7 @@ namespace LinqInfer.Microservices.Text
                         using (var fs = await file.ReadData())
                         {
                             var xml = XDocument.Load(fs);
-                            var dataDoc = new BinaryVectorDocument(xml);
+                            var dataDoc = new PortableDataDocument(xml);
 
                             classifier = dataDoc.OpenAsMultilayerNetworkClassifier<TokenisedTextDocument, string>(fe);
                         }
@@ -245,7 +247,7 @@ namespace LinqInfer.Microservices.Text
 
                     using (var fs = file.GetWriteStream())
                     {
-                        classifier.ToVectorDocument().ExportAsXml().Save(fs);
+                        classifier.ExportData().ExportAsXml().Save(fs);
 
                         await file.CommitWrites();
                     }

@@ -1,10 +1,10 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     static class DensityEstimationTests
     {

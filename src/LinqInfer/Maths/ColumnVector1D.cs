@@ -13,7 +13,7 @@ namespace LinqInfer.Maths
     /// </summary>
     public class ColumnVector1D : Vector, IEquatable<ColumnVector1D>, ICloneableObject<ColumnVector1D>, IDisposable
     {
-        private Lazy<double> _euclideanLength;
+        Lazy<double> _euclideanLength;
 
         internal ColumnVector1D(Vector vector) : base(vector, false)
         {
@@ -202,37 +202,22 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the Euclidean length of the values.
         /// </summary>
-        public double EuclideanLength
-        {
-            get
-            {
-                return _euclideanLength.Value;
-            }
-        }
+        public double EuclideanLength => _euclideanLength.Value;
 
         /// <summary>
         /// Returns the square of the vector
         /// </summary>
-        public ColumnVector1D Sq()
-        {
-            return this * this;
-        }
+        public ColumnVector1D Sq() => this * this;
 
         /// <summary>
         /// Returns a single column matrix
         /// </summary>
-        public Matrix ToMatrix()
-        {
-            return new Matrix(_values.Select(v => new[] { v }));
-        }
+        public Matrix ToMatrix() => new Matrix(_values.Select(v => new[] { v }));
 
         /// <summary>
         /// Creates a new column vector with the supplied values
         /// </summary>
-        public static ColumnVector1D Create(params double[] values)
-        {
-            return new ColumnVector1D(values);
-        }
+        public static ColumnVector1D Create(params double[] values) => new ColumnVector1D(values);
 
         public static ColumnVector1D operator -(ColumnVector1D v1, ColumnVector1D v2)
         {
@@ -279,8 +264,6 @@ namespace LinqInfer.Maths
 
         public static Matrix operator *(ColumnVector1D v, Matrix m)
         {
-            Contract.Requires(v.Size == m.Height);
-
             var rows = new List<Vector>();
 
             for (var i = 0; i < m.Height; i++)
@@ -293,8 +276,6 @@ namespace LinqInfer.Maths
 
         public static ColumnVector1D operator /(ColumnVector1D v1, ColumnVector1D v2)
         {
-            Contract.Requires(v1.Size == v2.Size);
-
             int i = 0;
 
             return new ColumnVector1D(v1._values.Select(x => x / v2._values[i++]).ToArray());
@@ -318,7 +299,7 @@ namespace LinqInfer.Maths
         public override string ToString()
         {
             return _values
-                .Select(v => string.Format("|{0}|\n", v))
+                .Select(v => $"|{v}|\n")
                 .Aggregate(new StringBuilder(), (s, v) => s.Append(v))
                 .ToString();
         }
@@ -328,7 +309,7 @@ namespace LinqInfer.Maths
         /// </summary>
         /// <param name="bytes">An array of bytes</param>
         /// <returns>A new column vector</returns>
-        public static new ColumnVector1D FromByteArray(byte[] bytes)
+        public new static ColumnVector1D FromByteArray(byte[] bytes)
         {
             var values = new double[bytes.Length / sizeof(double)];
             Buffer.BlockCopy(bytes, 0, values, 0, bytes.Length);

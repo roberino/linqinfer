@@ -10,16 +10,16 @@ namespace LinqInfer.Text
 {
     public sealed class TokenisingTextWriter : TextWriter
     {
-        private readonly StringBuilder _buffer;
-        private readonly List<Func<IEnumerable<IToken>, IEnumerable<IToken>>> _filters;
-        private readonly List<Func<IEnumerable<IToken>, Task>> _sinks;
-        private readonly ITokeniser _tokeniser;
-        private readonly Encoding _encoding;
-        private readonly TextWriter _innerWriter;
-        private readonly bool _disposeInnerWriter;
-        private int _maxBufferSize;
-        private bool _isDisposed;
-        private int _charIndex;
+        readonly StringBuilder _buffer;
+        readonly List<Func<IEnumerable<IToken>, IEnumerable<IToken>>> _filters;
+        readonly List<Func<IEnumerable<IToken>, Task>> _sinks;
+        readonly ITokeniser _tokeniser;
+        readonly Encoding _encoding;
+        readonly TextWriter _innerWriter;
+        readonly bool _disposeInnerWriter;
+        int _maxBufferSize;
+        bool _isDisposed;
+        int _charIndex;
 
         public TokenisingTextWriter(TextWriter innerWriter, bool disposeInnerWriter = false, ITokeniser tokeniser = null) : this(innerWriter.Encoding, tokeniser)
         {
@@ -173,12 +173,12 @@ namespace LinqInfer.Text
             _isDisposed = true;
         }
 
-        private async Task ProcessNumberAsync<T>(T number) where T : struct
+        async Task ProcessNumberAsync<T>(T number) where T : struct
         {
             await ProcessAsync(new[] { new Token(number.ToString(), 0, TokenType.Number) });
         }
 
-        private Task ProcessAsync(char ch)
+        Task ProcessAsync(char ch)
         {
             return ProcessAsync(ch.ToString());
         }
@@ -193,7 +193,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private async Task ProcessAsync(string text, bool isLast = false)
+        async Task ProcessAsync(string text, bool isLast = false)
         {
             if (_sinks.Any() && !string.IsNullOrEmpty(text))
             {
@@ -229,7 +229,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private async Task TryFlushExcessBuffer()
+        async Task TryFlushExcessBuffer()
         {
             var tokens = _tokeniser.Tokenise(_buffer.ToString()).ToList();
 
@@ -249,7 +249,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private async Task ProcessAsync(IEnumerable<IToken> tokens)
+        async Task ProcessAsync(IEnumerable<IToken> tokens)
         {
             if (_sinks.Any())
             {
@@ -271,7 +271,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private IEnumerable<IToken> Reindex(IEnumerable<IToken> tokens)
+        IEnumerable<IToken> Reindex(IEnumerable<IToken> tokens)
         {
             IToken last = null;
 
@@ -302,7 +302,7 @@ namespace LinqInfer.Text
             }
         }
 
-        private void AssertNotDisposed()
+        void AssertNotDisposed()
         {
             if (_isDisposed)
             {

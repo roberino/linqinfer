@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning
 {
-    internal sealed class HeirarchicalGraphBuilder<TInput> where TInput : class
+    sealed class HeirarchicalGraphBuilder<TInput> where TInput : class
     {
-        private readonly IWeightedGraphStore<DataLabel<TInput>, double> _weightedGraphStore;
-        private readonly ClusteringParameters _clusteringParameters;
-        private readonly Func<int, double> _weightFunction;
+        readonly IWeightedGraphStore<DataLabel<TInput>, double> _weightedGraphStore;
+        readonly ClusteringParameters _clusteringParameters;
+        readonly Func<int, double> _weightFunction;
 
         public HeirarchicalGraphBuilder(
             IWeightedGraphStore<DataLabel<TInput>, double> weightedGraphStore, 
@@ -48,7 +48,7 @@ namespace LinqInfer.Learning
             return graph;
         }
 
-        private async Task CreateBinaryGraph(IFloatingPointFeatureExtractor<TInput> featureExtractor, WeightedGraphNode<DataLabel<TInput>, double> parent, IEnumerable<TInput> input, CancellationToken cancellationToken)
+        async Task CreateBinaryGraph(IFloatingPointFeatureExtractor<TInput> featureExtractor, WeightedGraphNode<DataLabel<TInput>, double> parent, IEnumerable<TInput> input, CancellationToken cancellationToken)
         {
             DebugOutput.Log($"Map nodes: {input.Count()}");
 
@@ -65,7 +65,7 @@ namespace LinqInfer.Learning
 
             var asyncEnumerable = Data.Pipes.From.Enumerable(input);
 
-            var pipeline = asyncEnumerable.CreatePipeine(featureExtractor);
+            var pipeline = asyncEnumerable.CreatePipeline(featureExtractor);
 
             var map = await sofm.MapAsync(pipeline, cancellationToken);
 
@@ -87,7 +87,7 @@ namespace LinqInfer.Learning
             await Task.WhenAll(tasks);
         }
 
-        private DataLabel<TInput> CreateEmptyLabel()
+        DataLabel<TInput> CreateEmptyLabel()
         {
             return new DataLabel<TInput>(Guid.NewGuid().ToString());
         }

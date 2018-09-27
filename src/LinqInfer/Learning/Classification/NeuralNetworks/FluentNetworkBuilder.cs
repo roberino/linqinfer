@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
@@ -8,32 +7,51 @@ using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal static class FluentMultilayerNetworkBuilderExtensions
+    static class FluentMultilayerNetworkBuilderExtensions
     {
-        public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        /// <summary>
+        /// Builds a softmax network configuration
+        /// with a single hidden layer
+        /// </summary>
+        public static IFluentNetworkBuilder ConfigureSoftmaxNetwork(this IFluentNetworkBuilder builder, int hiddenLayerSize, Action<LearningParameters> learningConfig = null)
         {
-            return specificationBuilder.
-                AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
-
+            return builder.ParallelProcess()
+                .ConfigureLearningParameters(p =>
+                {
+                    learningConfig?.Invoke(p);
+                })
+                .AddHiddenLinearLayer(hiddenLayerSize, WeightUpdateRules.Default())
+                .AddSoftmaxOutput();
         }
 
-        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
+        public static IFluentNetworkBuilder AddHiddenSigmoidLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize)
         {
+            if (layerSize == 0) return specificationBuilder;
+
+            return specificationBuilder.
+                AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
+        }
+
+        public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize, WeightUpdateRule updateRule = null)
+        {
+            if (layerSize == 0) return specificationBuilder;
+
+            updateRule = updateRule ?? WeightUpdateRules.Default();
+
             return specificationBuilder.
                 AddHiddenLayer(p => 
                     new LayerSpecification(
                         layerSize, 
                         Activators.None(), 
                         LossFunctions.Square,
-                        DefaultWeightUpdateRule.Create(p.LearningRate, p.Momentum),
+                        updateRule,
                         LayerSpecification.DefaultInitialWeightRange));
-
         }
 
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
         {
             return specificationBuilder
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
+                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy, null, WeightUpdateRules.Default())
                 .TransformOutput(x => new Softmax(x));
         }
 
@@ -48,14 +66,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
     }
 
-    public sealed class FluentNetworkBuilder : IFluentNetworkBuilder
+    public sealed partial class FluentNetworkBuilder : IFluentNetworkBuilder
     {
-        private readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
-        private readonly Range _defaultWeightRange;
-        private LearningParameters _learningParams;
-        private LayerSpecification _output;
-        private Action<LayerSpecification> _layerAction;
-        private int _inputVectorSize;
+        readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
+        readonly Range _defaultWeightRange;
+        LearningParameters _learningParams;
+        LayerSpecification _output;
+        Action<LayerSpecification> _layerAction;
+        int _inputVectorSize;
 
         internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
         {
@@ -66,7 +84,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
             _layers = new List<Func<LearningParameters, LayerSpecification>>();
-            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, DefaultWeightUpdateRule.Create(_learningParams.LearningRate), _defaultWeightRange);
+            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), _defaultWeightRange);
         }
 
         internal IFluentNetworkBuilder ConfigureLayers(Action<LayerSpecification> layerAction)
@@ -112,11 +130,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null)
+        public IFluentNetworkBuilder ConfigureOutputLayer(
+            ActivatorExpression activator, 
+            ILossFunction lossFunction, 
+            Range? initialWeightRange = null, 
+            WeightUpdateRule updateRule = null)
         {
             var tx = _output.OutputTransformation;
+            
+            updateRule = updateRule ??  WeightUpdateRules.Default();
 
-            _output = new LayerSpecification(_output.LayerSize, activator, lossFunction, DefaultWeightUpdateRule.Create(_learningParams.LearningRate, _learningParams.Momentum), initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
+            _output = new LayerSpecification(
+                _output.LayerSize, 
+                activator, 
+                lossFunction, 
+                updateRule, 
+                initialWeightRange.GetValueOrDefault(_output.InitialWeightRange))
             {
                 OutputTransformation = tx
             };
@@ -124,7 +153,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder TransformOutput(ISerialisableVectorTransformation transformation)
+        public IFluentNetworkBuilder TransformOutput(ISerialisableDataTransformation transformation)
         {
             _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
@@ -134,7 +163,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableVectorTransformation> transformationFactory)
+        public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableDataTransformation> transformationFactory)
         {
             _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
@@ -164,132 +193,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             
             int id = 1;
 
-            return new MlnCtx(() => Interlocked.Increment(ref id), spec);
-        }
-
-        private class MlnCtx : IClassifierTrainingContext<NetworkSpecification>
-        {
-            private readonly MultilayerNetwork _network;
-            private readonly IAssistedLearningProcessor _rawLearningProcessor;
-            private readonly Func<int> _idFunc;
-
-            private double? _lastError;
-            private double? _error;
-            private int _trainingCounter;
-
-            public MlnCtx(Func<int> idFunc, NetworkSpecification parameters)
-            {
-                _network = new MultilayerNetwork(parameters);
-
-                var bpa = new BackPropagationLearning(_network);
-
-                _rawLearningProcessor = bpa;
-                _idFunc = idFunc;
-
-                Id = idFunc();
-                Parameters = parameters;
-            }
-
-            private MlnCtx(Func<int> idFunc, MultilayerNetwork network)
-            {
-                _network = network;
-
-                var bpa = new BackPropagationLearning(_network);
-
-                _idFunc = idFunc;
-
-                Id = idFunc();
-                Parameters = network.Specification;
-            }
-
-            public int Id { get; }
-
-            public int IterationCounter { get; set; }
-
-            public IVectorClassifier Output => _network;
-
-            public NetworkSpecification Parameters { get; }
-
-            public double? CumulativeError => _error;
-
-            public double? AverageError => _error.HasValue && _trainingCounter > 0 ? _error / _trainingCounter : null;
-
-            public double? RateOfErrorChange
-            {
-                get
-                {
-                    if (_error.HasValue && _lastError.HasValue)
-                    {
-                        return (_lastError - _error) / _lastError;
-                    }
-                    return null;
-                }
-            }
-
-            public void ResetError()
-            {
-                _lastError = _error;
-                _trainingCounter = 0;
-                _error = null;
-            }
-
-            public void PruneInputs(params int[] inputIndexes)
-            {
-                _network.PruneInputs(inputIndexes);
-            }
-
-            public double Train(IVector outputVector, IVector sampleVector)
-            {
-                if (!_error.HasValue) _error = 0;
-
-                var err = _rawLearningProcessor.Train(sampleVector, outputVector);
-
-                _error += err;
-
-                _trainingCounter++;
-
-                return err;
-            }
-
-            public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingData, Func<int, double, bool> haltingFunction)
-            {
-                if (!_error.HasValue) _error = 0;
-
-                var err = _rawLearningProcessor.Train(trainingData, (n, e) =>
-                {
-                    _trainingCounter++;
-                    return haltingFunction(n, e);
-                });
-
-                _error += err;
-
-                return err;
-            }
-
-            public override string ToString()
-            {
-                return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError, Parameters);
-            }
-
-            public IClassifierTrainingContext<NetworkSpecification> Clone(bool deep)
-            {
-                return new MlnCtx(_idFunc, _network.Clone(true))
-                {
-                    _error = _error,
-                    _lastError = _lastError,
-                    _trainingCounter = _trainingCounter
-                };
-            }
-
-            public object Clone()
-            {
-                return Clone(true);
-            }
-
-            public void AdjustLearningRate(Func<double, double> rateAdjustment)
-            {
-                _network.Specification.LearningParameters.LearningRate = rateAdjustment(_network.Specification.LearningParameters.LearningRate);
-            }
+            return new MultilayerNetworkTrainingContext<NetworkSpecification>(() => Interlocked.Increment(ref id), new MultilayerNetwork(spec), spec);
         }
     }
 }

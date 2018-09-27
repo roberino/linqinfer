@@ -2,7 +2,7 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class MultiStrategyFeatureExtractorTests
@@ -10,7 +10,7 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void ExtractIVector_GivenSingleInnerFeatureExtractor_ReturnsExpectedVector()
         {
-            var fe0 = new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 1.67d, 2.5d }, 2);
+            var fe0 = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create(1.67d, 2.5d), 2);
 
             var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(new[] { fe0 });
 
@@ -25,8 +25,8 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void ExtractIVector_GivenMultipleInnerFeatureExtractor_ReturnsExpectedVector()
         {
-            var fe0 = new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 1.67d, 2.5d }, 2);
-            var fe1 = new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 3.2d, 6.9d, 8.1d }, 3);
+            var fe0 = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create(1.67d, 2.5d), 2);
+            var fe1 = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create(3.2d, 6.9d, 8.1d), 3);
 
             var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(new[] { fe0, fe1 });
 
@@ -44,23 +44,18 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void GivenMultipleFeatureExtractors_CanExportAndImportAsVectorDocuments()
         {
-            var fe0a = new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 1d }, 1);
-            var fe1a = new MultiFunctionFeatureExtractor<string>(new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 2d, 3d }, 2));
+            var fe0A = new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 1d ), 1);
+            var fe1A = new TransformingFeatureExtractor<string>(new ExpressionFeatureExtractor<string>(s => ColumnVector1D.Create( 2d, 3d), 2));
 
-            var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(new IFloatingPointFeatureExtractor<string>[] { fe0a, fe1a });
+            var multiStrategyFeatureExtractor1 = new MultiStrategyFeatureExtractor<string>(fe0A, fe1A);
+            
+            var transform = new SerialisableDataTransformation(new DataOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)));
 
-            var fe0b = new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 1d }, 1);
-            var fe1b = new MultiFunctionFeatureExtractor<string>(new DelegatingFloatingPointFeatureExtractor<string>(s => new[] { 2d, 3d }, 2));
+            fe1A.AddTransform(transform);
 
-            var multiStrategyFeatureExtractor2 = new MultiStrategyFeatureExtractor<string>(new IFloatingPointFeatureExtractor<string>[] { fe0b, fe1b });
+            var data = multiStrategyFeatureExtractor1.ExportData();
 
-            var transform = new SerialisableVectorTransformation(new[] { new VectorOperation(VectorOperationType.Subtract, new ColumnVector1D(4, 4)) });
-
-            fe1a.PreprocessWith(transform);
-
-            var data = multiStrategyFeatureExtractor1.ToVectorDocument();
-
-            multiStrategyFeatureExtractor2.FromVectorDocument(data);
+            var multiStrategyFeatureExtractor2 = MultiStrategyFeatureExtractor<string>.Create(data);
 
             var vect1 = multiStrategyFeatureExtractor1.ExtractIVector("a");
             var vect2 = multiStrategyFeatureExtractor2.ExtractIVector("a");

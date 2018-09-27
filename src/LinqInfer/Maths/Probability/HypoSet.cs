@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class HypoSet<T> : Sample<SampleBase<T>>
+    class HypoSet<T> : Sample<SampleBase<T>>
     {
         public HypoSet(string name = null) : base(name) { }
 

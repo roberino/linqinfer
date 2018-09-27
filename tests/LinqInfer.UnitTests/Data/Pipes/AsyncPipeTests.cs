@@ -1,12 +1,12 @@
-﻿using LinqInfer.Data;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using LinqInfer.Data;
 using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using NSubstitute;
 using NUnit.Framework;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Data.Pipes
+namespace LinqInfer.UnitTests.Data.Pipes
 {
     [TestFixture]
     public class AsyncPipeTests

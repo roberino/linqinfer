@@ -7,8 +7,8 @@ namespace LinqInfer.Learning
     [DebuggerDisplay("Obj={Value} Data={Vector}")]
     public class ObjectVectorPair<T>
     {
-        private Lazy<IVector> _vector;
-        private Lazy<ColumnVector1D> _colVector;
+        Lazy<IVector> _vector;
+        Lazy<ColumnVector1D> _colVector;
 
         public ObjectVectorPair(T value, double[] attributes) : this(value, new ColumnVector1D(attributes))
         {

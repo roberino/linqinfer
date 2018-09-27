@@ -6,16 +6,16 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
+    sealed class LinearSoftmaxVectorExtractor : IVectorClassifier
     {
-        private readonly Matrix _weights0;
-        private readonly ColumnVector1D _bias0;
-        private readonly Matrix _weights1;
-        private readonly ColumnVector1D _bias1;
-        private readonly Softmax _softmax;
-        private readonly double _weightDecay = 0.001;
+        readonly Matrix _weights0;
+        readonly ColumnVector1D _bias0;
+        readonly Matrix _weights1;
+        readonly ColumnVector1D _bias1;
+        readonly Softmax _softmax;
+        readonly double _weightDecay = 0.001;
 
-        private double _learningRate;
+        double _learningRate;
 
         public LinearSoftmaxVectorExtractor(
             int inputVectorSize, 
@@ -79,7 +79,7 @@ namespace LinqInfer.Learning.Classification
             return -CalculateLossAndDerivative(input, targetOutput).Loss.Sum;
         }
 
-        private IVector[] EvaluateInternal(IVector input)
+        IVector[] EvaluateInternal(IVector input)
         {
             var v1 = input.HorizontalMultiply(_weights0).ToColumnVector() + _bias0;
             var v2 = v1.HorizontalMultiply(_weights1).ToColumnVector() + _bias1;
@@ -87,7 +87,7 @@ namespace LinqInfer.Learning.Classification
             return new[] { v1, v2, _softmax.Apply(v2) };
         }
 
-        private LossAndDerivative CalculateLossAndDerivative(IVector input, IVector targetOutput)
+        LossAndDerivative CalculateLossAndDerivative(IVector input, IVector targetOutput)
         {
             var result = EvaluateInternal(input);
             var actualOutput = result.Last();
@@ -107,7 +107,7 @@ namespace LinqInfer.Learning.Classification
             };
         }
 
-        private void UpdateWeights1(IVector error, IVector hiddenOutput)
+        void UpdateWeights1(IVector error, IVector hiddenOutput)
         {
             // j = cols
             // i = rows
@@ -121,7 +121,7 @@ namespace LinqInfer.Learning.Classification
             _bias1.Apply((w, j) => w - _learningRate * error[j]);
         }
 
-        private void UpdateWeights0(LossAndDerivative ld)
+        void UpdateWeights0(LossAndDerivative ld)
         {
             var dW = ld.dW;
             var error = ld.Gradient;
@@ -133,7 +133,7 @@ namespace LinqInfer.Learning.Classification
             _bias0.Apply((w, j) => w - _learningRate * error[j]);
         }
 
-        private class LossAndDerivative
+        class LossAndDerivative
         {
             public ColumnVector1D Gradient;
             public IVector HiddenOutput;

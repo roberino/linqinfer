@@ -1,13 +1,14 @@
 ﻿using System;
 using LinqInfer.Data;
 using System.Threading;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification
 {
-    public sealed class ClassifierStats : IExportableAsVectorDocument, IImportableAsVectorDocument, ICloneableObject<ClassifierStats>
+    public sealed class ClassifierStats : IExportableAsDataDocument, IImportableFromDataDocument, ICloneableObject<ClassifierStats>
     {
-        private long _classificationCount;
-        private long _trainingInterationCount;
+        long _classificationCount;
+        long _trainingInterationCount;
 
         internal ClassifierStats()
         {
@@ -29,15 +30,15 @@ namespace LinqInfer.Learning.Classification
             Interlocked.Increment(ref _trainingInterationCount);
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             _trainingInterationCount = doc.PropertyOrDefault(() => TrainingSampleCount, 0);
             _classificationCount = doc.PropertyOrDefault(() => ClassificationCount, 0);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => TrainingSampleCount);
             doc.SetPropertyFromExpression(() => ClassificationCount);
@@ -52,7 +53,7 @@ namespace LinqInfer.Learning.Classification
             {
                 var stats = new ClassifierStats();
 
-                stats.FromVectorDocument(ToVectorDocument());
+                stats.ImportData(ExportData());
 
                 return stats;
             }

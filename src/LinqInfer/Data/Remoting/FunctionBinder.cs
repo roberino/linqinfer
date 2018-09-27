@@ -4,12 +4,13 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class FunctionBinder
+    class FunctionBinder
     {
-        private readonly IObjectSerialiser _serialiser;
+        readonly IObjectSerialiser _serialiser;
 
         public FunctionBinder(IObjectSerialiser serialiser)
         {
@@ -62,7 +63,7 @@ namespace LinqInfer.Data.Remoting
             await _serialiser.Serialise(result, context.Response.Header.TextEncoding, mimeType, context.Response.Content);
         }
 
-        private Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
+        Func<IOwinContext, Task> BindToAsyncMethod<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg defaultValue = default(TArg), bool fallbackToDefault = false)
         {
 #if NET_STD
             var method = func.GetMethodInfo();
@@ -84,7 +85,7 @@ namespace LinqInfer.Data.Remoting
             return BindParamsToMethod(exec, method, defaultValue, fallbackToDefault);
         }
 
-        private Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
+        Func<IOwinContext, Task> BindParamsToMethod<TArg>(Func<TArg, IOwinContext, Task> exec, MethodInfo innerMethod, TArg defaultValue, bool fallbackToDefault)
         {
             var argType = typeof(TArg);
             var tc = Type.GetTypeCode(argType);
@@ -127,7 +128,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private void ValidateContextAndAppendDebugInfo(IOwinContext c, MethodInfo innerMethod, Type argType, Type resultType)
+        void ValidateContextAndAppendDebugInfo(IOwinContext c, MethodInfo innerMethod, Type argType, Type resultType)
         {
             if (c.TryGetValue("ext.ExpectedResponseType", out object expectedResponseType))
             {
@@ -143,7 +144,7 @@ namespace LinqInfer.Data.Remoting
             }
         }
 
-        private async Task<T> ParamsToObject<T>(IOwinContext context, T defaultValue, bool allowDefaults)
+        async Task<T> ParamsToObject<T>(IOwinContext context, T defaultValue, bool allowDefaults)
         {
             var type = typeof(T);
 
@@ -220,7 +221,7 @@ namespace LinqInfer.Data.Remoting
             return instance;
         }
 
-        private async Task<string> ParamsToString(IOwinContext context, string name)
+        async Task<string> ParamsToString(IOwinContext context, string name)
         {
             var val = ParamsToPrimative(typeof(string), context, name);
 
@@ -246,7 +247,7 @@ namespace LinqInfer.Data.Remoting
             return (string)val.Item1;
         }
 
-        private T ParamsToPrimative<T>(IOwinContext context, string name)
+        T ParamsToPrimative<T>(IOwinContext context, string name)
         {
             var val = ParamsToPrimative(typeof(T), context, name);
             
@@ -257,7 +258,7 @@ namespace LinqInfer.Data.Remoting
             return (T)val.Item1;
         }
 
-        private Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name, bool ignoreCase = false)
+        Tuple<object, bool> ParamsToPrimative(Type type, IOwinContext context, string name, bool ignoreCase = false)
         {
 
             if (context.TryGetValue("route." + name, out object val))

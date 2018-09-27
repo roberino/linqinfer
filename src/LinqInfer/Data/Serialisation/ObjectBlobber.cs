@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Text;
 
-namespace LinqInfer.Data
+namespace LinqInfer.Data.Serialisation
 {
-    internal class ObjectBlobber<T> : IBinaryPersistable
+    class ObjectBlobber<T> : IBinaryPersistable
     {
-        private readonly IObjectSerialiser _serialiser;
+        readonly IObjectSerialiser _serialiser;
 
         public ObjectBlobber(IObjectSerialiser serialiser, T instance)
         {

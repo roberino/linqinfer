@@ -2,14 +2,15 @@
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class Kde<T> : IExportableAsVectorDocument, IImportableAsVectorDocument
+    class Kde<T> : IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly Func<IDictionary<string, double>, Func<T, Fraction>> _functionFactory;
+        readonly Func<IDictionary<string, double>, Func<T, Fraction>> _functionFactory;
 
-        private Lazy<Func<T, Fraction>> _function;
+        Lazy<Func<T, Fraction>> _function;
 
         public Kde(Func<IDictionary<string, double>, Func<T, Fraction>> functionFactory)
         {
@@ -29,7 +30,7 @@ namespace LinqInfer.Maths.Probability
 
         public Func<T, Fraction> Function { get; }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             foreach (var item in doc.Properties)
             {
@@ -40,9 +41,9 @@ namespace LinqInfer.Maths.Probability
             }
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var item in Parameters)
             {
@@ -52,7 +53,7 @@ namespace LinqInfer.Maths.Probability
             return doc;
         }
 
-        private void Refresh()
+        void Refresh()
         {
             _function = new Lazy<Func<T, Fraction>>(() => _functionFactory(Parameters));
         }

@@ -48,15 +48,22 @@ namespace LinqInfer.Text.Http
             return pipe;
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectors(
+        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(
             this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig, params string[] vocabulary)
         {
             var vocabset = new SemanticSet(new HashSet<string>(vocabulary));
 
-            return await ExtractVectors(uri, cancellationToken, crawlerConfig, vocabset);
+            return await ExtractVectorsAsync(uri, cancellationToken, crawlerConfig, vocabset);
         }
 
-        public static async Task<LabelledMatrix<string>> ExtractVectors(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
+        public static async Task<LabelledMatrix<string>> ExtractVectorsAsync(this Uri uri,
+            CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null,
+            ISemanticSet vocabulary = null)
+        {
+            return (await ExtractVectorsInternalAsync(uri, cancellationToken, crawlerConfig, vocabulary)).Vectors;
+        }
+
+        static async Task<VectorExtractionResult> ExtractVectorsInternalAsync(this Uri uri, CancellationToken cancellationToken, Action<HttpDocumentCrawlerOptions> crawlerConfig = null, ISemanticSet vocabulary = null)
         {
             using (var httpServices = new HttpDocumentServices())
             {
@@ -69,13 +76,11 @@ namespace LinqInfer.Text.Http
 
                 var trainingSet = cbow.AsBiGramAsyncTrainingSet();
 
-                var vectors = await trainingSet.ExtractVectorsAsync(cancellationToken, 8);
-
-                return vectors;
+                return await trainingSet.ExtractVectorsAsync(cancellationToken, 8);
             }
         }
 
-        private static IAsyncEnumerator<HttpDocument> CreateHttpEnumerator(HttpDocumentServices httpServices, Uri uri, Action<HttpDocumentCrawlerOptions> crawlerConfig)
+        static IAsyncEnumerator<HttpDocument> CreateHttpEnumerator(HttpDocumentServices httpServices, Uri uri, Action<HttpDocumentCrawlerOptions> crawlerConfig)
         {
             var settings = new HttpDocumentCrawlerOptions();
 

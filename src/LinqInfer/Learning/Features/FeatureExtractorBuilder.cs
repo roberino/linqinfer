@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class FeatureExtractorBuilder<T>
+    class FeatureExtractorBuilder<T>
         where T : class
     {
-        private readonly Type _actualType;
-        private readonly IFeatureExtractionStrategy<T>[] _strategies;
+        readonly Type _actualType;
+        readonly IFeatureExtractionStrategy<T>[] _strategies;
 
         public FeatureExtractorBuilder(Type type, params IFeatureExtractionStrategy<T>[] strategies)
         {
@@ -26,6 +26,7 @@ namespace LinqInfer.Learning.Features
             CancellationToken cancellationToken)
         {
             var extractors = new List<IFloatingPointFeatureExtractor<T>>();
+
             var strategyBuilders = _strategies
                 .Where(s => s.CanBuild)
                 .Select(s => s.CreateBuilder())
@@ -44,9 +45,9 @@ namespace LinqInfer.Learning.Features
             return new MultiStrategyFeatureExtractor<T>(extractors.ToArray());
         }
 
-        private void Setup()
+        void Setup()
         {
-            var properties = new ObjectFeatureExtractorFactory().GetFeatureProperties<T>(_actualType);
+            var properties = ObjectFeatureExtractor<T>.GetFeatureProperties(_actualType);
 
             foreach (var prop in properties)
             {

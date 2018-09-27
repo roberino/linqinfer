@@ -16,13 +16,13 @@ namespace LinqInfer.Text.Http
 
         public string Title { get; internal set; }
 
-        public Uri BaseUrl { get; private set; }
+        public Uri BaseUrl { get; }
 
-        public IDictionary<string, string> Metadata { get; private set; }
+        public IDictionary<string, string> Metadata { get; }
 
-        public IDictionary<string, string[]> Headers { get; private set; }
+        public IDictionary<string, string[]> Headers { get; }
 
-        public IEnumerable<RelativeLink> Links { get; private set; }
+        public IEnumerable<RelativeLink> Links { get; }
 
         public static HttpDocument CreateEmpty(Uri uri, IDictionary<string, string[]> headers = null)
         {

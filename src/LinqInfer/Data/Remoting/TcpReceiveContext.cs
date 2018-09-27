@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class TcpReceiveContext : IDisposable
+    class TcpReceiveContext : IDisposable
     {
         public TcpReceiveContext(Socket client)
         {
@@ -15,11 +15,11 @@ namespace LinqInfer.Data.Remoting
 
         public TcpRequestHeader Header { get; internal set; }
 
-        public Socket ClientSocket { get; private set; }
+        public Socket ClientSocket { get; }
 
         public Stream ReceivedData { get; internal set; }
 
-        public IList<IDisposable> Cleanup { get; private set; }
+        public IList<IDisposable> Cleanup { get; }
 
         public void Dispose()
         {

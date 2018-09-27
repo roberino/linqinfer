@@ -1,10 +1,10 @@
-﻿using LinqInfer.Learning;
+﻿using System;
+using System.Linq;
+using LinqInfer.Learning;
 using LinqInfer.Maths;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class LearningExtensionsTests

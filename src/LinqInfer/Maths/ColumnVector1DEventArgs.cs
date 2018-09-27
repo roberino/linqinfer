@@ -9,6 +9,6 @@ namespace LinqInfer.Maths
             Vector = vector;
         }
 
-        public ColumnVector1D Vector { get; private set; }
+        public ColumnVector1D Vector { get; }
     }
 }

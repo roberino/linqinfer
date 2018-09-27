@@ -1,11 +1,11 @@
-﻿using LinqInfer.Maths;
-using LinqInfer.Maths.Probability;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using LinqInfer.Maths;
+using LinqInfer.Maths.Probability;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class FunctionsTests : TestFixtureBase

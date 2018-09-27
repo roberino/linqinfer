@@ -1,6 +1,4 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Learning;
-using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
@@ -16,9 +14,7 @@ namespace LinqInfer.IntegrationTests.Text
     [TestFixture]
     public class VectorExtractionTests
     {
-        private IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
-        private IAsyncTrainingSet<WordVector, string> _aggTrainingSet;
-        private INetworkClassifier<string, BiGram> _classifier;
+        IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
 
         [Test]
         public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
@@ -26,17 +22,10 @@ namespace LinqInfer.IntegrationTests.Text
             await GivenAnAsyncTextTrainingSet();
 
             await ThenBigramVectorsCanBeExtracted();
+
         }
 
-        [Test]
-        public async Task WhenGivenAggregatedSet_ThenVectorsCanBeExtracted()
-        {
-            await GivenAnAggregatedAsyncTrainingSet();
-            
-            await ThenAggrVectorsCanBeExtracted();
-        }
-
-        private void LogPipeStats(IPipeStatistics stats)
+        void LogPipeStats(IPipeStatistics stats)
         {
             Console.WriteLine($"Elapsed: {stats.Elapsed}");
             Console.WriteLine($"Batches received: {stats.BatchesReceived}");
@@ -45,41 +34,22 @@ namespace LinqInfer.IntegrationTests.Text
             Console.WriteLine($"Average batches per second: {stats.AverageBatchesPerSecond}");
         }
 
-        private async Task ThenAggrVectorsCanBeExtracted()
+        async Task ThenBigramVectorsCanBeExtracted()
         {
-            var vects = await _aggTrainingSet.ExtractVectorsAsync(
-                CancellationToken.None, 64);
+            var result = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
 
-            await vects.WriteAsCsvAsync(Console.Out);
-        }
-
-        private async Task ThenBigramVectorsCanBeExtracted()
-        {
-            var vects = await _bigramTrainingSet.ExtractVectorsAsync(CancellationToken.None, 64);
+            var vects = result.Vectors;
 
             await vects.WriteAsCsvAsync(Console.Out);
 
             using (var fs = File.OpenWrite(@"C:\dev\vect.csv"))
             using (var writer = new StreamWriter(fs))
             {
-                await vects.LabelledCosineSimularityMatrix.WriteAsCsvAsync(writer);
+                await vects.CreateCosineSimularityMatrix().WriteAsCsvAsync(writer);
             }
         }
 
-        private async Task<IAsyncTrainingSet<WordVector, string>> GivenAnAggregatedAsyncTrainingSet()
-        {
-            var corpus = CorpusDataSource.GetCorpus(5000);
-
-            var keyTerms = await corpus.ExtractKeyTermsAsync(CancellationToken.None);
-
-            var cbow = corpus.CreateAsyncContinuousBagOfWords(keyTerms);
-
-            _aggTrainingSet = await cbow.CreateAggregatedTrainingSetAsync(CancellationToken.None);
-
-            return _aggTrainingSet;
-        }
-
-        private async Task<IAsyncTrainingSet<BiGram, string>> GivenAnAsyncTextTrainingSet()
+        async Task<IAsyncTrainingSet<BiGram, string>> GivenAnAsyncTextTrainingSet()
         {
             var corpus = CorpusDataSource.GetCorpus();
 

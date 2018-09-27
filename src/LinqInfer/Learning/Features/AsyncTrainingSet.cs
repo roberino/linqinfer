@@ -6,8 +6,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class AsyncTrainingSet<TInput, TClass> : AsyncPipe<TrainingPair<IVector, IVector>>, IAsyncTrainingSet<TInput, TClass>
-        where TInput : class
+    class AsyncTrainingSet<TInput, TClass> : AsyncPipe<TrainingPair<IVector, IVector>>, IAsyncTrainingSet<TInput, TClass>
         where TClass : IEquatable<TClass>
     {
         internal AsyncTrainingSet(
@@ -34,7 +33,7 @@ namespace LinqInfer.Learning.Features
             return ExtractBatches(FeaturePipeline, OutputMapper, clsFunc);
         }
 
-        private static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
+        static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
         {
             return pipeline
                    .ExtractBatches()

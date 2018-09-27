@@ -9,9 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static LinqInfer.Tests.TestData;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class AsyncPipelineExtensionsTests
@@ -19,7 +18,7 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task PrincipalComponentReductionAsync_ReducesVectorSizeAsSpecified()
         {
-            var pipeline = CreatePipeline();
+            var pipeline = TestSamples.CreatePipeline();
 
             pipeline = await pipeline.PrincipalComponentReductionAsync(2);
 
@@ -33,12 +32,12 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task BuildPipeineAsync_ReturnsAsyncPipeline()
         {
-            var pipeline = await From.Func(Load)
+            var pipeline = await From.Func(TestSamples.Load)
                 .BuildPipelineAsync(
                     CancellationToken.None,
-                    new DefaultFeatureExtractionStrategy<Pirate>(),
-                    new CategoricalFeatureExtractionStrategy<Pirate>());
-            
+                    new DefaultFeatureExtractionStrategy<TestData.Pirate>(),
+                    new CategoricalFeatureExtractionStrategy<TestData.Pirate>());
+
             var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
             Assert.That(data.Count, Is.EqualTo(100));
@@ -47,21 +46,21 @@ namespace LinqInfer.Tests.Learning
         [Test]
         public async Task SendAsync_InvokesPublishAsync()
         {
-            var pipeline = CreatePipeline();
+            var pipeline = TestSamples.CreatePipeline();
 
             var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
 
             var publisher = Substitute.For<IMessagePublisher>();
 
             await trainingData.SendAsync(publisher, CancellationToken.None);
-            
+
             await publisher.Received().PublishAsync(Arg.Is<Message>(m => m.Id != null && m.Properties["_Type"] != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
         }
 
         [Test]
         public async Task AsTrainingSet_UsingOutputParams_ReturnsProcessableTrainingSet()
         {
-            var pipeline = CreatePipeline();
+            var pipeline = TestSamples.CreatePipeline();
 
             var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
 
@@ -80,12 +79,14 @@ namespace LinqInfer.Tests.Learning
                     }
 
                 }, CancellationToken.None);
+
+            Assert.That(counter, Is.GreaterThan(0));
         }
 
         [Test]
         public async Task CreatePipeline_ReturnsProcessablePipeline()
         {
-            var pipeline = CreatePipeline();
+            var pipeline = TestSamples.CreatePipeline();
 
             int counter = 0;
 
@@ -94,8 +95,8 @@ namespace LinqInfer.Tests.Learning
                 counter++;
 
                 Assert.That(b.Items.Count, Is.EqualTo(10));
-                
-                foreach(var item in b.Items)
+
+                foreach (var item in b.Items)
                 {
                     Console.WriteLine(item);
                 }
@@ -104,33 +105,6 @@ namespace LinqInfer.Tests.Learning
             });
 
             Assert.That(counter, Is.EqualTo(10));
-        }
-
-        internal static IAsyncFeatureProcessingPipeline<Pirate> CreatePipeline()
-        {
-            var pipeline = new Func<int, AsyncBatch<Pirate>>(Load).CreatePipeline();
-
-            return pipeline;
-        }
-
-        private static AsyncBatch<Pirate> Load(int n)
-        {
-            var items = Task.FromResult(
-                    (IList<Pirate>)Enumerable.Range(0, 10)
-                    .Select(x => new Pirate()
-                    {
-                        Age = x,
-                        Gold = n,
-                        Ships = x * n,
-                        IsCaptain = ((x * n) % 3) == 0,
-                        Category = ((x * n) % 3) == 0 ? "a" : "b"
-                    })
-                    .ToList()
-                    );
-
-            if (n > 9) throw new InvalidOperationException();
-
-            return new AsyncBatch<Pirate>(items, n == 9, n);
         }
     }
 }

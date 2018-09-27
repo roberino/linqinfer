@@ -1,11 +1,11 @@
-﻿using LinqInfer.Text.Analysis;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using LinqInfer.Text.Analysis;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text.Analysis
+namespace LinqInfer.UnitTests.Text.Analysis
 {
     [TestFixture]
     public class CorpusAnalyserTests

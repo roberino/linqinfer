@@ -1,17 +1,17 @@
-﻿using NUnit.Framework;
-using System;
-using System.IO;
-using System.Reflection;
-using System.Linq;
-using LinqInfer.Maths;
-using NUnit.Framework.Constraints;
+﻿using System;
 using System.Diagnostics;
-using System.Xml.Linq;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using LinqInfer.Maths;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.UnitTests
 {
-    public class TestFixtureBase : AssertionHelper
+    public class TestFixtureBase
     {
         public static TimeSpan TimeTest(Action test, string name = null)
         {
@@ -23,9 +23,7 @@ namespace LinqInfer.Tests
 
             sw.Stop();
 
-#if !NET_STD
             Console.WriteLine("Invoke {0} took {1}", name ?? test.Method.Name, sw.Elapsed);
-#endif
 
             return sw.Elapsed;
         }
@@ -74,6 +72,15 @@ namespace LinqInfer.Tests
             {
                 httpHeaderStream.CopyTo(ms);
                 return ms.ToArray();
+            }
+        }
+
+        public static void SaveArtifact(string fileName, Action<Stream> writer)
+        {
+            const string artifactPath = "../../../../../artifacts";
+            using (var fs = new FileStream(Path.Combine(artifactPath, fileName), FileMode.Create))
+            {
+                writer(fs);
             }
         }
 

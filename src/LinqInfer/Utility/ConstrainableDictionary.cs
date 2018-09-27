@@ -7,8 +7,8 @@ namespace LinqInfer.Utility
 {
     public class ConstrainableDictionary<K, T> : IDictionary<K, T>
     {
-        private readonly IDictionary<K, T> _innerDictionary;
-        private readonly IList<Tuple<Func<K, T, bool>, string>> _valueConstraints;
+        readonly IDictionary<K, T> _innerDictionary;
+        readonly IList<Tuple<Func<K, T, bool>, string>> _valueConstraints;
 
         public ConstrainableDictionary(IDictionary<K, T> data = null)
         {
@@ -208,7 +208,7 @@ namespace LinqInfer.Utility
         {
         }
 
-        private void Validate(K key, T value)
+        void Validate(K key, T value)
         {
             var violations = _valueConstraints.Where(c => !c.Item1(key, value)).ToList();
 

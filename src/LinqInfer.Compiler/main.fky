@@ -1,0 +1,1 @@
+﻿(x: int) => ToFloat(x) * pii() * data1().y

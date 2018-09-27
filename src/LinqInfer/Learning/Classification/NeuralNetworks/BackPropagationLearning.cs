@@ -3,14 +3,13 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class BackPropagationLearning : IAssistedLearningProcessor
+    class BackPropagationLearning : IAssistedLearningProcessor
     {
-        private readonly MultilayerNetwork _network;
+        readonly MultilayerNetwork _network;
 
         public BackPropagationLearning(MultilayerNetwork network)
         {
@@ -52,11 +51,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Validate(output, inputVector, targetOutput);
 
             var errors = CalculateError(output, targetOutput);
+            
+            var input = new OutputValues(inputVector);
 
-            Adjust(errors.Item1);
+            Adjust(input, errors.Item1);
 
-            DebugOutput.LogVerbose("Error = {0}", errors.Item2);
-            // DebugOutput.LogVerbose("Target = {0} Actual={1}", targetOutput, output);
+            // DebugOutput.LogVerbose("Error = {0}", errors.Item2);
 
             return errors.Item2;
         }
@@ -76,7 +76,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 if (lastError == null)
                 {
-                    var errAndLoss = layer.LossFunction.Calculate(layer.LastOutput, targetOutput, layer.Activator.Derivative);
+                    var errAndLoss = layer.LossFunction.Calculate(layer.Output, targetOutput, layer.Activator.Derivative);
                     
                     error += errAndLoss.Loss;
 
@@ -103,9 +103,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new Tuple<Vector[], double>(errors, error);
         }
 
-        protected virtual void Adjust(Vector[] errors)
+        protected virtual void Adjust(IPropagatedOutput input, Vector[] errors)
         {
-            ILayer previousLayer = null;
+            var previousLayer = input;
             var i = 0;
 
             _network.ForEachLayer(layer =>
@@ -118,7 +118,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                     n.Adjust((w, k) =>
                     {
-                        var prevOutput = previousLayer == null || k < 0 ? 1 : previousLayer[k].Output;
+                        var prevOutput = k < 0 ? 1 : previousLayer.Output[k];
 
                         var wp = new WeightUpdateParameters()
                         {
@@ -143,10 +143,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }, false);
         }
 
-        private void Validate(IVector output, IVector inputVector, IVector targetOutput)
+        void Validate(IVector output, IVector inputVector, IVector targetOutput)
         {
 #if DEBUG
-            if (output.ToColumnVector().Any(x => x == double.NaN))
+            if (output.ToColumnVector().Any(double.IsNaN))
             {
                 var ex = new CalculationException();
 

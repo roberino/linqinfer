@@ -1,8 +1,8 @@
-﻿using LinqInfer.Maths.Probability;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Features
 {
@@ -32,9 +32,11 @@ namespace LinqInfer.Learning.Features
         /// The raw type code of the feature
         /// </summary>
         TypeCode DataType { get; }
+
+        IDictionary<string, string> ToDictionary();
     }
 
-    internal class Feature : IFeature
+    class Feature : IFeature
     {
         public TypeCode DataType { get; set; }
         public int Index { get; set; }
@@ -74,9 +76,23 @@ namespace LinqInfer.Learning.Features
             }).ToArray();
         }
 
-        private static string ToKey(string label)
+        static string ToKey(string label)
         {
             return new string(label.Replace(' ', '_').Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray()).ToLower();
+        }
+
+        public IDictionary<string, string> ToDictionary()
+        {
+            var dict = TypeExtensions.ToDictionary(this);
+
+            return dict.ToDictionary(kv => kv.Key, kv => kv.Value?.ToString());
+        }
+
+        public static IFeature FromDictionary(IDictionary<string, string> values)
+        {
+            var dict = values.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
+
+            return dict.ToObject<Feature>();
         }
     }
 }

@@ -5,8 +5,8 @@ namespace LinqInfer.Data.Remoting
 {
     public sealed class RouteBinder
     {
-        private readonly RoutingHandler _routes;
-        private readonly FunctionBinder _binder;
+        readonly RoutingHandler _routes;
+        readonly FunctionBinder _binder;
 
         internal RouteBinder(IUriRoute route, RoutingHandler handler, FunctionBinder binder)
         {
@@ -18,7 +18,7 @@ namespace LinqInfer.Data.Remoting
         /// <summary>
         /// Returns the route
         /// </summary>
-        public IUriRoute Route { get; private set; }
+        public IUriRoute Route { get; }
 
         /// <summary>
         /// Creates a new binder for a specific method

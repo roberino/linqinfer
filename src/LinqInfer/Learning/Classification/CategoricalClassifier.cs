@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class CategoricalClassifier<TClass> : IClassifier<TClass, bool>, IAssistedLearningProcessor<TClass, bool>
+    class CategoricalClassifier<TClass> : IClassifier<TClass, bool>, IAssistedLearningProcessor<TClass, bool>
     {
-        private readonly IDictionary<TClass, ClassData> _histogram;
-        private readonly int _vectorSize;
+        readonly IDictionary<TClass, ClassData> _histogram;
+        readonly int _vectorSize;
 
         public CategoricalClassifier(int vectorSize)
         {
@@ -54,7 +54,7 @@ namespace LinqInfer.Learning.Classification
             return 0;
         }
 
-        private IEnumerable<ClassifyResult<TClass>> Calculate(bool[] vector)
+        IEnumerable<ClassifyResult<TClass>> Calculate(bool[] vector)
         {
             var total = (double)_histogram.Sum(x => x.Value.ClassFrequency);
 
@@ -72,7 +72,7 @@ namespace LinqInfer.Learning.Classification
             }
         }
 
-        private class ClassData
+        class ClassData
         {
             public ClassData()
             {
@@ -81,7 +81,7 @@ namespace LinqInfer.Learning.Classification
 
             public int ClassFrequency { get; set; }
 
-            public IDictionary<int, int> CategoricalFrequencies { get; set; }
+            public IDictionary<int, int> CategoricalFrequencies { get; }
         }
     }
 }

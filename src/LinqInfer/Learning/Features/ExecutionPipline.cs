@@ -8,11 +8,11 @@ namespace LinqInfer.Learning.Features
 {
     public sealed class ExecutionPipline<TResult>
     {
-        private const int _errorThreshold = 15;
-        private readonly Func<string, Task<TResult>> _execute;
-        private readonly Func<bool, TResult, bool> _feedback;
-        private readonly IList<Exception> _errors;
-        private readonly Stopwatch _timer;
+        const int _errorThreshold = 15;
+        readonly Func<string, Task<TResult>> _execute;
+        readonly Func<bool, TResult, bool> _feedback;
+        readonly IList<Exception> _errors;
+        readonly Stopwatch _timer;
 
         internal ExecutionPipline(Func<string, TResult> execute, Func<bool, TResult, bool> feedback)
         {

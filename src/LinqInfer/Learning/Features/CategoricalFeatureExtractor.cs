@@ -1,20 +1,30 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
+using LinqInfer.Utility.Expressions;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
     public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>
     {
-        private readonly OneHotEncoding<TCategory> _encoder;
-        private readonly Func<TInput, TCategory> _categorySelector;
+        readonly OneHotEncoding<TCategory> _encoder;
+        readonly Func<TInput, TCategory> _categorySelector;
+        readonly Expression<Func<TInput, TCategory>> _categorySelectorExp;
 
-        internal CategoricalFeatureExtractor(Func<TInput, TCategory> categorySelector, IEnumerable<IFeature> features, ISet<TCategory> categories = null)
+        internal CategoricalFeatureExtractor(Expression<Func<TInput, TCategory>> categorySelector, IEnumerable<IFeature> features, ISet<TCategory> categories = null)
+            :this (categorySelector, features, new OneHotEncoding<TCategory>(categories ?? new HashSet<TCategory>()))
         {
-            _encoder = new OneHotEncoding<TCategory>(categories ?? new HashSet<TCategory>());
-            _categorySelector = categorySelector;
+        }
+
+        CategoricalFeatureExtractor(Expression<Func<TInput, TCategory>> categorySelector, IEnumerable<IFeature> features, OneHotEncoding<TCategory> encoder)
+        {
+            _encoder = encoder;
+            _categorySelectorExp = categorySelector;
+            _categorySelector = categorySelector.Compile();
             FeatureMetadata = features;
         }
 
@@ -32,23 +42,32 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public virtual void Save(Stream stream)
+        public PortableDataDocument ExportData()
         {
-            var sz = new DictionarySerialiser<TCategory, int>();
+            var doc = new PortableDataDocument();
 
-            sz.Write(_encoder.Lookup, stream);
+            var encDoc = _encoder.ExportData();
+
+            doc.SetType(this);
+
+            doc.Properties["CategorySelector"] = _categorySelectorExp.ExportAsString();
+
+            doc.AppendFeatureAttributes(FeatureMetadata.ToArray(), VectorSize);
+
+            doc.Children.Add(encDoc);
+
+            return doc;
         }
 
-        public virtual void Load(Stream stream)
+        public static CategoricalFeatureExtractor<TInput, TCategory> ImportData(PortableDataDocument data)
         {
-            var sz = new DictionarySerialiser<TCategory, int>();
+            var enc = OneHotEncoding<TCategory>.ImportData(data.Children.First());
 
-            var lookup = sz.Read(stream);
+            var features = data.LoadFeatureAttributes();
 
-            foreach(var item in lookup)
-            {
-                _encoder.Lookup[item.Key] = item.Value;
-            }
+            var exp = data.Properties["CategorySelector"].AsExpression<TInput, TCategory>();
+
+            return new CategoricalFeatureExtractor<TInput, TCategory>(exp, features.features, enc);
         }
     }
 }

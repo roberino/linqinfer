@@ -4,7 +4,7 @@ namespace LinqInfer.Utility
 {
     public sealed class Factory<TArgs, TResult> : IFactory<TResult, TArgs>
     {
-        private readonly Func<TArgs, TResult> _factoryFunc;
+        readonly Func<TArgs, TResult> _factoryFunc;
 
         public Factory(Func<TArgs, TResult> factoryFunc)
         {

@@ -23,6 +23,11 @@ namespace LinqInfer.Tests.Learning
                 .Select(n => (char)(byte)n);
         }
 
+        public static IEnumerable<char> Characters(params char[] values)
+        {
+            return values;
+        }
+
         public static IEnumerable<Letter> Letters(this IEnumerable<char> characters, int width, FontFamily font)
         {
             return characters
@@ -76,7 +81,7 @@ namespace LinqInfer.Tests.Learning
             }
         }
 
-        private static string ArrayToTable(double[] data, int width)
+        static string ArrayToTable(double[] data, int width)
         {
             var builder = new StringBuilder();
 
@@ -101,7 +106,7 @@ namespace LinqInfer.Tests.Learning
             return builder.ToString();
         }
 
-        private static double[] BitmapToDoubleArray1(Bitmap b)
+        static double[] BitmapToDoubleArray1(Bitmap b)
         {
             var data = new double[b.Width * b.Height];
 
@@ -117,7 +122,7 @@ namespace LinqInfer.Tests.Learning
             return data;
         }
 
-        private static double[] BitmapToDoubleArray(Bitmap bmp)
+        static double[] BitmapToDoubleArray(Bitmap bmp)
         {
             var data = bmp.LockBits(new draw.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
 
@@ -172,7 +177,7 @@ namespace LinqInfer.Tests.Learning
             }
         }
 
-        private static byte[] BitmapToBytes(Bitmap bmp)
+        static byte[] BitmapToBytes(Bitmap bmp)
         {
             var data = bmp.LockBits(new draw.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
 

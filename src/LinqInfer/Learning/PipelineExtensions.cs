@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
@@ -27,54 +26,35 @@ namespace LinqInfer.Learning
         /// Creates a feature processing pipeline from a set of data.
         /// </summary>
         /// <typeparam name="T">The input data type</typeparam>
-        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
+        /// <param name="data">The data source</param>
+        /// <param name="vectorExpression">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, bool normaliseData = true, string[] featureLabels = null) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Expression<Func<T, IVector>> vectorExpression, string[] featureLabels = null) where T : class
         {
-            var size = featureLabels == null ? vectorFunc(DefaultOf<T>()).Length : featureLabels.Length;
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, size, featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString()).ToArray());
+            var vectorFunc = vectorExpression.Compile();
+            var size = featureLabels?.Length ?? vectorFunc(DefaultOf<T>()).Size;
+            var featureExtractor = new ExpressionFeatureExtractor<T>(vectorExpression, size, Feature.CreateDefaults(featureLabels ?? Enumerable.Range(1, size).Select(n => n.ToString())));
             var pipeline = new FeatureProcessingPipeline<T>(data, featureExtractor);
 
-            if (normaliseData)
-            {
-                pipeline.NormaliseData();
-            }
-
             return pipeline;
-        }
-
-        /// <summary>
-        /// Creates a feature pipeline from a single document of vector data
-        /// </summary>
-        /// <param name="data">The document data</param>
-        /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipeline<Vector> CreatePipeline(this BinaryVectorDocument data)
-        {
-            if (!data.Vectors.Any())
-            {
-                throw new ArgumentException("No data found");
-            }
-
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<Vector>(v => v.GetUnderlyingArray(), data.Vectors.First().Size);
-
-            return new FeatureProcessingPipeline<Vector>(data.Vectors.Select(v => v.ToColumnVector()).AsQueryable(), featureExtractor);
         }
 
         /// <summary>
         /// Creates a feature processing pipeline from a set of data.
         /// </summary>
         /// <typeparam name="T">The input data type</typeparam>
-        /// <param name="vectorFunc">A function which extracts a feature vector from an object instance. 
+        /// <param name="vectorExpression">A function which extracts a feature vector from an object instance. 
         /// This function is called to established the vector size so even default or null value passed to the function should return an array</param>
         /// <param name="vectorSize">The size of the vector returned by the vector function. 
         /// IF YOU DO NOT provide this value, the vector function will be called with default arguments which may be null</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Func<T, double[]> vectorFunc, int vectorSize) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, Expression<Func<T, IVector>> vectorExpression, int vectorSize) where T : class
         {
             Contract.Assert(vectorSize > 0);
 
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<T>(vectorFunc, vectorSize, Enumerable.Range(1, vectorSize).Select(n => n.ToString()).ToArray());
+            var featureExtractor = new ExpressionFeatureExtractor<T>(vectorExpression, vectorSize);
+
             return new FeatureProcessingPipeline<T>(data, featureExtractor);
         }
 
@@ -87,7 +67,7 @@ namespace LinqInfer.Learning
         /// <returns>A feature processing pipeline</returns>
         public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
         {
-            return new FeatureProcessingPipeline<T>(data, featureExtractor);
+            return new FeatureProcessingPipeline<T>(data, featureExtractor ?? new ObjectFeatureExtractor<T>());
         }
 
         /// <summary>
@@ -98,7 +78,7 @@ namespace LinqInfer.Learning
         public static FeatureProcessingPipeline<ColumnVector1D> CreatePipeline(this IQueryable<ColumnVector1D> data)
         {
             var first = data.FirstOrDefault();
-            return CreatePipeline(data, v => v.GetUnderlyingArray(), first == null ? 0 : first.Size);
+            return CreatePipeline(data, v => v, first == null ? 0 : first.Size);
         }
 
         /// <summary>
@@ -110,7 +90,7 @@ namespace LinqInfer.Learning
         public static FeatureProcessingPipeline<ClusterNode<T>> CreatePipeine<T>(this FeatureMap<T> featureMap) where T : class
         {
             var first = featureMap.FirstOrDefault();
-            return CreatePipeline(featureMap.AsQueryable(), v => v.Weights.GetUnderlyingArray(), first == null ? 0 : first.Weights.Size);
+            return CreatePipeline(featureMap.AsQueryable(), v => v.Weights, first == null ? 0 : first.Weights.Size);
         }
 
         /// <summary>
@@ -240,7 +220,7 @@ namespace LinqInfer.Learning
             });
         }
 
-        private static T DefaultOf<T>() where T : class
+        static T DefaultOf<T>() where T : class
         {
             try
             {

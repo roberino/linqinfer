@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal sealed class StatisticSink<T> : IAsyncSink<T>, IPipeStatistics
+    sealed class StatisticSink<T> : IAsyncSink<T>, IPipeStatistics
     {
-        private readonly IStopwatch _sw;
-        private long _batchesReceived;
-        private long _itemsReceived;
+        readonly IStopwatch _sw;
+        long _batchesReceived;
+        long _itemsReceived;
 
         public StatisticSink(IStopwatch stopwatch = null)
         {

@@ -12,14 +12,14 @@ namespace LinqInfer.Data.Remoting
     /// </summary>
     public class TcpResponse : ICloneableObject<TcpResponse>, IDisposable
     {
-        private readonly Stream _outputStream;
-        private readonly Stream _buffer;
-        private readonly IResponseHeader _header;
-        private readonly ICompressionProvider _compression;
-        private readonly bool _isBuffered;
+        readonly Stream _outputStream;
+        readonly Stream _buffer;
+        readonly IResponseHeader _header;
+        readonly ICompressionProvider _compression;
+        readonly bool _isBuffered;
 
-        private long _lastFlushPos;
-        private TextWriter _text;
+        long _lastFlushPos;
+        TextWriter _text;
 
         internal TcpResponse(IRequestHeader requestHeader, ICompressionProvider compression)
         {

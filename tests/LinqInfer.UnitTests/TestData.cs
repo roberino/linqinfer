@@ -1,13 +1,13 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Features;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Features;
 
-namespace LinqInfer.Tests
+namespace LinqInfer.UnitTests
 {
-    internal static class TestData
+    static class TestData
     {
         public static List<double[]> LinearClassA()
         {

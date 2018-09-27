@@ -1,10 +1,11 @@
 ﻿using System;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpApi : HttpApiBuilder, IHttpApi
+    class HttpApi : HttpApiBuilder, IHttpApi
     {
-        private readonly IOwinApplication _serverHost;
+        readonly IOwinApplication _serverHost;
 
         public HttpApi(IObjectSerialiser serialiser, IOwinApplication host) : base(serialiser, host, host.BaseEndpoint)
         {

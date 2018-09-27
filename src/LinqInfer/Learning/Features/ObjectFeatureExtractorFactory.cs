@@ -1,33 +1,24 @@
-﻿using LinqInfer.Maths;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class ObjectFeatureExtractorFactory
+    class ObjectFeatureExtractor<T> : BaseFeatureExtractor<T>
     {
-        private static readonly IDictionary<Type, IValueConverter> _converters;
+        static readonly IDictionary<Type, IValueConverter> _converters;
+        static readonly ConcurrentDictionary<string, IList<PropertyExtractor<T>>> _extractors;
 
-        static ObjectFeatureExtractorFactory()
+        static ObjectFeatureExtractor()
         {
-#if NET_STD
-            var type = typeof(ObjectFeatureExtractorFactory)
-                    .GetTypeInfo();
+            var type = typeof(ObjectFeatureExtractor<>);
 
-            _converters =
-                type
-                    .Assembly
-                    .ExportedTypes
-                    .Select(t => t.GetTypeInfo())
-                    .Where(t =>
-                        t.IsPublic && t.GetConstructor(new Type[0]) != null && t.GetInterfaces()
-                            .Any(i => i == typeof(IValueConverter)))
-                    .ToDictionary(x => x.AsType(), x => (IValueConverter)Activator.CreateInstance(x.AsType()));
-#else
-            var type = typeof(ObjectFeatureExtractorFactory);
+            _extractors = new ConcurrentDictionary<string, IList<PropertyExtractor<T>>>();
 
             _converters =
                 type
@@ -37,74 +28,41 @@ namespace LinqInfer.Learning.Features
                         t.IsPublic && t.GetConstructor(new Type[0]) != null && t.GetInterfaces()
                             .Any(i => i == typeof(IValueConverter)))
                     .ToDictionary(x => x, x => (IValueConverter)Activator.CreateInstance(x));
-#endif
         }
 
-        public Func<T, double[]> CreateFeatureExtractorFunc<T>(string setName = null) where T : class
+        public ObjectFeatureExtractor(string setName = null) : base(CreateFeatureExtractor(setName))
         {
-            return CreateFeatureExtractor<T>(setName).ExtractVector;
+            SetName = setName;
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(string setName = null) where T : class
+        public string SetName { get; }
+
+        public override PortableDataDocument ExportData()
         {
-            return CreateFeatureExtractor<T>(typeof(T), setName);
+            var doc = base.ExportData();
+
+            doc.SetPropertyFromExpression(() => SetName);
+
+            return doc;
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor<T>(Type actualType, string setName = null) where T : class
+        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument data)
         {
-            var featureProperties = GetFeatureProperties<T>(actualType, setName)
-                .Where(f => f.ConversionFunction != null).ToList();
+            return new ObjectFeatureExtractor<T>(data.PropertyOrDefault(nameof(SetName), string.Empty));
+        }
 
-            DebugOutput.Log($"found {featureProperties.Count} features for type {actualType.FullName}");
-
+        public static IList<PropertyExtractor<T>> GetFeatureProperties(Type type, string setName = null, bool convertableOnly = false)
+        {
             var i = 0;
-            foreach (var p in featureProperties) p.Index = i++;
 
-            return new DelegatingFloatingPointFeatureExtractor<T>((x) =>
-                Extract(x, featureProperties),
-                featureProperties.Count,
-                featureProperties.Select(f => new Feature()
-                {
-                    Key = f.Property.Name.ToLower(),
-                    DataType = Type.GetTypeCode(f.Property.PropertyType),
-                    Label = f.Property.Name,
-                    Index = f.Index,
-                    Model = f.FeatureMetadata.Model
-                }).ToArray());
-        }
-
-        private IVector Extract<T>(T item, IList<PropertyExtractor<T>> properties)
-        {
-            var values = new double[properties.Count];
-
-            if (item != null)
-            {
-                for (int i = 0; i < values.Length; i++)
-                {
-                    values[i] = properties[i].ConversionFunction(item);
-                }
-            }
-
-            return new ColumnVector1D(values);
-        }
-
-        internal IList<PropertyExtractor<T>> GetFeatureProperties<T>(Type actualType, string setName = null) where T : class
-        {
-            int i = 0;
-
-#if NET_STD
-            var type = actualType.GetTypeInfo();
-#else
-            var type = actualType;
-#endif
-
-            return type
+            var fProps = type
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Where(p => p.CanRead)
                 .Select(p =>
                 {
                     var featureDef = new FeatureAttribute();
-                    var featureAttr = p.GetCustomAttributes<FeatureAttribute>().FirstOrDefault(a => setName == null || a.SetName == setName);
+                    var featureAttr = p.GetCustomAttributes<FeatureAttribute>()
+                        .FirstOrDefault(a => setName == null || a.SetName == setName);
 
                     if (featureAttr != null)
                     {
@@ -118,17 +76,74 @@ namespace LinqInfer.Learning.Features
                     return new
                     {
                         property = p,
-                        featureDef = featureDef
+                        featureDef
                     };
                 })
                 .Where(f => !f.featureDef.Ignore)
                 .OrderBy(f => f.featureDef.IndexOrder)
                 .ThenBy(f => f.property.Name)
-                .Select(f => new PropertyExtractor<T>(i++, f.property, f.featureDef, CreateConverter<T>(f.property, f.featureDef)))
-                .ToList();
+                .Select(f =>
+                    new PropertyExtractor<T>(i++, f.property, f.featureDef, CreateConverter(f.property, f.featureDef)));
+
+            if (convertableOnly)
+            {
+                i = 0;
+
+                fProps = fProps.Where(f => f.HasValue);
+
+                foreach (var item in fProps)
+                {
+                    item.Index = i++;
+                }
+            }
+
+            var fPropsList = fProps.ToList();
+
+            DebugOutput.Log($"found {fPropsList.Count} features for type {type.FullName}");
+
+            return fPropsList;
         }
 
-        private Func<T, double> CreateConverter<T>(PropertyInfo prop, FeatureAttribute featureDef)
+        static BaseFeatureExtractor<T> CreateFeatureExtractor(string setName = null)
+        {
+            return CreateFeatureExtractor(typeof(T), setName);
+        }
+
+        static BaseFeatureExtractor<T> CreateFeatureExtractor(Type actualType, string setName = null)
+        {
+            var featureProperties = _extractors
+                .GetOrAdd($"{actualType.AssemblyQualifiedName}${setName}", k =>
+                GetFeatureProperties(actualType, setName, true));
+
+            return new BaseFeatureExtractor<T>(x =>
+                    Extract(x, featureProperties),
+                featureProperties.Count,
+                featureProperties.Select(f => new Feature()
+                {
+                    Key = f.Property.Name.ToLower(),
+                    DataType = Type.GetTypeCode(f.Property.PropertyType),
+                    Label = f.Property.Name,
+                    Index = f.Index,
+                    Model = f.FeatureMetadata.Model
+                }).Cast<IFeature>().ToArray());
+        }
+
+        static IVector Extract(T item, IList<PropertyExtractor<T>> properties)
+        {
+            var values = new double[properties.Count];
+
+            if (item != null)
+            {
+                for (var i = 0; i < values.Length; i++)
+                {
+                    values[i] = properties[i].GetVectorValue(item);
+                }
+            }
+
+            return new ColumnVector1D(values);
+        }
+
+        static Func<object, double> CreateConverter(PropertyInfo prop, FeatureAttribute featureDef)
         {
             IValueConverter converter = null;
 
@@ -140,13 +155,15 @@ namespace LinqInfer.Learning.Features
                     {
                         lock (_converters)
                         {
-                            _converters[featureDef.Converter] = converter = (IValueConverter)Activator.CreateInstance(featureDef.Converter);
+                            _converters[featureDef.Converter] = converter =
+                                (IValueConverter)Activator.CreateInstance(featureDef.Converter);
                         }
                     }
                 }
                 else
                 {
-                    converter = _converters.Values.FirstOrDefault(c => c is IDefaultValueConverter && c.CanConvert(prop.PropertyType));
+                    converter = _converters.Values.FirstOrDefault(c =>
+                        c is IDefaultValueConverter && c.CanConvert(prop.PropertyType));
                 }
             }
             else
@@ -156,7 +173,7 @@ namespace LinqInfer.Learning.Features
 
             if (converter == null) return null;
 
-            return x => converter.Convert(prop.GetValue(x));
+            return converter.Convert;
         }
     }
 }

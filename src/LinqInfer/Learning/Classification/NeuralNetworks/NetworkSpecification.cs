@@ -3,10 +3,11 @@ using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class NetworkSpecification : IExportableAsVectorDocument, IEquatable<NetworkSpecification>
+    public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
         public NetworkSpecification(LearningParameters learningParameters, params LayerSpecification[] layers)
         {
@@ -44,9 +45,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification OutputLayer => Layers.Last();
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType<NetworkSpecification>();
             doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
@@ -55,13 +56,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             foreach (var child in Layers)
             {
-                doc.Children.Add(child.ToVectorDocument());
+                doc.Children.Add(child.ExportData());
             }
 
             return doc;
         }
 
-        internal static NetworkSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context = null)
+        internal static NetworkSpecification FromVectorDocument(PortableDataDocument doc,
+            NetworkBuilderContext context = null)
         {
             NetworkSpecification networkSpecification = null;
 
@@ -78,33 +80,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 MinimumError = minimumError
             };
 
-            if (layers.Length == 1) return new NetworkSpecification(learningParams, inputVectorSize, layers.Single());
-
-            return new NetworkSpecification(learningParams, layers);
+            return (inputVectorSize > 0
+                ? new NetworkSpecification(learningParams, inputVectorSize, layers)
+                : new NetworkSpecification(learningParams, layers)).Initialise();
         }
 
-        internal void Validate()
+        public NetworkSpecification Initialise()
         {
-            LearningParameters.Validate();
-        }
-
-        internal NetworkParameters ToParameters()
-        {
-            var layerSizes = new List<int>();
-
-            if (Layers.Count == 1)
+            foreach (var layer in Layers)
             {
-                layerSizes.Add(InputVectorSize);
+                layer.WeightUpdateRule.Initialise(LearningParameters);
             }
 
-            layerSizes.AddRange(Layers.Select(l => l.LayerSize));
-
-            return new NetworkParameters(layerSizes.ToArray(), Layers.Last().Activator)
-            {
-                InitialWeightRange = Layers.Last().InitialWeightRange,
-                LearningRate = LearningParameters.LearningRate,
-                MinimumError = LearningParameters.MinimumError
-            };
+            return this;
         }
 
         public bool Equals(NetworkSpecification other)
@@ -112,8 +100,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            var docA = ToVectorDocument();
-            var docB = other.ToVectorDocument();
+            var docA = ExportData();
+            var docB = other.ExportData();
 
             return docA.Equals(docB);
         }
@@ -125,7 +113,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override int GetHashCode()
         {
-            return (int)ToVectorDocument().Checksum;
+            return (int)ExportData().Checksum;
+        }
+
+        internal void Validate()
+        {
+            LearningParameters.Validate();
         }
     }
 }

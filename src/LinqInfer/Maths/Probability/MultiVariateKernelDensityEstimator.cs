@@ -8,9 +8,9 @@ namespace LinqInfer.Maths.Probability
     /// <summary>
     /// 1 dimentional KDE
     /// </summary>
-    internal class MultiVariateKernelDensityEstimator : IDensityEstimationStrategy<IVector>
+    class MultiVariateKernelDensityEstimator : IDensityEstimationStrategy<IVector>
     {
-        private readonly float _bandwidth;
+        readonly float _bandwidth;
 
         public MultiVariateKernelDensityEstimator(
             float bandwidth = 0.2F)
@@ -46,7 +46,7 @@ namespace LinqInfer.Maths.Probability
             };
         }
 
-        private IEnumerable<KeyValuePair<ColumnVector1D, double>> CreateMultiVariateDistributionInternal(IQueryable<ColumnVector1D> sample, int binCount = 10)
+        IEnumerable<KeyValuePair<ColumnVector1D, double>> CreateMultiVariateDistributionInternal(IQueryable<ColumnVector1D> sample, int binCount = 10)
         {
             var f = MultiVariateNormalKernel(sample, _bandwidth);
             var min = sample.MinOfEachDimension();

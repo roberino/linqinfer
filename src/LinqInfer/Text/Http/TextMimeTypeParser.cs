@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Text.Http
 {
-    internal static class TextMimeTypeParser
+    static class TextMimeTypeParser
     {
         public static TextMimeType Parse(string mimeType)
         {

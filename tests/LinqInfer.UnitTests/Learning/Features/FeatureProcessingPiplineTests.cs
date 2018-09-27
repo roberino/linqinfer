@@ -1,8 +1,8 @@
-﻿using LinqInfer.Learning.Features;
+﻿using System.Linq;
+using LinqInfer.Learning.Features;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class FeatureProcessingPiplineTests
@@ -34,21 +34,6 @@ namespace LinqInfer.Tests.Learning.Features
             Assert.That(featureData.Count, Is.EqualTo(data.Count()));
 
             Assert.That(featureData[0][0], Is.EqualTo(expectedVal));
-        }
-
-        [Test]
-        public void FilterFeaturesByProperty_ExtractVectors_ReturnsValidData()
-        {
-            var data = TestData.CreateQueryablePirates();
-
-            var pipeline = new FeatureProcessingPipeline<TestData.Pirate>(data)
-                .FilterFeaturesByProperty(p => p
-                    .Select(x => x.Age)
-                    .Select(x => x.Gold));
-
-            Assert.That(pipeline.FeatureExtractor.FeatureMetadata.Count(), Is.EqualTo(2));
-            Assert.That(pipeline.FeatureExtractor.FeatureMetadata.Any(f => f.Label == "Age"));
-            Assert.That(pipeline.FeatureExtractor.FeatureMetadata.Any(f => f.Label == "Gold"));
         }
     }
 }

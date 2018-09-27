@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal class AsyncPipe<T> : AsyncPipeBase<T>
+    class AsyncPipe<T> : AsyncPipeBase<T>
     {
         public AsyncPipe(IAsyncSource<T> source)
         {
@@ -37,7 +37,7 @@ namespace LinqInfer.Data.Pipes
                         return;
                     }
 
-                    DebugOutput.Log($"{pipelineInstance} Processing batch {b} with {activeSinks.Count} active sinks");
+                    DebugOutput.Log($"{pipelineInstance} Processing epoch {i}, batch {b} with {activeSinks.Count} active sink(s)");
 
                     var tasks = activeSinks.Select(s => s.ReceiveAsync(b, cancellationToken)).ToList();
 

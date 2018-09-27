@@ -21,7 +21,6 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var sigmoid2 = context.ActivatorFactory.Create(sigmoidFormatted);
 
             Assert.That(sigmoid2.Name, Is.EqualTo(sigmoid.Name));
-            Assert.That(sigmoid2.Parameter, Is.EqualTo(sigmoid.Parameter));
         }
 
         [Test]

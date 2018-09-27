@@ -1,4 +1,4 @@
-﻿namespace LinqInfer.Data
+﻿namespace LinqInfer.Data.Serialisation
 {
     public interface IBinaryExportable
     {

@@ -9,6 +9,6 @@ namespace LinqInfer.Maths
             Value = value;
         }
 
-        public Fraction Value { get; private set; }
+        public Fraction Value { get; }
     }
 }

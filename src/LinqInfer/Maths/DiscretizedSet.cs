@@ -7,9 +7,9 @@ namespace LinqInfer.Maths
 {
     public sealed class DiscretizedSet<V, W, T> : IEnumerable<IGrouping<int, T>>
     {
-        private readonly IDictionary<int, List<T>> _values;
-        private Lazy<IDictionary<int, int>> _binCounts;
-        private readonly Func<int, V> _widthConverter;
+        readonly IDictionary<int, List<T>> _values;
+        Lazy<IDictionary<int, int>> _binCounts;
+        readonly Func<int, V> _widthConverter;
 
         internal DiscretizedSet(V min, V max, W width, Func<int, V> widthConverter)
         {
@@ -24,17 +24,17 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the minimum value of the set
         /// </summary>
-        public V Min { get; private set; }
+        public V Min { get; }
 
         /// <summary>
         /// Returns the maximum value of the set
         /// </summary>
-        public V Max { get; private set; }
+        public V Max { get; }
 
         /// <summary>
         /// Returns the width of each bin
         /// </summary>
-        public W Width { get; private set; }
+        public W Width { get; }
 
         /// <summary>
         /// Returns a dictionary of bins and value counts
@@ -90,7 +90,7 @@ namespace LinqInfer.Maths
             _binCounts = null;
         }
 
-        private void SetupBinCounts()
+        void SetupBinCounts()
         {
             _binCounts = new Lazy<IDictionary<int, int>>(() =>
             {
@@ -116,7 +116,7 @@ namespace LinqInfer.Maths
             return GetEnumerator();
         }
 
-        private class ValueGroup<K> : List<T>, IGrouping<K, T>
+        class ValueGroup<K> : List<T>, IGrouping<K, T>
         {
             public ValueGroup(IEnumerable<T> values)
             {

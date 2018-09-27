@@ -6,7 +6,7 @@ namespace LinqInfer.Text.Http
 {
     public sealed class HttpDocumentCrawlerOptions
     {
-        private static readonly HttpDocumentCrawlerOptions _default = new HttpDocumentCrawlerOptions();
+        static readonly HttpDocumentCrawlerOptions _default = new HttpDocumentCrawlerOptions();
 
         public int BatchSize { get; set; } = 10;
         public Func<Uri, bool> LinkFilter { get; set; } = _ => true;

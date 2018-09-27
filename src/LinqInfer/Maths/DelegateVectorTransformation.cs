@@ -2,9 +2,9 @@
 
 namespace LinqInfer.Maths
 {
-    internal class DelegateVectorTransformation : IVectorTransformation
+    class DelegateVectorTransformation : IVectorTransformation
     {
-        private readonly Func<Vector, Vector> _transformation;
+        readonly Func<Vector, Vector> _transformation;
 
         public DelegateVectorTransformation(int inputVectorSize, Func<Vector, Vector> transformation)
         {
@@ -20,9 +20,9 @@ namespace LinqInfer.Maths
         {
         }
 
-        public int InputSize { get; private set; }
+        public int InputSize { get; }
 
-        public int OutputSize { get; private set; }
+        public int OutputSize { get; }
 
         public IVector Apply(IVector vector)
         {

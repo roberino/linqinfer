@@ -9,7 +9,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, LayerSpecification> layerFactory);
         IFluentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config);
         IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters);
-        IFluentNetworkBuilder ConfigureOutputLayer(IActivatorFunction activator, ILossFunction lossFunction, Range? initialWeightRange = null);
-        IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableVectorTransformation> transformationFactory);
+        IFluentNetworkBuilder ConfigureOutputLayer(ActivatorExpression activator, ILossFunction lossFunction, Range? initialWeightRange = null, WeightUpdateRule updateRule = null);
+        IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableDataTransformation> transformationFactory);
     }
 }

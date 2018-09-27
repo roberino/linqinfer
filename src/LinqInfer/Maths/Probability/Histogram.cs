@@ -5,9 +5,9 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class Histogram : IDensityEstimationStrategy<Fraction>
+    class Histogram : IDensityEstimationStrategy<Fraction>
     {
-        private readonly double? _width;
+        readonly double? _width;
 
         public Histogram(double? width = null)
         {

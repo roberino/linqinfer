@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace LinqInfer.Maths
 {
-    internal class RowMatrix : IMatrix
+    class RowMatrix : IMatrix
     {
-        private readonly IVector _row;
+        readonly IVector _row;
 
         internal RowMatrix(IVector row)
         {

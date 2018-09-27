@@ -1,13 +1,11 @@
-﻿using LinqInfer.Data.Pipes;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Data.Pipes
+namespace LinqInfer.UnitTests.Data.Pipes
 {
     [TestFixture]
     public class InMemorySinkTests
@@ -42,7 +40,7 @@ namespace LinqInfer.Tests.Data.Pipes
             Assert.That(sink.CanReceive, Is.True);
         }
 
-        private AsyncBatch<byte[]> LoadData(int n)
+        AsyncBatch<byte[]> LoadData(int n)
         {
             var data = (IList<byte[]>)Enumerable.Range(0, 10).Select(_ => new byte[] { 1, 3, 5, 8 }).ToList();
             return new AsyncBatch<byte[]>(Task.FromResult(data), n == 3, n);

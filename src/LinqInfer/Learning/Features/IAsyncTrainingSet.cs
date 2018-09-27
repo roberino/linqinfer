@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 namespace LinqInfer.Learning.Features
 {
     public interface IAsyncTrainingSet<TInput, TClass> : IAsyncPipe<TrainingPair<IVector, IVector>>
-        where TInput : class
         where TClass : IEquatable<TClass>
     {
         Expression<Func<TInput, TClass>> ClassifyingExpression { get; }

@@ -3,7 +3,7 @@ using System;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class CrossEntropyLossFunction : LossFunctionBase
+    class CrossEntropyLossFunction : LossFunctionBase
     {
         protected override ErrorAndLossVectors CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative)
         {

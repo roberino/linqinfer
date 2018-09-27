@@ -13,9 +13,9 @@ namespace LinqInfer.Learning
     /// </summary>
     public class ClusterNode<T> : IGrouping<double, T>
     {
-        private readonly ClusteringParameters _parameters;
-        private readonly ConcurrentDictionary<T, int> _values;
-        private readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        readonly ClusteringParameters _parameters;
+        readonly ConcurrentDictionary<T, int> _values;
+        readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
 
         /// <summary>
         /// Creates a new node.
@@ -38,7 +38,7 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Returns the weights associated with the cluster.
         /// </summary>
-        public ColumnVector1D Weights { get; private set; }
+        public ColumnVector1D Weights { get; }
 
         /// <summary>
         /// Return true if the node has been initialised.
@@ -160,7 +160,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        private void AdjustFor(ColumnVector1D vector, int iteration = 0, double influence = 1)
+        void AdjustFor(ColumnVector1D vector, int iteration = 0, double influence = 1)
         {
             lock (_values)
             {

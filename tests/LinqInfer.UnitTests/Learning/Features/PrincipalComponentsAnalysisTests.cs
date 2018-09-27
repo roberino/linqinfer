@@ -1,11 +1,11 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class PrincipalComponentsAnalysisTests
@@ -31,9 +31,9 @@ namespace LinqInfer.Tests.Learning.Features
             Assert.That(tx.Length, Is.EqualTo(2));
         }
 
-        private class MockFeatures : IFeatureDataSource
+        class MockFeatures : IFeatureDataSource
         {
-            private readonly IList<double[]> _data;
+            readonly IList<double[]> _data;
 
             public MockFeatures(IList<double[]> data)
             {

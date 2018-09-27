@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class RandomTests
@@ -73,7 +73,7 @@ namespace LinqInfer.Tests.Maths
             Write("Max int - 1", int.MaxValue - 1, b);
         }
 
-        private void Write(string label, object val, byte[] data)
+        void Write(string label, object val, byte[] data)
         {
             Console.Write(label);
             Console.Write(" ");

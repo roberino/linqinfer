@@ -42,7 +42,7 @@ namespace LinqInfer.Benchmarking
             CreateAsync().Wait();
         }
 
-        private async Task CreateAsync()
+        async Task CreateAsync()
         {
             var trainingSet = await _dataSet
                   .AsAsyncEnumerator()
@@ -55,9 +55,9 @@ namespace LinqInfer.Benchmarking
                 {
                     p.AddHiddenLayer(new LayerSpecification(
                         LayerSize,
-                        Activators.Create(Activator, 1),
+                        Activators.All().First(a => a.Name == Activator),
                         LossFunctions.Square, 
-                        DefaultWeightUpdateRule.Create(),
+                        WeightUpdateRules.Default(),
                         new Range(1, -1),
                         ParallelProcess));
                 }

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class Sample<T> : SampleBase<T>
+    class Sample<T> : SampleBase<T>
     {
         protected readonly ISet<T> _sampleSpace;
 

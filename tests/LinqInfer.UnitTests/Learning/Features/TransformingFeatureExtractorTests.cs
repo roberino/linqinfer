@@ -1,8 +1,9 @@
-﻿using LinqInfer.Learning.Features;
+﻿using System.Linq;
+using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Learning.Features
+namespace LinqInfer.UnitTests.Learning.Features
 {
     [TestFixture]
     public class TransformingFeatureExtractorTests
@@ -10,40 +11,32 @@ namespace LinqInfer.Tests.Learning.Features
         [Test]
         public void FeatureMetadata_AggregateInputsInto1D_ExpectSingleItem()
         {
-            var ext = new ObjectFeatureExtractorFactory();
-            var fe = ext.CreateFeatureExtractor<FeatureObject>();
-            var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, v => new double[] { v[0] * v[1] * v[2] });
+            var fe = new ObjectFeatureExtractor<FeatureObject>();
+            var tfe = new TransformingFeatureExtractor<FeatureObject>(fe);
 
+            var tf = new SerialisableDataTransformation(new DataOperation(VectorOperationType.EuclideanDistance,
+                new Vector(1, 2, 3)));
+
+            tfe.AddTransform(tf);
+            
             var transformedFeature = tfe.FeatureMetadata.Single();
 
             Assert.That(transformedFeature.DataType == System.TypeCode.Double);
             Assert.That(transformedFeature.Index == 0);
             Assert.That(transformedFeature.Label == "Transform 1");
 
-            var vector = tfe.ExtractVector(new FeatureObject()
+            var vector = tfe.ExtractIVector(new FeatureObject()
             {
                 x = 3,
                 y = 5,
                 z = 7
             });
 
-            Assert.That(vector.First(), Is.EqualTo(3d * 5d * 7d));
+            Assert.That(vector.Size, Is.EqualTo(1));
+            Assert.That(vector[0], Is.EqualTo(tf.Apply(new Vector(3, 5, 7))[0]));
         }
 
-        [Test]
-        public void FeatureMetadata_FilterOnlyX_ExpectSingleItem()
-        {
-            var ext = new ObjectFeatureExtractorFactory();
-            var fe = ext.CreateFeatureExtractor<FeatureObject>();
-            var tfe = new TransformingFeatureExtractor<FeatureObject, double>(fe, null, f => f.Label == "x");
-
-            var featurex = tfe.FeatureMetadata.Single();
-
-            Assert.That(featurex.DataType == System.TypeCode.Int32);
-            Assert.That(featurex.Label == "x");
-        }
-
-        private class FeatureObject
+        class FeatureObject
         {
             public int x { get; set; }
             public int y { get; set; }

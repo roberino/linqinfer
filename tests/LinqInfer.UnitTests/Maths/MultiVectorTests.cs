@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths;
-using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MultiVectorTests

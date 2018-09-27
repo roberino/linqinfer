@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveInputSampler
+    class NaiveInputSampler
     {
-        private readonly List<double> sample;
+        readonly List<double> sample;
 
-        private Lazy<Tuple<double, double>> parameters;
-        private Lazy<Func<double, double>> pdf;
+        Lazy<Tuple<double, double>> parameters;
+        Lazy<Func<double, double>> pdf;
 
         public NaiveInputSampler()
         {

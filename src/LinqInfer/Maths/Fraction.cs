@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.IO;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -635,7 +636,7 @@ namespace LinqInfer.Maths
             return Value.CompareTo(other.Value);
         }
 
-        private static Tuple<int, int> Reduce(long n, long d)
+        static Tuple<int, int> Reduce(long n, long d)
         {
             if (n == d) return new Tuple<int, int>(1, 1);
 

@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveBayesNormalClassifierBuilder : IAsyncSink<TrainingPair<IVector, IVector>>
+    class NaiveBayesNormalClassifierBuilder : IAsyncSink<TrainingPair<IVector, IVector>>
     {
-        private readonly IDensityEstimationStrategy<IVector> _kde;
-        private readonly IDictionary<IVector, IList<IVector>> _samples;
+        readonly IDensityEstimationStrategy<IVector> _kde;
+        readonly IDictionary<IVector, IList<IVector>> _samples;
 
         public NaiveBayesNormalClassifierBuilder(IDensityEstimationStrategy<IVector> kde)
         {

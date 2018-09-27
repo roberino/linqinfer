@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class OwinContext : ConstrainableDictionary<string, object>, IOwinContext
+    class OwinContext : ConstrainableDictionary<string, object>, IOwinContext
     {
-        private readonly bool _ready;
-        private readonly Uri _clientBaseUri;
+        readonly bool _ready;
+        readonly Uri _clientBaseUri;
 
         public OwinContext(TcpRequest request, TcpResponse response, Uri clientBaseUri = null)
         {
@@ -94,8 +94,8 @@ namespace LinqInfer.Data.Remoting
         }
 
         public Uri RequestUri { get; private set; }
-        public TcpRequest Request { get; private set; }
-        public TcpResponse Response { get; private set; }
+        public TcpRequest Request { get; }
+        public TcpResponse Response { get; }
 
         public async Task WriteTo(Stream output)
         {
@@ -117,7 +117,7 @@ namespace LinqInfer.Data.Remoting
             Response.Dispose();
         }
 
-        private Uri SetRequestUri(Uri baseUri, string pathAndQuery, bool setBaseUriParts = true)
+        Uri SetRequestUri(Uri baseUri, string pathAndQuery, bool setBaseUriParts = true)
         {
             if (setBaseUriParts)
             {

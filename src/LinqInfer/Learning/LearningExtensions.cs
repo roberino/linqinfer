@@ -16,7 +16,8 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The class type</typeparam>
         /// <param name="classifyResults">The classification results</param>
         /// <returns>A dictionary of TClass / Fraction pairs</returns>
-        public static IDictionary<TClass, Fraction> ToDistribution<TClass>(this IEnumerable<ClassifyResult<TClass>> classifyResults)
+        public static IDictionary<TClass, Fraction> ToDistribution<TClass>(
+            this IEnumerable<ClassifyResult<TClass>> classifyResults)
         {
             var cr = classifyResults.ToList();
             var total = cr.Sum(m => m.Score);
@@ -33,12 +34,13 @@ namespace LinqInfer.Learning
         /// <param name="trainingData">The training data set</param>
         /// <param name="classf">A function which will be used to classify the training data</param>
         /// <returns>A function which can classify new objects, returning a dictionary of potential results</returns>
-        public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
+        public static Func<TInput, IDictionary<TClass, Fraction>> ToSimpleDistributionFunction<TInput, TClass>(
+            this IQueryable<TInput> trainingData, Expression<Func<TInput, TClass>> classf) where TInput : class
         {
-            var extractor = new ObjectFeatureExtractorFactory().CreateFeatureExtractor<TInput>();
+            var extractor = new ObjectFeatureExtractor<TInput>();
             var net = new NaiveBayesNormalClassifier<TClass>(extractor.VectorSize);
             var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, extractor);
-            
+
             classifierPipe.Train(trainingData, classf);
 
             return x => classifierPipe.Classify(x).ToDistribution();

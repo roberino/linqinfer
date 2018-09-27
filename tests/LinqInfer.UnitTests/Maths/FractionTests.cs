@@ -1,12 +1,12 @@
-﻿using LinqInfer.Maths;
+﻿using System;
+using LinqInfer.Maths;
 using LinqInfer.Maths.Probability;
 using NUnit.Framework;
-using System;
 
-namespace LinqInfer.Tests.Probability
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
-    public class FractionTests : AssertionHelper
+    public class FractionTests
     {
         [TestCase(0.2, 1, 5)]
         [TestCase(0.6666666666666, 2, 3)]

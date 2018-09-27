@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Http
 {
-    internal sealed class HttpDocumentSource
+    sealed class HttpDocumentSource
     {
-        private readonly HttpDocumentClient _docClient;
-        private readonly HttpDocumentCrawlerOptions _options;
-        private readonly ConcurrentDictionary<Uri, int> _visited;
-        private readonly ConcurrentQueue<Uri> _pending;
-        
-        private int _batchCounter;
-        private int _docCounter;
+        readonly HttpDocumentClient _docClient;
+        readonly HttpDocumentCrawlerOptions _options;
+        readonly ConcurrentDictionary<Uri, int> _visited;
+        readonly ConcurrentQueue<Uri> _pending;
+
+        int _batchCounter;
+        int _docCounter;
 
         internal HttpDocumentSource(
             HttpDocumentClient documentClient,
@@ -40,7 +40,7 @@ namespace LinqInfer.Text.Http
             return From.Func(LoadBatch, null, onDispose);
         }
 
-        private AsyncBatch<HttpDocument> LoadBatch(int i)
+        AsyncBatch<HttpDocument> LoadBatch(int i)
         {
             var completed = _visited.Any() && (!_pending.Any() || _docCounter >= _options.MaxNumberOfDocuments);
 
@@ -49,7 +49,7 @@ namespace LinqInfer.Text.Http
             return new AsyncBatch<HttpDocument>(LoadNextItems(), completed, _batchCounter);
         }
 
-        private async Task<IList<HttpDocument>> LoadNextItems()
+        async Task<IList<HttpDocument>> LoadNextItems()
         {
             var batch = new List<HttpDocument>();
 
@@ -80,7 +80,7 @@ namespace LinqInfer.Text.Http
             return batch;
         }
 
-        private async Task<HttpDocument> GetDocAsync(Uri uri)
+        async Task<HttpDocument> GetDocAsync(Uri uri)
         {
             var doc = await _docClient.GetDocumentAsync(uri, _options.TargetElement);
 

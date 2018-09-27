@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace LinqInfer.Maths.Probability
 {
-    internal class ContinuousSample<T>
+    class ContinuousSample<T>
     {
-        private Func<T, Fraction> _kde;
+        Func<T, Fraction> _kde;
 
         public ContinuousSample(IQueryable<T> sample, IDensityEstimationStrategy<T> estimationModel)
         {

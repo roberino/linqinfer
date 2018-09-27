@@ -6,12 +6,12 @@ using System.Linq.Expressions;
 namespace LinqInfer.Maths.Probability
 {
     [DebuggerDisplay("{Name} Probability = {CurrentProbability}")]
-    internal class HypothesisSubset<T> : QueryableSample<T>, IHypotheticalSubset<T>
+    class HypothesisSubset<T> : QueryableSample<T>, IHypotheticalSubset<T>
     {
-        private readonly Fraction _originalPrior;
-        private readonly IQueryableSample<T> _superset;
+        readonly Fraction _originalPrior;
+        readonly IQueryableSample<T> _superset;
 
-        private Fraction _currentPrior;
+        Fraction _currentPrior;
 
         public HypothesisSubset(IQueryableSample<T> superset, IQueryable<T> sample, string name = null, Fraction? priorProbability = null, Expression<Func<T, int>> weightSelector = null) : base(sample, name, weightSelector)
         {

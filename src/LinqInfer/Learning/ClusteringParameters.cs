@@ -82,7 +82,7 @@ namespace LinqInfer.Learning
             if (InitialRadius.HasValue && !(InitialRadius.Value > 0 && InitialRadius.Value < 1)) throw new ArgumentException("Invalid InitialRadius");
         }
 
-        private double CurrentNeighbourhoodRadius(double initialRadius, int iteration, int numberOfIterations)
+        double CurrentNeighbourhoodRadius(double initialRadius, int iteration, int numberOfIterations)
         {
             var r = initialRadius + 1;
             var l = Math.Log(r);
@@ -91,7 +91,7 @@ namespace LinqInfer.Learning
             return r * e - 1;
         }
 
-        private string GetLabelForMember(object member, int i, int j)
+        string GetLabelForMember(object member, int i, int j)
         {
             if (member == null) return string.Empty;
 

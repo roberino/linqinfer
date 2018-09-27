@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    internal sealed class AsyncEnumerable<T> : IEnumerable<Task<IList<T>>>
+    sealed class AsyncEnumerable<T> : IEnumerable<Task<IList<T>>>
     {
-        private readonly Func<int, AsyncBatch<T>> _loader;
+        readonly Func<int, AsyncBatch<T>> _loader;
 
         public AsyncEnumerable(Func<int, AsyncBatch<T>> loader)
         {

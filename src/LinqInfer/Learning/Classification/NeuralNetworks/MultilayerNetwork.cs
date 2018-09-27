@@ -1,79 +1,40 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetwork : 
-        ICloneableObject<MultilayerNetwork>, 
-        IBinaryPersistable, 
-        IExportableAsVectorDocument, 
-        IImportableAsVectorDocument, 
+    class MultilayerNetwork :
+        ICloneableObject<MultilayerNetwork>,
         IHasNetworkTopology,
         IVectorClassifier,
-        ISerialisableVectorTransformation
+        ISerialisableDataTransformation
     {
-        private readonly Func<int, Range, INeuron> _neuronFactory;
-
-        private IDictionary<string, string> _properties;
-        private INetworkSignalFilter _rootLayer;
-        private NetworkParameters _parameters;
-        private NetworkSpecification _specification;
-        private bool _initd;
-
-        public MultilayerNetwork(Stream input)
-        {
-            var n = LoadData(input);
-            _neuronFactory = n._neuronFactory;
-            _rootLayer = n._rootLayer;
-            _parameters = n._parameters;
-            _properties = n._properties;
-            _initd = true;
-        }
-
-        public MultilayerNetwork(NetworkParameters parameters, IDictionary<string, string> properties = null)
-        {
-            parameters.Validate();
-
-            _parameters = parameters;
-            _specification = parameters.ToSpecification();
-            _properties = properties ?? new Dictionary<string, string>();
-
-            _initd = false;
-        }
+        INetworkSignalFilter _rootLayer;
+        bool _initd;
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
         {
             specification.Validate();
 
-            _parameters = specification.ToParameters();
-            _specification = specification;
-            _properties = properties ?? new Dictionary<string, string>();
+            Specification = specification;
+
+            Properties = properties ?? new Dictionary<string, string>();
 
             _initd = false;
         }
 
-        private MultilayerNetwork(NetworkParameters parameters, INetworkSignalFilter rootLayer)
-        {
-            _parameters = parameters;
-            _rootLayer = rootLayer;
-            _specification = parameters.ToSpecification();
-            _initd = true;
-        }
+        public IDictionary<string, string> Properties { get; }
 
-        public IDictionary<string, string> Properties => _properties;
+        public NetworkSpecification Specification { get; }
 
-        public NetworkSpecification Specification => _specification;
-
-        public NetworkParameters Parameters => _parameters;
-
-        public IEnumerable<Matrix> ExportData()
+        public IEnumerable<Matrix> ExportRawData()
         {
             return ForEachLayer(l => l.ExportData(), false);
         }
@@ -124,7 +85,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + l + "." + i;
                     var node = await graph.FindOrCreateVertexAsync(name);
                     var attribs = await node.GetAttributesAsync();
-                    
+
                     var weights = n.Export();
                     var wsum = Math.Abs(weights.Sum);
 
@@ -158,18 +119,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        private void InitialiseLayers()
+        void InitialiseLayers()
         {
+            Specification.Initialise();
+
             NetworkLayer next = null;
             NetworkLayer lastLayer = null;
 
-            for (int i = 0; i < _specification.Layers.Count; i++)
+            for (int i = 0; i < Specification.Layers.Count; i++)
             {
-                var layer = _specification.Layers[i];
+                var layer = Specification.Layers[i];
 
                 if (i == 0)
                 {
-                    next = new NetworkLayer(_specification.InputVectorSize, layer);
+                    next = new NetworkLayer(Specification.InputVectorSize, layer);
                     _rootLayer = next;
                 }
                 else
@@ -184,7 +147,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _initd = true;
         }
 
-        public ILayer LastLayer { get { return Layers.Reverse().First(); } }
+        public ILayer LastLayer => Layers.Reverse().First();
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
@@ -211,30 +174,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Evaluate(vector);
         }
 
-        /// <summary>
-        /// Reduces the networks input parameters and associated weights to improve it's efficiency.
-        /// </summary>
-        /// <param name="inputIndexes">One or more input indexes (base zero)</param>
-        public void PruneInputs(params int[] inputIndexes)
-        {
-            if (inputIndexes == null || inputIndexes.Length == 0) throw new ArgumentException("No inputs recieved");
-
-            var newSize = Enumerable.Range(0, Specification.InputVectorSize).Except(inputIndexes).Count();
-
-            ForEachLayer(l =>
-            {
-                l.ForEachNeuron(n =>
-                {
-                    n.PruneWeights(inputIndexes);
-                    return 1;
-                }).ToList();
-
-                return 1;
-            }, false).ToList();
-
-            Parameters.InputVectorSize = newSize;
-        }
-
         public IEnumerable<ILayer> Layers
         {
             get
@@ -252,53 +191,28 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public int InputSize => throw new NotImplementedException();
+        public int InputSize => Specification.InputVectorSize;
 
-        public int OutputSize => throw new NotImplementedException();
-
-        public void Save(Stream output)
-        {
-            ToVectorDocument().Save(output);
-
-            output.Flush();
-        }
+        public int OutputSize => Specification.OutputVectorSize;
 
         /// <summary>
         /// Exports the raw data
         /// </summary>
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
             return new MultilayerNetworkExporter().Export(this);
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
-            var nn = CreateFromVectorDocument(doc);
+            var nn = CreateFromData(doc);
 
-            _parameters = nn._parameters;
             _rootLayer = nn._rootLayer;
         }
 
-        public static MultilayerNetwork CreateFromVectorDocument(BinaryVectorDocument doc)
+        public static MultilayerNetwork CreateFromData(PortableDataDocument doc)
         {
             return new MultilayerNetworkExporter().Import(doc);
-        }
-
-        public void Load(Stream input)
-        {
-            var nn = LoadData(input);
-
-            _parameters = nn._parameters;
-            _rootLayer = nn._rootLayer;
-        }
-
-        public static MultilayerNetwork LoadData(Stream input)
-        {
-            var doc = new BinaryVectorDocument();
-
-            doc.Load(input);
-
-            return CreateFromVectorDocument(doc);
         }
 
         public override string ToString()
@@ -309,12 +223,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 s += "[Layer " + layer.Size + "]";
             }
 
-            return string.Format("Network({0}):{1}", Parameters.InputVectorSize, s);
+            return $"Network({Specification.InputVectorSize}):{s}";
         }
 
         public MultilayerNetwork Clone(bool deep)
         {
-            return new MultilayerNetwork(_parameters.Clone(deep), _rootLayer.Clone(deep));
+            var data = ExportData();
+            var newNet = new MultilayerNetwork(Specification);
+
+            newNet.ImportData(data);
+
+            return newNet;
         }
 
         public object Clone()
@@ -322,9 +241,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Clone(true);
         }
 
-        private IEnumerable<INeuron> AllNeurons()
+        IEnumerable<INeuron> AllNeurons()
         {
-            foreach(var layer in Layers)
+            foreach (var layer in Layers)
             {
                 var neurons = new List<INeuron>();
 

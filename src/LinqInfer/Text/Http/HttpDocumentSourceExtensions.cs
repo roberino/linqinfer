@@ -78,7 +78,7 @@ namespace LinqInfer.Text.Http
             return output.Output;
         }
 
-        private static async Task<T> RunAsync<T>(this IAsyncEnumerator<HttpDocument> httpDocumentSource, IBuilderSink<HttpDocument, T> sink, CancellationToken cancellationToken)
+        static async Task<T> RunAsync<T>(this IAsyncEnumerator<HttpDocument> httpDocumentSource, IBuilderSink<HttpDocument, T> sink, CancellationToken cancellationToken)
         {
             var pipe = httpDocumentSource.CreatePipe().RegisterSinks(sink);
 

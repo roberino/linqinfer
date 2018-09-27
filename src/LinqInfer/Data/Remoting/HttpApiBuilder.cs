@@ -6,17 +6,18 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpApiBuilder : IHttpApiBuilder
+    class HttpApiBuilder : IHttpApiBuilder
     {
         protected readonly IOwinAppBuilder _host;
-        private readonly RoutingHandler _routes;
-        private readonly FunctionBinder _binder;
-        private readonly IObjectSerialiser _serialiser;
-        private readonly Uri _baseUri;
-        private readonly bool _bindToAnyHost;
+        readonly RoutingHandler _routes;
+        readonly FunctionBinder _binder;
+        readonly IObjectSerialiser _serialiser;
+        readonly Uri _baseUri;
+        readonly bool _bindToAnyHost;
 
         public HttpApiBuilder(IObjectSerialiser serialiser, IOwinAppBuilder host, Uri baseUri = null)
         {
@@ -165,7 +166,7 @@ namespace LinqInfer.Data.Remoting
             _host.AddErrorHandler(errorHandler);
         }
 
-        private async Task<bool> PostProcess(IOwinContext context)
+        async Task<bool> PostProcess(IOwinContext context)
         {
             if (!context.Response.Header.StatusCode.HasValue && !context.Response.HasContent)
             {
@@ -187,7 +188,7 @@ namespace LinqInfer.Data.Remoting
             return true;
         }
 
-        private Task WriteOptions(IOwinContext context, IList<IUriRoute> mappings)
+        Task WriteOptions(IOwinContext context, IList<IUriRoute> mappings)
         {
             var supportedVerbs = mappings.SelectMany(m => m.Verbs.ToString().ToUpper().Split(',')).Distinct().ToArray();
                 //.Aggregate(new StringBuilder(), (s,v) => (s.Length > 0 ? s.Append(',') : s).Append(v)).ToString();
@@ -205,7 +206,7 @@ namespace LinqInfer.Data.Remoting
             });
         }
 
-        private Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
+        Task<bool> StandardErrorHandler(IOwinContext context, Exception ex)
         {
             if (ex is ArgumentException && context.Response.Header.StatusCode.HasValue)
             {
@@ -215,12 +216,12 @@ namespace LinqInfer.Data.Remoting
             return Task.FromResult(false);
         }
 
-        private string GetPathForName(string name)
+        string GetPathForName(string name)
         {
             return new string(name.Where(n => char.IsLetterOrDigit(n)).ToArray()).ToLower();
         }
 
-        private IEnumerable<string> GetParameters<TArg>(ParameterInfo parameter)
+        IEnumerable<string> GetParameters<TArg>(ParameterInfo parameter)
         {
             var argType = typeof(TArg);
             var isObj = (Type.GetTypeCode(argType) == TypeCode.Object);

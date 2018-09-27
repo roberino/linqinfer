@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
 using System;
 using System.Collections;
@@ -14,11 +14,11 @@ namespace LinqInfer.Maths
     /// Represents a matrix of floating point numbers
     /// with various methods for supporting matrix operations
     /// </summary>
-    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsVectorDocument, IImportableAsVectorDocument, IJsonExportable, IMatrix
+    public class Matrix : IEnumerable<Vector>, IEquatable<Matrix>, IExportableAsDataDocument, IImportableFromDataDocument, IJsonExportable, IMatrix
     {
-        private Lazy<Vector> _mean;
-        private Lazy<Matrix> _covariance;
-        private Lazy<Matrix> _cosineSimularity;
+        Lazy<Vector> _mean;
+        Lazy<Matrix> _covariance;
+        Lazy<Matrix> _cosineSimularity;
         protected readonly IList<Vector> _rows;
 
         public Matrix(IEnumerable<Vector> rows)
@@ -30,7 +30,7 @@ namespace LinqInfer.Maths
                 throw new ArgumentException("Invalid sizes");
             }
 
-            Rows = new IndexableEnumerable<IVector>(_rows);
+            Rows = new IndexableEnumerable<IVector>(_rows, i => _rows[i]);
             Columns = new IndexableEnumerable<IVector>(GetColumns());
 
             foreach (var r in _rows)
@@ -61,7 +61,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns a mean of each dimension
         /// </summary>
-        public Vector MeanVector=> _mean.Value;
+        public Vector MeanVector => _mean.Value;
 
         /// <summary>
         /// Returns the covariance matrix
@@ -125,7 +125,7 @@ namespace LinqInfer.Maths
         {
             double total = 0;
 
-            for(var i = 0; i < Height; i++)
+            for (var i = 0; i < Height; i++)
             {
                 total += Rows[i][index];
             }
@@ -150,7 +150,7 @@ namespace LinqInfer.Maths
         {
             var mu_x = MeanVector[x];
             var mu_y = MeanVector[y];
-            
+
             double t = 0;
 
             foreach (var v in Rows)
@@ -192,7 +192,7 @@ namespace LinqInfer.Maths
         /// </summary>
         public Matrix Rotate(bool clockwise = true)
         {
-            var newData = new List<double[]>();
+            var newData = new List<Vector>();
 
             if (clockwise)
             {
@@ -203,7 +203,7 @@ namespace LinqInfer.Maths
                     {
                         row[x] = this[Height - x - 1, y];
                     }
-                    newData.Add(row);
+                    newData.Add(new Vector(row));
                 }
             }
             else
@@ -215,7 +215,7 @@ namespace LinqInfer.Maths
                     {
                         row[x] = this[x, Width - y - 1];
                     }
-                    newData.Add(row);
+                    newData.Add(new Vector(row));
                 }
             }
 
@@ -248,7 +248,7 @@ namespace LinqInfer.Maths
 
         internal Matrix ConcatRows(params Vector[] rows)
         {
-            foreach(var row in rows)
+            foreach (var row in rows)
             {
                 _rows.Add(row);
             }
@@ -268,7 +268,7 @@ namespace LinqInfer.Maths
 
             _rows.Clear();
 
-            foreach(var row in other._rows)
+            foreach (var row in other._rows)
             {
                 _rows.Add(row);
             }
@@ -310,6 +310,25 @@ namespace LinqInfer.Maths
         public static Matrix RandomMatrix(int width, int height, Range range)
         {
             return new Matrix(Enumerable.Range(0, height).Select(n => Functions.RandomVector(width, range)));
+        }
+
+        public static Matrix CalculateMatrix(int width, int height, Func<int, int, double> valueFactory)
+        {
+            var data = new List<Vector>(height);
+
+            for (int y = 0; y < height; y++)
+            {
+                var row = new double[width];
+
+                for (int x = 0; x < width; x++)
+                {
+                    row[x] = valueFactory(x, y);
+                }
+
+                data.Add(new Vector(row));
+            }
+
+            return new Matrix(data);
         }
 
         internal static Matrix Multiply(Matrix a, Matrix b)
@@ -520,12 +539,12 @@ namespace LinqInfer.Maths
             return x;
         }
 
-        private void OnModify()
+        void OnModify()
         {
             Modified?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Setup()
+        void Setup()
         {
             _mean = new Lazy<Vector>(() =>
                 _rows.Aggregate(new Vector(Width), (m, v) => m + v) / Height);
@@ -535,78 +554,37 @@ namespace LinqInfer.Maths
             _cosineSimularity = new Lazy<Matrix>(CalculateCosineSimularityMatrix);
         }
 
-        private Matrix CalculateCovarianceMatrix()
+        Matrix CalculateCovarianceMatrix()
         {
-            var data = new List<double[]>(Width);
-
-            foreach (var d in Enumerable.Range(0, Width))
-            {
-                var row = new double[Width];
-
-                foreach (var x in Enumerable.Range(0, Width))
-                {
-                    if (x == d)
-                    {
-                        row[x] = Variance(x);
-                    }
-                    else
-                    {
-                        row[x] = Covariance(x, d);
-                    }
-                }
-
-                data.Add(row);
-            }
-
-            return new Matrix(data);
+            return CalculateMatrix(
+                Width, Width, 
+                (x, y) => x == y ? Variance(x) : Covariance(x, y));
         }
 
-        private Matrix CalculateCosineSimularityMatrix()
+        Matrix CalculateCosineSimularityMatrix()
         {
-            var data = new List<double[]>();
+            var mr = Rotate();
 
-            foreach (var d in Enumerable.Range(0, Width))
-            {
-                var row = new double[Width];
-
-                foreach (var x in Enumerable.Range(0, Width))
-                {
-                    if (x == d)
-                    {
-                        row[x] = 0;
-                    }
-                    else
-                    {
-                        row[x] = CosineDistance(x, d);
-                    }
-                }
-
-                data.Add(row);
-            }
-
-            return new Matrix(data);
+            return CalculateMatrix(
+                Width, Width,
+                (x, y) => x == y ? 0 : mr.CosineDistance(x, y));
         }
 
-        private bool DimensionallyEquivalent(Matrix other) // better math term? 
+        bool DimensionallyEquivalent(Matrix other) // better math term? 
         {
             if (other == null) return false;
 
             return (other.Width == Width || other.Height == Height);
         }
 
-        private static void AssertDimensionalCompatibility(Matrix m, Vector v)
-        {
-            if (m.Width != v.Size) throw new ArgumentException("Incompatible dimensions");
-        }
-
-        private static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)
+        static void AssertDimensionalEquivalence(Matrix m1, Matrix m2)
         {
             if (!m1.DimensionallyEquivalent(m2)) throw new ArgumentException("Incompatible dimensions");
         }
 
-        public virtual BinaryVectorDocument ToVectorDocument()
+        public virtual PortableDataDocument ExportData()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             foreach (var vect in _rows)
             {
@@ -616,7 +594,7 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public virtual void FromVectorDocument(BinaryVectorDocument doc)
+        public virtual void ImportData(PortableDataDocument doc)
         {
             _rows.Clear();
 
@@ -661,7 +639,7 @@ namespace LinqInfer.Maths
             output.WriteLine("]");
         }
 
-        private IEnumerable<ColumnVector1D> GetColumns()
+        IEnumerable<ColumnVector1D> GetColumns()
         {
             for (int i = 0; i < Width; i++)
             {

@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths.Geometry;
+﻿using System.Threading.Tasks;
+using LinqInfer.Maths.Geometry;
 using LinqInfer.Maths.Graphs;
 using NUnit.Framework;
-using System.Threading.Tasks;
 
-namespace LinqInfer.Tests.Maths.Graphs
+namespace LinqInfer.UnitTests.Maths.Graphs
 {
     [TestFixture]
     public class SpatialExtensionTests : TestFixtureBase

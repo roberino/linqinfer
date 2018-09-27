@@ -1,10 +1,9 @@
-﻿using LinqInfer.Maths;
-using NUnit.Framework;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Linq;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MatrixTests : TestFixtureBase
@@ -178,8 +177,20 @@ namespace LinqInfer.Tests.Maths
 
             var dm = m1.CosineSimularityMatrix;
 
-            var r01 = m1.Rows[0].ToColumnVector().CosineDistance(m1.Rows[1].ToColumnVector());
+            var r01 = m1.Columns[0].ToColumnVector().CosineDistance(m1.Columns[1].ToColumnVector());
             
+            Assert.That(Math.Abs(dm[0, 1] - r01) < 0.0000001);
+        }
+
+        [Test]
+        public void CosineSimularityMatrix_WhenGivenMatrixRotated_ThenReturnsExpectedValues()
+        {
+            var m1 = Matrix.RandomMatrix(2, 3, new Range(10, -10)).Rotate();           
+
+            var dm = m1.CosineSimularityMatrix;
+
+            var r01 = m1.Columns[0].ToColumnVector().CosineDistance(m1.Columns[1].ToColumnVector());
+
             Assert.That(dm[0, 1], Is.EqualTo(r01));
         }
 
@@ -281,7 +292,18 @@ namespace LinqInfer.Tests.Maths
         }
 
         [Test]
-        public void Covariance_2X2matrix_CovarAndVarianceValuesSetCorrectly()
+        public void Covariance_10X25Matrix_ReturnsCorrectSizeMatrix()
+        {
+            var m1 = Matrix.RandomMatrix(10, 25, new Range(10, -10));
+
+            var covarM = m1.CovarianceMatrix;
+
+            Assert.That(covarM.Width, Is.EqualTo(10));
+            Assert.That(covarM.Height, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void Covariance_2X2Matrix_CovarAndVarianceValuesSetCorrectly()
         {
             var m = new Matrix(new[]
             {

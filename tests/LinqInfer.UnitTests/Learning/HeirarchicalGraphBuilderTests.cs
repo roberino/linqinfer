@@ -1,13 +1,13 @@
-﻿using LinqInfer.Learning;
-using LinqInfer.Maths;
-using LinqInfer.Utility;
-using NUnit.Framework;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Learning;
+using LinqInfer.Maths;
+using LinqInfer.Utility;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class HeirarchicalGraphBuilderTests

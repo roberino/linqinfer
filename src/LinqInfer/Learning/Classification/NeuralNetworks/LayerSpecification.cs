@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
@@ -6,17 +6,17 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class LayerSpecification : IExportableAsVectorDocument
+    public sealed class LayerSpecification : IExportableAsDataDocument
     {
-        public static readonly Range DefaultInitialWeightRange = new Range(0.01, -0.01);
+        public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
 
-        private ISerialisableVectorTransformation _outputTransformation;
+        ISerialisableDataTransformation _outputTransformation;
 
         public LayerSpecification(
             int layerSize, 
-            IActivatorFunction activator, 
+            ActivatorExpression activator, 
             ILossFunction lossFunction,
-            IWeightUpdateRule weightUpdateRule,
+            WeightUpdateRule weightUpdateRule,
             Range initialWeightRange,
             bool parallelProcess = false,
             Func<int, INeuron> neuronFactory = null)
@@ -36,11 +36,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public LayerSpecification(
             int layerSize,
-            IActivatorFunction activator = null,
+            ActivatorExpression activator = null,
             ILossFunction lossFunction = null) : this(
                 layerSize, activator ?? Activators.Sigmoid(1), 
                 lossFunction ?? LossFunctions.Square, 
-                DefaultWeightUpdateRule.Create(), 
+                WeightUpdateRules.Default(), 
                 DefaultInitialWeightRange)
         {
         }
@@ -68,17 +68,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator function
         /// </summary>
-        public IActivatorFunction Activator { get; }
+        public ActivatorExpression Activator { get; }
 
         /// <summary>
         /// Gets a function for updating weights
         /// </summary>
-        public IWeightUpdateRule WeightUpdateRule { get; }
+        public WeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Transforms the output
         /// </summary>
-        public ISerialisableVectorTransformation OutputTransformation
+        public ISerialisableDataTransformation OutputTransformation
         {
             get => _outputTransformation;
             set
@@ -96,12 +96,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         public Range InitialWeightRange { get; }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetPropertyFromExpression(() => LayerSize);
-            doc.SetPropertyFromExpression(() => Activator);
+            doc.SetPropertyFromExpression(() => Activator, Activator.Export());
             doc.SetPropertyFromExpression(() => LossFunction, LossFunction.GetType().Name);
             doc.SetPropertyFromExpression(() => WeightUpdateRule, WeightUpdateRule.Export());
 
@@ -119,7 +119,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        internal static LayerSpecification FromVectorDocument(BinaryVectorDocument doc, NetworkBuilderContext context)
+        internal static LayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
         {
             LayerSpecification layer = null;
 
@@ -135,7 +135,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var lossFunc = context.LossFunctionFactory.Create(lossFuncStr);
             var wuRule = context.WeightUpdateRuleFactory.Create(weightUpdateRuleStr);
 
-            ISerialisableVectorTransformation outputTransform = null;
+            ISerialisableDataTransformation outputTransform = null;
 
             if (doc.Children.Count > 0)
             {

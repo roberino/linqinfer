@@ -8,7 +8,7 @@ namespace LinqInfer.Maths
 {
     public static class Functions
     {
-        private static readonly Random _random = new Random();
+        static readonly Random _random = new Random();
 
         /// <summary>
         /// Iterates a function, feeding the result of each invocation back into the function

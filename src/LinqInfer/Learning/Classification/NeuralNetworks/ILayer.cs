@@ -2,13 +2,14 @@
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
     /// Represents a layer in a layered network of neurons
     /// </summary>
-    public interface ILayer : INetworkSignalFilter, ICloneableObject<ILayer>
+    public interface ILayer : INetworkSignalFilter, IPropagatedOutput, ICloneableObject<ILayer>
     {
         /// <summary>
         /// The size of the vector which the layer can receive
@@ -23,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the activator used for the layer
         /// </summary>
-        IActivatorFunction Activator { get; }
+        ActivatorExpression Activator { get; }
 
         /// <summary>
         /// Gets the function used to calculate errors
@@ -33,19 +34,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets the function for updating weights
         /// </summary>
-        IWeightUpdateRule WeightUpdateRule { get; }
+        WeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
         /// Gets a neuron by index
         /// </summary>
         /// <param name="index">The zero base index</param>
         INeuron this[int index] { get; }
-
-        /// <summary>
-        /// Gets the last output as a vector
-        /// </summary>
-        IVector LastOutput { get; }
-
+        
         /// <summary>
         /// Applies a function over each neuron supplying the neuron as a parameter
         /// </summary>
@@ -70,7 +66,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Exports the raw data and properties
         /// </summary>
-        BinaryVectorDocument Export();
+        PortableDataDocument Export();
 
         /// <summary>
         /// Exports the raw data
@@ -80,6 +76,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Imports raw data
         /// </summary>
-        void Import(BinaryVectorDocument data);
+        void Import(PortableDataDocument data);
     }
 }

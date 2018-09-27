@@ -1,9 +1,10 @@
-﻿using LinqInfer.Learning;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Linq;
+using LinqInfer.Learning;
+using LinqInfer.Maths;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.UnitTests.Learning
 {
     [TestFixture]
     public class PipelineExtensionsTests
@@ -15,7 +16,7 @@ namespace LinqInfer.Tests.Learning
             var pipeline1 = data.CreatePipeline();
             var pipeline2 = data.CreatePipeline();
 
-            pipeline1.FilterFeaturesByProperty(s => s.Select(p => p.x));
+            pipeline1.CentreFeatures().ScaleFeatures(Range.MinusOneToOne);
 
             var state = pipeline1.SaveState();
 

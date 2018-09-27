@@ -2,6 +2,6 @@
 {
     public interface IHasSerialisableTransformation
     {
-        ISerialisableVectorTransformation VectorTransformation { get; }
+        ISerialisableDataTransformation DataTransformation { get; }
     }
 }

@@ -1,56 +1,22 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning;
+﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
-        /// <param name="tokeniser">An optional tokeniser</param>
-        public static IDynamicClassifier<TClass, string> OpenAsTextualMultilayerNetworkClassifier<TClass>(
-            this BinaryVectorDocument docData, ITokeniser tokeniser = null) where TClass : IEquatable<TClass>
-        {
-            var featureExtractor = new TextVectorExtractor();
-            var t = tokeniser ?? new Tokeniser();
-            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<string>(t.Tokenise);
-
-            return MlnExtensions.OpenAsMultilayerNetworkClassifier<string, TClass>(docData, objFeatureExtractor);
-        }
-
-        /// <summary>
-        /// Restores a previously saved multi-layer network classifier from a blob store.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The returned class type</typeparam>
-        /// <param name="docData">An exported multilayer network</returns>
-        public static IDynamicClassifier<TClass, TInput> OpenAsTextualMultilayerNetworkClassifier<TClass, TInput>(
-            this BinaryVectorDocument docData)
-            where TClass : IEquatable<TClass>
-            where TInput : class
-        {
-            var featureExtractor = new TextVectorExtractor();
-            var index = new DocumentIndex();
-            var tokeniser = new ObjectTextExtractor<TInput>(index.Tokeniser);
-            var objFeatureExtractor = featureExtractor.CreateObjectTextVectoriser<TInput>(tokeniser.CreateObjectTextTokeniser());
-
-            return MlnExtensions.OpenAsMultilayerNetworkClassifier<TInput, TClass>(docData, objFeatureExtractor);
-        }
-
         /// <summary>
         /// Creates a feature processing pipeline which extracts sematic vectors
         /// based on term frequency.
@@ -77,7 +43,7 @@ namespace LinqInfer.Text
         /// </summary>
         public static FeatureProcessingPipeline<TokenisedTextDocument> CreateTextFeaturePipeline(this IQueryable<TokenisedTextDocument> documents, ISemanticSet keyTerms)
         {
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return new FeatureProcessingPipeline<TokenisedTextDocument>(documents, ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens));
         }
@@ -90,7 +56,7 @@ namespace LinqInfer.Text
         {
             if (tokeniser == null) tokeniser = new Tokeniser();
 
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens);
         }
@@ -103,7 +69,7 @@ namespace LinqInfer.Text
         {
             if (tokeniser == null) tokeniser = new Tokeniser();
 
-            var ve = new TextVectorExtractor(keyTerms.Words, 0, false);
+            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
 
             return new FeatureProcessingPipeline<string>(data, ve.CreateObjectTextVectoriser<string>(s => tokeniser.Tokenise(s)));
         }
@@ -144,7 +110,7 @@ namespace LinqInfer.Text
             var tokeniser = new Tokeniser();
             var otokeniser = new ObjectTextExtractor<T>(tokeniser);
             var objtokeniser = otokeniser.CreateObjectTextTokeniser();
-            var vectorExtractor = new TextVectorExtractor(keywords, 100, false);
+            var vectorExtractor = new TextDataExtractor(keywords, 100, false);
 
             var pipeline = new FeatureProcessingPipeline<T>(data, vectorExtractor.CreateObjectTextVectoriser(objtokeniser));
 
@@ -162,7 +128,8 @@ namespace LinqInfer.Text
         /// <param name="classifyingFunction">A function which will return a class label for an object</param>
         /// <param name="maxVectorSize">The maximum number of terms (words) used to classify object</param>
         /// <returns>An object classifier</returns>
-        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data, Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
+        public static IObjectClassifier<string, T> CreateSemanticClassifier<T>(this IQueryable<T> data,
+            Expression<Func<T, string>> classifyingFunction, int maxVectorSize = 128) where T : class
         {
             var index = new DocumentIndex();
             var cf = classifyingFunction.Compile();
@@ -172,9 +139,27 @@ namespace LinqInfer.Text
 
             index.IndexDocuments(docs);
 
-            var pipeline = new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
-            var trainingSet = pipeline.AsTrainingSet(classifyingFunction);
-            return trainingSet.ToMultilayerNetworkClassifier().Execute();
+            var featureExtractor = index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize);
+
+            var outputs = data.GroupBy(classifyingFunction).Select(g => g.Key).ToArray();
+
+            var trainingSet =
+                data.AsAsyncEnumerator()
+                    .CreatePipeline(featureExtractor)
+                    .AsTrainingSet(classifyingFunction, outputs);
+
+            var classifier = trainingSet.AttachMultilayerNetworkClassifier(
+                b =>
+                {
+                    b.ConfigureSoftmaxNetwork(
+                        featureExtractor.VectorSize * 2,
+                        lp => { lp.LearningRate = 0.01; });
+                }
+            );
+
+            trainingSet.RunAsync(CancellationToken.None, 100).ConfigureAwait(true).GetAwaiter().GetResult();
+
+            return classifier;
         }
 
         /// <summary>

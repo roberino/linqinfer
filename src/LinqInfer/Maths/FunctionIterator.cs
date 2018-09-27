@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace LinqInfer.Maths
 {
     public sealed class FunctionIterator<T>
     {
-        private readonly Func<T, T> _func;
+        readonly Func<T, T> _func;
 
         /// <summary>
         /// Creates a new FunctionIterator for the supplied function

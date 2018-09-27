@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace LinqInfer.Maths
 {
-    internal class VectorSerialiser : IVectorSerialiser
+    class VectorSerialiser : IVectorSerialiser
     {
-        private const string _base64 = "base64";
-        private const string _csv = "csv";
+        const string _base64 = "base64";
+        const string _csv = "csv";
 
         public string Serialize(IVector vector, bool useBase64 = true)
         {
@@ -45,33 +45,27 @@ namespace LinqInfer.Maths
                 }
                 return Vector.FromCsv(data);
             }
-            else
+
+            var typeMethod = parts[0].Split('/');
+            var typeName = typeMethod[0];
+
+            useBase64 = typeMethod[1] == _base64;
+
+            if (useBase64)
             {
-                var typeMethod = parts[0].Split('/');
-                var typeName = typeMethod[0];
+                var factory = FindVectorFactory(typeName);
 
-                useBase64 = typeMethod[1] == _base64;
-
-                if (useBase64)
-                {
-                    var factory = FindVectorFactory(typeName);
-
-                    return factory.Invoke(Convert.FromBase64String(parts[1]));
-                }
-                else
-                {
-                    return Vector.FromCsv(parts[1]).ToColumnVector();
-                }
+                return factory.Invoke(Convert.FromBase64String(parts[1]));
             }
+
+            return Vector.FromCsv(parts[1]).ToColumnVector();
         }
 
         internal static Func<byte[], IVector> FindVectorFactory(string typeName)
         {
             lock (_factoryCache)
             {
-                Func<byte[], IVector> factory;
-
-                if (!_factoryCache.TryGetValue(typeName, out factory))
+                if (!_factoryCache.TryGetValue(typeName, out var factory))
                 {
                     var type = typeof(VectorSerialiser)
                                 .GetTypeInf()
@@ -86,6 +80,6 @@ namespace LinqInfer.Maths
             }
         }
 
-        private static IDictionary<string, Func<byte[], IVector>> _factoryCache = new Dictionary<string, Func<byte[], IVector>>();
+        static IDictionary<string, Func<byte[], IVector>> _factoryCache = new Dictionary<string, Func<byte[], IVector>>();
     }
 }

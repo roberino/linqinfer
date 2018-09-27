@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Text.Analysis
 {
-    internal sealed class CBowAggregator
+    sealed class CBowAggregator
     {
-        private readonly OneHotEncoding<string> _encoding;
+        readonly OneHotEncoding<string> _encoding;
 
         public CBowAggregator(
             IAsyncEnumerator<SyntacticContext> cbow,
@@ -34,7 +34,7 @@ namespace LinqInfer.Text.Analysis
 
         public IAsyncEnumerator<SyntacticContext> Cbow { get; }
 
-        public async Task<IDictionary<string, WordVector>> AggregateVectorsAync(CancellationToken cancellationToken)
+        public async Task<IDictionary<string, WordData>> AggregateVectorsAync(CancellationToken cancellationToken)
         {
             var aggregation = Cbow
                 .CreatePipe()
@@ -42,12 +42,12 @@ namespace LinqInfer.Text.Analysis
 
             await aggregation.Pipe.RunAsync(cancellationToken);
 
-            var results = aggregation.Output.Select(kv => new WordVector(kv.Key, kv.Value.Count, CreateVector(kv.Value))).ToDictionary(v => v.Word);
+            var results = aggregation.Output.Select(kv => new WordData(kv.Key, kv.Value.Count, CreateVector(kv.Value))).ToDictionary(v => v.Word);
 
             return results;
         }
 
-        public async Task<IAsyncTrainingSet<WordVector, string>> GetTrainingSetAync(CancellationToken cancellationToken)
+        public async Task<IAsyncTrainingSet<WordData, string>> GetTrainingSetAync(CancellationToken cancellationToken)
         {
             var aggregation = await AggregateVectorsAync(cancellationToken);
 
@@ -84,7 +84,7 @@ namespace LinqInfer.Text.Analysis
 
             await trainingSet.RunAsync(cancellationToken);
 
-            var doc = classifier.ToVectorDocument();
+            var doc = classifier.ExportData();
 
             var mln = doc.GetChildDoc<MultilayerNetwork>();
 
@@ -95,7 +95,7 @@ namespace LinqInfer.Text.Analysis
                   .ToDictionary(x => x.f.Label, v => v.v);
         }
 
-        private IVector CreateVector(WordVectAggregation aggregate)
+        IVector CreateVector(WordVectAggregation aggregate)
         {
             var dvalues = new double[aggregate.Vector.Length];
 
@@ -108,7 +108,7 @@ namespace LinqInfer.Text.Analysis
             return v;
         }
 
-        private WordVectAggregation Extract(SyntacticContext context)
+        WordVectAggregation Extract(SyntacticContext context)
         {
             var total = new uint[_encoding.VectorSize];
 
@@ -117,7 +117,7 @@ namespace LinqInfer.Text.Analysis
             return new WordVectAggregation() { Vector = vector.ToUnsignedIntegerArray(), Count = 1 };
         }
 
-        private WordVectAggregation Aggregate(WordVectAggregation v1, WordVectAggregation v2)
+        WordVectAggregation Aggregate(WordVectAggregation v1, WordVectAggregation v2)
         {
             for (var i = 0; i < v1.Vector.Length; i++)
             {
@@ -129,7 +129,7 @@ namespace LinqInfer.Text.Analysis
             return v1;
         }
 
-        private class WordVectAggregation
+        class WordVectAggregation
         {
             public uint[] Vector { get; set; }
             public long Count { get; set; }

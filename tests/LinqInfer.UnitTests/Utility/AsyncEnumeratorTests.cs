@@ -1,10 +1,10 @@
-﻿using LinqInfer.Utility;
-using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Utility
+namespace LinqInfer.UnitTests.Utility
 {
     [TestFixture]
     public class AsyncEnumeratorTests
@@ -33,7 +33,7 @@ namespace LinqInfer.Tests.Utility
             Assert.That(results.Zip(expected, (s1, s2) => s1 == s2).All(x => x));
         }
 
-        private IEnumerable<Task<IList<string>>> GetData()
+        IEnumerable<Task<IList<string>>> GetData()
         {
             foreach (var n in Enumerable.Range(0, 10))
             {

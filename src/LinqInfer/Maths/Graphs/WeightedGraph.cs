@@ -10,24 +10,25 @@ namespace LinqInfer.Maths.Graphs
 {
     public class WeightedGraph<T, C> where T : IEquatable<T> where C : IComparable<C>
     {
-        private readonly Lazy<OptimalPathSearch<T, C>> _pathSearch;
-        private readonly ConcurrentDictionary<T, WeightedGraphNode<T, C>> _workingData;
-        private readonly IDictionary<string, object> _cache;
-        
+        readonly Lazy<OptimalPathSearch<T, C>> _pathSearch;
+        readonly ConcurrentDictionary<T, WeightedGraphNode<T, C>> _workingData;
+
         public WeightedGraph(IWeightedGraphStore<T, C> store, Func<C, C, C> weightAccumulator)
         {
             Storage = store;
 
             _pathSearch = new Lazy<OptimalPathSearch<T, C>>(
                 () => new OptimalPathSearch<T, C>(this, weightAccumulator ?? ((x, y) =>
-            {
-                dynamic xd = x;
-                dynamic xy = y;
-                return (C)(xd + xy);
-            })));
+                {
+                    var xd = Convert.ToDouble(x);
+                    var yd = Convert.ToDouble(y);
+
+                    return (C)Convert.ChangeType(xd + yd, typeof(C));
+                })));
 
             _workingData = new ConcurrentDictionary<T, WeightedGraphNode<T, C>>();
-            _cache = new Dictionary<string, object>();
+
+            Cache = new Dictionary<string, object>();
         }
 
         public event EventHandler<EventArgsOf<T>> Modified;
@@ -40,29 +41,11 @@ namespace LinqInfer.Maths.Graphs
             return new GexfFormatter().FormatAsync(this);
         }
 
-        public OptimalPathSearch<T, C> OptimalPathSearch
-        {
-            get
-            {
-                return _pathSearch.Value;
-            }
-        }
+        public OptimalPathSearch<T, C> OptimalPathSearch => _pathSearch.Value;
 
-        public long VerticeCount
-        {
-            get
-            {
-                return Storage.GetVerticeCountAsync().Result;
-            }
-        }
+        public long VerticeCount => Storage.GetVerticeCountAsync().Result;
 
-        public WeightedGraphNode<T, C> this[T label]
-        {
-            get
-            {
-                return FindVertexAsync(label).Result;
-            }
-        }
+        public WeightedGraphNode<T, C> this[T label] => FindVertexAsync(label).Result;
 
         /// <summary>
         /// Removes all data from a graph store
@@ -97,7 +80,7 @@ namespace LinqInfer.Maths.Graphs
 
             return items;
         }
- 
+
         /// <summary>
         /// Finds a vertex by label
         /// </summary>
@@ -145,11 +128,11 @@ namespace LinqInfer.Maths.Graphs
         /// <returns>A task</returns>
         public async Task Merge(WeightedGraph<T, C> other, Func<C, C, C> weightMergeFunction)
         {
-            foreach(var vertex in await other.FindAllVertexesAsync())
+            foreach (var vertex in await other.FindAllVertexesAsync())
             {
                 var match = await FindOrCreateVertexAsync(vertex.Label);
 
-                foreach(var edge in await vertex.GetEdgesAsync())
+                foreach (var edge in await vertex.GetEdgesAsync())
                 {
                     await match.ConnectToOrModifyWeightAsync(edge.Value.Label, edge.Weight, x => weightMergeFunction(x, edge.Weight));
                 }
@@ -173,9 +156,9 @@ namespace LinqInfer.Maths.Graphs
             return vertex;
         }
 
-        internal IWeightedGraphStore<T, C> Storage { get; private set; }
+        internal IWeightedGraphStore<T, C> Storage { get; }
 
-        internal IDictionary<string, object> Cache { get { return _cache; } }
+        internal IDictionary<string, object> Cache { get; }
 
         internal async Task<WeightedGraphNode<T, C>> FindOrCreateVertexAsync(T label, bool fireEvent)
         {
@@ -212,7 +195,7 @@ namespace LinqInfer.Maths.Graphs
                 _pathSearch.Value.ClearCache();
             }
 
-            _cache.Clear();
+            Cache.Clear();
 
             Modified?.Invoke(this, new EventArgsOf<T>(label));
         }

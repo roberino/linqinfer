@@ -1,6 +1,6 @@
 ﻿namespace LinqInfer.Text.Analysis
 {
-    internal class Triple
+    class Triple
     {
         public string Subject { get; set; }
         public string Predicate { get; set; }

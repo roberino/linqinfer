@@ -1,12 +1,12 @@
-﻿using LinqInfer.Data.Pipes;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Data.Pipes;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Data.Pipes
+namespace LinqInfer.UnitTests.Data.Pipes
 {
     [TestFixture]
     public class AsyncEnumeratorTests
@@ -53,7 +53,7 @@ namespace LinqInfer.Tests.Data.Pipes
             Assert.That(data.All(s => s.StartsWith("5_")));
         }
 
-        private static AsyncBatch<string> Load(int n)
+        static AsyncBatch<string> Load(int n)
         {
             var items = Task.FromResult(
                     (IList<string>)Enumerable.Range(0, 10)

@@ -84,7 +84,7 @@ namespace LinqInfer.Learning.MicroServices
             }, routePath);
         }
 
-        private static string GetName<T>()
+        static string GetName<T>()
         {
             var typeName = typeof(T).Name.ToLower();
 

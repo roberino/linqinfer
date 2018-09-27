@@ -1,4 +1,4 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,8 +10,8 @@ namespace LinqInfer.Maths
     public sealed class LabelledMatrix<T> : Matrix, IEquatable<LabelledMatrix<T>>
         where T : IEquatable<T>
     {
-        private const string indexLabel = "index_";
-        private bool _labelsAreColsAndRows;
+        const string indexLabel = "index_";
+        bool _labelsAreColsAndRows;
 
         internal LabelledMatrix(
             Matrix baseMatrix,
@@ -23,11 +23,11 @@ namespace LinqInfer.Maths
         }
 
         internal LabelledMatrix(
-            BinaryVectorDocument data) : base(Create(new Vector(0)))
+            PortableDataDocument data) : base(Create(new Vector(0)))
         {
             LabelIndexes = new Dictionary<T, int>();
 
-            FromVectorDocument(data);
+            ImportData(data);
         }
 
         /// <summary>
@@ -38,21 +38,26 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns labels and respective row indexes
         /// </summary>
-        public IDictionary<T, int> LabelIndexes { get; private set; }
+        public IDictionary<T, int> LabelIndexes { get; }
 
         /// <summary>
         /// Returns the covariance matrix with labels
         /// </summary>
-        public LabelledMatrix<T> LabelledCovarianceMatrix => new LabelledMatrix<T>(Rotate().CovarianceMatrix, LabelIndexes, true);
+        public LabelledMatrix<T> CreateCovarianceMatrix() => new LabelledMatrix<T>(Rotate().CovarianceMatrix, LabelIndexes, true);
 
         /// <summary>
         /// Returns the cosine simularity matrix with labels
         /// </summary>
-        public LabelledMatrix<T> LabelledCosineSimularityMatrix => new LabelledMatrix<T>(Rotate().CosineSimularityMatrix, LabelIndexes, true);
-
-        public override BinaryVectorDocument ToVectorDocument()
+        public LabelledMatrix<T> CreateCosineSimularityMatrix()
         {
-            var doc = base.ToVectorDocument();
+            var rotated = Rotate();
+            var cosineSim = rotated.CosineSimularityMatrix;
+            return new LabelledMatrix<T>(cosineSim, LabelIndexes, true);
+        }
+
+        public override PortableDataDocument ExportData()
+        {
+            var doc = base.ExportData();
 
             doc.SetPropertyFromExpression(() => _labelsAreColsAndRows, _labelsAreColsAndRows);
 
@@ -64,9 +69,9 @@ namespace LinqInfer.Maths
             return doc;
         }
 
-        public override void FromVectorDocument(BinaryVectorDocument doc)
+        public override void ImportData(PortableDataDocument doc)
         {
-            base.FromVectorDocument(doc);
+            base.ImportData(doc);
 
             _labelsAreColsAndRows = doc.PropertyOrDefault(nameof(_labelsAreColsAndRows), false);
 

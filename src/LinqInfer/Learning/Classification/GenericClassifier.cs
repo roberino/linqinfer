@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class GenericClassifier<TInput, TOutput> : IObjectClassifier<TOutput, TInput>
+    class GenericClassifier<TInput, TOutput> : IObjectClassifier<TOutput, TInput>
         where TOutput : IEquatable<TOutput>
     {
-        private readonly IFloatingPointFeatureExtractor<TInput> _featureExtractor;
-        private readonly ICategoricalOutputMapper<TOutput> _outputMapper;
-        private readonly Func<IVector, IVector> _classifyingFunc;
+        readonly IFloatingPointFeatureExtractor<TInput> _featureExtractor;
+        readonly ICategoricalOutputMapper<TOutput> _outputMapper;
+        readonly Func<IVector, IVector> _classifyingFunc;
 
         public GenericClassifier(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,

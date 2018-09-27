@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Remoting
 {
-    internal class HttpBasicClient : IDisposable, IHttpClient
+    class HttpBasicClient : IDisposable, IHttpClient
     {
-        private readonly HttpClient _client;
+        readonly HttpClient _client;
 
         public HttpBasicClient(HttpClient client = null)
         {

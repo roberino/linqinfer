@@ -182,7 +182,7 @@ namespace LinqInfer.Maths.Graphs
             }, s => s);
         }
 
-        private static Tuple<Point3D, double> GetPositionAndSize(IDictionary<string, object> attribs)
+        static Tuple<Point3D, double> GetPositionAndSize(IDictionary<string, object> attribs)
         {
             var x = GetValueOrDefault(attribs, "viz:position.x", 0d);
             var y = GetValueOrDefault(attribs, "viz:position.y", 0d);
@@ -194,7 +194,7 @@ namespace LinqInfer.Maths.Graphs
             return new Tuple<Point3D, double>(originalPos, s);
         }
 
-        private static T GetValueOrDefault<T>(IDictionary<string, object> values, string key, T defaultValue)
+        static T GetValueOrDefault<T>(IDictionary<string, object> values, string key, T defaultValue)
         {
             object val;
 

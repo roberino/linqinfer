@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    internal class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsVectorDocument, IImportableAsVectorDocument
+    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
     {
-        private readonly OneHotEncoding<string> _encoder;
-        private readonly Func<T, string[]> _objectToStringTransform;
+        readonly OneHotEncoding<string> _encoder;
+        readonly Func<T, string[]> _objectToStringTransform;
 
         public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
         {
@@ -58,26 +59,26 @@ namespace LinqInfer.Text.VectorExtraction
 
         public void Save(Stream output)
         {
-            ToVectorDocument().Save(output);
+            ExportData().Save(output);
         }
 
         public void Load(Stream input)
         {
-            var doc = new BinaryVectorDocument(input);
+            var doc = new PortableDataDocument(input);
 
-            FromVectorDocument(doc);
+            ImportData(doc);
         }
 
-        public BinaryVectorDocument ToVectorDocument()
+        public PortableDataDocument ExportData()
         {
-            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ToVectorDocument();
+            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ExportData();
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public void ImportData(PortableDataDocument doc)
         {
             var kvdoc = new KeyValueDocument();
 
-            kvdoc.FromVectorDocument(doc);
+            kvdoc.ImportData(doc);
 
             foreach (var kv in kvdoc.Data)
             {

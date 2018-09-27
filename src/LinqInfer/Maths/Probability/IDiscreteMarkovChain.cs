@@ -1,11 +1,12 @@
 ﻿using LinqInfer.Data;
 using System;
 using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {
     public interface IDiscreteMarkovChain<T> : ITransitionSimulator<T>,
-        IXmlExportable, IExportableAsVectorDocument, IImportableAsVectorDocument where T : IEquatable<T>
+        IXmlExportable, IExportableAsDataDocument, IImportableFromDataDocument where T : IEquatable<T>
     {
         int Order { get; }
         void AnalyseSequence(IEnumerable<T> sequence);

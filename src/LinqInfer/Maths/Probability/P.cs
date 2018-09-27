@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning.Classification;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -108,20 +107,6 @@ namespace LinqInfer.Maths.Probability
         }
 
         /// <summary>
-        /// Converts a classification result set into a set of hypothetical outcomes.
-        /// </summary>
-        /// <typeparam name="T">The class / outcome type</typeparam>
-        /// <param name="classifyResults">A set of classification results</param>
-        /// <returns>A set of hypotheses</returns>
-        public static Hypothetheses<T> ToHypotheses<T>(this IEnumerable<ClassifyResult<T>> classifyResults)
-        {
-            var cr = classifyResults.ToList();
-            var total = cr.Sum(m => m.Score);
-            var hypos = cr.Select(r => new HypotheticalOutcome<T>(r.ClassType, Fraction.ApproximateRational(r.Score / total)));
-            return new Hypothetheses<T>(hypos);
-        }
-
-        /// <summary>
         /// Builds a hypothesis for an outcome.
         /// </summary>
         /// <typeparam name="T">The outcome type</typeparam>
@@ -149,9 +134,9 @@ namespace LinqInfer.Maths.Probability
         /// <typeparam name="T">The outcome type</typeparam>
         /// <param name="hypos">The list of hypotheses</param>
         /// <returns>A Hypotheses object containing all outcomes</returns>
-        public static Hypothetheses<T> AsHypotheses<T>(this IEnumerable<IHypotheticalOutcome<T>> hypos)
+        public static Hypothetical<T> AsHypotheses<T>(this IEnumerable<IHypotheticalOutcome<T>> hypos)
         {
-            return new Hypothetheses<T>(hypos);
+            return new Hypothetical<T>(hypos);
         }
 
         /// <summary>
@@ -160,9 +145,9 @@ namespace LinqInfer.Maths.Probability
         /// <typeparam name="T">The outcome type</typeparam>
         /// <param name="hypos">The list of hypotheses</param>
         /// <returns>A Hypotheses object containing all outcomes</returns>
-        public static Hypothetheses<T> Hypotheses<T>(params IHypotheticalOutcome<T>[] hypos)
+        public static Hypothetical<T> Hypotheses<T>(params IHypotheticalOutcome<T>[] hypos)
         {
-            return new Hypothetheses<T>(hypos);
+            return new Hypothetical<T>(hypos);
         }
 
         /// <summary>
@@ -171,10 +156,10 @@ namespace LinqInfer.Maths.Probability
         /// </summary>
         /// <param name="hypos">A list of prior probabilities</param>
         /// <returns>A Hypotheses object containing all outcomes</returns>
-        public static Hypothetheses<int> Hypotheses(params Fraction[] hypos)
+        public static Hypothetical<int> Hypotheses(params Fraction[] hypos)
         {
             int n = 0;
-            return new Hypothetheses<int>(hypos.Select(h => new HypotheticalOutcome<int>(n++, h)).ToList());
+            return new Hypothetical<int>(hypos.Select(h => new HypotheticalOutcome<int>(n++, h)).ToList());
         }
 
         /// <summary>
@@ -196,7 +181,7 @@ namespace LinqInfer.Maths.Probability
         /// <typeparam name="T">The outcome type</typeparam>
         /// <param name="outcomes">The outcomes and frequencies</param>
         /// <returns>A hypotheses containing the set of outcomes</returns>
-        public static Hypothetheses<T> AsHypotheses<T>(this IDictionary<T, int> outcomes)
+        public static Hypothetical<T> AsHypotheses<T>(this IDictionary<T, int> outcomes)
         {
             var total = outcomes.Sum(h => h.Value);
             var hypos = outcomes.Select(h => new HypotheticalOutcome<T>(h.Key, new Fraction(h.Value, total)));
@@ -211,7 +196,7 @@ namespace LinqInfer.Maths.Probability
         /// <typeparam name="T">The outcome type</typeparam>
         /// <param name="outcomes">The outcomes and priors</param>
         /// <returns>A hypotheses containing the set of outcomes</returns>
-        public static Hypothetheses<T> AsHypotheses<T>(this IDictionary<T, Fraction> outcomes)
+        public static Hypothetical<T> AsHypotheses<T>(this IDictionary<T, Fraction> outcomes)
         {
             var hypos = outcomes.Select(h => new HypotheticalOutcome<T>(h.Key, h.Value));
 

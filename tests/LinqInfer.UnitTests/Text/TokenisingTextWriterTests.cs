@@ -1,12 +1,12 @@
-﻿using LinqInfer.Text;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Text;
+using NUnit.Framework;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class TokenisingTextWriterTests
@@ -193,7 +193,7 @@ namespace LinqInfer.Tests.Text
             }
         }
 
-        private void TestWriteNum<T>(T value, Action<TokenisingTextWriter, T> action)
+        void TestWriteNum<T>(T value, Action<TokenisingTextWriter, T> action)
         {
             var writer = new TokenisingTextWriter();
 

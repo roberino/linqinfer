@@ -38,7 +38,7 @@ namespace LinqInfer.Learning.Classification
 
         public override string ToString()
         {
-            return string.Format("{0} ({1:#.##})", ClassType, Score);
+            return string.Format("{0} ({1:#.####})", ClassType, Score);
         }
     }
 }

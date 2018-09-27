@@ -7,15 +7,15 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class NaiveBayesNormalClassifier<T> : 
+    class NaiveBayesNormalClassifier<T> : 
         IByteClassifier<T>, 
         IFloatingPointClassifier<T>, 
         IAssistedLearningProcessor<T, byte>, 
         IAssistedLearningProcessor<T, double>
     {
-        private readonly Dictionary<T, List<NaiveInputSampler>> netData;
-        private readonly int vectorSize;
-        private readonly Func<NaiveInputSampler> neuronGenerator;
+        readonly Dictionary<T, List<NaiveInputSampler>> netData;
+        readonly int vectorSize;
+        readonly Func<NaiveInputSampler> neuronGenerator;
 
         public NaiveBayesNormalClassifier(int vectorSize, Func<NaiveInputSampler> neuronGenerator = null)
         {

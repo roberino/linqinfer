@@ -8,10 +8,10 @@ namespace LinqInfer.Text.Http
 {
     public sealed class HttpDocumentClient : IDisposable
     {
-        private const int MaxVisited = 350;
+        const int MaxVisited = 350;
 
-        private readonly IHttpClient _client;
-        private readonly IContentReader _contentReader;
+        readonly IHttpClient _client;
+        readonly IContentReader _contentReader;
 
         internal HttpDocumentClient(
             IHttpClient httpClient,
@@ -33,7 +33,7 @@ namespace LinqInfer.Text.Http
             _client.Dispose();
         }
 
-        private async Task<HttpDocument> Read(Uri uri, Func<XElement, XElement> targetElement)
+        async Task<HttpDocument> Read(Uri uri, Func<XElement, XElement> targetElement)
         {            
             var response = await _client.GetAsync(uri);
 

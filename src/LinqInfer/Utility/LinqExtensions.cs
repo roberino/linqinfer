@@ -10,6 +10,35 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static IEnumerable<O> SelectIf<T, O>(this IEnumerable<T> values, Func<IEnumerable<T>, bool> condition, Func<T, O> selector)
+        {
+            if (!condition(values))
+            {
+                return Enumerable.Empty<O>();
+            }
+
+            return values.Select(selector);
+        }
+
+        /// <summary>
+        /// Returns null if zero or more than one element exists
+        /// </summary>
+        public static T SingleOrNull<T>(this IEnumerable<T> values) where T : class
+        {
+            T value = null;
+            var i = 0;
+
+            foreach (var item in values)
+            {
+                value = item;
+                i++;
+
+                if (i > 1) break;
+            }
+
+            return i == 1 ? value : null;
+        }
+
         public static T[] ToArray<T>(this IEnumerable<T> values, int size)
         {
             var arr = new T[size];
@@ -80,7 +109,7 @@ namespace LinqInfer.Utility
         /// </summary>
         public static IList<O> ForEach<I, O>(this IEnumerable<I> values, Func<I, O> func)
         {
-            var len = values is IList<I> ? ((IList<I>)values).Count : 16;
+            var len = values is IList<I> list ? list.Count : 16;
             var results = new List<O>(len);
 
             foreach (var v in values)
@@ -89,6 +118,11 @@ namespace LinqInfer.Utility
             }
 
             return results;
+        }
+
+        public static IEnumerable<(T1 a, T2 b)> Zip<T1, T2>(this IEnumerable<T1> items1, IEnumerable<T2> items2)
+        {
+            return items1.Zip(items2, (x, y) => (x, y));
         }
 
         /// <summary>
@@ -102,37 +136,37 @@ namespace LinqInfer.Utility
         {
             var e1 = items1.GetEnumerator();
             var e2 = items2.GetEnumerator();
-            var e1cont = true;
-            var e2cont = true;
+            var e1Cont = true;
+            var e2Cont = true;
 
             T1 item1;
             T2 item2;
 
             try
             {
-                while (e1cont || e2cont)
+                while (e1Cont || e2Cont)
                 {
-                    if (e1cont)
+                    if (e1Cont)
                     {
-                        e1cont = e1.MoveNext();
-                        item1 = e1cont ? e1.Current : default(T1);
+                        e1Cont = e1.MoveNext();
+                        item1 = e1Cont ? e1.Current : default(T1);
                     }
                     else
                     {
                         item1 = default(T1);
                     }
 
-                    if (e2cont)
+                    if (e2Cont)
                     {
-                        e2cont = e2.MoveNext();
-                        item2 = e2cont ? e2.Current : default(T2);
+                        e2Cont = e2.MoveNext();
+                        item2 = e2Cont ? e2.Current : default(T2);
                     }
                     else
                     {
                         item2 = default(T2);
                     }
 
-                    if (e1cont || e2cont) yield return resultSelector(item1, item2);
+                    if (e1Cont || e2Cont) yield return resultSelector(item1, item2);
                 }
             }
             finally
@@ -206,16 +240,6 @@ namespace LinqInfer.Utility
             return source.OrderBy(_ => Guid.NewGuid());
         }
 
-        internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
-        {
-            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
-        }
-
-        internal static string GetPropertyName<TField>(Expression<Func<TField>> propertyExpression)
-        {
-            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
-        }
-
         /// <summary>
         /// Inverts an expression e.g. not(exp).
         /// </summary>
@@ -273,6 +297,16 @@ namespace LinqInfer.Utility
             }
         }
 
+        internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
+        {
+            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
+        }
+
+        internal static string GetPropertyName<TField>(Expression<Func<TField>> propertyExpression)
+        {
+            return (propertyExpression.Body as MemberExpression ?? ((UnaryExpression)propertyExpression.Body).Operand as MemberExpression).Member.Name;
+        }
+
         static Expression<Func<T, bool>> UpdateParameter<T>(
             Expression<Func<T, bool>> expr,
             ParameterExpression newParameter)
@@ -285,8 +319,8 @@ namespace LinqInfer.Utility
 
         class ParameterUpdateVisitor : ExpressionVisitor
         {
-            private ParameterExpression _oldParameter;
-            private ParameterExpression _newParameter;
+            ParameterExpression _oldParameter;
+            ParameterExpression _newParameter;
 
             public ParameterUpdateVisitor(ParameterExpression oldParameter, ParameterExpression newParameter)
             {

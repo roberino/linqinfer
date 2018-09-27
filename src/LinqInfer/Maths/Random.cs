@@ -3,9 +3,9 @@ using System.Security.Cryptography;
 
 namespace LinqInfer.Maths
 {
-    internal class Random : IDisposable
+    class Random : IDisposable
     {
-        private readonly RandomNumberGenerator _randG;
+        readonly RandomNumberGenerator _randG;
 
         public Random()
         {

@@ -10,14 +10,6 @@ namespace LinqInfer.Learning.Classification
     public static class ClassifierFitnessFunctions
     {
         /// <summary>
-        /// Returns the inverse error (1/e) accumulated over a training interation.
-        /// </summary>
-        public static Func<IFloatingPointFeatureExtractor<TInput>, IClassifierTrainingContext<NetworkParameters>, double> ErrorMinimisationFunction<TInput, TClass>()
-        {
-            return ((f, c) => c.CumulativeError.HasValue ? 1d / c.CumulativeError.Value : 0);
-        }
-
-        /// <summary>
         /// Returns the highest classification returned and the relative score as a percent.
         /// </summary>
         public static Tuple<TClass, Fraction> HighestClassification<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, TInput input)
@@ -52,7 +44,7 @@ namespace LinqInfer.Learning.Classification
             return ClassificationAccuracyPercentageInternal(classifier, testData);
         }
 
-        private static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TrainingPair<TInput, TClass>> testData)
+        static double ClassificationAccuracyPercentageInternal<TInput, TClass>(this IObjectClassifier<TClass, TInput> classifier, IEnumerable<TrainingPair<TInput, TClass>> testData)
         {
             var count = 0;
 

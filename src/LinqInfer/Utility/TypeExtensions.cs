@@ -3,26 +3,78 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LinqInfer.Utility
 {
-    public static class TypeExtensions
+    static class TypeExtensions
     {
-        private static readonly Type nullableType = typeof(Nullable<>);
+        static readonly Type NullableType = typeof(Nullable<>);
+        static readonly HashSet<Type> FuncTypes = new HashSet<Type>(new[] {typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>), typeof(Func<,,,,,,,>), typeof(Func<,,,,,,,,>), typeof(Func<,,,,,,,,,>), typeof(Func<,,,,,,,,,,>)});
+
+        public static Type GetFuncType(int numberOfArgs)
+        {
+            return FuncTypes.Single(f => f.GetGenericArguments().Length == numberOfArgs + 1);
+        }
 
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
             return obj
                 .GetType()
-                .GetTypeInfo()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanRead)
                 .ToDictionary(k => k.Name, v => v.GetValue(obj));
         }
 
-        public static IEnumerable<Type> FindTypesFromSameAssembly<T>(this object obj, Func<Type, bool> predicate = null)
+        public static string ToDictionaryString<T>(this IDictionary<string, T> values)
         {
-            return obj.GetType().GetTypeInf().Assembly.FindTypes<T>(predicate);
+            return values
+                .Aggregate(new StringBuilder(), (s, kv) => s.Append($"{kv.Key}={Regex.Escape(kv.Value?.ToString() ?? string.Empty)}|"))
+                .ToString();
+        }
+
+        public static IDictionary<string, T> FromDictionaryString<T>(this string data)
+        {
+            var type = typeof(T);
+
+            return data
+                .Split('|')
+                .Where(a => a.Trim().Length > 0)
+                .Select(a => a.Split('='))
+                .Select(v => new {k = v[0], v = v[1]})
+                .ToDictionary(x => x.k.ToString(), x => (T) Convert.ChangeType(x.v, type));
+        }
+
+        public static T ToObject<T>(this IDictionary<string, object> properties)
+            where T : new()
+        {
+            var result = new T();
+
+            var writable = typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite);
+
+            foreach (var prop in writable)
+            {
+                if (properties.TryGetValue(prop.Name, out object val))
+                {
+                    object res;
+
+                    if (prop.PropertyType.IsEnum && val is string)
+                    {
+                        res = Enum.Parse(prop.PropertyType, val.ToString());
+                    }
+                    else
+                    {
+                        res = Convert.ChangeType(val, prop.PropertyType);
+                    }
+
+                    prop.SetValue(result, res);
+                }
+            }
+
+            return result;
         }
 
         public static IEnumerable<Type> FindTypes<T>(this Assembly asm, Func<Type, bool> predicate = null)
@@ -48,38 +100,6 @@ namespace LinqInfer.Utility
             return x => match.Invoke(null, new object[] { x }) as T;
         }
 
-#if NET_STD
-        public static TypeInfo GetTypeInf<T>()
-        {
-            return typeof(T).GetTypeInfo();
-        }
-
-        public static TypeInfo GetTypeInf(this Type type)
-        {
-            return type.GetTypeInfo();
-        }
-
-        public static MethodInfo GetMethodInf(this Delegate func)
-        {
-            return func.GetMethodInfo();
-        }
-#else
-        public static Type GetTypeInf<T>()
-        {
-            return typeof(T);
-        }
-
-        public static Type GetTypeInf(this Type type)
-        {
-            return type;
-        }
-
-        public static MethodInfo GetMethodInf(this Delegate func)
-        {
-            return func.Method;
-        }
-#endif
-
         /// <summary>
         /// Lists flags from an enum
         /// </summary>
@@ -96,10 +116,18 @@ namespace LinqInfer.Utility
         /// <summary>
         /// Returns true if a type is an anonymous type
         /// </summary>
+        public static bool IsFunc(this Type type)
+        {
+            return type.Namespace == typeof(Func<>).Namespace && type.IsGenericType && FuncTypes.Contains(type.GetGenericTypeDefinition());
+        }
+
+        /// <summary>
+        /// Returns true if a type is an anonymous type
+        /// </summary>
         public static bool IsAnonymous<T>()
         {
             var type = GetTypeInf<T>();
-            return type.GetCustomAttributes(false).Any(a => a.GetType() == typeof(CompilerGeneratedAttribute))
+            return type.GetCustomAttributes(false).Any(a => a is CompilerGeneratedAttribute)
                 && type.IsGenericType && type.Name.Contains("AnonymousType")
                 && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
         }
@@ -109,7 +137,7 @@ namespace LinqInfer.Utility
         /// </summary>
         public static Type GetNullableTypeType(this Type type)
         {
-            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == nullableType)
+            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == NullableType)
             {
                 return type.GetTypeInf().GetGenericArguments()[0];
             }
@@ -124,11 +152,11 @@ namespace LinqInfer.Utility
         /// <returns></returns>
         public static object MakeNullableType(this Type innerType, object value)
         {
-            return nullableType
+            return NullableType
                 .MakeGenericType(innerType)
                 .GetTypeInfo()
-                .GetConstructor(new Type[] { innerType })
-                .Invoke(new object[] { value });
+                .GetConstructor(new [] { innerType })
+                ?.Invoke(new [] { value });
         }
 
         /// <summary>
@@ -154,6 +182,48 @@ namespace LinqInfer.Utility
             var type = objInstance.GetType();
 
             return Type.GetTypeCode(type);
+        }
+
+        /// <summary>
+        /// Returns true if a type has generic parameters
+        /// </summary>
+        public static bool HasGenericParameters(this Type type)
+        {
+            if (type.IsGenericParameter)
+            {
+                return true;
+            }
+
+            if (type.IsGenericType)
+            {
+                return type.GenericTypeArguments.Any(HasGenericParameters);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true for numeric type codes
+        /// </summary>
+        public static bool IsNumeric(this TypeCode tc)
+        {
+            switch (tc)
+            {
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                case TypeCode.Decimal:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -234,6 +304,26 @@ namespace LinqInfer.Utility
             }
 
             return null;
+        }
+
+        public static bool IsCompatibleArrayAndGeneric(this Type argType, Type genericType)
+        {
+            if (genericType.IsGenericTypeDefinition && argType.IsSubclassOf(typeof(Array)))
+            {   
+                return genericType == typeof(IEnumerable<>) || genericType == typeof(IList<>) || genericType == typeof(ICollection<>);
+            }
+
+            return false;
+        }
+
+        internal static Type GetTypeInf<T>()
+        {
+            return typeof(T);
+        }
+
+        internal static Type GetTypeInf(this Type type)
+        {
+            return type;
         }
     }
 }

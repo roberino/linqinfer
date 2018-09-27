@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Data.Remoting
 {
-    internal interface ICompressionProvider
+    interface ICompressionProvider
     {
         string Name { get; }
         Stream CompressTo(Stream input, bool closeStream = false);

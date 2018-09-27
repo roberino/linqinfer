@@ -1,43 +1,34 @@
-﻿using LinqInfer.Learning.Classification;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
+    class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
     {
-        private IDictionary<T, int> _outputs;
+        OneHotEncoding<T> _encoder;
 
-        public OutputMapper()
+        public OutputMapper(IEnumerable<T> outputs): this (new OneHotEncoding<T>(new HashSet<T>(outputs)))
         {
         }
 
-        public OutputMapper(Stream input)
+        OutputMapper(OneHotEncoding<T> encoder)
         {
-            Load(input);
+            _encoder = encoder;
+            FeatureMetadata = Feature.CreateDefaults(_encoder.Lookup.Keys.Select(k => k.ToString()));
         }
 
-        public OutputMapper(IEnumerable<T> outputs = null)
+        public IEnumerable<ClassifyResult<T>> Map(IVector output)
         {
-            if (outputs != null) Initialise(outputs);
-        }
+            var i = 0;
 
-        public virtual void Initialise(IEnumerable<T> outputs)
-        {
-            int i = 0;
-            _outputs = outputs.ToDictionary(o => o, o => i++);
-            IndexLookup = _outputs.ToDictionary(o => o.Key.ToString(), o => o.Value);
-            FeatureMetadata = Feature.CreateDefaults(IndexLookup.Keys);
-        }
-
-        public virtual IEnumerable<ClassifyResult<T>> Map(IVector output)
-        {
-            int i = 0;
-            var indexes = output.ToColumnVector().Select(o => new { value = o, index = i++ }).ToArray().OrderByDescending(o => o.value);
+            var indexes = output.ToColumnVector()
+                .Select(o => new {value = o, index = i++}).ToArray()
+                .OrderByDescending(o => o.value);
 
             foreach (var o in indexes)
             {
@@ -45,56 +36,43 @@ namespace LinqInfer.Learning.Features
                 {
                     yield return new ClassifyResult<T>()
                     {
-                        ClassType = _outputs.Single(x => x.Value == o.index).Key,
+                        ClassType = _encoder.Lookup.Single(x => x.Value == o.index).Key,
                         Score = o.value
                     };
                 }
             }
         }
 
-        public IEnumerable<T> OutputClasses
-        {
-            get
-            {
-                return _outputs.Keys;
-            }
-        }
+        public IEnumerable<T> OutputClasses => _encoder.Lookup.Keys;
 
-        public IDictionary<string, int> IndexLookup { get; private set; }
+        public int VectorSize => _encoder.Lookup.Count;
 
-        public int VectorSize { get { return _outputs == null ? 0 : _outputs.Count; } }
-
-        public IEnumerable<IFeature> FeatureMetadata { get; private set; }
-
-        public virtual double[] ExtractVector(T obj)
-        {
-            return ExtractColumnVector(obj).GetUnderlyingArray();
-        }
-
-        public virtual ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return ExtractIVector(obj).ToColumnVector();
-        }
+        public IEnumerable<IFeature> FeatureMetadata { get; }
 
         public IVector ExtractIVector(T obj)
         {
-            if (_outputs == null) throw new InvalidOperationException();
-
-            return new OneOfNVector(VectorSize, _outputs[obj]);
+            return _encoder.Encode(obj);
         }
 
-        public virtual void Save(Stream stream)
+        public double[] ExtractVector(T obj)
         {
-            var sz = new DictionarySerialiser<T, int>();
-
-            sz.Write(_outputs, stream);
+            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public virtual void Load(Stream stream)
+        public PortableDataDocument ExportData()
         {
-            var sz = new DictionarySerialiser<T, int>();
+            var doc = _encoder.ExportData();
 
-            _outputs = sz.Read(stream);
+            doc.SetType(this);
+
+            return doc;
+        }
+
+        public static OutputMapper<T> ImportData(PortableDataDocument data)
+        {
+            var encoder = OneHotEncoding<T>.ImportData(data);
+
+            return new OutputMapper<T>(encoder);
         }
     }
 }

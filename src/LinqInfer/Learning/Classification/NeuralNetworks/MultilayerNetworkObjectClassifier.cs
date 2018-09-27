@@ -1,16 +1,15 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    internal class MultilayerNetworkObjectClassifier<TClass, TInput> :
-        INetworkClassifier<TClass, TInput>
+    class MultilayerNetworkObjectClassifier<TClass, TInput> :
+        INetworkClassifier<TClass, TInput> 
         where TClass : IEquatable<TClass>
     {
         protected readonly Config _config;
@@ -19,7 +18,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public MultilayerNetworkObjectClassifier(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,
-            ICategoricalOutputMapper<TClass> outputMapper = null,
+            ICategoricalOutputMapper<TClass> outputMapper,
             MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
             Statistics = new ClassifierStats();
@@ -30,7 +29,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        private MultilayerNetworkObjectClassifier(Config config)
+        MultilayerNetworkObjectClassifier(Config config)
         {
             Statistics = new ClassifierStats();
 
@@ -39,38 +38,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public ClassifierStats Statistics { get; private set; }
 
-        public ISerialisableVectorTransformation VectorTransformation => _network;
+        public ISerialisableDataTransformation DataTransformation => _network;
 
-        public void Load(Stream input)
-        {
-            _config.OutputMapper.Load(input);
-            _config.FeatureExtractor.Load(input);
-
-            var network = new MultilayerNetwork(input);
-
-            Setup(network);
-        }
-
-        public virtual void Save(Stream output)
+        public PortableDataDocument ExportData()
         {
             if (_network == null)
             {
                 throw new InvalidOperationException("No training data received");
             }
 
-            _config.OutputMapper.Save(output);
-            _config.FeatureExtractor.Save(output);
-            _network.Save(output);
-        }
-
-        public BinaryVectorDocument ToVectorDocument()
-        {
-            if (_network == null)
-            {
-                throw new InvalidOperationException("No training data received");
-            }
-
-            var root = new BinaryVectorDocument();
+            var root = new PortableDataDocument();
 
             root.WriteChildObject(Statistics);
             root.WriteChildObject(_config.FeatureExtractor);
@@ -80,24 +57,23 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return root;
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data)
         {
-            doc.ReadChildObject(Statistics, null, true);
+            var stats = new ClassifierStats();
 
-            doc.ReadChildObject(_config.FeatureExtractor);
+            stats.ImportData(data.Children[0]);
 
-            if (_network == null)
+            var featureExtractor = FeatureExtractorFactory<TInput>.Default.Create(data.Children[1]);
+
+            var network = MultilayerNetwork.CreateFromData(data.Children[2]);
+            var outputMapper = OutputMapper<TClass>.ImportData(data.Children[3]);
+
+            var mlnoc = new MultilayerNetworkObjectClassifier<TClass, TInput>(featureExtractor, outputMapper, network)
             {
-                _network = MultilayerNetwork.CreateFromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
-            }
-            else
-            {
-                _network.FromVectorDocument(doc.GetChildDoc<MultilayerNetwork>());
-            }
+                Statistics = stats
+            };
 
-            doc.ReadChildObject(_config.OutputMapper);
-
-            Setup(_network);
+            return mlnoc;
         }
 
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
@@ -111,7 +87,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var outputObjects = _config.OutputMapper.Map(output);
 
             Statistics.IncrementClassificationCount();
-            
+
             return outputObjects;
         }
 
@@ -130,15 +106,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString()
         {
-            return _network == null ? "Un-initialised classifier" : "NN classifier" + _network.ToString();
+            return _network == null ? "Un-initialised classifier" : "NN classifier" + _network;
         }
 
-        public void PruneFeatures(params int[] featureIndexes)
-        {
-            _network.PruneInputs(featureIndexes);
-        }
-
-        public IPrunableObjectClassifier<TClass, TInput> Clone(bool deep)
+        public IDynamicClassifier<TClass, TInput> Clone(bool deep)
         {
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(_config);
 
@@ -159,18 +130,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return graph;
         }
 
-        public object Clone()
-        {
-            return Clone(true);
-        }
-
-        private static Config Setup(
+        static Config Setup(
             IFloatingPointFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
-            if (outputMapper == null) outputMapper = new OutputMapper<TClass>();
-
             return new Config()
             {
                 NormalisingSample = normalisingSample,
@@ -179,7 +143,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        private void Setup(MultilayerNetwork network)
+        void Setup(MultilayerNetwork network)
         {
             _network = network;
         }

@@ -8,14 +8,14 @@ namespace LinqInfer.Maths
 {
     public sealed class MultiVector : IVector
     {
-        private IList<IVector> _vectors;
+        IList<IVector> _vectors;
 
         public MultiVector(params IVector[] vectors)
         {
             _vectors = vectors.ToList();
         }
 
-        private MultiVector(IList<IVector> vectors)
+        MultiVector(IList<IVector> vectors)
         {
             _vectors = vectors;
         }

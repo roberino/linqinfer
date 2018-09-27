@@ -3,10 +3,12 @@ using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning
 {
@@ -32,6 +34,39 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
+        /// Using principal component analysis, reduces the least significant features
+        /// keeping a specified number of features (dimensions)
+        /// </summary>
+        /// <param name="pipelineTask">A pipeline task</param>
+        /// <param name="numberOfDimensions">The (max) number of features to retain</param>
+        /// <param name="sampleSize">The size of the sample to use for analysis</param>
+        /// <returns>The feature processing pipeline with the transform applied</returns>
+        public static async Task<IAsyncFeatureProcessingPipeline<T>> PrincipalComponentReductionAsync<T>(
+            this Task<IAsyncFeatureProcessingPipeline<T>> pipelineTask, int numberOfDimensions,
+            int sampleSize = 100)
+            where T : class
+        {
+            var pipeline = await pipelineTask;
+
+            return await pipeline.PrincipalComponentReductionAsync(numberOfDimensions, sampleSize);
+        }
+
+        /// <summary>
+        /// Centres and scales the data
+        /// </summary>
+        /// <typeparam name="T">The input type</typeparam>
+        /// <param name="pipelineTask">A pipeline task</param>
+        /// <param name="range">The scale range</param>
+        /// <returns>A pipeline with a centre and scale transform</returns>
+        public static async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync<T>(
+            this Task<IAsyncFeatureProcessingPipeline<T>> pipelineTask, Range? range = null)
+        {
+            var pipeline = await pipelineTask;
+
+            return await pipeline.CentreAndScaleAsync(range);
+        }
+
+        /// <summary>
         /// Builds an asyncronous pipeline, given a number of feature extractor strategies
         /// </summary>
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
@@ -50,7 +85,28 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Creates an asyncronous pipeline, given a feature extractor
         /// </summary>
-        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeine<TInput>(
+        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
+            this IEnumerable<TInput> dataset,
+            IFloatingPointFeatureExtractor<TInput> featureExtractor)
+        {
+            return new AsyncFeatureProcessingPipeline<TInput>(dataset.AsAsyncEnumerator(), featureExtractor);
+        }
+
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor
+        /// </summary>
+        public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
+            this IEnumerable<TInput> dataset,
+            Expression<Func<TInput, IVector>> featureSelectExpression, int inputVectorSize)
+        {
+            var fe = new ExpressionFeatureExtractor<TInput>(featureSelectExpression, inputVectorSize);
+            return CreatePipeline(dataset, fe);
+        }
+
+        /// <summary>
+        /// Creates an asyncronous pipeline, given a feature extractor
+        /// </summary>
+        internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
             IFloatingPointFeatureExtractor<TInput> featureExtractor)
             where TInput : class
@@ -63,11 +119,11 @@ namespace LinqInfer.Learning
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
-            Func<TInput, IVector> featureExtractorFunction,
+            Expression<Func<TInput, IVector>> featureExtractorFunction,
             int vectorSize)
             where TInput : class
         {
-            var featureExtractor = new DelegatingFloatingPointFeatureExtractor<TInput>(featureExtractorFunction, vectorSize);
+            var featureExtractor = new ExpressionFeatureExtractor<TInput>(featureExtractorFunction, vectorSize);
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
         }
 
@@ -85,7 +141,7 @@ namespace LinqInfer.Learning
         {
             var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);
             var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum);
-            var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
+            var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor ?? new ObjectFeatureExtractor<TInput>());
 
             return pipeline;
         }
@@ -103,7 +159,6 @@ namespace LinqInfer.Learning
             this IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             params TClass[] outputs)
-            where TInput : class
             where TClass : IEquatable<TClass>
         {
             var omf = new OutputMapperFactory<TInput, TClass>();
@@ -118,8 +173,9 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="pipeline">A feature pipeline task</param>
+        /// <param name="pipelineTask">A feature pipeline task</param>
         /// <param name="classf">A classifying expression (which will be used to find outputs by sampling the data)</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the process</param>
         /// <returns>A training set</returns>
         public static async Task<IAsyncTrainingSet<TInput, TClass>> AsTrainingSetAsync<TInput, TClass>(
             this Task<IAsyncFeatureProcessingPipeline<TInput>> pipelineTask,
@@ -161,6 +217,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="TClass">The class type</typeparam>
         /// <param name="trainingSet">The training set</param>
         /// <param name="publisher">The publisher</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the process</param>
         /// <returns>The training set</returns>
         public static async Task<IAsyncTrainingSet<TInput, TClass>> SendAsync<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,

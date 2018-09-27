@@ -1,9 +1,8 @@
-﻿using LinqInfer.Maths;
+﻿using System;
+using LinqInfer.Maths;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
-namespace LinqInfer.Tests.Maths
+namespace LinqInfer.UnitTests.Maths
 {
     [TestFixture]
     public class MinMaxMeanVectorTests

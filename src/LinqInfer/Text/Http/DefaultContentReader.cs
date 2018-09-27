@@ -8,11 +8,11 @@ using System.Xml.Linq;
 
 namespace LinqInfer.Text.Http
 {
-    internal sealed class DefaultContentReader : IContentReader
+    sealed class DefaultContentReader : IContentReader
     {
-        private readonly ITokeniser _tokeniser;
-        private readonly Func<XNode, bool> _nodeFilter;
-        private readonly Func<XElement, IEnumerable<string>> _linkExtractor;
+        readonly ITokeniser _tokeniser;
+        readonly Func<XNode, bool> _nodeFilter;
+        readonly Func<XElement, IEnumerable<string>> _linkExtractor;
 
         public DefaultContentReader(
             ITokeniser tokeniser = null,
@@ -58,7 +58,7 @@ namespace LinqInfer.Text.Http
             return Task.FromResult(result);
         }
 
-        private HttpDocument ReadXml(
+        HttpDocument ReadXml(
             Uri uri,
             Func<XElement, XElement> targetElement,
             TextReader reader,
@@ -78,7 +78,7 @@ namespace LinqInfer.Text.Http
             return new HttpDocument(uri, Enumerable.Empty<IToken>(), Enumerable.Empty<RelativeLink>(), headers);
         }
 
-        private HttpDocument ReadText(Uri uri,
+        HttpDocument ReadText(Uri uri,
             TextReader reader,
             IDictionary<string, string[]> headers)
         {
@@ -87,7 +87,7 @@ namespace LinqInfer.Text.Http
             return new HttpDocument(uri, _tokeniser.Tokenise(docContent), Enumerable.Empty<RelativeLink>(), headers);
         }
 
-        private HttpDocument ReadHtml(
+        HttpDocument ReadHtml(
             Uri uri, 
             Func<XElement, XElement> targetElement,
             TextReader reader, 
@@ -127,7 +127,7 @@ namespace LinqInfer.Text.Http
             }
         }
 
-        private RelativeLink CreateRelLink(Uri baseUri, string relLink, string relationship = "link")
+        RelativeLink CreateRelLink(Uri baseUri, string relLink, string relationship = "link")
         {
             if (relLink == null) return new RelativeLink() { Url = baseUri, Rel = "self" };
 
@@ -136,7 +136,7 @@ namespace LinqInfer.Text.Http
             return new RelativeLink() { Url = new Uri(baseUri, (hash > -1) ? relLink.Substring(0, hash) : relLink), Rel = relationship };
         }
 
-        private IEnumerable<IToken> ExtractTokens(XNode doc)
+        IEnumerable<IToken> ExtractTokens(XNode doc)
         {
             return XmlTextExtractor.ExtractTokens(doc, _nodeFilter, _tokeniser);
         }

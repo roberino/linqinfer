@@ -3,10 +3,10 @@ using LinqInfer.Maths;
 
 namespace LinqInfer.Learning.Classification
 {
-    internal class AssistedLearningAdapter<TClass> : IAssistedLearningProcessor<TClass, double>
+    class AssistedLearningAdapter<TClass> : IAssistedLearningProcessor<TClass, double>
     {
-        private readonly IAssistedLearningProcessor _processor;
-        private readonly IFeatureExtractor<TClass, double> _outputVectorExtractor;
+        readonly IAssistedLearningProcessor _processor;
+        readonly IFeatureExtractor<TClass, double> _outputVectorExtractor;
 
         public AssistedLearningAdapter(IAssistedLearningProcessor processor, IFeatureExtractor<TClass, double> outputVectorExtractor)
         {

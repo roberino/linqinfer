@@ -1,8 +1,8 @@
-﻿using LinqInfer.Text;
+﻿using System.Linq;
+using LinqInfer.Text;
 using NUnit.Framework;
-using System.Linq;
 
-namespace LinqInfer.Tests.Text
+namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class TextUtilityTests

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LinqInfer.IntegrationTests.Text
 {
-    internal static class CorpusDataSource
+    static class CorpusDataSource
     {
         public static ICorpus GetCorpus(int? numberOfWords = null)
         {

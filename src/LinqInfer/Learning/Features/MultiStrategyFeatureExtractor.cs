@@ -1,20 +1,16 @@
-﻿using LinqInfer.Data;
+﻿using System;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    internal class MultiStrategyFeatureExtractor<T> : 
-        IFloatingPointFeatureExtractor<T>,
-        IExportableAsVectorDocument,
-        IImportableAsVectorDocument
+    class MultiStrategyFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
     {
-        private readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
+        readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
 
-        public MultiStrategyFeatureExtractor(IFloatingPointFeatureExtractor<T>[] featureExtractionStrategies)
+        public MultiStrategyFeatureExtractor(params IFloatingPointFeatureExtractor<T>[] featureExtractionStrategies)
         {
             _featureExtractionStrategies = featureExtractionStrategies;
         }
@@ -35,30 +31,24 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public void FromVectorDocument(BinaryVectorDocument doc)
+        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc,
+            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader = null)
         {
-            for (var i = 0; i < _featureExtractionStrategies.Length; i++)
+            if (baseFeatureExtractorLoader == null)
             {
-                doc.ReadChildObject(_featureExtractionStrategies[i], i);
+                baseFeatureExtractorLoader = FeatureExtractorFactory<T>.Default.Create;
             }
+
+            var featureExtractionStrategies = doc.Children
+                .Select(baseFeatureExtractorLoader)
+                .ToArray();
+
+            return new MultiStrategyFeatureExtractor<T>(featureExtractionStrategies);
         }
 
-        public void Load(Stream input)
+        public PortableDataDocument ExportData()
         {
-            var xml = XDocument.Load(input);
-            var doc = new BinaryVectorDocument(xml);
-
-            FromVectorDocument(doc);
-        }
-
-        public void Save(Stream output)
-        {
-            ToVectorDocument().ExportAsXml().Save(output);
-        }
-
-        public BinaryVectorDocument ToVectorDocument()
-        {
-            var doc = new BinaryVectorDocument();
+            var doc = new PortableDataDocument();
 
             doc.SetType(this);
 

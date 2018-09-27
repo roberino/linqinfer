@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Utility
 {
-    internal class ObjectPool<T> where T : class
+    class ObjectPool<T> where T : class
     {
-        private readonly object _lockObj = new object();
-        private readonly Stack<T> _objectStack;
-        private readonly Func<ObjectPool<T>, T> _objectFactory;
+        readonly object _lockObj = new object();
+        readonly Stack<T> _objectStack;
+        readonly Func<ObjectPool<T>, T> _objectFactory;
 
-        private readonly Action<T> _resetAction;
+        readonly Action<T> _resetAction;
 
         public ObjectPool(
             int initialBufferSize,

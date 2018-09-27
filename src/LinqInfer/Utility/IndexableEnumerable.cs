@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace LinqInfer.Utility
 {
-    internal sealed class IndexableEnumerable<T> : IIndexedEnumerable<T>
+    sealed class IndexableEnumerable<T> : IIndexedEnumerable<T>
     {
-        private readonly IEnumerable<T> _values;
-        private readonly Func<int, T> _indexFunction;
-        private readonly Func<int> _countFunction;
+        readonly IEnumerable<T> _values;
+        readonly Func<int, T> _indexFunction;
+        readonly Func<int> _countFunction;
 
         public IndexableEnumerable(IEnumerable<T> values, Func<int, T> indexFunction = null)
         {

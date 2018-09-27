@@ -9,7 +9,7 @@ namespace LinqInfer.Text.Http
 {
     public class HttpDocumentServices : IDisposable
     {
-        private readonly HttpDocumentClient _documentClient;
+        readonly HttpDocumentClient _documentClient;
 
         public HttpDocumentServices(
             ITokeniser tokeniser = null,

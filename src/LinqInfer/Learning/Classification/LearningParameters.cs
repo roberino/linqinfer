@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification
     {
         internal const double DefaultLearningRate = 0.1f;
 
-        private Func<LearningParameters, int, double, bool> _haltingFunction;
+        Func<LearningParameters, TrainingStatus, bool> _haltingFunction;
 
         public LearningParameters()
         {
@@ -36,14 +36,19 @@ namespace LinqInfer.Learning.Classification
         public int? MaxIterations { get; set; }
 
         /// <summary>
+        /// Gets or sets the size of the error history to retain
+        /// </summary>
+        public int ErrorHistoryCount { get; set; } = 3;
+
+        /// <summary>
         /// Prevents the process from halting
         /// </summary>
         public void NeverHalt()
         {
-            HaltingFunction = (x, n, e) => false;
+            HaltingFunction = (x, s) => false;
         }
 
-        public Func<LearningParameters, int, double, bool> HaltingFunction
+        public Func<LearningParameters, TrainingStatus, bool> HaltingFunction
         {
             get { return _haltingFunction; }
             set
@@ -76,9 +81,14 @@ namespace LinqInfer.Learning.Classification
             return newParameters;
         }
 
-        public bool EvaluateHaltingFunction(int iteration, double currentError)
+        public bool EvaluateHaltingFunction(TrainingStatus status)
         {
-            return _haltingFunction(this, iteration, currentError);
+            return _haltingFunction(this, status);
+        }
+
+        public bool EvaluateHaltingFunction(int iteration, double error)
+        {
+            return _haltingFunction(this, new TrainingStatus() {AverageError = error, Iteration = iteration});
         }
 
         internal virtual void Validate()
@@ -88,9 +98,9 @@ namespace LinqInfer.Learning.Classification
             ArgAssert.AssertGreaterThanZero(LearningRate, nameof(LearningRate));
         }
 
-        private void SetDefaultHaltingFunction()
+        void SetDefaultHaltingFunction()
         {
-            _haltingFunction = (p, n, e) => (p.MaxIterations.HasValue && n >= p.MaxIterations.Value) || e <= p.MinimumError;
+            _haltingFunction = (p, s) => (p.MaxIterations.HasValue && s.Iteration >= p.MaxIterations.Value) || s.AverageError <= p.MinimumError;
         }
     }
 }
