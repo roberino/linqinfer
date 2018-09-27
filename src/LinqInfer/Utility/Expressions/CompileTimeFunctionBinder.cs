@@ -11,7 +11,6 @@ namespace LinqInfer.Utility.Expressions
         readonly ISourceCodeParser[] _sourceCodeParsers;
         readonly IFunctionBinder _inbuiltFunctionBinder;
         readonly IDictionary<string, LambdaExpression> _compiledExpressions;
-        readonly Func<SourceCode, IReadOnlyCollection<UnboundArgument>, LambdaExpression> _sourceParser;
 
         public CompileTimeFunctionBinder(ISourceCodeProvider sourceCodeProvider, IFunctionBinder inbuiltFunctionBinder, params ISourceCodeParser[] customSourceCodeParsers)
         {
