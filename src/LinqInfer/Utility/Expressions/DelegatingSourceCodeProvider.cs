@@ -13,7 +13,7 @@ namespace LinqInfer.Utility.Expressions
 
         public DelegatingSourceCodeProvider(Func<string, string> sourceCodeFunction)
         {
-            _sourceCodeFunction = n => new SourceCode(n, KnownMimeTypes.Function, sourceCodeFunction(n));
+            _sourceCodeFunction = n => SourceCode.Create(n, sourceCodeFunction(n));
         }
 
         public bool Exists(string name)

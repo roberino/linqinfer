@@ -71,6 +71,21 @@ namespace LinqInfer.Utility.Expressions
             throw new NotSupportedException(name);
         }
 
+        public static Expression ConvertToType(this Expression expression, Type type)
+        {
+            if (expression.Type == type)
+            {
+                return expression;
+            }
+
+            if (expression.NodeType == ExpressionType.Constant && expression is ConstantExpression ce)
+            {
+                return Expression.Constant(System.Convert.ChangeType(ce.Value, type));
+            }
+
+            return Expression.Convert(expression, type);
+        }
+
         static Expression Convert(IEnumerable<Expression> parameters)
         {
             return Expression.Convert(parameters.First(), (Type)((ConstantExpression)parameters.Last()).Value);

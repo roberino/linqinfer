@@ -2,7 +2,7 @@
 {
     public sealed class SourceCode
     {
-        public SourceCode(string name, string mimeType, string code, bool found = true)
+        SourceCode(string name, string mimeType, string code, bool found)
         {
             Name = name;
             MimeType = mimeType;
@@ -17,7 +17,12 @@
 
         public static SourceCode Default(string code, string mimeType = KnownMimeTypes.Function)
         {
-            return new SourceCode("main", mimeType, code);
+            return new SourceCode("main", mimeType, code, code != null);
+        }
+
+        public static SourceCode Create(string name, string code, string mimeType = KnownMimeTypes.Function)
+        {
+            return new SourceCode(name, mimeType, code, code != null);
         }
 
         public string Name { get; }

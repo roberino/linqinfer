@@ -60,6 +60,18 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
+        public void AsExpression_PropertyIndexAccessor_EvaluatesCorrectly()
+        {
+            var expString = "a => a[2]";
+
+            var exp = expString.AsExpression<ParamsWithIndexedProperty, int>();
+
+            var result = exp.Compile().Invoke(new ParamsWithIndexedProperty());
+
+            Assert.That(result, Is.EqualTo(14));
+        }
+
+        [Test]
         public void AsExpression_ConditionWithAddition_EvaluatesCorrectly()
         {
             var exp = "x => x > 1 + 1 ? 10 : 5".AsExpression<double, double>();

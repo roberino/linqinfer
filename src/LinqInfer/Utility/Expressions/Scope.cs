@@ -111,14 +111,18 @@ namespace LinqInfer.Utility.Expressions
 
         public Scope SelectIndexScope(IEnumerable<Expression> indexExpressions)
         {
+            var intt = typeof(int);
+            
+            var convertedIndexes = indexExpressions.Select(e => e.ConvertToType(intt));
+
             if (CurrentContext.Type.IsArray)
             {
-                var intt = typeof(int);
-                var convertedIndexes = indexExpressions.Select(e => e.Type == intt ? e : Expression.Convert(e, intt));
                 return new Scope(Expression.ArrayIndex(CurrentContext, convertedIndexes), this);
             }
 
-            throw new NotSupportedException("Invalid array");
+            return SelectChildScope(Expression.MakeIndex(CurrentContext,
+                GetProperty("Item"),
+                convertedIndexes));
         }
 
         public Scope NewConversionScope(Type conversionType)

@@ -38,7 +38,7 @@ namespace LinqInfer.Compiler
 
             using (var reader = file.OpenText())
             {
-                return new SourceCode(name, SupportedExtensions[file.Extension.Substring(1)], reader.ReadToEnd());
+                return SourceCode.Create(name, reader.ReadToEnd(), SupportedExtensions[file.Extension.Substring(1)]);
             }
         }
 

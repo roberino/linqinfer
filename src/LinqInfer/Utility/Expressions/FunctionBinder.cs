@@ -126,13 +126,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 if (TypeEqualityComparer.Instance.RequiresConversion(t, e.Type).GetValueOrDefault())
                 {
-                    if (e.NodeType == ExpressionType.Constant && e is ConstantExpression ce)
-                    {
-                        yield return Expression.Constant(System.Convert.ChangeType(ce.Value, t));
-                        continue;
-                    }
-
-                    yield return Expression.Convert(e, t);
+                    yield return e.ConvertToType(t);
                     continue;
                 }
 

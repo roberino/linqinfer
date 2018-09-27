@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Utility.Expressions
 {
-    static class ExpressionConversionExtensions
+    static class ExpressionBuilderExtensions
     {
         public static Expression Convert<T>(this Expression expression)
         {
