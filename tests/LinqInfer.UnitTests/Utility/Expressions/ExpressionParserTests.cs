@@ -11,6 +11,49 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     [TestFixture]
     public class ExpressionParserTests
     {
+        [Test]
+        public void AsExpression_Loop_BehavesCorrectly()
+        {
+            var exp = "(a) => Loop(x => x * 5, 5)".AsExpression<double, IPromise<int[]>>();
+
+            var result = exp.Compile().Invoke(1).Result;
+
+            Assert.That(result.Length, Is.EqualTo(5));
+
+            var i = 0;
+
+            foreach (var x in result)
+            {
+                Assert.That(x, Is.EqualTo(5 * i++));
+            }
+        }
+        [Test]
+        public void AsExpression_LoopThenFunc_BehavesCorrectly()
+        {
+            var exp = "(a) => Loop(x => x * 5, 5).Then(result => result[2]).Result".AsExpression<double, int>();
+
+            var result = exp.Compile().Invoke(1);
+
+            Assert.That(result, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void AsExpression_LoopUntil_BehavesCorrectly()
+        {
+            var exp = "(a) => LoopUntil(x => x * 5, (x, r) => r <= a || x > 100)".AsExpression<double, IPromise<int[]>>();
+
+            var result = exp.Compile().Invoke(15).Result;
+
+            Assert.That(result.Length, Is.EqualTo(5));
+
+            var i = 0;
+
+            foreach (var x in result)
+            {
+                Assert.That(x, Is.EqualTo(5 * i++));
+            }
+        }
+
         [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
         [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
         [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]

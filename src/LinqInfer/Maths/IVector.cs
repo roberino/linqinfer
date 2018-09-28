@@ -28,7 +28,7 @@ namespace LinqInfer.Maths
 
         /// <summary>
         /// Returns the matrix multiplied by this vector
-        /// i.e. M X V
+        /// i.e. M x V
         /// </summary>
         IVector MultiplyBy(Matrix matrix);
 
@@ -39,7 +39,7 @@ namespace LinqInfer.Maths
 
         /// <summary>
         /// Returns the vector (as a row matrix) multiplied
-        /// by the matrix (V X M)
+        /// by the matrix (V x M)
         /// </summary>
         IVector HorizontalMultiply(IMatrix matrix);
 

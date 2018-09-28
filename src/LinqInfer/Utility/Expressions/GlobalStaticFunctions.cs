@@ -22,7 +22,9 @@ namespace LinqInfer.Utility.Expressions
 
         public bool IsDefined(string name)
         {
-            return MathFunctions.IsDefined(name) || ConversionFunctions.IsDefined(name);
+            return MathFunctions.IsDefined(name) 
+                || ConversionFunctions.IsDefined(name)
+                || ControlFunctions.IsDefined(name);
         }
 
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
@@ -30,6 +32,11 @@ namespace LinqInfer.Utility.Expressions
             if (MathFunctions.IsDefined(name))
             {
                 return MathFunctions.GetFunction(name, parameters);
+            }
+
+            if (ControlFunctions.IsDefined(name))
+            {
+                return ControlFunctions.GetFunction(name, parameters);
             }
 
             return ConversionFunctions.GetFunction(name, parameters);

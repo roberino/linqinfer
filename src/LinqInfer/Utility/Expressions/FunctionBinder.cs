@@ -17,6 +17,7 @@ namespace LinqInfer.Utility.Expressions
                 type
                     .GetTypeInf()
                     .GetMethods(BindingFlags.Public | bindingFlags)
+                    .Where(m => m.CustomAttributes.All(a => a.AttributeType != typeof(NonBound)))
                     .GroupBy(m => m.Name)
                     .ToDictionary(g => g.Key, g => g.ToArray());
         }
@@ -39,9 +40,18 @@ namespace LinqInfer.Utility.Expressions
 
             resolver.InferAll(method, parameters);
 
+            var isFirstArg = true;
+
             foreach (var parameter in parameters)
             {
+                if (!isFirstArg && parameter.HasUnresolvedTypes)
+                {
+                    resolver.InferAll(method, parameters);
+                }
+
                 parameter.Resolve();
+
+                isFirstArg = false;
             }
 
             var args = Convert(parameters.Select(p => p.Expression), method.GetParameters()).ToArray();

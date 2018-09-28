@@ -34,6 +34,10 @@ namespace LinqInfer.Utility.Expressions
 
         public Func<ExpressionTree, Scope, Expression> Resolver { get; set; }
 
+        public bool HasUnresolvedTypes =>
+            (OutputType?.IsGenericParameter).GetValueOrDefault()
+            || (InputTypes?.Any(t => t.IsGenericParameter)).GetValueOrDefault();
+
         public Expression Resolve()
         {
             if (Expression == null)
