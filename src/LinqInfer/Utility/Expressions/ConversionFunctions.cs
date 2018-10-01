@@ -71,6 +71,20 @@ namespace LinqInfer.Utility.Expressions
             throw new NotSupportedException(name);
         }
 
+        public static Expression ToTuple(IReadOnlyCollection<Expression> parameters)
+        {
+            var createMethod = typeof(ValueTuple)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .Where(n => n.Name == nameof(Tuple.Create))
+                .Single(m => m.GetParameters().Length == parameters.Count);
+
+            var closedMethod = createMethod.IsGenericMethodDefinition 
+                ? createMethod.MakeGenericMethod(parameters.Select(p => p.Type).ToArray())
+                : createMethod;
+
+            return Expression.Call(closedMethod, parameters);
+        }
+
         public static Expression ConvertToType(this Expression expression, Type type)
         {
             if (expression.Type == type)

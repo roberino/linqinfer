@@ -36,13 +36,32 @@ namespace LinqInfer.Utility.Expressions
             });
         }
 
+        public static IPromise<T[]> Recurse<T>(Func<int, T, (T nextResult, bool halt)> func)
+        {
+            return new Promise<T[]>(() =>
+            {
+                var results = new List<T>();
+                var i = 0;
+                (T result, bool halt) lastResult = (default, false);
+
+                do
+                {
+                    lastResult = func(i, lastResult.result);
+                    results.Add(lastResult.result);
+                    i++;
+                } while (!lastResult.halt);
+
+                return results.ToArray();
+            });
+        }
+
         public static IPromise<T[]> LoopUntil<T>(Func<int, T> func, Func<int, T, bool> condition)
         {
             return new Promise<T[]>(() =>
             {
                 var results = new List<T>();
                 var i = 0;
-                var lastIndex = 0;
+                int lastIndex;
                 T lastResult;
 
                 do

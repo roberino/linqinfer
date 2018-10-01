@@ -38,20 +38,14 @@ namespace LinqInfer.Utility.Expressions
 
             var resolver = new InferredTypeResolver();
 
-            resolver.InferAll(method, parameters);
-
-            var isFirstArg = true;
-
             foreach (var parameter in parameters)
             {
-                if (!isFirstArg && parameter.HasUnresolvedTypes)
+                if (parameter.HasUnresolvedTypes)
                 {
                     resolver.InferAll(method, parameters);
                 }
 
-                parameter.Resolve();
-
-                isFirstArg = false;
+                parameter.Resolve(resolver);
             }
 
             var args = Convert(parameters.Select(p => p.Expression), method.GetParameters()).ToArray();
@@ -102,7 +96,7 @@ namespace LinqInfer.Utility.Expressions
                 {
                     var inferredArgs = InferredTypeResolver.GetInferredArgs(pair.p.ParameterType);
 
-                    if (inferredArgs.inputs.Length == pair.a.ParameterNames.Length)
+                    if (inferredArgs.inputs.Length == pair.a.Parameters.Length)
                     {
                         continue;
                     }

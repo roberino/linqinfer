@@ -80,7 +80,7 @@ namespace LinqInfer.Utility.Expressions
                 yield return new UnboundArgument(expressionTree, context)
                 {
                     Resolver = (t, c) => Build(t, c).Single(),
-                    ParameterNames = expressionTree.Children.First().Names.ToArray()
+                    Parameters = Parameter.GetParameters(expressionTree).ToArray()
                 };
 
                 yield break;
@@ -405,15 +405,37 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        static Expression AsSingleExpression(this IReadOnlyCollection<Expression> parts)
+        {
+            if (parts.Count == 0)
+            {
+                throw new ArgumentException();
+            }
+
+            if (parts.Count == 1)
+            {
+                return parts.Single();
+            }
+
+            return ConversionFunctions.ToTuple(parts);
+        }
+
         static Expression AsLamdaExpression(this ExpressionTree expressionTree, Scope context)
         {
             var iscope = (InferredScope)context;
 
-            var body = Build(expressionTree.Children.Last(), iscope).Single();
+            var bodyParts = Build(expressionTree.Children.Last(), iscope).ToArray();
 
-            if (body.Type != iscope.OutputType && !iscope.OutputType.IsGenericParameter)
+            var body = bodyParts.AsSingleExpression();
+
+            iscope.TypeResolver.Infer(iscope.OutputType, body.Type);
+
+            if (body.Type != iscope.OutputType)
             {
-                body = Expression.Convert(body, iscope.OutputType);
+                var resolvedType = iscope.TypeResolver.TryConstructType(iscope.OutputType);
+
+                if(body.Type != resolvedType)
+                    body = Expression.Convert(body, iscope.OutputType);
             }
 
             return Expression.Lambda(body, iscope.Parameters);

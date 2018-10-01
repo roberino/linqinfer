@@ -27,6 +27,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
                 Assert.That(x, Is.EqualTo(5 * i++));
             }
         }
+
         [Test]
         public void AsExpression_LoopThenFunc_BehavesCorrectly()
         {
@@ -35,6 +36,20 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var result = exp.Compile().Invoke(1);
 
             Assert.That(result, Is.EqualTo(10));
+        }
+        
+        [Test]
+        public void AsExpression_Recurse_BehavesCorrectly()
+        {
+            ControlFunctions.Recurse<int>((i, x) => (1, true));
+
+            var exp = "(a) => Recurse((i, x : int) => ((x + 1) * 5, x > 1)).Result".AsExpression<double, int[]>();
+
+            var result = exp.Compile().Invoke(1);
+
+            Assert.That(result.Length, Is.EqualTo(2));
+            Assert.That(result[0], Is.EqualTo(5));
+            Assert.That(result[1], Is.EqualTo(30));
         }
 
         [Test]

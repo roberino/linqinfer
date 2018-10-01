@@ -7,11 +7,14 @@ namespace LinqInfer.Utility.Expressions
     {
         public InferredScope(Scope parent, 
             Type outputType,
+            InferredTypeResolver typeResolver,
             params ParameterExpression[] parameters) : base(parent, parameters)
         {
             OutputType = outputType;
+            TypeResolver = typeResolver;
         }
         
         public Type OutputType { get; }
+        public InferredTypeResolver TypeResolver { get; }
     }
 }

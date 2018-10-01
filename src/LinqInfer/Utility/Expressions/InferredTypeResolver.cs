@@ -33,7 +33,7 @@ namespace LinqInfer.Utility.Expressions
                     {
                         var (inputs, output) = GetInferredArgs(p.Type);
 
-                        p.InputTypes = inputs;
+                        p.InputTypes = inputs.Zip(p.Parameters).Select(x => x.b.IsTypeKnown ? x.b.Type : x.a).ToArray();
                         p.OutputType = output;
                     }
                 }

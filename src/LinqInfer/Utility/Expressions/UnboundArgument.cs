@@ -26,7 +26,7 @@ namespace LinqInfer.Utility.Expressions
 
         public Type Type { get; set; }
 
-        public string[] ParameterNames {get; set; }
+        public Parameter[] Parameters {get; set; }
 
         public Type[] InputTypes { get; set; }
 
@@ -36,14 +36,15 @@ namespace LinqInfer.Utility.Expressions
 
         public bool HasUnresolvedTypes =>
             (OutputType?.IsGenericParameter).GetValueOrDefault()
-            || (InputTypes?.Any(t => t.IsGenericParameter)).GetValueOrDefault();
+            || (InputTypes?.Any(t => t.IsGenericParameter)).GetValueOrDefault()
+            || (Parameters?.Any(p => !p.IsTypeKnown)).GetValueOrDefault();
 
-        public Expression Resolve()
+        public Expression Resolve(InferredTypeResolver typeResolver = null)
         {
             if (Expression == null)
             {
-                var parameters = ParameterNames.Zip(InputTypes, (name, type) => Expression.Parameter(type, name)).ToArray();
-                var inferredScope = new InferredScope(Scope, OutputType, parameters);
+                var parameters = Parameters.Zip(InputTypes, (para, type) => Expression.Parameter(type, para.Name)).ToArray();
+                var inferredScope = new InferredScope(Scope, OutputType, typeResolver ?? new InferredTypeResolver(), parameters);
                 Expression = Resolver(Source, inferredScope);
                 Type = Expression.Type;
             }
