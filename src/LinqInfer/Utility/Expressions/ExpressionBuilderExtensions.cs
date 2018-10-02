@@ -80,7 +80,7 @@ namespace LinqInfer.Utility.Expressions
                 yield return new UnboundArgument(expressionTree, context)
                 {
                     Resolver = (t, c) => Build(t, c).Single(),
-                    Parameters = Parameter.GetParameters(expressionTree).ToArray()
+                    Parameters = Parameter.GetParameters(expressionTree.Children.First()).ToArray()
                 };
 
                 yield break;

@@ -126,7 +126,14 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public IEnumerable<ExpressionTree> Parameters => Children.First().Children.Select(child => child.MoveToContent());
+        public IEnumerable<ExpressionTree> Parameters
+        {
+            get
+            {
+                var targ = (Type == TokenType.Name || Type == TokenType.Root) ? Children.First() : this;
+                return targ.Children.Select(child => child.MoveToContent());
+            }
+        }
 
         public ExpressionTree MoveToContent()
         {
