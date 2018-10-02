@@ -16,6 +16,11 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             return Enumerable.Range(0, elements).Select(n => Math.PI).ToArray();
         }
 
+        public static double GetTupleProduct((double x, double y) tuple)
+        {
+            return tuple.x * tuple.y;
+        }
+
         public static TestObject[] GetObjectArray(int elements)
         {
             return Enumerable.Range(0, elements).Select(n => new TestObject{ Val = n }).ToArray();

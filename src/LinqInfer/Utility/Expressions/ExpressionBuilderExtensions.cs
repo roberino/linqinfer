@@ -58,10 +58,10 @@ namespace LinqInfer.Utility.Expressions
                     yield return expressionTree.AsLiteral(context);
                     break;
                 case TokenType.Root:
-                    yield return expressionTree.SingleParameter(context);
+                    yield return expressionTree.AsSingleExpression(context);
                     break;
                 case TokenType.Negation:
-                    yield return Expression.Negate(expressionTree.SingleParameter(context));
+                    yield return Expression.Negate(expressionTree.AsSingleExpression(context));
                     break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
@@ -86,13 +86,16 @@ namespace LinqInfer.Utility.Expressions
                 yield break;
             }
 
-            foreach (var item in Build(expressionTree, context))
-            {
-                yield return new UnboundArgument(expressionTree, context, item);
-            }
+            var items = Build(expressionTree, context).ToArray();
+
+            if (!items.Any()) yield break;
+            
+            var item = items.AsSingleExpression();
+
+            yield return new UnboundArgument(expressionTree, context, item);
         }
 
-        static Expression SingleParameter(this ExpressionTree expressionTree, Scope context)
+        static Expression AsSingleExpression(this ExpressionTree expressionTree, Scope context)
         {
             expressionTree.ValidateArgs(1, 1);
 

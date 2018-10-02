@@ -102,6 +102,15 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         }
 
         [Test]
+        public void ExportAsString_ValueTuple_ReturnTupleExpression()
+        {
+            var expString = Exp(new int[1], (1, 2), a => ValueTuple.Create(a[0], a[1]))
+                .ExportAsString();
+
+            Assert.That(expString, Is.EqualTo("a => (a[0], a[1])"));
+        }
+
+        [Test]
         public void ExportAsString_ArrayIndexAccessor_ReturnValidString()
         {
             var expString = Exp(new int[1], 1, a => a[1]).ExportAsString();
@@ -187,6 +196,16 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var result = exp.Compile().Invoke(5);
 
             Assert.That(result, Is.EqualTo(StaticExampleMethods.GetPiX(5)));
+        }
+
+        [Test]
+        public void AsExpression_TupleParameter_BindsCorrectly()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetTupleProduct)}((x, 5))".AsExpression<double, int>();
+
+            var result = exp.Compile().Invoke(5);
+
+            Assert.That(result, Is.EqualTo(25));
         }
         
         [Test]

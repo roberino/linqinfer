@@ -163,6 +163,11 @@ namespace LinqInfer.Utility.Expressions
                 if (callExp.Method.DeclaringType != typeof(Math) && callExp.Method.DeclaringType != null)
                 {
                     obj = callExp.Method.DeclaringType.Name;
+
+                    if (string.Equals(obj, nameof(ValueTuple)))
+                    {
+                        return $"({argss})";
+                    }
                 }
             }
 

@@ -139,7 +139,7 @@ namespace LinqInfer.Utility.Expressions
         {
             var targ = this;
 
-            while ((targ.Type == TokenType.GroupOpen || targ.Type == TokenType.Separator) && _children.Count == 1)
+            while ((targ.Type == TokenType.GroupOpen || targ.Type == TokenType.Separator) && targ.Children.Count == 1)
             {
                 targ = targ.Children.Single();
             }
