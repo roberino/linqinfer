@@ -21,6 +21,11 @@ namespace LinqInfer.Utility.Expressions
             return _binder.BindToFunction(name, parameters);
         }
 
+        public static IPromise<T> Do<T>(Func<T> func)
+        {
+            return new Promise<T>(func);
+        }
+
         public static IPromise<T[]> Loop<T>(Func<int, T> func, int iterations)
         {
             return new Promise<T[]>(() =>

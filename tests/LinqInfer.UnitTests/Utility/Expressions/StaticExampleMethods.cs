@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinqInfer.UnitTests.Utility.Expressions
 {
@@ -19,6 +20,12 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         public static double GetTupleProduct((double x, double y) tuple)
         {
             return tuple.x * tuple.y;
+        }
+
+        public static async Task<double> GetValueX15Async(double x)
+        {
+            await Task.Delay(2);
+            return x * 15;
         }
 
         public static TestObject[] GetObjectArray(int elements)

@@ -43,7 +43,7 @@ namespace LinqInfer.Utility.Expressions
         {
             if (Expression == null)
             {
-                var parameters = Parameters.Zip(InputTypes, (para, type) => Expression.Parameter(type, para.Name)).ToArray();
+                var parameters = Parameters.Zip(InputTypes ?? new Type[0], (para, type) => Expression.Parameter(type, para.Name)).ToArray();
                 var inferredScope = new InferredScope(Scope, OutputType, typeResolver ?? new InferredTypeResolver(), parameters);
                 Expression = Resolver(Source, inferredScope);
                 Type = Expression.Type;

@@ -431,14 +431,17 @@ namespace LinqInfer.Utility.Expressions
 
             var body = bodyParts.AsSingleExpression();
 
-            iscope.TypeResolver.Infer(iscope.OutputType, body.Type);
-
-            if (body.Type != iscope.OutputType)
+            if (iscope.OutputType != null)
             {
-                var resolvedType = iscope.TypeResolver.TryConstructType(iscope.OutputType);
+                iscope.TypeResolver.Infer(iscope.OutputType, body.Type);
 
-                if(body.Type != resolvedType)
-                    body = Expression.Convert(body, iscope.OutputType);
+                if (body.Type != iscope.OutputType)
+                {
+                    var resolvedType = iscope.TypeResolver.TryConstructType(iscope.OutputType);
+
+                    if (body.Type != resolvedType)
+                        body = Expression.Convert(body, iscope.OutputType);
+                }
             }
 
             return Expression.Lambda(body, iscope.Parameters);

@@ -85,6 +85,18 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Call(closedMethod, parameters);
         }
 
+        public static Expression ToAsyncPromise(Expression taskParam)
+        {
+            var type = taskParam.Type.GetGenericArguments().Single();
+
+            var promiseType = typeof(AsyncPromise<>).MakeGenericType(type);
+
+            var createMethod = promiseType.GetMethod(nameof(AsyncPromise<object>.Create),
+                BindingFlags.Static | BindingFlags.Public);
+
+            return Expression.Call(createMethod, taskParam);
+        }
+
         public static Expression ConvertToType(this Expression expression, Type type)
         {
             if (expression.Type == type)

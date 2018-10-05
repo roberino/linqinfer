@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -16,7 +15,7 @@ namespace LinqInfer.Utility.Expressions
         {
         }
 
-        protected Scope(Scope globalContext, params ParameterExpression[] parameters) : this(null, globalContext, true, null, null, parameters)
+        internal Scope(Scope globalContext, params ParameterExpression[] parameters) : this(null, globalContext, true, null, null, parameters)
         {
         }
 

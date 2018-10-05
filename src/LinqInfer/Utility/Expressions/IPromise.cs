@@ -7,6 +7,6 @@ namespace LinqInfer.Utility.Expressions
         Exception Error { get; }
         T Result { get; }
 
-        Promise<TOutput> Then<TOutput>(Func<T, TOutput> work);
+        IPromise<TOutput> Then<TOutput>(Func<T, TOutput> work);
     }
 }

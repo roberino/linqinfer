@@ -207,6 +207,50 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(result, Is.EqualTo(25));
         }
+
+        [Test]
+        public void AsExpression_TaskResult_ReturnsValue()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}(x).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(45));
+        }
+
+        [Test]
+        public void AsExpression_TaskResultWithThen_ReturnsValue()
+        {
+            var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
+
+            var exp = $"x => {methodName}(x).Then(r => r + 1).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(46));
+        }
+
+        [Test]
+        public void AsExpression_Do_CanUseOuterScopedParameter()
+        {
+            var exp = "x => Do(() => 1 + x).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void AsExpression_TaskResultWithThenAsync_ReturnsValue()
+        {
+            var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
+
+            var exp = $"x => {methodName}(x).ThenAsync(r => {methodName}(r)).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(15 * 3 * 15));
+        }
         
         [Test]
         public void AsExpression_InnerLamdaWithExpression_BindsCorrectly()

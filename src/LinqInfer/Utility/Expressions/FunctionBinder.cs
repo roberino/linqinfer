@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -17,6 +18,8 @@ namespace LinqInfer.Utility.Expressions
                 type
                     .GetTypeInf()
                     .GetMethods(BindingFlags.Public | bindingFlags)
+                    .Concat(type.GetInterfaces().SelectMany(i => i.GetMethods(BindingFlags.Public | bindingFlags)))
+                    .Distinct()
                     .Where(m => m.CustomAttributes.All(a => a.AttributeType != typeof(NonBound)))
                     .GroupBy(m => m.Name)
                     .ToDictionary(g => g.Key, g => g.ToArray());
@@ -34,6 +37,14 @@ namespace LinqInfer.Utility.Expressions
 
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
         {
+            if (instance != null && instance.Type.IsSubclassOf(typeof(Task)))
+            {
+                instance = ConversionFunctions.ToAsyncPromise(instance);
+
+                return new FunctionBinder(instance.Type, BindingFlags.Public | BindingFlags.Instance).BindToFunction(
+                    name, parameters, instance);
+            }
+
             var method = BindToMethod(name, parameters);
 
             var resolver = new InferredTypeResolver();

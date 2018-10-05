@@ -22,7 +22,7 @@ namespace LinqInfer.Utility.Expressions
             }, true);
         }
 
-        public Promise<TOutput> Then<TOutput>(Func<T, TOutput> work)
+        public IPromise<TOutput> Then<TOutput>(Func<T, TOutput> work)
         {
             return new Promise<TOutput>(() => work(Result));
         }
