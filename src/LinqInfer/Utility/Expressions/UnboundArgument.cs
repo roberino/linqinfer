@@ -15,6 +15,13 @@ namespace LinqInfer.Utility.Expressions
             Expression = expression;
             Type = expression?.Type;
         }
+        
+        public UnboundArgument(Expression expression)
+        {
+            IsInferred = false;
+            Expression = expression;
+            Type = expression.Type;
+        }
 
         public ExpressionTree Source { get; }
 

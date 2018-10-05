@@ -3,36 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Utility.Expressions
 {
     class FunctionBinder : IFunctionBinder
     {
+        readonly IDictionary<string, MethodInfo[]> _extensionMethods;
         readonly IDictionary<string, MethodInfo[]> _methods;
 
-        public FunctionBinder(Type type, BindingFlags bindingFlags)
+        public FunctionBinder(Type type, BindingFlags bindingFlags, MethodInfo[] extensionMethods = null)
         {
+            _extensionMethods = ToDictionary(extensionMethods ?? new MethodInfo[0]);
+
             _methods =
-                type
+                ToDictionary(type
                     .GetTypeInf()
                     .GetMethods(BindingFlags.Public | bindingFlags)
-                    .Concat(type.GetInterfaces().SelectMany(i => i.GetMethods(BindingFlags.Public | bindingFlags)))
-                    .Distinct()
-                    .Where(m => m.CustomAttributes.All(a => a.AttributeType != typeof(NonBound)))
-                    .GroupBy(m => m.Name)
-                    .ToDictionary(g => g.Key, g => g.ToArray());
+                    .Concat(type.GetInterfaces().SelectMany(i => i.GetMethods(BindingFlags.Public | bindingFlags))));
         }
 
         public bool IsDefined(string name)
         {
             return _methods.ContainsKey(name);
-        }
-
-        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters)
-        {
-            return BindToFunction(name, parameters, null);
         }
 
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
@@ -45,7 +38,7 @@ namespace LinqInfer.Utility.Expressions
                     name, parameters, instance);
             }
 
-            var method = BindToMethod(name, parameters);
+            var (method, isExtension, actualParameters) = BindToMethod(name, instance, parameters);
 
             var resolver = new InferredTypeResolver();
 
@@ -59,23 +52,51 @@ namespace LinqInfer.Utility.Expressions
                 parameter.Resolve(resolver);
             }
 
-            var args = Convert(parameters.Select(p => p.Expression), method.GetParameters()).ToArray();
-            
-            resolver.InferAll(method, parameters);
+            var args = Convert(actualParameters.Select(p => p.Expression), method.GetParameters()).ToArray();
+
+            resolver.InferAll(method, actualParameters);
 
             if (method.IsGenericMethodDefinition)
             {
                 var genTypes = method.GetGenericArguments().Select(a => resolver.TryConstructType(a)).ToArray();
 
-                method =  method.MakeGenericMethod(genTypes);
+                method = method.MakeGenericMethod(genTypes);
             }
 
-            return Expression.Call(instance, method, args);
+            return Expression.Call(isExtension ? null : instance, method, args);
         }
 
-        MethodInfo BindToMethod(string name, IReadOnlyCollection<UnboundArgument> parameters)
+        (MethodInfo method, bool isExtension, IReadOnlyCollection<UnboundArgument> parameters) BindToMethod(string name, Expression instance, IReadOnlyCollection<UnboundArgument> parameters)
         {
-            var method = _methods[name]
+            var ext = false;
+            var method = BindToMethod(_methods, name, parameters);
+            var newParams = parameters;
+
+            if (method == null && instance != null)
+            {
+                var thisArg = new UnboundArgument(instance);
+                newParams = new[] { thisArg }.Concat(parameters).ToArray();
+
+                method = BindToMethod(_extensionMethods, name, newParams);
+                ext = method != null;
+            }
+
+            if (method == null)
+            {
+                throw new ArgumentException(name);
+            }
+
+            return (method, ext, newParams);
+        }
+
+        static MethodInfo BindToMethod(IDictionary<string, MethodInfo[]> methods, string name, IReadOnlyCollection<UnboundArgument> parameters)
+        {
+            if (!methods.TryGetValue(name, out var matches))
+            {
+                return null;
+            }
+
+            var method = matches
                 .Select(m => new
                 {
                     m,
@@ -86,7 +107,7 @@ namespace LinqInfer.Utility.Expressions
 
             if (method == null || method.score == 0)
             {
-                throw new ArgumentException();
+                return null;
             }
 
             return method.m;
@@ -98,7 +119,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 return 0;
             }
-            
+
             var s = 1001;
 
             foreach (var pair in parameters.Zip(args, (p, a) => (p, a)))
@@ -149,13 +170,12 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        IEnumerable<MethodInfo> GetExtensionMethods(Type extendedType)
+        static IDictionary<string, MethodInfo[]> ToDictionary(IEnumerable<MethodInfo> methods)
         {
-            return 
-                from method in _methods.SelectMany(m => m.Value)
-                where method.IsDefined(typeof(ExtensionAttribute), false)
-                where method.GetParameters()[0].ParameterType.IsAssignableFrom(extendedType)
-                select method;
+            return methods.Distinct()
+                .Where(m => m.CustomAttributes.All(a => a.AttributeType != typeof(NonBound)))
+                .GroupBy(m => m.Name)
+                .ToDictionary(g => g.Key, g => g.ToArray());
         }
     }
 }
