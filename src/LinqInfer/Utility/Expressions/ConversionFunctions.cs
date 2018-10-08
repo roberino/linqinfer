@@ -97,11 +97,66 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Call(createMethod, taskParam);
         }
 
+        public static bool IsPromise(this Expression expression)
+        {
+            return expression.Type.PromiseType() != null;
+        }
+
+        public static Type PromiseType(this Type type)
+        {
+            if (type.IsPrimitive)
+            {
+                return null;
+            }
+
+            bool IsPromiseIFace(Type t)
+            {
+                return t.IsGenericType
+                       && t.GetGenericTypeDefinition() == typeof(IPromise<>);
+            }
+
+            var pType = IsPromiseIFace(type) ? type : type
+                .GetInterfaces()
+                .FirstOrDefault(IsPromiseIFace);
+
+            return pType?.GenericTypeArguments.First();
+        }
+
+        public static (Expression left, Expression right) MakeCompatible(Expression left, Expression right)
+        {
+            var rc = TypeEqualityComparer.Instance.RequiresConversion(left.Type, right.Type, false);
+
+            if (!rc.HasValue)
+            {
+                throw new ArgumentException("Incompatible types");
+            }
+
+            if (!rc.Value)
+            {
+                return (left, right);
+            }
+
+            var tc = Type.GetTypeCode(right.Type);
+
+            if (tc == TypeCode.Double)
+            {
+                return (left.ConvertToType(right.Type), right);
+            }
+                
+            return (left, right.ConvertToType(left.Type));
+
+        }
+
         public static Expression ConvertToType(this Expression expression, Type type)
         {
             if (expression.Type == type)
             {
                 return expression;
+            }
+
+            if (expression.IsPromise())
+            {
+                return ConvertToType(Expression.Property(expression, nameof(IPromise<object>.Result)), type);
             }
 
             if (expression.NodeType == ExpressionType.Constant && expression is ConstantExpression ce)

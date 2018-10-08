@@ -1,5 +1,5 @@
 ﻿(x: int) => 
 	Loop(
 		i => ToFloat(x) * pii() * data1().y * i
-		, 10
+		, Do(() => x)
 	).Result.Sum()

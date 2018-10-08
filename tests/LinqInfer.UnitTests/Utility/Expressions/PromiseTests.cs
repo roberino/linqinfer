@@ -8,6 +8,18 @@ namespace LinqInfer.UnitTests.Utility.Expressions
     public class PromiseTests
     {
         [Test]
+        public void AsExpression_WithPromise_IsConvertedToRequiredType()
+        {
+            var exp = "x => Loop(i => 5 * i, Do(() => 1 + x)).Result[1]".AsExpression<int, double>();
+
+            var f = exp.Compile();
+
+            var result = f(2);
+
+            Assert.That(result, Is.EqualTo(5));
+        }
+
+        [Test]
         public void Result_IsSameEachInvocation()
         {
             var promise = new Promise<string>(() => Guid.NewGuid().ToString());
