@@ -73,7 +73,7 @@ namespace LinqInfer.Utility.Expressions
                 .Select(a => a is Expression lambdaExpression ? lambdaExpression : Expression.Constant(a))
                 .ToArray();
 
-            var boundLambda = Expression.Lambda<Func<TOutput>>(Expression.Invoke(lambda, argExpressions).Convert<TOutput>());
+            var boundLambda = Expression.Lambda<Func<TOutput>>(Expression.Invoke(lambda, argExpressions).ConvertToType<TOutput>());
 
             var compiled = boundLambda.Compile();
 

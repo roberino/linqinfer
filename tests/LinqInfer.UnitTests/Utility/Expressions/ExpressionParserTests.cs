@@ -1,10 +1,10 @@
-﻿using LinqInfer.Utility.Expressions;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using LinqInfer.Maths;
-using System.Linq;
+using LinqInfer.Utility.Expressions;
+using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Utility.Expressions
 {
@@ -79,7 +79,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = z };
+            var paramz = new MyParams { Z = z };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -201,7 +201,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_TupleParameter_BindsCorrectly()
         {
-            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetTupleProduct)}((x, 5))".AsExpression<double, int>();
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetTupleProduct)}((x, 5.0))".AsExpression<double, int>();
 
             var result = exp.Compile().Invoke(5);
 
@@ -289,7 +289,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_InnerLambda_BindsCorrectly()
         {
-            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<double>>();
+            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<int>>();
 
             var result = exp.Compile().Invoke(new[] {1, 2});
         }
@@ -382,7 +382,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var exp = Exp(1d, new Vector(1d, 2d), x => new Vector(x, 2d));
             var expStr = exp.ExportAsString();
 
-            Assert.That(expStr, Is.EqualTo("x => Vector([x, 2])"));
+            Assert.That(expStr, Is.EqualTo("x => Vector([x, 2.0])"));
         }
 
         [Test]
@@ -390,7 +390,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = "x => !x.PF() ? -1 : 2".AsExpression<MyParams, int>();
 
-            var parameter = new MyParams() { PFValue = false };
+            var parameter = new MyParams { PFValue = false };
 
             var result = exp.Compile().Invoke(parameter);
 
@@ -402,7 +402,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = "x => 5 + (!x.PF() ? -1 : 2)".AsExpression<MyParams, int>();
 
-            var parameter = new MyParams() { PFValue = false };
+            var parameter = new MyParams { PFValue = false };
 
             var result = exp.Compile().Invoke(parameter);
 
@@ -456,7 +456,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = 3 };
+            var paramz = new MyParams { Z = 3 };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -472,7 +472,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { P = true };
+            var paramz = new MyParams { P = true };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -487,7 +487,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = 14 };
+            var paramz = new MyParams { Z = 14 };
 
             var result = exp.Compile().Invoke(paramz);
             var expected = exp0.Compile().Invoke(paramz);
@@ -551,7 +551,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParamsWithFractions, Fraction>().Compile();
 
-            var input = new MyParamsWithFractions()
+            var input = new MyParamsWithFractions
             {
                 Value1 = Fraction.ApproxPii,
                 Value2 = Fraction.E
@@ -573,10 +573,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp2.Compile();
 
-            var input = new MyParamsWithVector()
+            var input = new MyParamsWithVector
             {
                 Input1 = new ColumnVector1D(1.1, 2.2),
-                Input2 = new ColumnVector1D(3.1, 4.2),
+                Input2 = new ColumnVector1D(3.1, 4.2)
             };
 
             var result = func(input);
@@ -595,10 +595,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParamsWithVector, IVector>().Compile();
 
-            var input = new MyParamsWithVector()
+            var input = new MyParamsWithVector
             {
                 Input1 = new ColumnVector1D(1.1, 2.2),
-                Input2 = new ColumnVector1D(3.1, 4.2),
+                Input2 = new ColumnVector1D(3.1, 4.2)
             };
 
             var result = func(input);
@@ -620,7 +620,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var func = expression.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 3, X = 12, Y = -4 });
+            var result = func(new MyParams { Z = 3, X = 12, Y = -4 });
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }
@@ -632,7 +632,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Field1 = 9 });
+            var result = func(new MyParams { Field1 = 9 });
 
             Assert.That(result, Is.EqualTo(18));
         }
@@ -672,9 +672,33 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var expStr = exp.ExportAsString();
             var func = expStr.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 9 });
+            var result = func(new MyParams { Z = 9 });
 
             Assert.That(result, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void AsExpression_MultiplyExpressionWithLeftConversion_CorrectResultReturned()
+        {
+            const string exps = "x => x.X * 1443.22";
+
+            var func = exps.AsExpression<MyParams, double>().Compile();
+
+            var result = func(new MyParams { X = 2 });
+
+            Assert.That(result, Is.EqualTo(2d * 1443.22));
+        }
+
+        [Test]
+        public void AsExpression_MultiplyExpressionWithRightConversion_CorrectResultReturned()
+        {
+            const string exps = "x => 1443.22 + x.X ";
+
+            var func = exps.AsExpression<MyParams, double>().Compile();
+
+            var result = func(new MyParams { X = 2 });
+
+            Assert.That(result, Is.EqualTo(2d + 1443.22));
         }
 
         [Test]
@@ -685,7 +709,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exps.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { X = 2, Y = 3 });
+            var result = func(new MyParams { X = 2, Y = 3 });
 
             Assert.That(result, Is.EqualTo(6));
         }
@@ -697,7 +721,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 1.1 });
+            var result = func(new MyParams { Z = 1.1 });
 
             Assert.That(Math.Round(result, 5), Is.EqualTo(3.3));
         }

@@ -30,7 +30,7 @@ namespace LinqInfer.Utility.Expressions
 
                 case ExpressionType.Constant:
                     var constExp = (ConstantExpression)expression;
-                    return constExp.Value.ToString();
+                    return constExp.Value.ToPreciseString();
                 case ExpressionType.Lambda:
                     var lam = ((LambdaExpression)expression);
                     var parms = lam.Parameters.Select(p => p.ExportExpression());
@@ -210,7 +210,14 @@ namespace LinqInfer.Utility.Expressions
             {
                 case TypeCode.Double:
                 case TypeCode.Single:
-                    return ((double)value).ToString("R");
+                {
+                    var str = ((double) value).ToString("R");
+                    if (!str.Contains('.'))
+                    {
+                        return str + ".0";
+                    }
+                    return str;
+                }
                 case TypeCode.String:
                     throw new NotSupportedException($"Unsupported constant: {type.Name}");
                 case TypeCode.Object:

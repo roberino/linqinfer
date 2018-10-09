@@ -8,18 +8,6 @@ namespace LinqInfer.Utility.Expressions
 {
     static class ExpressionBuilderExtensions
     {
-        public static Expression Convert<T>(this Expression expression)
-        {
-            return expression.Convert(typeof(T));
-        }
-
-        public static Expression Convert(this Expression expression, Type type)
-        {
-            return expression.Type != type ?
-                Expression.Convert(expression, type) :
-                expression;
-        }
-
         public static IEnumerable<Expression> Build(this ExpressionTree expressionTree, Scope context)
         {
             switch (expressionTree.Type)
@@ -108,14 +96,12 @@ namespace LinqInfer.Utility.Expressions
 
             if (expressionTree.Parent.IsIndexedAccessor)
             {
-                return context.SelectIndexScope(elements).CurrentContext;
+                return context.SelectIndexScope(ConversionFunctions.ConvertAll<int>(elements)).CurrentContext;
             }
 
-            var types = elements.Select(e => e.Type).Distinct().ToList();
+            var converted = ConversionFunctions.MakeCompatible(elements);
 
-            var type = types.Count == 1 ? types[0] : typeof(object);
-
-            return Expression.NewArrayInit(type, elements);
+            return Expression.NewArrayInit(converted.commonType, converted.expressions);
         }
 
         static Expression AsCondition(this ExpressionTree expressionTree, Scope context)
@@ -131,13 +117,9 @@ namespace LinqInfer.Utility.Expressions
         {
             expressionTree.ValidateArgs(0, 0);
 
-            if (context.ConversionType == null)
-            {
-                return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
-            }
-
-            var value = System.Convert.ChangeType(expressionTree.Value, context.ConversionType);
-            return Expression.Constant(value, context.ConversionType);
+            return !expressionTree.Value.Contains('.') ? 
+                Expression.Constant(int.Parse(expressionTree.Value), typeof(int)) : 
+                Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
         }
 
         static Expression AsNamedExpression(this ExpressionTree expressionTree, Scope context)
@@ -213,7 +195,11 @@ namespace LinqInfer.Utility.Expressions
         {
             var parameters = expressionTree.BuildParameters(context.RootScope);
 
-            var result = Expression.Invoke(context.CurrentContext, parameters.Select(p => p.Resolve()));
+            var (inputs, output) = InferredTypeResolver.GetFuncArgs(context.CurrentContext.Type);
+
+            var converted = parameters.Zip(inputs).Select(p => p.a.Resolve().ConvertToType(p.b));
+
+            var result = Expression.Invoke(context.CurrentContext, converted);
 
             var nextScope = context.SelectChildScope(result);
                 
@@ -480,12 +466,9 @@ namespace LinqInfer.Utility.Expressions
                 .Build(context.NewConversionScope(first.Type))
                 .Single();
 
-            if (right.Type != first.Type)
-            {
-                right = Expression.Convert(right, first.Type);
-            }
-
-            return Expression.MakeBinary(expressionType, first, right);
+            var leaves = ConversionFunctions.MakeCompatible(first, right);
+            
+            return Expression.MakeBinary(expressionType, leaves.left, leaves.right);
         }
     }
 }

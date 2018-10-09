@@ -30,7 +30,7 @@ namespace LinqInfer.Utility.Expressions
             {
                 var (body, parameterExpressions) = ParseAndBindToExpression(sourceCode.Code, parameterBinder);
 
-                var convertedBody = outputType == null ? body : body.Convert(outputType);
+                var convertedBody = outputType == null ? body : body.ConvertToType(outputType);
 
                 return Expression.Lambda(convertedBody, parameterExpressions);
             }
@@ -50,7 +50,7 @@ namespace LinqInfer.Utility.Expressions
                 return p.Type;
             });
 
-            var convertedBody = outputType == null ? body : body.Convert(outputType);
+            var convertedBody = outputType == null ? body : body.ConvertToType(outputType);
 
             return (Expression.Lambda(convertedBody, parameterExpressions), paramTypes.ToArray());
         }
@@ -59,7 +59,7 @@ namespace LinqInfer.Utility.Expressions
         {
             var (body, parameterExpressions) = ParseAndBindToExpression(expression, p => p.Index > 0 ? throw new ArgumentException() : typeof(TInput));
 
-            return Expression.Lambda<Func<TInput, TOutput>>(body.Convert<TOutput>(), parameterExpressions);
+            return Expression.Lambda<Func<TInput, TOutput>>(body.ConvertToType<TOutput>(), parameterExpressions);
         }
 
         (Expression body, ParameterExpression[] parameters) ParseAndBindToExpression(string expression, Func<Parameter, Type> parameterBinder)

@@ -128,7 +128,7 @@ namespace LinqInfer.Utility.Expressions
             return GetFuncArgs(typeToInferFrom);
         }
 
-        static (Type[] inputs, Type output) GetFuncArgs(Type funcType)
+        public static (Type[] inputs, Type output) GetFuncArgs(Type funcType)
         {
             // e.g. Func<int, double>;
 

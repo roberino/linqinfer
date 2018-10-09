@@ -122,29 +122,47 @@ namespace LinqInfer.Utility.Expressions
             return pType?.GenericTypeArguments.First();
         }
 
+        public static (Expression[] expressions, Type commonType) MakeCompatible(params Expression[] expressions)
+        {   
+            var types = expressions.Select(e => e.Type).Distinct().ToList();
+            
+            if (types.Count == 0)
+            {
+                return (expressions, typeof(object));
+            }
+
+            if (types.Count == 1)
+            {
+                return (expressions, types[0]);
+            }
+
+            var typeCodes = types.Select(Type.GetTypeCode).ToList();
+
+            if (typeCodes.Any(c => !c.IsNumeric()) || typeCodes.All(c => c != TypeCode.Double))
+            {
+                return (expressions, typeof(object));
+            }
+
+            return (ConvertAll<double>(expressions).ToArray(), typeof(double));
+        }
+
         public static (Expression left, Expression right) MakeCompatible(Expression left, Expression right)
         {
             var rc = TypeEqualityComparer.Instance.RequiresConversion(left.Type, right.Type, false);
+            
+            var rtc = Type.GetTypeCode(right.Type);
 
-            if (!rc.HasValue)
-            {
-                throw new ArgumentException("Incompatible types");
-            }
-
-            if (!rc.Value)
+            if (!rc.HasValue || !rc.Value)
             {
                 return (left, right);
             }
 
-            var tc = Type.GetTypeCode(right.Type);
-
-            if (tc == TypeCode.Double)
+            if (rtc == TypeCode.Double)
             {
                 return (left.ConvertToType(right.Type), right);
             }
                 
             return (left, right.ConvertToType(left.Type));
-
         }
 
         public static Expression ConvertToType(this Expression expression, Type type)
@@ -167,38 +185,38 @@ namespace LinqInfer.Utility.Expressions
             return Expression.Convert(expression, type);
         }
 
+        public static Expression ConvertToType<T>(this Expression parameter)
+        {
+            var type = typeof(T);
+
+            return ConvertToType(parameter, type);
+        }
+
+        public static IEnumerable<Expression> ConvertAll<T>(params Expression[] parameters)
+        {
+            var type = typeof(T);
+
+            return parameters.Select(p => ConvertToType(p, type));
+        }
+
         static Expression Convert(IEnumerable<Expression> parameters)
         {
-            return Expression.Convert(parameters.First(), (Type)((ConstantExpression)parameters.Last()).Value);
-        }
-
-        static IEnumerable<Expression> ConvertAll<T>(params Expression[] parameters)
-        {
-            var type = typeof(T);
-
-            return parameters.Select(p => Expression.Convert(p, type));
-        }
-
-        static Expression ConvertOne<T>(Expression parameter)
-        {
-            var type = typeof(T);
-
-            return Expression.Convert(parameter, type);
+            return ConvertToType(parameters.First(), (Type)((ConstantExpression)parameters.Last()).Value);
         }
 
         static Expression ToInteger(IEnumerable<Expression> parameters)
         {
-            return Expression.Convert(parameters.Single(), typeof(int));
+            return ConvertToType(parameters.Single(), typeof(int));
         }
 
         static Expression ToFloat(IEnumerable<Expression> parameters)
         {
-            return Expression.Convert(parameters.Single(), typeof(double));
+            return ConvertToType(parameters.Single(), typeof(double));
         }
 
         static Expression ToString(IEnumerable<Expression> parameters)
         {
-            return Expression.Convert(parameters.Single(), typeof(string));
+            return ConvertToType(parameters.Single(), typeof(string));
         }
 
         static Expression Matrix(IEnumerable<Expression> parameters)
@@ -241,9 +259,9 @@ namespace LinqInfer.Utility.Expressions
             switch (paramArray.Length)
             {
                 case 1:
-                    return Expression.New(OneOfNMethod, ConvertOne<int>(paramArray[0]), Expression.New(typeof(int?)));
+                    return Expression.New(OneOfNMethod, ConvertToType<int>(paramArray[0]), Expression.New(typeof(int?)));
                 case 2:
-                    return Expression.New(OneOfNMethod, ConvertOne<int>(paramArray[0]), ConvertOne<int?>(paramArray[1]));
+                    return Expression.New(OneOfNMethod, ConvertToType<int>(paramArray[0]), ConvertToType<int?>(paramArray[1]));
             }
 
             throw new ArgumentException();
