@@ -12,10 +12,12 @@ namespace LinqInfer.UnitTests.Learning
     {
         public static IAsyncFeatureProcessingPipeline<TestData.Pirate> CreatePipeline()
         {
-            var pipeline = new Func<int, AsyncBatch<TestData.Pirate>>(Load).CreatePipeline();
+            var pipeline = CreateLoader().CreatePipeline();
 
             return pipeline;
         }
+
+        public static Func<int, AsyncBatch<TestData.Pirate>> CreateLoader() => Load;
 
         public static AsyncBatch<TestData.Pirate> Load(int n)
         {

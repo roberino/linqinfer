@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using NUnit.Framework;
@@ -111,12 +112,32 @@ namespace LinqInfer.UnitTests.Learning
         }
 
         [Test]
-        public async Task AttachAndReattachMultilayerNetworkClassifier_ReducesVectorSizeAsSpecified()
+        public async Task AttachMultilayerNetworkClassifier_WithExpression_LoadsAsExpected()
+        {
+            var pipeline = Enumerable.Range(1, 100)
+                .Select(n => new double[]
+                    {n % 3, n + 1, n + 2})
+                .AsAsyncEnumerator()
+                .CreatePipeline(x => ColumnVector1D.Create(x), 3);
+
+            var trainingSet = pipeline.AsTrainingSet(x => x[0], 0, 1, 2);
+
+            await VerifyTrainingSetAsync(trainingSet, new double[] {1, 2, 3});
+        }
+
+        [Test]
+        public async Task AttachMultilayerNetworkClassifier_ThenReattach_LoadsAsExpected()
         {
             var pipeline = TestSamples.CreatePipeline();
 
             var trainingSet = pipeline.AsTrainingSet(x => x.Category, "a", "b");
+            
+            await VerifyTrainingSetAsync(trainingSet, new TestData.Pirate());
+        }
 
+        static async Task VerifyTrainingSetAsync<TIn, TClass>(IAsyncTrainingSet<TIn, TClass> trainingSet, TIn testSample)
+            where TClass : IEquatable<TClass>
+        {
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>
                 b.ConfigureSoftmaxNetwork(4)
             );
@@ -128,6 +149,10 @@ namespace LinqInfer.UnitTests.Learning
             var classifier2 = trainingSet.AttachMultilayerNetworkClassifier(data);
 
             Assert.That(classifier2, Is.Not.Null);
+
+            var result = classifier2.Classify(testSample).First();
+
+            Assert.That(result, Is.Not.Null);
         }
 
         [Test]

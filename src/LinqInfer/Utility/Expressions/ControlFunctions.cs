@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -26,6 +27,19 @@ namespace LinqInfer.Utility.Expressions
             return new Promise<T>(func);
         }
 
+        public static IPromise<TOut> If<TIn, TOut>(TIn input, Func<TIn, bool> condition, Func<TIn, TOut> trueFunc, Func<TIn, TOut> falseFunc)
+        {
+            return new Promise<TOut>(() =>
+            {
+                if (condition(input))
+                {
+                    return trueFunc(input);
+                }
+
+                return falseFunc(input);
+            });
+        }
+
         public static IPromise<T[]> Loop<T>(Func<int, T> func, int iterations)
         {
             return new Promise<T[]>(() =>
@@ -36,6 +50,19 @@ namespace LinqInfer.Utility.Expressions
                 {
                     results[i] = func(i);
                 }
+
+                return results;
+            });
+        }
+
+        public static IPromise<T[]> PLoop<T>(Func<int, T> func, int iterations)
+        {
+            return new Promise<T[]>(() =>
+            {
+                var results = new T[iterations];
+
+                Enumerable.Range(0, iterations)
+                    .AsParallel().ForAll(n => results[n] = func(n));
 
                 return results;
             });

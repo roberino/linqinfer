@@ -71,6 +71,12 @@ namespace LinqInfer.Utility.Expressions
                 return false;
             }
 
+            if (targetType.IsGenericParameter
+                && !sourceType.IsGenericParameter)
+            {
+                return false;
+            }
+
             var tcX = Type.GetTypeCode(targetType);
             var tcY = Type.GetTypeCode(sourceType);
 
