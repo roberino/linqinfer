@@ -3,7 +3,6 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features

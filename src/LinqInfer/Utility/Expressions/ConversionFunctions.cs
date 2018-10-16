@@ -15,9 +15,70 @@ namespace LinqInfer.Utility.Expressions
     //ToJson
     //ToFile
 
-    static class ConversionFunctions
+    static class ConversionFunctionsExtensions
     {
-        public static bool IsDefined(string name)
+        public static bool IsObjectDictionary(this Type type)
+        {
+            return typeof(IDictionary<string, object>).IsAssignableFrom(type);
+        }
+
+        public static bool IsPromise(this Expression expression)
+        {
+            return expression.Type.PromiseType() != null;
+        }
+
+        public static Type PromiseType(this Type type)
+        {
+            if (type.IsPrimitive)
+            {
+                return null;
+            }
+
+            bool IsPromiseIFace(Type t)
+            {
+                return t.IsGenericType
+                       && t.GetGenericTypeDefinition() == typeof(IPromise<>);
+            }
+
+            var pType = IsPromiseIFace(type) ? type : type
+                .GetInterfaces()
+                .FirstOrDefault(IsPromiseIFace);
+
+            return pType?.GenericTypeArguments.First();
+        }
+        
+
+        public static Expression ConvertToType(this Expression expression, Type type)
+        {
+            if (expression.Type == type)
+            {
+                return expression;
+            }
+
+            if (expression.IsPromise())
+            {
+                return ConvertToType(Expression.Property(expression, nameof(IPromise<object>.Result)), type);
+            }
+
+            if (expression.NodeType == ExpressionType.Constant && expression is ConstantExpression ce)
+            {
+                return Expression.Constant(System.Convert.ChangeType(ce.Value, type));
+            }
+
+            return Expression.Convert(expression, type);
+        }
+
+        public static Expression ConvertToType<T>(this Expression parameter)
+        {
+            var type = typeof(T);
+
+            return ConvertToType(parameter, type);
+        }
+    }
+
+    class ConversionFunctions : IFunctionBinder
+    {
+        public bool IsDefined(string name)
         {
             switch (name)
             {
@@ -29,22 +90,14 @@ namespace LinqInfer.Utility.Expressions
                 case nameof(OneOfNVector):
                 case nameof(Matrix):
                 case nameof(Convert):
+                case nameof(Property):
                     return true;
             }
 
             return false;
         }
 
-        //public static XDocument Xml(Expression[] parameters)
-        //{
-        //    if (parameters.Length == 0 && parameters[0].Type == typeof(string))
-        //    {
-        //        Expression.Call()
-        //    }
-        //    return XDocument.Load(path);
-        //}
-
-        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundArgument> unboundParameters)
+        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> unboundParameters, Expression instance = null)
         {
             var parameters = unboundParameters.Select(u => u.Resolve()).ToArray();
 
@@ -66,9 +119,39 @@ namespace LinqInfer.Utility.Expressions
                     return Matrix(parameters);
                 case nameof(Convert):
                     return Convert(parameters);
+                case nameof(Property):
+                    return Property(parameters);
             }
 
             throw new NotSupportedException(name);
+        }
+
+        public static Expression Property(IReadOnlyCollection<Expression> parameters)
+        {
+            var paramsArray = parameters.ToArray();
+
+            if (paramsArray.Length != 3)
+            {
+                throw new ArgumentException();
+            }
+
+            var instance = paramsArray[0];
+            var property = paramsArray[1];
+            var fallback = paramsArray[2];
+
+            if (instance != null && property is ConstantExpression ce && ce.Value is Token t)
+            {
+                var prop = instance.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(p => string.Equals(p.Name, t.ToString()));
+
+                if (prop == null)
+                {
+                    return fallback;
+                }
+
+                return Expression.Property(instance, prop);
+            }
+
+            throw new ArgumentException();
         }
 
         public static Expression ToTuple(IReadOnlyCollection<Expression> parameters)
@@ -95,31 +178,6 @@ namespace LinqInfer.Utility.Expressions
                 BindingFlags.Static | BindingFlags.Public);
 
             return Expression.Call(createMethod, taskParam);
-        }
-
-        public static bool IsPromise(this Expression expression)
-        {
-            return expression.Type.PromiseType() != null;
-        }
-
-        public static Type PromiseType(this Type type)
-        {
-            if (type.IsPrimitive)
-            {
-                return null;
-            }
-
-            bool IsPromiseIFace(Type t)
-            {
-                return t.IsGenericType
-                       && t.GetGenericTypeDefinition() == typeof(IPromise<>);
-            }
-
-            var pType = IsPromiseIFace(type) ? type : type
-                .GetInterfaces()
-                .FirstOrDefault(IsPromiseIFace);
-
-            return pType?.GenericTypeArguments.First();
         }
 
         public static (Expression[] expressions, Type commonType) MakeCompatible(params Expression[] expressions)
@@ -165,58 +223,29 @@ namespace LinqInfer.Utility.Expressions
             return (left, right.ConvertToType(left.Type));
         }
 
-        public static Expression ConvertToType(this Expression expression, Type type)
-        {
-            if (expression.Type == type)
-            {
-                return expression;
-            }
-
-            if (expression.IsPromise())
-            {
-                return ConvertToType(Expression.Property(expression, nameof(IPromise<object>.Result)), type);
-            }
-
-            if (expression.NodeType == ExpressionType.Constant && expression is ConstantExpression ce)
-            {
-                return Expression.Constant(System.Convert.ChangeType(ce.Value, type));
-            }
-
-            return Expression.Convert(expression, type);
-        }
-
-        public static Expression ConvertToType<T>(this Expression parameter)
-        {
-            var type = typeof(T);
-
-            return ConvertToType(parameter, type);
-        }
-
         public static IEnumerable<Expression> ConvertAll<T>(params Expression[] parameters)
         {
-            var type = typeof(T);
-
-            return parameters.Select(p => ConvertToType(p, type));
+            return parameters.Select(p => p.ConvertToType<T>());
         }
 
         static Expression Convert(IEnumerable<Expression> parameters)
         {
-            return ConvertToType(parameters.First(), (Type)((ConstantExpression)parameters.Last()).Value);
+            return parameters.First().ConvertToType((Type)((ConstantExpression)parameters.Last()).Value);
         }
 
         static Expression ToInteger(IEnumerable<Expression> parameters)
         {
-            return ConvertToType(parameters.Single(), typeof(int));
+            return parameters.Single().ConvertToType<int>();
         }
 
         static Expression ToFloat(IEnumerable<Expression> parameters)
         {
-            return ConvertToType(parameters.Single(), typeof(double));
+            return parameters.Single().ConvertToType<double>();
         }
 
         static Expression ToString(IEnumerable<Expression> parameters)
         {
-            return ConvertToType(parameters.Single(), typeof(string));
+            return parameters.Single().ConvertToType<string>();
         }
 
         static Expression Matrix(IEnumerable<Expression> parameters)
@@ -259,9 +288,9 @@ namespace LinqInfer.Utility.Expressions
             switch (paramArray.Length)
             {
                 case 1:
-                    return Expression.New(OneOfNMethod, ConvertToType<int>(paramArray[0]), Expression.New(typeof(int?)));
+                    return Expression.New(OneOfNMethod, paramArray[0].ConvertToType<int>(), Expression.New(typeof(int?)));
                 case 2:
-                    return Expression.New(OneOfNMethod, ConvertToType<int>(paramArray[0]), ConvertToType<int?>(paramArray[1]));
+                    return Expression.New(OneOfNMethod, paramArray[0].ConvertToType<int>(), paramArray[1].ConvertToType<int?>());
             }
 
             throw new ArgumentException();

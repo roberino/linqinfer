@@ -84,11 +84,9 @@ namespace LinqInfer.Utility.Expressions
                 }
                 catch (ArgumentException)
                 {
-                    if (typeof(IDictionary<string, object>).IsAssignableFrom(CurrentContext.Type))
+                    if (ObjectLiteral.IsObjectLiteral(CurrentContext))
                     {
-                        return SelectChildScope(Expression.MakeIndex(CurrentContext,
-                            GetProperty("Item"),
-                            new[] { Expression.Constant(name) }));
+                        return SelectChildScope(ObjectLiteral.Bind(CurrentContext, name));
                     }
 
                     throw;

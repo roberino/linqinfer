@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Features
                 {
                     var set = new HashSet<string>(plookup.Item2.Keys);
 
-                    var exp = $"x => ToString(x.{plookup.Item1.Property.Name})".AsExpression<T, string>();
+                    var exp = $"x => ToString(Property(x, {plookup.Item1.Property.Name}, 0))".AsExpressionWithSpecificType<T, string>(plookup.Item1.Property.DeclaringType);
 
                     var fe = new CategoricalFeatureExtractor<T, string>(exp, Feature.CreateDefaults(new[] { plookup.Item1.Property.Name }, FeatureVectorModel.Categorical), set);
 

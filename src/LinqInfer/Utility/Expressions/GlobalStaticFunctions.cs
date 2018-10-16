@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -7,54 +8,46 @@ namespace LinqInfer.Utility.Expressions
 {
     class GlobalStaticFunctions : IFunctionBinder
     {
-        //Xml
-        //Csv
-        //File
-        //Folder
-        //Bind
-        //ToJson
-        //ToFile
-        //Print
-        //Execute()
-        //Then(x => x + 1, e => 123)
-        //Graph(x)
-        //.Edge(y, 14)
+        readonly IFunctionBinder[] _binders;
+
+        GlobalStaticFunctions()
+        {
+            _binders = new IFunctionBinder[]
+            {
+                new ControlFunctions(),
+                new MathFunctions(),
+                new ConversionFunctions(),
+                new DiagnosticFunctions(m => OutputMessage?.Invoke(m))
+            };
+        }
+
+        public static IFunctionBinder Default()
+        {
+            var fb = new GlobalStaticFunctions();
+
+            fb.OutputMessage += Console.WriteLine;
+
+            return fb;
+        }
+
+        public event Action<string> OutputMessage;
 
         public bool IsDefined(string name)
         {
-            return MathFunctions.IsDefined(name) 
-                || ConversionFunctions.IsDefined(name)
-                || ControlFunctions.IsDefined(name);
+            return _binders.Any(b => b.IsDefined(name));
         }
 
         public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
         {
-            if (MathFunctions.IsDefined(name))
-            {
-                return MathFunctions.GetFunction(name, parameters);
-            }
-
-            if (ControlFunctions.IsDefined(name))
-            {
-                return ControlFunctions.GetFunction(name, parameters);
-            }
-
-            return ConversionFunctions.GetFunction(name, parameters);
+            return _binders
+                .First(f => f.IsDefined(name)).BindToFunction(name, parameters);
         }
     }
 
-    static class MathFunctions
+    class MathFunctions : FunctionBinder
     {
-        static readonly FunctionBinder _mathFunctions = new FunctionBinder(typeof(Math), BindingFlags.Static);
-
-        public static bool IsDefined(string name)
+        public MathFunctions() : base(typeof(Math), BindingFlags.Static)
         {
-            return _mathFunctions.IsDefined(name);
-        }
-
-        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundArgument> parameters)
-        {
-            return _mathFunctions.BindToFunction(name, parameters);
         }
     }
 }

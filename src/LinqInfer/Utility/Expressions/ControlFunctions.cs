@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace LinqInfer.Utility.Expressions
 {
-    static class ControlFunctions
+    class ControlFunctions : FunctionBinder
     {
-        static readonly FunctionBinder _binder = new FunctionBinder(typeof(ControlFunctions), BindingFlags.Static);
-
-        [NonBound]
-        public static bool IsDefined(string name)
+        public ControlFunctions() : base(typeof(ControlFunctions), BindingFlags.Static)
         {
-            return _binder.IsDefined(name);
         }
-        
-        [NonBound]
-        public static Expression GetFunction(string name, IReadOnlyCollection<UnboundArgument> parameters)
+
+        public static bool HasProperty<T>(T instance, Token property)
         {
-            return _binder.BindToFunction(name, parameters);
+            if (instance == null)
+            {
+                return false;
+            }
+
+            return instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Any(p => string.Equals(p.Name, property.ToString()));
         }
 
         public static IPromise<T> Do<T>(Func<T> func)
@@ -37,6 +37,22 @@ namespace LinqInfer.Utility.Expressions
                 }
 
                 return falseFunc(input);
+            });
+        }
+
+        public static IPromise<TOut[]> ForEach<TIn, TOut>(IEnumerable<TIn> items, Func<TIn, int, TOut> func)
+        {
+            return new Promise<TOut[]>(() =>
+            {
+                var results = new List<TOut>();
+                var i = 0;
+
+                foreach (var x in items)
+                {
+                    results[i++] = func(x, i);
+                }
+
+                return results.ToArray();
             });
         }
 

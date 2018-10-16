@@ -19,7 +19,9 @@ namespace LinqInfer.Learning.Features
 
             _valueAccessor = x => Property.GetValue(x);
 
-            _valueAccessor = $"x => x.{Property.Name}".AsExpression<T, object>().Compile();
+            var expString = $"x => x.{Property.Name}";
+            
+            _valueAccessor = expString.AsExpressionWithSpecificType<T, object>(property.DeclaringType).Compile();
         }
 
         public int Index { get; internal set; }

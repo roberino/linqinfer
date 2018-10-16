@@ -5,8 +5,60 @@ using System;
 namespace LinqInfer.UnitTests.Utility.Expressions
 {
     [TestFixture]
-    public class PromiseTests
+    public class ControlFunctionsTests
     {
+        [Test]
+        public void AsExpression_Property_ReturnsFallbackForMissingProperty()
+        {
+            var exp = "x => Property(x, Max, 1.1)"
+                .AsExpression<TestData.Pirate, double>();
+
+            var f = exp.Compile();
+
+            var result = f(new TestData.Pirate());
+
+            Assert.That(result, Is.EqualTo(1.1));
+        }
+
+        [Test]
+        public void AsExpression_Property_ReturnsValueForExistingProperty()
+        {
+            var exp = "x => Property(x, Age, 1.1)"
+                .AsExpression<TestData.Pirate, double>();
+
+            var f = exp.Compile();
+
+            var result = f(new TestData.Pirate(){ Age = 12 });
+
+            Assert.That(result, Is.EqualTo(12));
+        }
+
+        [Test]
+        public void AsExpression_HasProperty_EvaluatesAsTrueForPublicProperty()
+        {
+            var exp = "x => HasProperty(x, Age) ? 1.1 : 2.2"
+                .AsExpression<TestData.Pirate, double>();
+
+            var f = exp.Compile();
+
+            var result = f(new TestData.Pirate());
+
+            Assert.That(result, Is.EqualTo(1.1));
+        }
+
+        [Test]
+        public void AsExpression_HasProperty_EvaluatesAsFalseForUndefinedProperty()
+        {
+            var exp = "x => HasProperty(x, Max) ? 1.1 : 2.2"
+                .AsExpression<TestData.Pirate, double>();
+
+            var f = exp.Compile();
+
+            var result = f(new TestData.Pirate());
+
+            Assert.That(result, Is.EqualTo(2.2));
+        }
+
         [Test]
         public void AsExpression_LoopThenCondition_EvaluatesCorrectExpression()
         {

@@ -22,13 +22,15 @@ namespace LinqInfer.Utility.Expressions
                     .GetMethods(BindingFlags.Public | bindingFlags)
                     .Concat(type.GetInterfaces().SelectMany(i => i.GetMethods(BindingFlags.Public | bindingFlags))));
         }
-
-        public bool IsDefined(string name)
+        
+        [NonBound]
+        public virtual bool IsDefined(string name)
         {
             return _methods.ContainsKey(name);
         }
-
-        public Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
+        
+        [NonBound]
+        public virtual Expression BindToFunction(string name, IReadOnlyCollection<UnboundArgument> parameters, Expression instance = null)
         {
             if (instance != null && instance.Type.IsSubclassOf(typeof(Task)))
             {

@@ -14,7 +14,7 @@ namespace LinqInfer.Utility.Expressions
 
         public FunctionProvider(IFunctionBinder customGlobalBinder = null)
         {
-            _globalFunctionBinder = customGlobalBinder ?? new GlobalStaticFunctions();
+            _globalFunctionBinder = customGlobalBinder ?? GlobalStaticFunctions.Default();
             _binders = new Dictionary<Type, FunctionBinder>();
             _assemblyTypes = new List<Type[]>
             {
