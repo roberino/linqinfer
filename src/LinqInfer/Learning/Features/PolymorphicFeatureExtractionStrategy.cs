@@ -48,7 +48,7 @@ namespace LinqInfer.Learning.Features
             {
                 foreach (var item in dataBatch.Items)
                 {
-                    _polymorphicFeatureExtractor.MapTypeInstance(item);
+                    _polymorphicFeatureExtractor.RegisterInstance(item);
                 }
 
                 return Task.CompletedTask;

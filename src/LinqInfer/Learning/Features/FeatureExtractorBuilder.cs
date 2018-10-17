@@ -56,10 +56,7 @@ namespace LinqInfer.Learning.Features
                     .OrderByDescending(s => s.Priority)
                     .FirstOrDefault();
 
-                if (strategy != null)
-                {
-                    strategy.Properties.Add(prop);
-                }
+                strategy?.Properties.Add(prop);
             }
         }
     }
