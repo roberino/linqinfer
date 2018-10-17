@@ -71,7 +71,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
         [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
         [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
-        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
+        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5.0", 2, 5)]
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
         [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
