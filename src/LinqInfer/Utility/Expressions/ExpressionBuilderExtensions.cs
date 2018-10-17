@@ -8,18 +8,6 @@ namespace LinqInfer.Utility.Expressions
 {
     static class ExpressionBuilderExtensions
     {
-        public static Expression Convert<T>(this Expression expression)
-        {
-            return expression.Convert(typeof(T));
-        }
-
-        public static Expression Convert(this Expression expression, Type type)
-        {
-            return expression.Type != type ?
-                Expression.Convert(expression, type) :
-                expression;
-        }
-
         public static IEnumerable<Expression> Build(this ExpressionTree expressionTree, Scope context)
         {
             switch (expressionTree.Type)
@@ -58,10 +46,10 @@ namespace LinqInfer.Utility.Expressions
                     yield return expressionTree.AsLiteral(context);
                     break;
                 case TokenType.Root:
-                    yield return expressionTree.SingleParameter(context);
+                    yield return expressionTree.AsSingleExpression(context);
                     break;
                 case TokenType.Negation:
-                    yield return Expression.Negate(expressionTree.SingleParameter(context));
+                    yield return Expression.Negate(expressionTree.AsSingleExpression(context));
                     break;
                 default:
                     throw new NotSupportedException(expressionTree.Type.ToString());
@@ -80,19 +68,22 @@ namespace LinqInfer.Utility.Expressions
                 yield return new UnboundArgument(expressionTree, context)
                 {
                     Resolver = (t, c) => Build(t, c).Single(),
-                    ParameterNames = expressionTree.Children.First().Names.ToArray()
+                    Parameters = Parameter.GetParameters(expressionTree.Children.First()).ToArray()
                 };
 
                 yield break;
             }
 
-            foreach (var item in Build(expressionTree, context))
-            {
-                yield return new UnboundArgument(expressionTree, context, item);
-            }
+            var items = Build(expressionTree, context).ToArray();
+
+            if (!items.Any()) yield break;
+            
+            var item = items.AsSingleExpression();
+
+            yield return new UnboundArgument(expressionTree, context, item);
         }
 
-        static Expression SingleParameter(this ExpressionTree expressionTree, Scope context)
+        static Expression AsSingleExpression(this ExpressionTree expressionTree, Scope context)
         {
             expressionTree.ValidateArgs(1, 1);
 
@@ -105,14 +96,12 @@ namespace LinqInfer.Utility.Expressions
 
             if (expressionTree.Parent.IsIndexedAccessor)
             {
-                return context.SelectIndexScope(elements).CurrentContext;
+                return context.SelectIndexScope(ConversionFunctions.ConvertAll<int>(elements)).CurrentContext;
             }
 
-            var types = elements.Select(e => e.Type).Distinct().ToList();
+            var converted = ConversionFunctions.MakeCompatible(elements);
 
-            var type = types.Count == 1 ? types[0] : typeof(object);
-
-            return Expression.NewArrayInit(type, elements);
+            return Expression.NewArrayInit(converted.commonType, converted.expressions);
         }
 
         static Expression AsCondition(this ExpressionTree expressionTree, Scope context)
@@ -128,13 +117,9 @@ namespace LinqInfer.Utility.Expressions
         {
             expressionTree.ValidateArgs(0, 0);
 
-            if (context.ConversionType == null)
-            {
-                return Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
-            }
-
-            var value = System.Convert.ChangeType(expressionTree.Value, context.ConversionType);
-            return Expression.Constant(value, context.ConversionType);
+            return !expressionTree.Value.Contains('.') ? 
+                Expression.Constant(int.Parse(expressionTree.Value), typeof(int)) : 
+                Expression.Constant(double.Parse(expressionTree.Value), typeof(double));
         }
 
         static Expression AsNamedExpression(this ExpressionTree expressionTree, Scope context)
@@ -210,7 +195,11 @@ namespace LinqInfer.Utility.Expressions
         {
             var parameters = expressionTree.BuildParameters(context.RootScope);
 
-            var result = Expression.Invoke(context.CurrentContext, parameters.Select(p => p.Resolve()));
+            var (inputs, output) = InferredTypeResolver.GetFuncArgs(context.CurrentContext.Type);
+
+            var converted = parameters.Zip(inputs).Select(p => p.a.Resolve().ConvertToType(p.b));
+
+            var result = Expression.Invoke(context.CurrentContext, converted);
 
             var nextScope = context.SelectChildScope(result);
                 
@@ -405,15 +394,40 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
+        static Expression AsSingleExpression(this IReadOnlyCollection<Expression> parts)
+        {
+            if (parts.Count == 0)
+            {
+                throw new ArgumentException();
+            }
+
+            if (parts.Count == 1)
+            {
+                return parts.Single();
+            }
+
+            return ConversionFunctions.ToTuple(parts);
+        }
+
         static Expression AsLamdaExpression(this ExpressionTree expressionTree, Scope context)
         {
             var iscope = (InferredScope)context;
 
-            var body = Build(expressionTree.Children.Last(), iscope).Single();
+            var bodyParts = Build(expressionTree.Children.Last(), iscope).ToArray();
 
-            if (body.Type != iscope.OutputType && !iscope.OutputType.IsGenericParameter)
+            var body = bodyParts.AsSingleExpression();
+
+            if (iscope.OutputType != null)
             {
-                body = Expression.Convert(body, iscope.OutputType);
+                iscope.TypeResolver.Infer(iscope.OutputType, body.Type);
+
+                if (body.Type != iscope.OutputType)
+                {
+                    var resolvedType = iscope.TypeResolver.TryConstructType(iscope.OutputType);
+
+                    if (body.Type != resolvedType)
+                        body = Expression.Convert(body, iscope.OutputType);
+                }
             }
 
             return Expression.Lambda(body, iscope.Parameters);
@@ -452,12 +466,9 @@ namespace LinqInfer.Utility.Expressions
                 .Build(context.NewConversionScope(first.Type))
                 .Single();
 
-            if (right.Type != first.Type)
-            {
-                right = Expression.Convert(right, first.Type);
-            }
-
-            return Expression.MakeBinary(expressionType, first, right);
+            var leaves = ConversionFunctions.MakeCompatible(first, right);
+            
+            return Expression.MakeBinary(expressionType, leaves.left, leaves.right);
         }
     }
 }

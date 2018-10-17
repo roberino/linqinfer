@@ -43,6 +43,8 @@ namespace LinqInfer.Utility.Expressions
 
             var i = 0;
 
+            var typeResolver = new InferredTypeResolver();
+
             foreach (var (arg, parameter) in parameters.Zip(lambda.Parameters))
             {
                 if (arg.IsInferred)
@@ -51,11 +53,11 @@ namespace LinqInfer.Utility.Expressions
 
                     arg.InputTypes = inferredArgs.inputs;
                     arg.OutputType = inferredArgs.output;
-                    resolved[i++] = arg.Resolve();
+                    resolved[i++] = arg.Resolve(typeResolver);
                 }
                 else
                 {
-                    resolved[i++] = arg.Resolve();
+                    resolved[i++] = arg.Resolve(typeResolver);
                 }
             }
 

@@ -15,13 +15,11 @@ namespace LinqInfer.Compiler
 
         public LambdaExpression Parse(SourceCode sourceCode, Func<Parameter, Type> parameterBinder, Type outputType = null)
         {
-            //var reader = new JsonTextReader(new StringReader(sourceCode.Code));
-
-            //var jsonObj = (dynamic)JObject.Load(reader);
-
             var jsonObj = JsonConvert.DeserializeObject<IDictionary<string, object>>(sourceCode.Code);
 
-            return Expression.Lambda(Expression.Constant(jsonObj));
+            var literal = ObjectLiteral.CreateInvocatable(jsonObj);
+
+            return literal;
         }
     }
 }

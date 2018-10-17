@@ -15,6 +15,13 @@ namespace LinqInfer.Utility.Expressions
             Expression = expression;
             Type = expression?.Type;
         }
+        
+        public UnboundArgument(Expression expression)
+        {
+            IsInferred = false;
+            Expression = expression;
+            Type = expression.Type;
+        }
 
         public ExpressionTree Source { get; }
 
@@ -26,7 +33,7 @@ namespace LinqInfer.Utility.Expressions
 
         public Type Type { get; set; }
 
-        public string[] ParameterNames {get; set; }
+        public Parameter[] Parameters {get; set; }
 
         public Type[] InputTypes { get; set; }
 
@@ -34,12 +41,17 @@ namespace LinqInfer.Utility.Expressions
 
         public Func<ExpressionTree, Scope, Expression> Resolver { get; set; }
 
-        public Expression Resolve()
+        public bool HasUnresolvedTypes =>
+            (OutputType?.IsGenericParameter).GetValueOrDefault()
+            || (InputTypes?.Any(t => t.IsGenericParameter)).GetValueOrDefault()
+            || (Parameters?.Any(p => !p.IsTypeKnown)).GetValueOrDefault();
+
+        public Expression Resolve(InferredTypeResolver typeResolver = null)
         {
             if (Expression == null)
             {
-                var parameters = ParameterNames.Zip(InputTypes, (name, type) => Expression.Parameter(type, name)).ToArray();
-                var inferredScope = new InferredScope(Scope, OutputType, parameters);
+                var parameters = Parameters.Zip(InputTypes ?? new Type[0], (para, type) => Expression.Parameter(type, para.Name)).ToArray();
+                var inferredScope = new InferredScope(Scope, OutputType, typeResolver ?? new InferredTypeResolver(), parameters);
                 Expression = Resolver(Source, inferredScope);
                 Type = Expression.Type;
             }

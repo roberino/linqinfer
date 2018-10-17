@@ -1,19 +1,77 @@
-﻿using LinqInfer.Utility.Expressions;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using LinqInfer.Maths;
-using System.Linq;
+using LinqInfer.Utility.Expressions;
+using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Utility.Expressions
 {
     [TestFixture]
     public class ExpressionParserTests
     {
+        [Test]
+        public void AsExpression_Loop_BehavesCorrectly()
+        {
+            var exp = "(a) => Loop(x => x * 5, 5)".AsExpression<double, IPromise<int[]>>();
+
+            var result = exp.Compile().Invoke(1).Result;
+
+            Assert.That(result.Length, Is.EqualTo(5));
+
+            var i = 0;
+
+            foreach (var x in result)
+            {
+                Assert.That(x, Is.EqualTo(5 * i++));
+            }
+        }
+
+        [Test]
+        public void AsExpression_LoopThenFunc_BehavesCorrectly()
+        {
+            var exp = "(a) => Loop(x => x * 5, 5).Then(result => result[2]).Result".AsExpression<double, int>();
+
+            var result = exp.Compile().Invoke(1);
+
+            Assert.That(result, Is.EqualTo(10));
+        }
+        
+        [Test]
+        public void AsExpression_Recurse_BehavesCorrectly()
+        {
+            ControlFunctions.Recurse<int>((i, x) => (1, true));
+
+            var exp = "(a) => Recurse((i, x : int) => ((x + 1) * 5, x > 1)).Result".AsExpression<double, int[]>();
+
+            var result = exp.Compile().Invoke(1);
+
+            Assert.That(result.Length, Is.EqualTo(2));
+            Assert.That(result[0], Is.EqualTo(5));
+            Assert.That(result[1], Is.EqualTo(30));
+        }
+
+        [Test]
+        public void AsExpression_LoopUntil_BehavesCorrectly()
+        {
+            var exp = "(a) => LoopUntil(x => x * 5, (x, r) => r <= a || x > 100)".AsExpression<double, IPromise<int[]>>();
+
+            var result = exp.Compile().Invoke(15).Result;
+
+            Assert.That(result.Length, Is.EqualTo(5));
+
+            var i = 0;
+
+            foreach (var x in result)
+            {
+                Assert.That(x, Is.EqualTo(5 * i++));
+            }
+        }
+
         [TestCase("x => x.Z > 0 ? 2.1 : 2.9 + 5", -12, 7.9)]
         [TestCase("x => x.Z > 0 && x.Z > 1 ? 1 : 2", 2, 1)]
-        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5", 2, 5)]
+        [TestCase("x => x.Z > 1 + 1 ? 2.1 : 5.0", 2, 5)]
         [TestCase("x => true ? 1 : -1", 0, 1)]
         [TestCase("x => (5 > 4) ? 1 : -1", 0, 1)]
         [TestCase("x => Convert((((x.Z > 0.5) ? 1 : 0)), Double)", 1, 1)]
@@ -21,7 +79,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = z };
+            var paramz = new MyParams { Z = z };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -41,6 +99,15 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var result = exp.Compile().Invoke(x);
 
             Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ExportAsString_ValueTuple_ReturnTupleExpression()
+        {
+            var expString = Exp(new int[1], (1, 2), a => ValueTuple.Create(a[0], a[1]))
+                .ExportAsString();
+
+            Assert.That(expString, Is.EqualTo("a => (a[0], a[1])"));
         }
 
         [Test]
@@ -130,6 +197,60 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             Assert.That(result, Is.EqualTo(StaticExampleMethods.GetPiX(5)));
         }
+
+        [Test]
+        public void AsExpression_TupleParameter_BindsCorrectly()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetTupleProduct)}((x, 5.0))".AsExpression<double, int>();
+
+            var result = exp.Compile().Invoke(5);
+
+            Assert.That(result, Is.EqualTo(25));
+        }
+
+        [Test]
+        public void AsExpression_TaskResult_ReturnsValue()
+        {
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}(x).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(45));
+        }
+
+        [Test]
+        public void AsExpression_TaskResultWithThen_ReturnsValue()
+        {
+            var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
+
+            var exp = $"x => {methodName}(x).Then(r => r + 1).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(46));
+        }
+
+        [Test]
+        public void AsExpression_Do_CanUseOuterScopedParameter()
+        {
+            var exp = "x => Do(() => 1 + x).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void AsExpression_TaskResultWithThenAsync_ReturnsValue()
+        {
+            var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
+
+            var exp = $"x => {methodName}(x).ThenAsync(r => {methodName}(r)).Result".AsExpression<double, double>();
+
+            var result = exp.Compile().Invoke(3);
+
+            Assert.That(result, Is.EqualTo(15 * 3 * 15));
+        }
         
         [Test]
         public void AsExpression_InnerLamdaWithExpression_BindsCorrectly()
@@ -168,7 +289,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_InnerLambda_BindsCorrectly()
         {
-            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<double>>();
+            var exp = $"x => Enumerable.Select(x, a => 1)".AsExpression<IEnumerable<int>, IEnumerable<int>>();
 
             var result = exp.Compile().Invoke(new[] {1, 2});
         }
@@ -261,7 +382,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var exp = Exp(1d, new Vector(1d, 2d), x => new Vector(x, 2d));
             var expStr = exp.ExportAsString();
 
-            Assert.That(expStr, Is.EqualTo("x => Vector([x, 2])"));
+            Assert.That(expStr, Is.EqualTo("x => Vector([x, 2.0])"));
         }
 
         [Test]
@@ -269,7 +390,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = "x => !x.PF() ? -1 : 2".AsExpression<MyParams, int>();
 
-            var parameter = new MyParams() { PFValue = false };
+            var parameter = new MyParams { PFValue = false };
 
             var result = exp.Compile().Invoke(parameter);
 
@@ -281,7 +402,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var exp = "x => 5 + (!x.PF() ? -1 : 2)".AsExpression<MyParams, int>();
 
-            var parameter = new MyParams() { PFValue = false };
+            var parameter = new MyParams { PFValue = false };
 
             var result = exp.Compile().Invoke(parameter);
 
@@ -335,7 +456,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = 3 };
+            var paramz = new MyParams { Z = 3 };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -351,7 +472,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { P = true };
+            var paramz = new MyParams { P = true };
 
             var result = exp.Compile().Invoke(paramz);
 
@@ -366,7 +487,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var exp = expression.AsExpression<MyParams, double>();
 
-            var paramz = new MyParams() { Z = 14 };
+            var paramz = new MyParams { Z = 14 };
 
             var result = exp.Compile().Invoke(paramz);
             var expected = exp0.Compile().Invoke(paramz);
@@ -430,7 +551,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParamsWithFractions, Fraction>().Compile();
 
-            var input = new MyParamsWithFractions()
+            var input = new MyParamsWithFractions
             {
                 Value1 = Fraction.ApproxPii,
                 Value2 = Fraction.E
@@ -452,10 +573,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp2.Compile();
 
-            var input = new MyParamsWithVector()
+            var input = new MyParamsWithVector
             {
                 Input1 = new ColumnVector1D(1.1, 2.2),
-                Input2 = new ColumnVector1D(3.1, 4.2),
+                Input2 = new ColumnVector1D(3.1, 4.2)
             };
 
             var result = func(input);
@@ -474,10 +595,10 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParamsWithVector, IVector>().Compile();
 
-            var input = new MyParamsWithVector()
+            var input = new MyParamsWithVector
             {
                 Input1 = new ColumnVector1D(1.1, 2.2),
-                Input2 = new ColumnVector1D(3.1, 4.2),
+                Input2 = new ColumnVector1D(3.1, 4.2)
             };
 
             var result = func(input);
@@ -499,7 +620,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var func = expression.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 3, X = 12, Y = -4 });
+            var result = func(new MyParams { Z = 3, X = 12, Y = -4 });
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }
@@ -511,7 +632,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Field1 = 9 });
+            var result = func(new MyParams { Field1 = 9 });
 
             Assert.That(result, Is.EqualTo(18));
         }
@@ -551,9 +672,33 @@ namespace LinqInfer.UnitTests.Utility.Expressions
             var expStr = exp.ExportAsString();
             var func = expStr.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 9 });
+            var result = func(new MyParams { Z = 9 });
 
             Assert.That(result, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void AsExpression_MultiplyExpressionWithLeftConversion_CorrectResultReturned()
+        {
+            const string exps = "x => x.X * 1443.22";
+
+            var func = exps.AsExpression<MyParams, double>().Compile();
+
+            var result = func(new MyParams { X = 2 });
+
+            Assert.That(result, Is.EqualTo(2d * 1443.22));
+        }
+
+        [Test]
+        public void AsExpression_MultiplyExpressionWithRightConversion_CorrectResultReturned()
+        {
+            const string exps = "x => 1443.22 + x.X ";
+
+            var func = exps.AsExpression<MyParams, double>().Compile();
+
+            var result = func(new MyParams { X = 2 });
+
+            Assert.That(result, Is.EqualTo(2d + 1443.22));
         }
 
         [Test]
@@ -564,7 +709,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exps.AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { X = 2, Y = 3 });
+            var result = func(new MyParams { X = 2, Y = 3 });
 
             Assert.That(result, Is.EqualTo(6));
         }
@@ -576,7 +721,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
 
             var func = exp.ExportAsString().AsExpression<MyParams, double>().Compile();
 
-            var result = func(new MyParams() { Z = 1.1 });
+            var result = func(new MyParams { Z = 1.1 });
 
             Assert.That(Math.Round(result, 5), Is.EqualTo(3.3));
         }

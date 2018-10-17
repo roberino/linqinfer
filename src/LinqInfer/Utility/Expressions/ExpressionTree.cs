@@ -126,13 +126,20 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        public IEnumerable<ExpressionTree> Parameters => Children.First().Children.Select(child => child.MoveToContent());
+        public IEnumerable<ExpressionTree> Parameters
+        {
+            get
+            {
+                var targ = (Type == TokenType.Name || Type == TokenType.Root) ? Children.First() : this;
+                return targ.Children.Select(child => child.MoveToContent());
+            }
+        }
 
         public ExpressionTree MoveToContent()
         {
             var targ = this;
 
-            while ((targ.Type == TokenType.GroupOpen || targ.Type == TokenType.Separator) && _children.Count == 1)
+            while ((targ.Type == TokenType.GroupOpen || targ.Type == TokenType.Separator) && targ.Children.Count == 1)
             {
                 targ = targ.Children.Single();
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace LinqInfer.Utility.Expressions
 {
@@ -13,7 +14,7 @@ namespace LinqInfer.Utility.Expressions
 
         public FunctionProvider(IFunctionBinder customGlobalBinder = null)
         {
-            _globalFunctionBinder = customGlobalBinder ?? new GlobalStaticFunctions();
+            _globalFunctionBinder = customGlobalBinder ?? GlobalStaticFunctions.Default();
             _binders = new Dictionary<Type, FunctionBinder>();
             _assemblyTypes = new List<Type[]>
             {
@@ -61,10 +62,29 @@ namespace LinqInfer.Utility.Expressions
         {
             if (!_binders.TryGetValue(type, out FunctionBinder binder))
             {
-                _binders[type] = binder = new FunctionBinder(type, BindingFlags.Instance);
+                var extensions = GetExtensionMethods(type).ToArray();
+
+                _binders[type] = binder = new FunctionBinder(type, BindingFlags.Instance, extensions);
             }
 
             return binder;
+        }
+
+        IEnumerable<MethodInfo> GetExtensionMethods(Type extendedType)
+        {
+            return 
+                from method in StaticMethods()
+                where method.IsDefined(typeof(ExtensionAttribute), false)
+                where method.GetParameters()[0].ParameterType.IsAssignableFrom(extendedType)
+                select method;
+        }
+
+        IEnumerable<MethodInfo> StaticMethods()
+        {
+            return _assemblyTypes
+                .SelectMany(t => t)
+                .Where(t => !t.IsValueType)
+                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static));
         }
     }
 }

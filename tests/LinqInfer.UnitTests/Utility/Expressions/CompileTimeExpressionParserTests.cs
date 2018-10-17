@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
-using LinqInfer.Utility.Expressions;
+﻿using LinqInfer.Utility.Expressions;
 using NUnit.Framework;
+using System;
+using System.Linq.Expressions;
 
 namespace LinqInfer.UnitTests.Utility.Expressions
 {

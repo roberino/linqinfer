@@ -71,6 +71,12 @@ namespace LinqInfer.Utility.Expressions
                 return false;
             }
 
+            if (targetType.IsGenericParameter
+                && !sourceType.IsGenericParameter)
+            {
+                return false;
+            }
+
             var tcX = Type.GetTypeCode(targetType);
             var tcY = Type.GetTypeCode(sourceType);
 
@@ -93,6 +99,25 @@ namespace LinqInfer.Utility.Expressions
                 {
                     return false;
                 }
+            }
+
+            if (tcY != TypeCode.Object)
+            {
+                return null;
+            }
+
+            var pType = sourceType.PromiseType();
+
+            if (pType == null)
+            {
+                return null;
+            }
+
+            var rc = RequiresConversion(targetType, pType);
+
+            if (rc.HasValue)
+            {
+                return true;
             }
 
             return null;

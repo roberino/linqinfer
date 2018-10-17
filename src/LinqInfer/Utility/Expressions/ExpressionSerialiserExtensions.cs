@@ -27,11 +27,35 @@ namespace LinqInfer.Utility.Expressions
             return new ExpressionParser(functions).Parse<TInput, TOutput>(expression);
         }
 
+        internal static Expression<Func<TInput, TOutput>> AsExpressionWithSpecificType<TInput, TOutput>(
+            this string expression, Type actualInputType)
+        {
+            if (actualInputType == typeof(TInput))
+            {
+                return expression.AsExpression<TInput, TOutput>();
+            }
+
+            var functions = new FunctionProvider();
+
+            var asmTargs = GetTargetAssemblies(Assembly.GetCallingAssembly());
+
+            functions.RegisterAssemblies(asmTargs);
+
+            var expr = new ExpressionParser(functions).Parse(SourceCode.Default(expression), new[] {actualInputType},
+                typeof(TOutput));
+
+            var param = Expression.Parameter(typeof(TInput));
+
+            var inv = Expression.Invoke(expr, Expression.Convert(param, actualInputType));
+
+            return Expression.Lambda<Func<TInput, TOutput>>(inv, param);
+        }
+
         public static Expression<Func<TInput, TOutput>> AsExpression<TInput, TOutput>(
             this string expression, ISourceCodeProvider sourceCodeProvider)
         {
             var functions = new CompileTimeFunctionBinder(sourceCodeProvider,
-                new GlobalStaticFunctions());
+                GlobalStaticFunctions.Default());
 
             var funcProvider = new FunctionProvider(functions);
 
@@ -45,7 +69,7 @@ namespace LinqInfer.Utility.Expressions
             params ISourceCodeParser[] customParsers)
         {
             var functions = new CompileTimeFunctionBinder(sourceCodeProvider,
-                new GlobalStaticFunctions(), customParsers);
+                GlobalStaticFunctions.Default(), customParsers);
 
             var funcProvider = new FunctionProvider(functions);
 
@@ -73,7 +97,7 @@ namespace LinqInfer.Utility.Expressions
                 .Select(a => a is Expression lambdaExpression ? lambdaExpression : Expression.Constant(a))
                 .ToArray();
 
-            var boundLambda = Expression.Lambda<Func<TOutput>>(Expression.Invoke(lambda, argExpressions).Convert<TOutput>());
+            var boundLambda = Expression.Lambda<Func<TOutput>>(Expression.Invoke(lambda, argExpressions).ConvertToType<TOutput>());
 
             var compiled = boundLambda.Compile();
 

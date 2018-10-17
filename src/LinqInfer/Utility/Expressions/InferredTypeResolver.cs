@@ -33,7 +33,7 @@ namespace LinqInfer.Utility.Expressions
                     {
                         var (inputs, output) = GetInferredArgs(p.Type);
 
-                        p.InputTypes = inputs;
+                        p.InputTypes = inputs.Zip(p.Parameters).Select(x => x.b.IsTypeKnown ? x.b.Type : x.a).ToArray();
                         p.OutputType = output;
                     }
                 }
@@ -128,7 +128,7 @@ namespace LinqInfer.Utility.Expressions
             return GetFuncArgs(typeToInferFrom);
         }
 
-        static (Type[] inputs, Type output) GetFuncArgs(Type funcType)
+        public static (Type[] inputs, Type output) GetFuncArgs(Type funcType)
         {
             // e.g. Func<int, double>;
 

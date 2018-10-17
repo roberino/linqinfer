@@ -167,8 +167,10 @@ namespace LinqInfer.Utility.Expressions
                     }
 
                     if (char.IsLetter(c)) return TokenType.Name;
-                    return TokenType.Unknown;
 
+                    if (char.IsWhiteSpace(c)) return TokenType.Space;
+
+                    return TokenType.Unknown;
             }
         }
     }
