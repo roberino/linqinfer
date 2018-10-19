@@ -11,15 +11,17 @@ namespace LinqInfer.Learning.Features
         readonly Dictionary<Type, TypeMap> _typeMaps;
         readonly Dictionary<string, int> _indexMap;
         readonly int _maxVectorSize;
+        readonly Func<PropertyExtractor<T>, bool> _filter;
 
         int _maxIndex;
 
-        public TypeMapper(int maxVectorSize)
+        public TypeMapper(int maxVectorSize, Func<PropertyExtractor<T>, bool> filter = null)
         {
             _typeMaps = new Dictionary<Type, TypeMap>();
             _indexMap = new Dictionary<string, int>();
             _maxIndex = -1;
             _maxVectorSize = maxVectorSize;
+            _filter = filter ?? (_ => true);
 
             VectorSize = maxVectorSize;
         }
@@ -66,7 +68,7 @@ namespace LinqInfer.Learning.Features
             VectorSize = _maxIndex + 1;
         }
 
-        protected TypeMap GetOrCreateMap(Type type)
+        public TypeMap GetOrCreateMap(Type type)
         {
             if (!_typeMaps.TryGetValue(type, out var map))
             {
@@ -85,15 +87,17 @@ namespace LinqInfer.Learning.Features
 
             var withinRange = new List<PropertyExtractor<T>>();
 
-            foreach (var prop in extractors)
+            foreach (var prop in extractors
+                .Where(_filter)
+                .Select(p => new {
+                    p,
+                    i = GetIndex(p.Property.Name)
+                })
+                .Where(x => x.i.HasValue)
+                )
             {
-                var index = GetIndex(prop.Property.Name);
-
-                if (index.HasValue)
-                {
-                    prop.Index = index.Value;
-                    withinRange.Add(prop);
-                }
+                prop.p.Index = prop.i.Value;
+                withinRange.Add(prop.p);
             }
 
             return new TypeMap(withinRange);
@@ -116,7 +120,7 @@ namespace LinqInfer.Learning.Features
             return index;
         }
 
-        protected class TypeMap
+        public class TypeMap
         {
             public TypeMap(IList<PropertyExtractor<T>> properties)
             {

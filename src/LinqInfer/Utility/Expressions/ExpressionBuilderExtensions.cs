@@ -137,7 +137,7 @@ namespace LinqInfer.Utility.Expressions
                     if (expressionTree.Children.Count == 0)
                     {
                         glob = expressionTree.AsTypeConstant() ??
-                               expressionTree.AsGlobalNamedConstant();
+                               expressionTree.AsGlobalNamedConstant(context);
                     }
                 }
 
@@ -354,17 +354,9 @@ namespace LinqInfer.Utility.Expressions
             }
         }
 
-        static Expression AsGlobalNamedConstant(this ExpressionTree expression)
+        static Expression AsGlobalNamedConstant(this ExpressionTree expression, Scope context)
         {
-            switch (expression.Value)
-            {
-                case "true":
-                    return Expression.Constant(true);
-                case "false":
-                    return Expression.Constant(false);
-                default:
-                    return null;
-            }
+            return context.NameBinder.BindToName(expression.Value);
         }
 
         static Expression AsNotExpression(this ExpressionTree expressionTree, Expression arg)

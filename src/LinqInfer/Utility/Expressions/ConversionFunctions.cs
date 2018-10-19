@@ -78,6 +78,13 @@ namespace LinqInfer.Utility.Expressions
 
     class ConversionFunctions : IFunctionBinder
     {
+        readonly LateBinder lateBinder;
+
+        public ConversionFunctions()
+        {
+            lateBinder = new LateBinder();
+        }
+
         public bool IsDefined(string name)
         {
             switch (name)
@@ -126,7 +133,7 @@ namespace LinqInfer.Utility.Expressions
             throw new NotSupportedException(name);
         }
 
-        public static Expression Property(IReadOnlyCollection<Expression> parameters)
+        public Expression Property(IReadOnlyCollection<Expression> parameters)
         {
             var paramsArray = parameters.ToArray();
 
@@ -139,19 +146,16 @@ namespace LinqInfer.Utility.Expressions
             var property = paramsArray[1];
             var fallback = paramsArray[2];
 
-            if (instance != null && property is ConstantExpression ce && ce.Value is Token t)
+            if (instance == null || !(property is ConstantExpression ce) || !(ce.Value is Token token))
             {
-                var prop = instance.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(p => string.Equals(p.Name, t.ToString()));
-
-                if (prop == null)
-                {
-                    return fallback;
-                }
-
-                return Expression.Property(instance, prop);
+                throw new ArgumentException();
             }
 
-            throw new ArgumentException();
+            var prop = instance.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(p => string.Equals(p.Name, token.ToString()));
+
+            return prop == null ? 
+                lateBinder.Bind(instance, token, fallback) : 
+                Expression.Property(instance, prop);
         }
 
         public static Expression ToTuple(IReadOnlyCollection<Expression> parameters)
@@ -245,7 +249,21 @@ namespace LinqInfer.Utility.Expressions
 
         static Expression ToString(IEnumerable<Expression> parameters)
         {
-            return parameters.Single().ConvertToType<string>();
+            var arg = parameters.Single();
+
+            try
+            {
+                return arg.ConvertToType<string>();
+            }
+            catch
+            {
+                var toString = arg.Type
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(m => m.Name == nameof(object.ToString))
+                    .Single(m => m.GetParameters().Length == 0);
+
+                return Expression.Call(arg, toString);
+            }
         }
 
         static Expression Matrix(IEnumerable<Expression> parameters)

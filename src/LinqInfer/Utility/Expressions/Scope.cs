@@ -33,6 +33,7 @@ namespace LinqInfer.Utility.Expressions
             ParentScope = parent;
             IsRoot = isRoot.GetValueOrDefault(parent == null);
             ConversionType = conversionType;
+            NameBinder = new GlobalNameBinder();
 
             _functionProvider = functions;
 
@@ -41,6 +42,8 @@ namespace LinqInfer.Utility.Expressions
                 _tokenCache = new TokenCache();
             }
         }
+
+        public GlobalNameBinder NameBinder {get;}
 
         public ParameterExpression[] Parameters { get; }
 

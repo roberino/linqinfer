@@ -25,6 +25,11 @@ namespace LinqInfer.Learning.Features
 
         public OneOfNVector Encode(T obj)
         {
+            if (obj == null)
+            {
+                return new OneOfNVector(VectorSize);
+            }
+
             if (Lookup.TryGetValue(obj, out int index))
             {
                 return new OneOfNVector(VectorSize, index);

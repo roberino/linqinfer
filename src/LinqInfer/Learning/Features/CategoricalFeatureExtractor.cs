@@ -59,7 +59,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public static CategoricalFeatureExtractor<TInput, TCategory> ImportData(PortableDataDocument data)
+        public static CategoricalFeatureExtractor<TInput, TCategory> Create(PortableDataDocument data)
         {
             var enc = OneHotEncoding<TCategory>.ImportData(data.Children.First());
 
