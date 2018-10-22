@@ -105,11 +105,26 @@ namespace LinqInfer.Data.Serialisation
             SetType(type);
         }
 
+        public bool IsTypeMatch<T>()
+        {
+            return string.Equals(TypeName, GetTypeName(typeof(T)));
+        }
+
         internal void SetType(Type type)
         {
             Properties[nameof(AssemblyQualifiedName)] = type.AssemblyQualifiedName;
             Properties[nameof(TypeName)] = type.Name;
 
+            var tn = GetTypeName(type);
+
+            if (tn != null)
+            {
+                _rootName = tn;
+            }
+        }
+
+        internal static string GetTypeName(Type type)
+        {
             try
             {
                 var n = type.Name;
@@ -120,9 +135,11 @@ namespace LinqInfer.Data.Serialisation
                     n = n.Substring(0, i);
                 }
 
-                _rootName = XmlConvert.VerifyName(n);
+                return XmlConvert.VerifyName(n);
             }
             catch (XmlException) { }
+
+            return null;
         }
 
         internal void SetName(string name)
@@ -151,8 +168,6 @@ namespace LinqInfer.Data.Serialisation
 
             return Children.Where(c =>
             {
-                bool found = true;
-
                 foreach (var q in query)
                 {
                     if (c.Properties.TryGetValue(q.Key, out string v) && v == q.Value?.ToString())
@@ -160,11 +175,10 @@ namespace LinqInfer.Data.Serialisation
                         continue;
                     }
 
-                    found = false;
-                    break;
+                    return false;
                 }
 
-                return found;
+                return true;
             });
         }
 

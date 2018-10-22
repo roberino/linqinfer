@@ -1,9 +1,7 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -18,8 +16,6 @@ namespace LinqInfer.Maths
 
         public SerialisableDataTransformation(Matrix transformer, Vector transposer = null) : this()
         {
-            Contract.Ensures(transformer != null);
-
             if (transposer != null)
             {
                 _operations.Add(new DataOperation(VectorOperationType.Subtract, transposer));
@@ -56,7 +52,7 @@ namespace LinqInfer.Maths
 
         public int OutputSize => _operations.Last().OutputSize;
 
-        public static SerialisableDataTransformation LoadFromDocument(PortableDataDocument doc)
+        public static SerialisableDataTransformation Create(PortableDataDocument doc)
         {
             var transform = new SerialisableDataTransformation();
 
@@ -65,19 +61,11 @@ namespace LinqInfer.Maths
             return transform;
         }
 
-        public void ImportData(PortableDataDocument doc)
-        {
-            _operations.Clear();
-
-            foreach(var child in doc.Children)
-            {
-                _operations.Add(new DataOperation(child));
-            }
-        }
-
         public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
+
+            doc.SetType(this);
 
             foreach (var op in _operations)
             {
@@ -108,6 +96,16 @@ namespace LinqInfer.Maths
         public override int GetHashCode()
         {
             return string.Join("/", _operations.Select(o => o.GetHashCode().ToString())).GetHashCode();
+        }
+
+        void ImportData(PortableDataDocument doc)
+        {
+            _operations.Clear();
+
+            foreach(var child in doc.Children)
+            {
+                _operations.Add(new DataOperation(child));
+            }
         }
     }
 }

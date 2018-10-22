@@ -29,7 +29,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             if (layerSize == 0) return specificationBuilder;
 
             return specificationBuilder.
-                AddHiddenLayer(new LayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
+                AddHiddenLayer(new NetworkLayerSpecification(layerSize, Activators.Sigmoid(1), LossFunctions.Square));
         }
 
         public static IFluentNetworkBuilder AddHiddenLinearLayer(this IFluentNetworkBuilder specificationBuilder, int layerSize, WeightUpdateRule updateRule = null)
@@ -40,12 +40,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return specificationBuilder.
                 AddHiddenLayer(p => 
-                    new LayerSpecification(
+                    new NetworkLayerSpecification(
                         layerSize, 
                         Activators.None(), 
                         LossFunctions.Square,
                         updateRule,
-                        LayerSpecification.DefaultInitialWeightRange));
+                        NetworkLayerSpecification.DefaultInitialWeightRange));
         }
 
         public static IFluentNetworkBuilder AddSoftmaxOutput(this IFluentNetworkBuilder specificationBuilder)
@@ -68,11 +68,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
     public sealed partial class FluentNetworkBuilder : IFluentNetworkBuilder
     {
-        readonly IList<Func<LearningParameters, LayerSpecification>> _layers;
+        readonly IList<Func<LearningParameters, NetworkLayerSpecification>> _layers;
         readonly Range _defaultWeightRange;
         LearningParameters _learningParams;
-        LayerSpecification _output;
-        Action<LayerSpecification> _layerAction;
+        NetworkLayerSpecification _output;
+        Action<NetworkLayerSpecification> _layerAction;
         int _inputVectorSize;
 
         internal FluentNetworkBuilder(int inputVectorSize, int outputVectorSize)
@@ -83,11 +83,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             _defaultWeightRange = new Range(0.05, -0.05);
             _learningParams = new LearningParameters();
-            _layers = new List<Func<LearningParameters, LayerSpecification>>();
-            _output = new LayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), _defaultWeightRange);
+            _layers = new List<Func<LearningParameters, NetworkLayerSpecification>>();
+            _output = new NetworkLayerSpecification(outputVectorSize, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), _defaultWeightRange);
         }
 
-        internal IFluentNetworkBuilder ConfigureLayers(Action<LayerSpecification> layerAction)
+        internal IFluentNetworkBuilder ConfigureLayers(Action<NetworkLayerSpecification> layerAction)
         {
             _layerAction = layerAction;
 
@@ -118,13 +118,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return this;
         }
 
-        public IFluentNetworkBuilder AddHiddenLayer(LayerSpecification layer)
+        public IFluentNetworkBuilder AddHiddenLayer(NetworkLayerSpecification networkLayer)
         {
-            _layers.Add(_ => layer);
+            _layers.Add(_ => networkLayer);
             return this;
         }
 
-        public IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, LayerSpecification> layerFactory)
+        public IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, NetworkLayerSpecification> layerFactory)
         {
             _layers.Add(layerFactory);
             return this;
@@ -140,7 +140,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             
             updateRule = updateRule ??  WeightUpdateRules.Default();
 
-            _output = new LayerSpecification(
+            _output = new NetworkLayerSpecification(
                 _output.LayerSize, 
                 activator, 
                 lossFunction, 
@@ -155,7 +155,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IFluentNetworkBuilder TransformOutput(ISerialisableDataTransformation transformation)
         {
-            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
+            _output = new NetworkLayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
                 OutputTransformation = transformation
             };
@@ -165,7 +165,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IFluentNetworkBuilder TransformOutput(Func<int, ISerialisableDataTransformation> transformationFactory)
         {
-            _output = new LayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
+            _output = new NetworkLayerSpecification(_output.LayerSize, _output.Activator, _output.LossFunction, _output.WeightUpdateRule, _output.InitialWeightRange)
             {
                 OutputTransformation = transformationFactory(_output.LayerSize)
             };

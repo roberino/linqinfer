@@ -21,12 +21,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             LossFunctionFactory = new Factory<string, ILossFunction>(LossFunctions.Parse);
 
-            TransformationFactory = new Factory<string, ISerialisableDataTransformation>(s =>
-            {
-                if (s == nameof(Softmax)) return new Softmax();
-
-                return new SerialisableDataTransformation();
-            });
+            TransformationFactory = new DataTransformationFactory();
 
             WeightUpdateRuleFactory = 
                 new Factory<string, WeightUpdateRule>(
@@ -37,7 +32,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             IFactory<INeuron, NeuronParameters> neuronFactory, 
             IFactory<ActivatorExpression, string> activatorFactory, 
             IFactory<string, ActivatorExpression> activatorFormatter,
-            IFactory<ISerialisableDataTransformation, string> transformationFactory,
+            DataTransformationFactory transformationFactory,
             IFactory<WeightUpdateRule, string> weightUpdateRuleFactory)
         {
             NeuronFactory = neuronFactory;
@@ -52,7 +47,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IFactory<string, ActivatorExpression> ActivatorFormatter { get; }
         public IFactory<ILossFunction, string> LossFunctionFactory { get; }
         public IFactory<WeightUpdateRule, string> WeightUpdateRuleFactory { get; }
-        public IFactory<ISerialisableDataTransformation, string> TransformationFactory { get; }
+        public DataTransformationFactory TransformationFactory { get; }
 
         static Tuple<string, double> ParseActivatorArgs(string args)
         {

@@ -5,8 +5,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public interface IFluentNetworkBuilder
     {
-        IFluentNetworkBuilder AddHiddenLayer(LayerSpecification layer);
-        IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, LayerSpecification> layerFactory);
+        IFluentNetworkBuilder AddHiddenLayer(NetworkLayerSpecification networkLayer);
+        IFluentNetworkBuilder AddHiddenLayer(Func<LearningParameters, NetworkLayerSpecification> layerFactory);
         IFluentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config);
         IFluentNetworkBuilder ConfigureLearningParameters(LearningParameters learningParameters);
         IFluentNetworkBuilder ConfigureOutputLayer(ActivatorExpression activator, ILossFunction lossFunction, Range? initialWeightRange = null, WeightUpdateRule updateRule = null);

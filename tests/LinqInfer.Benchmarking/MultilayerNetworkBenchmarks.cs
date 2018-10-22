@@ -53,7 +53,7 @@ namespace LinqInfer.Benchmarking
             {
                 foreach (var x in Enumerable.Range(0, NumberOfHiddenLayers))
                 {
-                    p.AddHiddenLayer(new LayerSpecification(
+                    p.AddHiddenLayer(new NetworkLayerSpecification(
                         LayerSize,
                         Activators.All().First(a => a.Name == Activator),
                         LossFunctions.Square, 

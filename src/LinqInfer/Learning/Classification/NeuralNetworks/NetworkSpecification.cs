@@ -1,38 +1,37 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
-        public NetworkSpecification(LearningParameters learningParameters, params LayerSpecification[] layers)
+        public NetworkSpecification(LearningParameters learningParameters, params NetworkLayerSpecification[] networkLayers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertGreaterThanZero(layers.Length, nameof(layers.Length));
+            ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
 
             LearningParameters = learningParameters;
-            InputVectorSize = layers.First().LayerSize;
-            OutputVectorSize = layers.Last().LayerSize;
-            Layers = layers.ToList();
+            InputVectorSize = networkLayers.First().LayerSize;
+            OutputVectorSize = networkLayers.Last().LayerSize;
+            Layers = networkLayers.ToList();
         }
 
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params LayerSpecification[] layers)
+        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params NetworkLayerSpecification[] networkLayers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertGreaterThanZero(layers.Length, nameof(layers.Length));
+            ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
             LearningParameters = learningParameters;
             InputVectorSize = inputVectorSize;
-            OutputVectorSize = layers.Last().LayerSize;
-            Layers = layers.ToList();
+            OutputVectorSize = networkLayers.Last().LayerSize;
+            Layers = networkLayers.ToList();
         }
 
-        public NetworkSpecification(int inputVectorSize, params LayerSpecification[] layers) : this(new LearningParameters(), inputVectorSize, layers)
+        public NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, networkLayers)
         {
         }
 
@@ -41,9 +40,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public int InputVectorSize { get; }
         public int OutputVectorSize { get; }
 
-        public IList<LayerSpecification> Layers { get; }
+        public IList<NetworkLayerSpecification> Layers { get; }
 
-        public LayerSpecification OutputLayer => Layers.Last();
+        public NetworkLayerSpecification OutputLayer => Layers.Last();
 
         public PortableDataDocument ExportData()
         {
@@ -72,7 +71,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
             var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
-            var layers = doc.Children.Select(c => LayerSpecification.FromVectorDocument(c, ctx)).ToArray();
+            var layers = doc.Children.Select(c => NetworkLayerSpecification.FromVectorDocument(c, ctx)).ToArray();
 
             var learningParams = new LearningParameters()
             {

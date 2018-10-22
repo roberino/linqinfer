@@ -1,9 +1,8 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
-    public interface ISerialisableDataTransformation : IVectorTransformation, IExportableAsDataDocument, IImportableFromDataDocument
+    public interface ISerialisableDataTransformation : IVectorTransformation, IExportableAsDataDocument
     {
     }
 }

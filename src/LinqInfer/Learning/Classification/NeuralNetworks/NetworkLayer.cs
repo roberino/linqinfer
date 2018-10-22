@@ -13,10 +13,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         readonly IList<INeuron> _neurons;
         readonly Func<int, IList<INeuron>> _neuronsFactory;
-        readonly LayerSpecification _spec;
+        readonly NetworkLayerSpecification _spec;
         Vector _output;
 
-        public NetworkLayer(int inputVectorSize, LayerSpecification specification)
+        public NetworkLayer(int inputVectorSize, NetworkLayerSpecification specification)
         {
             _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
 
@@ -55,13 +55,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVector Output => _output;
 
-        public INeuron this[int index]
-        {
-            get
-            {
-                return _neurons[index];
-            }
-        }
+        public INeuron this[int index] => _neurons[index];
 
         public Matrix ExportData()
         {

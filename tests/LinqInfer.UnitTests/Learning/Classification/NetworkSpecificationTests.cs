@@ -55,7 +55,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = new NetworkSpecification(new LearningParameters(),
                   16,
-                  new LayerSpecification(4,
+                  new NetworkLayerSpecification(4,
                   Activators.Threshold(),
                   LossFunctions.CrossEntropy,
                   WeightUpdateRules.Default(),
@@ -119,8 +119,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         NetworkSpecification CreateSut()
         {
-            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var layer2 = new LayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, WeightUpdateRules.Default(), new Range(0.4, -0.3));
+            var layer1 = new NetworkLayerSpecification(4, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), new Range(0.4, -0.3));
+            var layer2 = new NetworkLayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, WeightUpdateRules.Default(), new Range(0.4, -0.3));
             var spec = new NetworkSpecification(new LearningParameters(), layer1, layer2);
 
             spec.LearningParameters.MinimumError = 0.999;

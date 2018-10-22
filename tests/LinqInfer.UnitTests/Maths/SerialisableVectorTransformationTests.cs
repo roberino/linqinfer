@@ -21,7 +21,7 @@ namespace LinqInfer.UnitTests.Maths
 
             var doc = (new PortableDataDocument()).FromClob(data);
 
-            var transform2 = SerialisableDataTransformation.LoadFromDocument(doc);
+            var transform2 = SerialisableDataTransformation.Create(doc);
             
             var transformed2 = transform2.Apply(vector);
 

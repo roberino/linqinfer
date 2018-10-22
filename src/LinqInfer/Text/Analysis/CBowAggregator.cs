@@ -76,7 +76,7 @@ namespace LinqInfer.Text.Analysis
                    p.LearningRate = 0.2;
                    p.Momentum = 0.1;
                })
-               .AddHiddenLayer(new LayerSpecification(vectorSize, Activators.None(), LossFunctions.Square))
+               .AddHiddenLayer(new NetworkLayerSpecification(vectorSize, Activators.None(), LossFunctions.Square))
                .AddSoftmaxOutput();
             };
 

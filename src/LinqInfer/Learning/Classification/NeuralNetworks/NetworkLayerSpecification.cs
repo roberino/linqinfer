@@ -6,13 +6,13 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class LayerSpecification : IExportableAsDataDocument
+    public sealed class NetworkLayerSpecification : IExportableAsDataDocument
     {
         public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
 
         ISerialisableDataTransformation _outputTransformation;
 
-        public LayerSpecification(
+        public NetworkLayerSpecification(
             int layerSize, 
             ActivatorExpression activator, 
             ILossFunction lossFunction,
@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
         }
 
-        public LayerSpecification(
+        public NetworkLayerSpecification(
             int layerSize,
             ActivatorExpression activator = null,
             ILossFunction lossFunction = null) : this(
@@ -119,14 +119,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        internal static LayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
+        internal static NetworkLayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
         {
-            LayerSpecification layer = null;
+            NetworkLayerSpecification networkLayer = null;
 
-            var layerSize = doc.PropertyOrDefault(() => layer.LayerSize, 0);
-            var activatorStr = doc.PropertyOrDefault(() => layer.Activator, string.Empty);
-            var lossFuncStr = doc.PropertyOrDefault(() => layer.LossFunction, string.Empty);
-            var weightUpdateRuleStr = doc.PropertyOrDefault(() => layer.WeightUpdateRule, string.Empty);
+            var layerSize = doc.PropertyOrDefault(() => networkLayer.LayerSize, 0);
+            var activatorStr = doc.PropertyOrDefault(() => networkLayer.Activator, string.Empty);
+            var lossFuncStr = doc.PropertyOrDefault(() => networkLayer.LossFunction, string.Empty);
+            var weightUpdateRuleStr = doc.PropertyOrDefault(() => networkLayer.WeightUpdateRule, string.Empty);
 
             var initRangeMin = doc.PropertyOrDefault("InitialWeightRangeMin", 0.0d);
             var initRangeMax = doc.PropertyOrDefault("InitialWeightRangeMax", 0.0d);
@@ -143,11 +143,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 if (query != null)
                 {
-                    outputTransform = doc.ReadChildObject(context.TransformationFactory.Create(query.TypeName));
+                    outputTransform = context
+                        .TransformationFactory.Create(query);
                 }
             }
 
-            return new LayerSpecification(layerSize, activator, lossFunc, wuRule, new Range(initRangeMax, initRangeMin))
+            return new NetworkLayerSpecification(layerSize, activator, lossFunc, wuRule, new Range(initRangeMax, initRangeMin))
             {
                 OutputTransformation = outputTransform
             };

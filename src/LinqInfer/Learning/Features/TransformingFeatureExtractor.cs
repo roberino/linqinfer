@@ -100,10 +100,11 @@ namespace LinqInfer.Learning.Features
             var fe = new TransformingFeatureExtractor<TInput>(bfe);
             
             var transformationDoc = doc.Children[0];
+            var dft = new DataTransformationFactory();
 
             foreach(var child in transformationDoc.Children)
             {
-                fe.AddTransform(SerialisableDataTransformation.LoadFromDocument(child));
+                fe.AddTransform(dft.Create(child));
             }
 
             return fe;
