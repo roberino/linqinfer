@@ -1,42 +1,38 @@
 ﻿using LinqInfer.Data;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class NetworkLayer : ILayer
     {
-        readonly IList<INeuron> _neurons;
-        readonly Func<int, IList<INeuron>> _neuronsFactory;
+        readonly NeuronCluster _neuronCluster;
         readonly NetworkLayerSpecification _spec;
         Vector _output;
 
         public NetworkLayer(int inputVectorSize, NetworkLayerSpecification specification)
+            : this(inputVectorSize, specification, new NeuronCluster(inputVectorSize, specification.LayerSize,
+                specification.NeuronFactory,
+                specification.Activator))
+        {
+        }
+
+        protected NetworkLayer(
+            int inputVectorSize,
+            NetworkLayerSpecification specification,
+            NeuronCluster neuronCluster)
         {
             _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
 
-            var nf = specification.NeuronFactory;
-
-            _neuronsFactory = c =>
-            {
-                return Enumerable.Range(1, c).Select(n =>
-                {
-                    var nx = nf(inputVectorSize);
-                    nx.Activator = specification.Activator.Activator;
-                    return nx;
-                }).ToList();
-            };
-
-            _neurons = _neuronsFactory(specification.LayerSize);
+            _neuronCluster = neuronCluster;
 
             InputVectorSize = inputVectorSize;
 
-            _output = Vector.UniformVector(_neurons.Count, 0);
+            _output = Vector.UniformVector(_neuronCluster.Size, 0);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
@@ -45,7 +41,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int InputVectorSize { get; }
 
-        public int Size => _neurons.Count;
+        public int Size => _neuronCluster.Size;
 
         public ActivatorExpression Activator => _spec.Activator;
 
@@ -55,21 +51,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVector Output => _output;
 
-        public INeuron this[int index] => _neurons[index];
+        public INeuron this[int index] => _neuronCluster.Neurons[index];
 
-        public Matrix ExportData()
-        {
-            var vectors = _neurons.Select(n => n.Export());
-            return new Matrix(vectors);
-        }
+        public Matrix ExportData() => _neuronCluster.ExportData();
 
         public virtual IVector Process(IVector input)
         {
-            if (_neurons.Any())
+            if (_neuronCluster.Neurons.Any())
             {
                 if (_spec.ParallelProcess)
                 {
-                    var outputItems = _neurons.AsParallel().ForEach(n =>
+                    var outputItems = _neuronCluster.Neurons.AsParallel().ForEach(n =>
                     {
                         return n.Evaluate(input);
                     });
@@ -78,7 +70,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
                 else
                 {
-                    _output.Overwrite(_neurons.Select(n => n.Evaluate(input)));
+                    _output.Overwrite(_neuronCluster.Neurons.Select(n => n.Evaluate(input)));
                 }
             }
             else
@@ -94,34 +86,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return (Successor == null) ? _output : Successor.Process(_output);
         }
 
-        public void Grow(int numberOfNewNeurons = 1)
-        {
-            Contract.Assert(numberOfNewNeurons > 0);
+        public void Grow(int numberOfNewNeurons = 1) => _neuronCluster.Grow(numberOfNewNeurons);
 
-            var newNeurons = _neuronsFactory(numberOfNewNeurons);
-
-            foreach (var n in newNeurons) _neurons.Add(n);
-        }
-
-        public void Prune(Func<INeuron, bool> predicate)
-        {
-            var toBeRemoved = _neurons.Where(n => predicate(n)).ToList();
-
-            foreach (var n in toBeRemoved) _neurons.Remove(n);
-        }
+        public void Prune(Func<INeuron, bool> predicate) => _neuronCluster.Prune(predicate);
 
         public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
         {
             int i = 0;
-            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray(_neurons.Count));
+            var result = new ColumnVector1D(_neuronCluster.Neurons.Select(n => func(n, i++)).ToArray(_neuronCluster.Size));
             OnCalculate(result);
             return result;
         }
 
-        public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func)
-        {
-            return _neurons.ForEach(func);
-        }
+        public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func) => _neuronCluster.ForEachNeuron(func);
 
         void OnCalculate(ColumnVector1D vector)
         {
@@ -132,11 +109,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             var layer = new NetworkLayer(InputVectorSize, _spec);
 
-            layer._neurons.Clear();
+            layer._neuronCluster.Neurons.Clear();
 
-            foreach(var neuron in _neurons)
+            foreach(var neuron in _neuronCluster.Neurons)
             {
-                layer._neurons.Add(neuron.Clone(deep));
+                layer._neuronCluster.Neurons.Add(neuron.Clone(deep));
             }
 
             if (layer.Successor != null)
@@ -151,28 +128,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep) => Clone(deep);
 
-        public PortableDataDocument Export()
-        {
-            var layerDoc = new PortableDataDocument();
+        public PortableDataDocument Export() => _neuronCluster.Export();
 
-            layerDoc.Properties["Size"] = Size.ToString();
-
-            foreach (var neuron in _neurons)
-            {
-                layerDoc.Vectors.Add(neuron.Export());
-            }
-
-            return layerDoc;
-        }
-
-        public void Import(PortableDataDocument data)
-        {
-            int i = 0;
-
-            foreach (var neuron in _neurons)
-            {
-                neuron.Import(data.Vectors[i++].ToColumnVector());
-            }
-        }
+        public void Import(PortableDataDocument data) => _neuronCluster.Import(data);
     }
 }

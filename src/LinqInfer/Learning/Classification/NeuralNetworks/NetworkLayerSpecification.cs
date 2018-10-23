@@ -19,7 +19,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             WeightUpdateRule weightUpdateRule,
             Range initialWeightRange,
             bool parallelProcess = false,
-            Func<int, INeuron> neuronFactory = null)
+            Func<int, INeuron> neuronFactory = null,
+            int? recurrentBufferSize = null)
         {
             ArgAssert.AssertGreaterThanZero(layerSize, nameof(layerSize));
             ArgAssert.AssertNonNull(activator, nameof(activator));
@@ -31,6 +32,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             WeightUpdateRule = weightUpdateRule;
             InitialWeightRange = initialWeightRange;
             ParallelProcess = parallelProcess;
+            RecurrentBufferSize = recurrentBufferSize;
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
         }
 
@@ -49,6 +51,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// The number of neurons in each layer
         /// </summary>
         public int LayerSize { get; }
+
+        /// <summary>
+        /// The amount of history to store and reprocess
+        /// (For RNNs)
+        /// </summary>
+        public int? RecurrentBufferSize {get;}
 
         /// <summary>
         /// When true, the layer should use a parallel processing model

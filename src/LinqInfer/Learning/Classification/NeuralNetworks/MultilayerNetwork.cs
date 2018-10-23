@@ -39,120 +39,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return ForEachLayer(l => l.ExportData(), false);
         }
 
-        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            VisualSettings visualSettings = null,
-            IWeightedGraphStore<string, double> store = null)
-        {
-            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
-
-            List<WeightedGraphNode<string, double>> previousVertexes = null;
-            List<WeightedGraphNode<string, double>> nextVertexes = new List<WeightedGraphNode<string, double>>();
-            List<INeuron> currentNeurons = new List<INeuron>();
-
-            var vs = visualSettings ?? new VisualSettings();
-
-            int l = 0;
-
-            var width = vs.Bounds.X;
-            var height = vs.Bounds.Y;
-            var numLayers = Layers.Count();
-            var mSize = Layers.Max(x => x.Size);
-            var unitW = width / numLayers;
-            var unitH = height / mSize;
-            var maxWeight = AllNeurons().Max(n => n.Export().Sum);
-
-            foreach (var layer in Layers.Reverse())
-            {
-                int i = 0;
-
-                var colour = vs.Palette.GetColourByIndex(l);
-
-                currentNeurons.Clear();
-
-                layer.ForEachNeuron(n =>
-                {
-                    currentNeurons.Add(n);
-                    return 1;
-                })
-                .ToList();
-
-                var offsetY = (layer.Size - mSize) / 2d * unitH;
-
-                foreach (var n in currentNeurons)
-                {
-                    i++;
-
-                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + l + "." + i;
-                    var node = await graph.FindOrCreateVertexAsync(name);
-                    var attribs = await node.GetAttributesAsync();
-
-                    var weights = n.Export();
-                    var wsum = Math.Abs(weights.Sum);
-
-                    attribs["weights"] = weights.ToJson();
-
-                    var colourFactor = (float)(wsum / maxWeight);
-
-                    await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
-                    await node.SetColourAsync(colour);
-
-                    if (previousVertexes != null)
-                    {
-                        foreach (var vertex in previousVertexes)
-                        {
-                            await node.ConnectToAsync(vertex, wsum);
-                        }
-                    }
-
-                    nextVertexes.Add(node);
-                }
-
-                previousVertexes = nextVertexes;
-
-                nextVertexes = new List<WeightedGraphNode<string, double>>();
-
-                l++;
-            }
-
-            await graph.SaveAsync();
-
-            return graph;
-        }
-
-        void InitialiseLayers()
-        {
-            Specification.Initialise();
-
-            NetworkLayer next = null;
-            NetworkLayer lastLayer = null;
-
-            for (int i = 0; i < Specification.Layers.Count; i++)
-            {
-                var layer = Specification.Layers[i];
-
-                if (i == 0)
-                {
-                    next = new NetworkLayer(Specification.InputVectorSize, layer);
-                    _rootLayer = next;
-                }
-                else
-                {
-                    next = new NetworkLayer(lastLayer.Size, layer);
-                    lastLayer.Successor = next;
-                }
-
-                lastLayer = next;
-            }
-
-            _initd = true;
-        }
-
-        public ILayer LastLayer => Layers.Reverse().First();
-
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
-            if (!_initd) InitialiseLayers();
-
             return (reverse ? Layers.Reverse() : Layers).ForEach(func);
         }
 
@@ -241,20 +129,19 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Clone(true);
         }
 
-        IEnumerable<INeuron> AllNeurons()
+        public Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
+            VisualSettings visualSettings = null,
+            IWeightedGraphStore<string, double> store = null)
         {
-            foreach (var layer in Layers)
-            {
-                var neurons = new List<INeuron>();
+            return new NetworkTopologyBuilder(this).BuildAsync(visualSettings, store);
+        }
 
-                layer.ForEachNeuron(n =>
-                {
-                    neurons.Add(n);
-                    return 1;
-                }).ToList();
+        void InitialiseLayers()
+        {
+            _rootLayer = new NetworkConfigurationBuilder(Specification)
+                .CreateConfiguration();
 
-                foreach (var n in neurons) yield return n;
-            }
+            _initd = true;
         }
     }
 }
