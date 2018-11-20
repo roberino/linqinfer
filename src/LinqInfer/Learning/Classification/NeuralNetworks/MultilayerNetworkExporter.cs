@@ -27,7 +27,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 i++;
 
-                var layerDoc = layer.Export();
+                var layerDoc = layer.ExportData();
 
                 layerDoc.Properties["Label"] = "Layer " + i;
                 layerDoc.SetType<NetworkLayer>();

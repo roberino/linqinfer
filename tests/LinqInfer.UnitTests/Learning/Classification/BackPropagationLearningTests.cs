@@ -8,8 +8,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
     public class BackPropagationLearningTests
     {
         readonly NetworkSpecification _spec = new NetworkSpecification(4,
-                new NetworkLayerSpecification(2),
-                new NetworkLayerSpecification(4));
+                new NetworkLayerSpecification(1, 2),
+                new NetworkLayerSpecification(2, 4));
 
         [TestCase(2, 1)]
         [TestCase(4, 2)]
@@ -17,9 +17,9 @@ namespace LinqInfer.UnitTests.Learning.Classification
         public void InitialiseAndTrain_ReturnsErrorGt0(int layer1Size, int layer2Size)
         {
             var parameters = new NetworkSpecification(4,
-                new NetworkLayerSpecification(layer1Size),
-                new NetworkLayerSpecification(layer2Size),
-                new NetworkLayerSpecification(4));
+                new NetworkLayerSpecification(1, layer1Size),
+                new NetworkLayerSpecification(2, layer2Size),
+                new NetworkLayerSpecification(3, 4));
 
             var network = new MultilayerNetwork(parameters);
 

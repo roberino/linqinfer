@@ -114,14 +114,4 @@ namespace LinqInfer.Maths
             return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_parameters.Select(p => p.GetHashCode()).Concat(new[] { (int)Operation }).ToArray());
         }
     }
-
-    public enum VectorOperationType
-    {
-        EuclideanDistance,
-        Subtract,
-        VectorMultiply,
-        MatrixMultiply,
-        Divide,
-        SafeDivide
-    }
 }

@@ -82,7 +82,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var input = _config.FeatureExtractor.ExtractIVector(obj);
 
-            var output = _network.Evaluate(input);
+            var output = _network.Apply(input);
 
             var outputObjects = _config.OutputMapper.Map(output);
 

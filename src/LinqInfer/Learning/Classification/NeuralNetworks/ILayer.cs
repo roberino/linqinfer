@@ -1,21 +1,15 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     /// <summary>
     /// Represents a layer in a layered network of neurons
     /// </summary>
-    public interface ILayer : INetworkSignalFilter, IPropagatedOutput, ICloneableObject<ILayer>
+    public interface ILayer : INetworkSignalFilter
     {
-        /// <summary>
-        /// The size of the vector which the layer can receive
-        /// </summary>
-        int InputVectorSize { get; }
-
         /// <summary>
         /// The size of the layer (i.e. number of neurons)
         /// </summary>
@@ -64,14 +58,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         void Prune(Func<INeuron, bool> predicate);
 
         /// <summary>
-        /// Exports the raw data and properties
-        /// </summary>
-        PortableDataDocument Export();
-
-        /// <summary>
         /// Exports the raw data
         /// </summary>
-        Matrix ExportData();
+        Matrix ExportWeights();
 
         /// <summary>
         /// Imports raw data

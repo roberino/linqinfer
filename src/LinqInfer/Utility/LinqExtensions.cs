@@ -10,6 +10,13 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static TCol Add<TCol, TInput>(this TCol collection, IEnumerable<TInput> items) 
+            where TCol : ICollection<TInput>
+        {
+            foreach (var item in items) collection.Add(item);
+            return collection;
+        }
+
         public static IEnumerable<O> SelectIf<T, O>(this IEnumerable<T> values, Func<IEnumerable<T>, bool> condition, Func<T, O> selector)
         {
             if (!condition(values))

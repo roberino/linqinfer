@@ -3,11 +3,12 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     [DebuggerDisplay("{AverageError}:{Parameters}")]
-    class MultilayerNetworkTrainingContext<TParams> : IClassifierTrainingContext<TParams>
+    class MultilayerNetworkTrainingContext : IClassifierTrainingContext<INetworkModel>
     {
         readonly MultilayerNetwork _network;
         readonly IAssistedLearningProcessor _rawLearningProcessor;
@@ -16,17 +17,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         double? _lastError;
         double? _error;
         int _trainingCounter;
+        int _currentId;
 
-        public MultilayerNetworkTrainingContext(Func<int> idFunc, MultilayerNetwork network, TParams parameters)
+        public MultilayerNetworkTrainingContext(MultilayerNetwork network, Func<int> idFunc = null)
         {
-            _network = network;
+            _currentId = 1;
+            _idFunc = idFunc ?? (() => Interlocked.Increment(ref _currentId));
+
+            Parameters = _network = network;
+            Id = _idFunc();
 
             _rawLearningProcessor = new BackPropagationLearning(_network);
-
-            _idFunc = idFunc;
-
-            Id = idFunc();
-            Parameters = parameters;
         }
 
         public int Id { get; }
@@ -35,7 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVectorClassifier Output => _network;
 
-        public TParams Parameters { get; }
+        public INetworkModel Parameters { get; }
 
         public double? CumulativeError => _error;
 
@@ -96,9 +97,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Parameters);
         }
 
-        public IClassifierTrainingContext<TParams> Clone(bool deep)
+        public IClassifierTrainingContext<INetworkModel> Clone(bool deep)
         {
-            return new MultilayerNetworkTrainingContext<TParams>(_idFunc, _network.Clone(true), Parameters)
+            return new MultilayerNetworkTrainingContext(_network.Clone(true), _idFunc)
             {
                 _error = _error,
                 _lastError = _lastError,

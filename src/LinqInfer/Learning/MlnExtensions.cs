@@ -25,8 +25,8 @@ namespace LinqInfer.Learning
         {
             var targetDoc = existingClassifierData.FindChild<MultilayerNetwork>() ?? existingClassifierData;
             var network = MultilayerNetwork.CreateFromData(targetDoc);
-            var trainingContext = new MultilayerNetworkTrainingContext<NetworkSpecification>(() => 1, network, network.Specification);
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.LearningParameters);
+            var trainingContext = new MultilayerNetworkTrainingContext(network);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
@@ -52,7 +52,7 @@ namespace LinqInfer.Learning
 
             var trainingContext = builder.Build();
 
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.LearningParameters);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);

@@ -16,7 +16,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenDataExport_TheMatrixReturnedPerLayer()
         {
-            var parameters = new NetworkSpecification(8, new NetworkLayerSpecification(4));
+            var parameters = new NetworkSpecification(8, new NetworkLayerSpecification(1, 4));
             var network = SetupTestNetwork(parameters);
 
             var weights = network.ExportRawData().ToList();
@@ -29,7 +29,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public async Task ExportNetworkTopologyAsync()
         {
-            var parameters = new NetworkSpecification(2, new NetworkLayerSpecification(4));
+            var parameters = new NetworkSpecification(2, new NetworkLayerSpecification(1, 4));
             var network = new MultilayerNetwork(parameters);
 
             network.ForEachLayer(l =>
@@ -58,7 +58,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var lp = new LearningParameters();
             var spec = new NetworkSpecification(lp,
                 16,
-                new NetworkLayerSpecification(4,
+                new NetworkLayerSpecification(1, 4,
                 Activators.Threshold(),
                 LossFunctions.CrossEntropy,
                 WeightUpdateRules.Default(),

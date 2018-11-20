@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public double Train(IVector inputVector, IVector targetOutput)
         {
-            var output = _network.Evaluate(inputVector);
+            var output = _network.Apply(inputVector);
 
             Validate(output, inputVector, targetOutput);
 

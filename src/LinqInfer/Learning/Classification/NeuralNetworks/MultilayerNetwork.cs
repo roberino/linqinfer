@@ -11,12 +11,11 @@ using System.Threading.Tasks;
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class MultilayerNetwork :
-        ICloneableObject<MultilayerNetwork>,
-        IHasNetworkTopology,
-        IVectorClassifier,
-        ISerialisableDataTransformation
+        ICloneableObject<MultilayerNetwork>, INetworkModel, IHasNetworkTopology
     {
+        readonly object _lockObj = new object();
         INetworkSignalFilter _rootLayer;
+        INetworkSignalFilter _outputModule;
         bool _initd;
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
@@ -36,7 +35,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IEnumerable<Matrix> ExportRawData()
         {
-            return ForEachLayer(l => l.ExportData(), false);
+            return ForEachLayer(l => l.ExportWeights(), false);
         }
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
@@ -45,43 +44,49 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         /// <summary>
-        /// Applys the network over an input vector
-        /// </summary>
-        public IVector Evaluate(IVector input)
-        {
-            if (!_initd) InitialiseLayers();
-
-            return _rootLayer.Process(input);
-        }
-
-        /// <summary>
-        /// Transforms the vector (same as evaluate)
+        /// Transforms the vector by evaluating the data through the network
         /// </summary>
         public IVector Apply(IVector vector)
         {
-            return Evaluate(vector);
+            RootModule.Receive(vector);
+
+            return OutputModule.Output;
         }
 
         public IEnumerable<ILayer> Layers
         {
             get
             {
+                IEnumerable<ILayer> GetLayers(INetworkSignalFilter nsf)
+                {
+                    if (nsf == null)
+                    {
+                        yield break;
+                    }
+
+                    if (nsf is ILayer layer)
+                    {
+                        yield return layer;
+                    }
+
+                    foreach (var successor in ((NetworkModule)nsf).Successors)
+                    {
+                        foreach (var sc in GetLayers(successor))
+                        {
+                            yield return sc;
+                        }
+                    }
+                }
+
                 if (!_initd) InitialiseLayers();
 
-                var next = _rootLayer as ILayer;
-
-                while (next != null)
-                {
-                    yield return next;
-
-                    next = next.Successor as ILayer;
-                }
+                return GetLayers(_rootLayer);
             }
         }
 
         public int InputSize => Specification.InputVectorSize;
 
-        public int OutputSize => Specification.OutputVectorSize;
+        public int OutputSize => OutputModule.Output.Size;
 
         /// <summary>
         /// Exports the raw data
@@ -133,15 +138,46 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             VisualSettings visualSettings = null,
             IWeightedGraphStore<string, double> store = null)
         {
-            return new NetworkTopologyBuilder(this).BuildAsync(visualSettings, store);
+            return new NetworkTopologyExporter(this).ExportAsync(visualSettings, store);
+        }
+
+        internal INetworkSignalFilter RootModule
+        {
+            get
+            {
+                if (!_initd) InitialiseLayers();
+
+                return _rootLayer;
+            }
+        }
+
+        INetworkSignalFilter OutputModule
+        {
+            get
+            {
+                if (!_initd) InitialiseLayers();
+
+                return _outputModule;
+            }
         }
 
         void InitialiseLayers()
         {
-            _rootLayer = new NetworkConfigurationBuilder(Specification)
-                .CreateConfiguration();
+            lock (_lockObj)
+            {
+                if (_initd)
+                {
+                    return;
+                }
 
-            _initd = true;
+                _initd = true;
+
+                var conf = new NetworkTopologyBuilder(Specification)
+                    .CreateConfiguration();
+
+                _rootLayer = conf.root;
+                _outputModule = conf.output;
+            }
         }
     }
 }

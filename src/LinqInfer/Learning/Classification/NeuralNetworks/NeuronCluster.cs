@@ -10,24 +10,45 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class NeuronCluster
     {
-        readonly Func<int, IList<INeuron>> _neuronsFactory;
+        readonly Func<int, int, IList<INeuron>> _neuronsFactory;
+
+        int _inputSize;
 
         public NeuronCluster(int inputVectorSize,
             int neuronCount,
             Func<int, INeuron> neuronFactory,
+            ActivatorExpression activator) : this(neuronFactory, activator)
+        {
+            Resize(inputVectorSize, neuronCount);
+        }
+
+        public NeuronCluster(
+            Func<int, INeuron> neuronFactory,
             ActivatorExpression activator)
         {
-            _neuronsFactory = c =>
+            _neuronsFactory = (c, i) =>
             {
                 return Enumerable.Range(1, c).Select(n =>
                 {
-                    var nx = neuronFactory(inputVectorSize);
+                    var nx = neuronFactory(i);
                     nx.Activator = activator.Activator;
                     return nx;
                 }).ToList();
             };
 
-            Neurons = _neuronsFactory(neuronCount);
+            Neurons = new List<INeuron>();
+        }
+
+        public void Resize(int inputSize, int neuronCount)
+        {
+            Neurons.Clear();
+
+            foreach (var n in _neuronsFactory(neuronCount, inputSize))
+            {
+                Neurons.Add(n);
+            }
+
+            _inputSize = inputSize;
         }
 
         public IList<INeuron> Neurons { get; }
@@ -44,7 +65,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             Contract.Assert(numberOfNewNeurons > 0);
 
-            var newNeurons = _neuronsFactory(numberOfNewNeurons);
+            var newNeurons = _neuronsFactory(numberOfNewNeurons, _inputSize);
 
             foreach (var n in newNeurons) Neurons.Add(n);
         }

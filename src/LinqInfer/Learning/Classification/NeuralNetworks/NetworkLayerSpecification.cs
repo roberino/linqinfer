@@ -2,61 +2,51 @@
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
-using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class NetworkLayerSpecification : IExportableAsDataDocument
+    public sealed class NetworkLayerSpecification : NetworkModuleSpecification, IExportableAsDataDocument
     {
         public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
 
-        ISerialisableDataTransformation _outputTransformation;
-
-        public NetworkLayerSpecification(
-            int layerSize, 
-            ActivatorExpression activator, 
-            ILossFunction lossFunction,
-            WeightUpdateRule weightUpdateRule,
-            Range initialWeightRange,
+        internal NetworkLayerSpecification(
+            int id,
+            int layerSize,
+            ActivatorExpression activator = null,
+            ILossFunction lossFunction = null,
+            WeightUpdateRule weightUpdateRule = null,
+            Range? initialWeightRange = null,
             bool parallelProcess = false,
-            Func<int, INeuron> neuronFactory = null,
-            int? recurrentBufferSize = null)
+            Func<int, INeuron> neuronFactory = null) : base(id)
         {
             ArgAssert.AssertGreaterThanZero(layerSize, nameof(layerSize));
-            ArgAssert.AssertNonNull(activator, nameof(activator));
-            ArgAssert.AssertNonNull(lossFunction, nameof(lossFunction));
 
             LayerSize = layerSize;
-            Activator = activator;
-            LossFunction = lossFunction;
-            WeightUpdateRule = weightUpdateRule;
-            InitialWeightRange = initialWeightRange;
+            Activator = activator ?? Activators.Sigmoid(1);
+            LossFunction = lossFunction ?? LossFunctions.Square;
+            WeightUpdateRule = weightUpdateRule ?? WeightUpdateRules.Default();
+            InitialWeightRange = initialWeightRange.GetValueOrDefault(DefaultInitialWeightRange);
             ParallelProcess = parallelProcess;
-            RecurrentBufferSize = recurrentBufferSize;
             NeuronFactory = neuronFactory ?? (x => new NeuronBase(x, InitialWeightRange));
         }
 
-        public NetworkLayerSpecification(
-            int layerSize,
-            ActivatorExpression activator = null,
-            ILossFunction lossFunction = null) : this(
-                layerSize, activator ?? Activators.Sigmoid(1), 
-                lossFunction ?? LossFunctions.Square, 
-                WeightUpdateRules.Default(), 
-                DefaultInitialWeightRange)
+        public override ISerialisableDataTransformation OutputTransformation
         {
+            get => base.OutputTransformation;
+            set
+            {
+                if (value != null && value.InputSize != LayerSize)
+                {
+                    throw new ArgumentException(nameof(value.InputSize));
+                }
+                base.OutputTransformation = value;
+            }
         }
 
         /// <summary>
         /// The number of neurons in each layer
         /// </summary>
         public int LayerSize { get; }
-
-        /// <summary>
-        /// The amount of history to store and reprocess
-        /// (For RNNs)
-        /// </summary>
-        public int? RecurrentBufferSize {get;}
 
         /// <summary>
         /// When true, the layer should use a parallel processing model
@@ -84,30 +74,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public WeightUpdateRule WeightUpdateRule { get; }
 
         /// <summary>
-        /// Transforms the output
-        /// </summary>
-        public ISerialisableDataTransformation OutputTransformation
-        {
-            get => _outputTransformation;
-            set
-            {
-                if (value != null && value.InputSize != LayerSize)
-                {
-                    throw new ArgumentException(nameof(value.InputSize));
-                }
-                _outputTransformation = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the initial weight range used to initialise neurons
         /// </summary>
         public Range InitialWeightRange { get; }
 
-        public PortableDataDocument ExportData()
+        public override PortableDataDocument ExportData()
         {
-            var doc = new PortableDataDocument();
+            var doc = base.ExportData();
 
+            doc.SetName(nameof(NetworkLayerSpecification));
             doc.SetPropertyFromExpression(() => LayerSize);
             doc.SetPropertyFromExpression(() => Activator, Activator.Export());
             doc.SetPropertyFromExpression(() => LossFunction, LossFunction.GetType().Name);
@@ -116,19 +91,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.Properties["InitialWeightRangeMin"] = InitialWeightRange.Min.ToString();
             doc.Properties["InitialWeightRangeMax"] = InitialWeightRange.Max.ToString();
 
-            if (OutputTransformation != null)
-            {
-                doc.WriteChildObject(OutputTransformation, new
-                {
-                    Property = nameof(OutputTransformation)
-                });
-            }
-
             return doc;
         }
 
-        internal static NetworkLayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
+        internal new static NetworkLayerSpecification FromVectorDocument(PortableDataDocument doc, NetworkBuilderContext context)
         {
+            var moduleSpec = NetworkModuleSpecification.FromVectorDocument(doc, context);
             NetworkLayerSpecification networkLayer = null;
 
             var layerSize = doc.PropertyOrDefault(() => networkLayer.LayerSize, 0);
@@ -143,23 +111,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var lossFunc = context.LossFunctionFactory.Create(lossFuncStr);
             var wuRule = context.WeightUpdateRuleFactory.Create(weightUpdateRuleStr);
 
-            ISerialisableDataTransformation outputTransform = null;
-
-            if (doc.Children.Count > 0)
+            var layerSpec = new NetworkLayerSpecification(moduleSpec.Id, layerSize, activator, lossFunc, wuRule, new Range(initRangeMax, initRangeMin))
             {
-                var query = doc.QueryChildren(new { Property = nameof(OutputTransformation) }).SingleOrDefault();
-
-                if (query != null)
-                {
-                    outputTransform = context
-                        .TransformationFactory.Create(query);
-                }
-            }
-
-            return new NetworkLayerSpecification(layerSize, activator, lossFunc, wuRule, new Range(initRangeMax, initRangeMin))
-            {
-                OutputTransformation = outputTransform
+                OutputTransformation = moduleSpec.OutputTransformation,
+                InputOperator = moduleSpec.InputOperator
             };
+
+            layerSpec.Connections.Inputs.Add(moduleSpec.Connections.Inputs);
+            layerSpec.Connections.Outputs.Add(moduleSpec.Connections.Outputs);
+
+            return layerSpec;
         }
     }
 }

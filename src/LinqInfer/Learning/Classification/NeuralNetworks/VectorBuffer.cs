@@ -5,28 +5,30 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class VectorBuffer
     {
-        readonly int _bufferSize;
         readonly int _vectorSize;
-        readonly Stack<IVector> _buffer;
+        readonly Queue<IVector> _buffer;
 
         public VectorBuffer(int bufferSize, int vectorSize)
         {
-            _bufferSize = bufferSize;
+            BufferSize = bufferSize;
             _vectorSize = vectorSize;
+            _buffer = new Queue<IVector>();
         }
+        
+        public int BufferSize { get; }
 
         public IList<IVector> PopAndRead()
         {
             var combinedInputItems = new List<IVector>();
 
-            for (var i = 0; i < _bufferSize - _buffer.Count; i++)
+            for (var i = 0; i < BufferSize - _buffer.Count; i++)
             {
                 combinedInputItems.Add(new ZeroVector(_vectorSize));
             }
 
-            if (_buffer.Count > _bufferSize)
+            if (_buffer.Count > BufferSize)
             {
-                combinedInputItems.Add(_buffer.Pop());
+                combinedInputItems.Add(_buffer.Dequeue());
             }
 
             foreach (var item in _buffer)
@@ -39,7 +41,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Push(IVector vector)
         {
-            _buffer.Push(vector);
+            if (BufferSize <= 0)
+            {
+                return;
+            }
+
+            _buffer.Enqueue(vector);
         }
     }
 }

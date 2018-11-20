@@ -8,6 +8,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
+        int? _fixedOutputSize;
+        NetworkModuleSpecification _output;
+
         public NetworkSpecification(LearningParameters learningParameters, params NetworkLayerSpecification[] networkLayers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
@@ -15,8 +18,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             LearningParameters = learningParameters;
             InputVectorSize = networkLayers.First().LayerSize;
-            OutputVectorSize = networkLayers.Last().LayerSize;
-            Layers = networkLayers.ToList();
+            Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
+
+            // OutputVectorSize = networkLayers.Last().LayerSize;
         }
 
         public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params NetworkLayerSpecification[] networkLayers)
@@ -27,8 +31,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             LearningParameters = learningParameters;
             InputVectorSize = inputVectorSize;
-            OutputVectorSize = networkLayers.Last().LayerSize;
-            Layers = networkLayers.ToList();
+            Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
+        }
+
+        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params NetworkModuleSpecification[] networkModules)
+        {
+            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+            ArgAssert.AssertGreaterThanZero(networkModules.Length, nameof(networkModules.Length));
+            ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
+
+            LearningParameters = learningParameters;
+            InputVectorSize = inputVectorSize;
+            Modules = networkModules.ToList();
         }
 
         public NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, networkLayers)
@@ -38,11 +52,47 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public LearningParameters LearningParameters { get; }
 
         public int InputVectorSize { get; }
-        public int OutputVectorSize { get; }
 
-        public IList<NetworkLayerSpecification> Layers { get; }
+        public int OutputVectorSize
+        {
+            get
+            {
+                if(_fixedOutputSize.HasValue)
+                {
+                    return
+                        _fixedOutputSize.Value;
+                }
 
-        public NetworkLayerSpecification OutputLayer => Layers.Last();
+                if (Output is NetworkLayerSpecification nl)
+                {
+                    return nl.LayerSize;
+                }
+
+                return 0;
+            }
+        }
+
+        public NetworkFlowModel NetworkFlowModel { get; set; } = NetworkFlowModel.Convolutional;
+
+        public NetworkModuleSpecification Root => Modules.FirstOrDefault();
+
+        public NetworkModuleSpecification Output
+        {
+            get => _output ?? Modules.LastOrDefault();
+        }
+
+        public void SetOutput(NetworkModuleSpecification networkModule, int outputSize)
+        {
+            if (!Modules.Contains(networkModule))
+            {
+                throw new ArgumentException();
+            }
+
+            _fixedOutputSize = outputSize;
+            _output = networkModule;
+        }
+
+        public IReadOnlyCollection<NetworkModuleSpecification> Modules { get; }
 
         public PortableDataDocument ExportData()
         {
@@ -53,7 +103,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
             doc.SetPropertyFromExpression(() => InputVectorSize);
 
-            foreach (var child in Layers)
+            foreach (var child in Modules)
             {
                 doc.Children.Add(child.ExportData());
             }
@@ -71,7 +121,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
             var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
-            var layers = doc.Children.Select(c => NetworkLayerSpecification.FromVectorDocument(c, ctx)).ToArray();
+            var layers = doc.Children.Select(c => 
+                string.Equals(c.Name, nameof(NetworkModuleSpecification), StringComparison.OrdinalIgnoreCase) ? 
+                NetworkModuleSpecification.FromVectorDocument(c, ctx) : 
+                NetworkLayerSpecification.FromVectorDocument(c, ctx)).ToArray();
 
             var learningParams = new LearningParameters()
             {
@@ -81,11 +134,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             return (inputVectorSize > 0
                 ? new NetworkSpecification(learningParams, inputVectorSize, layers)
-                : new NetworkSpecification(learningParams, layers)).Initialise();
+                : new NetworkSpecification(learningParams, layers.Cast<NetworkLayerSpecification>().ToArray()))
+                .Initialise();
         }
 
         public NetworkSpecification Initialise()
         {
+            Validate();
+
             foreach (var layer in Layers)
             {
                 layer.WeightUpdateRule.Initialise(LearningParameters);
@@ -115,9 +171,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return (int)ExportData().Checksum;
         }
 
+        internal IEnumerable<NetworkLayerSpecification> Layers =>
+            Modules.Where(m => m is NetworkLayerSpecification)
+                .Cast<NetworkLayerSpecification>();
+
         internal void Validate()
         {
             LearningParameters.Validate();
+
+            var dups = Modules.GroupBy(m => m.Id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+
+            if (dups.Any())
+            {
+                throw new ArgumentException($"Duplicate modules: {string.Join(",", dups)}");
+            }
         }
     }
 }

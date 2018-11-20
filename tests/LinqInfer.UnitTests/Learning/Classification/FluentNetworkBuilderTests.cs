@@ -28,7 +28,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
                     p.MinimumError = 0.33d;
                 })
                 .Build()
-                .Parameters;
+                .Parameters
+                .Specification;
 
             Assert.That(spec.LearningParameters.LearningRate, Is.EqualTo(0.12d));
             Assert.That(spec.LearningParameters.MinimumError, Is.EqualTo(0.33d));
@@ -45,7 +46,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var network = trainingNetwork.Output as MultilayerNetwork;
 
-            Assert.That(network.Specification.Layers.Count, Is.EqualTo(2));
+            Assert.That(network.Specification.Modules.Count, Is.EqualTo(2));
         }
 
         [Test]

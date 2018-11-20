@@ -53,13 +53,13 @@ namespace LinqInfer.Benchmarking
             {
                 foreach (var x in Enumerable.Range(0, NumberOfHiddenLayers))
                 {
-                    p.AddHiddenLayer(new NetworkLayerSpecification(
+                    p.AddHiddenLayer(
                         LayerSize,
                         Activators.All().First(a => a.Name == Activator),
                         LossFunctions.Square, 
                         WeightUpdateRules.Default(),
                         new Range(1, -1),
-                        ParallelProcess));
+                        ParallelProcess);
                 }
             });
 

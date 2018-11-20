@@ -1,114 +1,130 @@
-﻿using LinqInfer.Maths.Graphs;
-using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class NetworkTopologyBuilder
     {
-        readonly MultilayerNetwork _network;
+        readonly NetworkSpecification _specification;
+        readonly Dictionary<int, (NetworkModuleSpecification spec, NetworkModule module)> _moduleLookup;
 
-        public NetworkTopologyBuilder(MultilayerNetwork network)
+        public NetworkTopologyBuilder(NetworkSpecification specification)
         {
-            _network = network;
+            _specification = specification;
+            _moduleLookup = new Dictionary<int, (NetworkModuleSpecification spec, NetworkModule module)>();
         }
-        
-        public async Task<WeightedGraph<string, double>> BuildAsync(
-            VisualSettings visualSettings = null,
-            IWeightedGraphStore<string, double> store = null)
+
+        public (INetworkSignalFilter root, INetworkSignalFilter output) CreateConfiguration()
         {
-            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
+            _specification.Initialise();
 
-            List<WeightedGraphNode<string, double>> previousVertexes = null;
-            List<WeightedGraphNode<string, double>> nextVertexes = new List<WeightedGraphNode<string, double>>();
-            List<INeuron> currentNeurons = new List<INeuron>();
+            var root = new NetworkModule(_specification.InputVectorSize);
 
-            var vs = visualSettings ?? new VisualSettings();
+            var main = Lookup(_specification.Root.Id);
 
-            int l = 0;
+            main.mod.Predecessors.Add(root);
 
-            var width = vs.Bounds.X;
-            var height = vs.Bounds.Y;
-            var numLayers = _network.Layers.Count();
-            var mSize = _network.Layers.Max(x => x.Size);
-            var unitW = width / numLayers;
-            var unitH = height / mSize;
-            var maxWeight = AllNeurons().Max(n => n.Export().Sum);
-
-            foreach (var layer in _network.Layers.Reverse())
+            foreach (var item in _moduleLookup)
             {
-                int i = 0;
-
-                var colour = vs.Palette.GetColourByIndex(l);
-
-                currentNeurons.Clear();
-
-                layer.ForEachNeuron(n =>
+                foreach (var inp in item.Value.spec.Connections.Inputs)
                 {
-                    currentNeurons.Add(n);
-                    return 1;
-                })
-                .ToList();
-
-                var offsetY = (layer.Size - mSize) / 2d * unitH;
-
-                foreach (var n in currentNeurons)
-                {
-                    i++;
-
-                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + l + "." + i;
-                    var node = await graph.FindOrCreateVertexAsync(name);
-                    var attribs = await node.GetAttributesAsync();
-
-                    var weights = n.Export();
-                    var wsum = Math.Abs(weights.Sum);
-
-                    attribs["weights"] = weights.ToJson();
-
-                    var colourFactor = (float)(wsum / maxWeight);
-
-                    await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
-                    await node.SetColourAsync(colour);
-
-                    if (previousVertexes != null)
-                    {
-                        foreach (var vertex in previousVertexes)
-                        {
-                            await node.ConnectToAsync(vertex, wsum);
-                        }
-                    }
-
-                    nextVertexes.Add(node);
+                    item.Value.module.RecurrentInputs.Add(_moduleLookup[inp].module);
                 }
+                foreach (var outp in item.Value.spec.Connections.Outputs)
+                {
+                    var successor = _moduleLookup[outp].module;
 
-                previousVertexes = nextVertexes;
+                    item.Value.module.Successors.Add(successor);
 
-                nextVertexes = new List<WeightedGraphNode<string, double>>();
-
-                l++;
+                    successor.Predecessors.Add(item.Value.module);
+                }
             }
 
-            await graph.SaveAsync();
+            var output = _moduleLookup[_specification.Output.Id];
 
-            return graph;
+            output.module.Initialise(_specification.OutputVectorSize);
+
+            foreach (var _ in _moduleLookup)
+            {
+                bool missing = false;
+                var visited = new ConcurrentDictionary<int, int>();
+
+                main.mod.ForwardPropagate(m =>
+                {
+                    var nextOutput = m.Output.Size;
+
+                    visited.AddOrUpdate(m.Id, 1, (id, x) =>
+                    {
+                        DebugOutput.Log($"Visited {m} ({x})");
+
+                        if (x > 3)
+                        {
+                            DebugOutput.Log("R");
+                        }
+
+                        if (x > 10)
+                        {
+                            throw new System.Exception("XXX");
+                        }
+
+                        return x + 1;
+                    });
+
+                    if (nextOutput == 0)
+                    {
+                        var inputs = m
+                            .RecurrentInputs.Concat(m.Predecessors);
+
+                        var inputSizes = inputs.Select(x => x.Output.Size).ToArray();
+
+                        missing = !m.Initialise(inputSizes);
+
+                        if(missing) {
+                        DebugOutput.Log($"{m}"); 
+                            }
+                    }
+                });
+
+                if (!missing)
+                {
+                    break;
+                }
+            }
+
+            return (main.mod, output.module);
         }
 
-        IEnumerable<INeuron> AllNeurons()
+        (NetworkModuleSpecification spec, NetworkModule mod) Lookup(int id)
         {
-            foreach (var layer in _network.Layers)
+            if (!_moduleLookup.TryGetValue(id, out var items))
             {
-                var neurons = new List<INeuron>();
+                var spec = _specification.Modules.Single(s => s.Id == id);
 
-                layer.ForEachNeuron(n =>
+                var module = CreateModuleOrLayer(spec);
+
+                items = (spec, module);
+
+                _moduleLookup[id] = items;
+
+                foreach (var successor in items.spec.Connections.Outputs)
                 {
-                    neurons.Add(n);
-                    return 1;
-                }).ToList();
-
-                foreach (var n in neurons) yield return n;
+                    Lookup(successor);
+                }
             }
+
+            return items;
+        }
+
+        static NetworkModule CreateModuleOrLayer(NetworkModuleSpecification spec)
+        {
+            if (spec is NetworkLayerSpecification layerSpecification)
+            {
+                return new NetworkLayer(layerSpecification);
+            }
+
+            return new NetworkModule(spec);
         }
     }
 }
