@@ -28,6 +28,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
 
+        public override string Id => $"layer-{Activator.Name}-{_spec.Id}";
+
         public int Size => _spec.LayerSize;
 
         public ActivatorExpression Activator => _spec.Activator;
@@ -39,6 +41,45 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public INeuron this[int index] => _neuronCluster.Neurons[index];
 
         public Matrix ExportWeights() => _neuronCluster.ExportData();
+
+        public override ErrorAndLossVectors CalculateError(IVector targetOutput)
+        {
+            return LossFunction.Calculate(Output, targetOutput, Activator.Derivative);
+        }
+
+        public override void BackwardPropagate(IVector targetOutput, Vector previousError = null)
+        {
+            foreach (var predecessor in Predecessors)
+            {
+                Vector nextError;
+
+                if (previousError != null)
+                {
+                    if (predecessor is ILayer lastLayer)
+                    {
+                        nextError = ForEachNeuron((n, i) =>
+                        {
+                            var err = lastLayer.ForEachNeuron((nk, k) =>
+                            {
+                                return previousError[k] * nk[i];
+                            });
+
+                            return err.Sum * Activator.Derivative(n.Output);
+                        });
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("TODO");
+                    }
+                }
+                else
+                {
+                    nextError = CalculateError(targetOutput).DerivativeError;
+                }
+
+                predecessor.BackwardPropagate(targetOutput, nextError);
+            }
+        }
 
         protected override void Initialise(int inputSize)
         {
@@ -83,6 +124,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Import(PortableDataDocument data) => _neuronCluster.Import(data);
 
-        public override string ToString() => $"Layer {_spec.Id} ({_spec.InputOperator}, {_neuronCluster.Size} neurons)";
+        public override string ToString() => $"{Id}, {_neuronCluster.Size} neurons)";
     }
 }

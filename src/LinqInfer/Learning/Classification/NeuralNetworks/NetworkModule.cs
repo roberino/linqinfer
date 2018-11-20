@@ -34,7 +34,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Initialise(inputVectorSize);
         }
 
-        public int Id => _spec.Id;
+        public virtual string Id => $"module-{_spec.InputOperator}-{_spec.Id}";
+
+        public IEnumerable<INetworkSignalFilter> Inputs => RecurrentInputs.Concat(Predecessors);
 
         public IList<NetworkModule> Successors { get; }
 
@@ -101,7 +103,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public void ForwardPropagate(Action<NetworkModule> work)
+        public void ForwardPropagate(Action<INetworkSignalFilter> work)
         {
             work(this);
 
@@ -109,6 +111,32 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             {
                 successor.ForwardPropagate(work);
             }
+        }
+
+        public void BackwardPropagate(Action<INetworkSignalFilter> work)
+        {
+            work(this);
+
+            foreach (var successor in Predecessors)
+            {
+                successor.BackwardPropagate(work);
+            }
+        }
+
+        public virtual void BackwardPropagate(IVector targetOutput, Vector previousError = null)
+        {
+            foreach (var predecessor in Predecessors)
+            {
+                predecessor.BackwardPropagate(targetOutput, previousError);
+            }
+        }
+
+        public virtual ErrorAndLossVectors CalculateError(IVector targetOutput)
+        {
+            return new ErrorAndLossVectors() // TODO
+            {
+                 DerivativeError = Vector.UniformVector(0, 0)
+            };
         }
 
         void Process()
@@ -142,32 +170,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return input.ToColumnVector().GetUnderlyingArray();
         }
 
-        public override string ToString() => $"Module {_spec.Id} ({_spec.InputOperator})";
-
-        //int CalculateVectorSize()
-        //{
-        //    if (_inputVectorSize.HasValue)
-        //    {
-        //        return _inputVectorSize.Value;
-        //    }
-
-        //    int size;
-
-        //    var allInputs = RecurrentInputs.Concat(Predecessors);
-
-        //    switch (_spec.InputOperator)
-        //    {
-        //        case VectorAggregationType.Concatinate:
-        //        case VectorAggregationType.HyperbolicTangent:
-        //            size = allInputs.Sum(p => p.OutputVectorSize);
-        //            break;
-        //        default:
-        //            size = allInputs.Min(p => p.OutputVectorSize);
-        //            break;
-        //    }
-
-        //    return size;
-        //}
+        public override string ToString() => $"{Id} ({Output.Size})";
 
         IVector RetrieveInput()
         {

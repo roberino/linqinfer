@@ -72,6 +72,48 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Vector lastError = null;
             double error = 0;
 
+            var errors = _network.ForwardPropagate((layer) =>
+            {
+                if (lastError == null)
+                {
+                    var errAndLoss = layer.CalculateError(targetOutput);
+                    
+                    error += errAndLoss.Loss;
+
+                    lastError = errAndLoss.DerivativeError;
+                }
+                else
+                {
+                    lastError = layer.ForEachNeuron((n, i) =>
+                    {
+                        var err = lastLayer.ForEachNeuron((nk, k) =>
+                        {
+                            return lastError[k] * nk[i];
+                        });
+
+                        return err.Sum * layer.Activator.Derivative(n.Output);
+                    });
+                }
+
+                lastLayer = layer;
+
+                return lastError;
+            }).Reverse().ToArray();
+
+            return new Tuple<Vector[], double>(errors, error);
+        }
+
+        protected virtual Tuple<Vector[], double> CalculateErrorV1(IVector actualOutput, IVector targetOutput)
+        {
+            // network
+            //    -- layers[]
+            //          -- neuron[]
+            //              -- weights[]
+
+            ILayer lastLayer = null;
+            Vector lastError = null;
+            double error = 0;
+
             var errors = _network.ForEachLayer((layer) =>
             {
                 if (lastError == null)

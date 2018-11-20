@@ -49,7 +49,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             foreach (var _ in _moduleLookup)
             {
                 bool missing = false;
-                var visited = new ConcurrentDictionary<int, int>();
+                var visited = new ConcurrentDictionary<string, int>();
 
                 main.mod.ForwardPropagate(m =>
                 {
@@ -59,14 +59,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     {
                         DebugOutput.Log($"Visited {m} ({x})");
 
-                        if (x > 3)
-                        {
-                            DebugOutput.Log("R");
-                        }
-
                         if (x > 10)
                         {
-                            throw new System.Exception("XXX");
+                            throw new System.Exception("Too much recurrence");
                         }
 
                         return x + 1;
@@ -74,16 +69,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                     if (nextOutput == 0)
                     {
-                        var inputs = m
-                            .RecurrentInputs.Concat(m.Predecessors);
+                        var inputSizes = m.Inputs.Select(x => x.Output.Size).ToArray();
 
-                        var inputSizes = inputs.Select(x => x.Output.Size).ToArray();
+                        missing = !((NetworkModule)m).Initialise(inputSizes);
 
-                        missing = !m.Initialise(inputSizes);
-
-                        if(missing) {
-                        DebugOutput.Log($"{m}"); 
-                            }
+                        if (missing)
+                        {
+                            DebugOutput.Log(m);
+                        }
                     }
                 });
 

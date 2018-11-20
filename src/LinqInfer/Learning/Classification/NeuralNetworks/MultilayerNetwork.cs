@@ -38,6 +38,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return ForEachLayer(l => l.ExportWeights(), false);
         }
 
+        public void ForwardPropagate(Action<INetworkSignalFilter> work)
+        {
+            RootModule.ForwardPropagate(work);
+        }
+
+        public void BackwardPropagate(Action<INetworkSignalFilter> work)
+        {
+            OutputModule.BackwardPropagate(work);
+        }
+
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
         {
             return (reverse ? Layers.Reverse() : Layers).ForEach(func);
