@@ -96,7 +96,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     var inputSizes = m.Inputs.Select(x => x.Output.Size).ToArray();
 
-                    missing = !currentMod.Initialise(inputSizes);
+                    missing |= !currentMod.Initialise(inputSizes);
 
                     if (missing)
                     {

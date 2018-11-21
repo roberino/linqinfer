@@ -24,6 +24,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
 
             _neuronCluster = neuronCluster;
+
+            _output = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
