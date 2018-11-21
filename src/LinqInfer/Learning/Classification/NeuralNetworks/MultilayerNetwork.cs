@@ -43,9 +43,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             RootModule.ForwardPropagate(work);
         }
 
-        public void BackwardPropagate(Action<INetworkSignalFilter> work)
+        public double BackwardPropagate(IVector targetOutput)
         {
-            OutputModule.BackwardPropagate(work);
+            return OutputModule.BackwardPropagate(targetOutput);
         }
 
         public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)

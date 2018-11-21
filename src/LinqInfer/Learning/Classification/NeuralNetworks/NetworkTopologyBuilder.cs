@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LinqInfer.Utility;
@@ -20,10 +21,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             _specification.Initialise();
 
-            var root = new NetworkModule(_specification.InputVectorSize);
-
             var main = Lookup(_specification.Root.Id);
 
+            var root = new NetworkModule(_specification.InputVectorSize);
+
+            root.Successors.Add(main.mod);
             main.mod.Predecessors.Add(root);
 
             foreach (var item in _moduleLookup)
@@ -32,6 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     item.Value.module.RecurrentInputs.Add(_moduleLookup[inp].module);
                 }
+
                 foreach (var outp in item.Value.spec.Connections.Outputs)
                 {
                     var successor = _moduleLookup[outp].module;
@@ -42,51 +45,67 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
             }
 
-            var output = _moduleLookup[_specification.Output.Id];
+            var output = _moduleLookup[_specification.Output.Id].module;
 
-            output.module.Initialise(_specification.OutputVectorSize);
+            var initd = false;
 
-            foreach (var _ in _moduleLookup)
+            for (var i = 0; i < 10; i++)
             {
-                bool missing = false;
-                var visited = new ConcurrentDictionary<string, int>();
-
-                main.mod.ForwardPropagate(m =>
+                if (!Init(root, output))
                 {
-                    var nextOutput = m.Output.Size;
-
-                    visited.AddOrUpdate(m.Id, 1, (id, x) =>
-                    {
-                        DebugOutput.Log($"Visited {m} ({x})");
-
-                        if (x > 10)
-                        {
-                            throw new System.Exception("Too much recurrence");
-                        }
-
-                        return x + 1;
-                    });
-
-                    if (nextOutput == 0)
-                    {
-                        var inputSizes = m.Inputs.Select(x => x.Output.Size).ToArray();
-
-                        missing = !((NetworkModule)m).Initialise(inputSizes);
-
-                        if (missing)
-                        {
-                            DebugOutput.Log(m);
-                        }
-                    }
-                });
-
-                if (!missing)
-                {
+                    initd = true;
                     break;
                 }
             }
 
-            return (main.mod, output.module);
+            if (!initd)
+            {
+                throw new ArgumentException("Cannot create workable network graph");
+            }
+
+            return (root, output);
+        }
+
+        bool Init(NetworkModule root, NetworkModule output)
+        {
+            if (!(output is NetworkLayer))
+            {
+                output.Initialise(_specification.OutputVectorSize);
+            }
+
+            bool missing = false;
+            var visited = new ConcurrentDictionary<string, int>();
+
+            root.ForwardPropagate(m =>
+            {
+                var currentMod = (NetworkModule) m;
+
+                visited.AddOrUpdate(m.Id, 1, (id, x) =>
+                {
+                    DebugOutput.Log($"Visited {m} ({x})");
+
+                    if (x > 10)
+                    {
+                        throw new System.Exception("Too much recurrence");
+                    }
+
+                    return x + 1;
+                });
+
+                if (!currentMod.IsInitialised)
+                {
+                    var inputSizes = m.Inputs.Select(x => x.Output.Size).ToArray();
+
+                    missing = !currentMod.Initialise(inputSizes);
+
+                    if (missing)
+                    {
+                        DebugOutput.Log(m);
+                    }
+                }
+            });
+
+            return missing;
         }
 
         (NetworkModuleSpecification spec, NetworkModule mod) Lookup(int id)

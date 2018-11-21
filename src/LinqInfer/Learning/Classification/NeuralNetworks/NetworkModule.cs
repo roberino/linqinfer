@@ -34,7 +34,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Initialise(inputVectorSize);
         }
 
-        public virtual string Id => $"module-{_spec.InputOperator}-{_spec.Id}";
+        public virtual string Id => $"Module-{_spec.InputOperator}-{_spec.Id}";
 
         public IEnumerable<INetworkSignalFilter> Inputs => RecurrentInputs.Concat(Predecessors);
 
@@ -54,6 +54,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.SetName(nameof(NetworkModule));
             return doc;
         }
+
+        public virtual bool IsInitialised => _output.Size > 0; 
 
         public virtual bool Initialise(params int[] inputSizes)
         {
@@ -88,16 +90,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return true;
         }
 
-        protected virtual void Initialise(int inputSize)
-        {
-            _output = Vector.UniformVector(inputSize, 0);
-        }
-
         public void Receive(IVector input)
         {
             _receivedInputs.Enqueue(input);
 
-            if (_receivedInputs.Count == Predecessors.Count)
+            if (_receivedInputs.Count >= Predecessors.Count)
             {
                 Process();
             }
@@ -123,20 +120,28 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public virtual void BackwardPropagate(IVector targetOutput, Vector previousError = null)
+        public virtual double BackwardPropagate(IVector targetOutput, Vector previousError = null)
         {
+            double loss = 0;
+
             foreach (var predecessor in Predecessors)
             {
-                predecessor.BackwardPropagate(targetOutput, previousError);
+                loss += predecessor.BackwardPropagate(targetOutput, previousError);
             }
+
+            return loss;
         }
 
-        public virtual ErrorAndLossVectors CalculateError(IVector targetOutput)
+        public override string ToString() => $"{Id} ({Output.Size})";
+
+        protected virtual double[] Calculate(IVector input)
         {
-            return new ErrorAndLossVectors() // TODO
-            {
-                 DerivativeError = Vector.UniformVector(0, 0)
-            };
+            return input.ToColumnVector().GetUnderlyingArray();
+        }
+
+        protected virtual void Initialise(int inputSize)
+        {
+            _output = Vector.UniformVector(inputSize, 0);
         }
 
         void Process()
@@ -164,13 +169,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 successor.Receive(previousOutput);
             }
         }
-
-        protected virtual double[] Calculate(IVector input)
-        {
-            return input.ToColumnVector().GetUnderlyingArray();
-        }
-
-        public override string ToString() => $"{Id} ({Output.Size})";
 
         IVector RetrieveInput()
         {

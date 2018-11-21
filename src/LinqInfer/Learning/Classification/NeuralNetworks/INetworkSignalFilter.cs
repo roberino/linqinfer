@@ -18,22 +18,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Executes an action through the network, pushing it forward to successive modules
         /// </summary>
         void ForwardPropagate(Action<INetworkSignalFilter> work);
-
+        
         /// <summary>
         /// Executes an action through the network, pushing it backward to previous modules
         /// </summary>
-        //void BackwardPropagate(Action<INetworkSignalFilter> work);
-
-        /// <summary>
-        /// Executes an action through the network, pushing it backward to previous modules
-        /// </summary>
-        void BackwardPropagate(IVector targetOutput, Vector previousError = null);
+        double BackwardPropagate(IVector targetOutput, Vector previousError = null);
 
         /// <summary>
         /// Enqueues input to be processed
         /// </summary>
         void Receive(IVector input);
-
-        ErrorAndLossVectors CalculateError(IVector targetOutput);
     }
 }

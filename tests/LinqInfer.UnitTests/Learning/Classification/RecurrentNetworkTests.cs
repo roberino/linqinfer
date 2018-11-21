@@ -48,6 +48,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var output = spec.Parameters.Apply(ColumnVector1D.Create(1, 2, 3, 4));
 
             Assert.That(output.Size, Is.EqualTo(2));
+            Assert.That(output.Sum, Is.Not.EqualTo(0));
         }
 
         public FluentNetworkBuilder SetupLstmNetwork()

@@ -14,14 +14,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         int _inputSize;
 
-        public NeuronCluster(int inputVectorSize,
-            int neuronCount,
-            Func<int, INeuron> neuronFactory,
-            ActivatorExpression activator) : this(neuronFactory, activator)
-        {
-            Resize(inputVectorSize, neuronCount);
-        }
-
         public NeuronCluster(
             Func<int, INeuron> neuronFactory,
             ActivatorExpression activator)

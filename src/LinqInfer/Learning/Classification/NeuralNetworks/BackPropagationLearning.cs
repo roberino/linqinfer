@@ -50,57 +50,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             Validate(output, inputVector, targetOutput);
 
-            var errors = CalculateError(output, targetOutput);
-            
-            var input = new OutputValues(inputVector);
+            var err = _network.BackwardPropagate(targetOutput);
 
-            Adjust(input, errors.Item1);
-
-            // DebugOutput.LogVerbose("Error = {0}", errors.Item2);
-
-            return errors.Item2;
-        }
-
-        protected virtual Tuple<Vector[], double> CalculateError(IVector actualOutput, IVector targetOutput)
-        {
-            // network
-            //    -- layers[]
-            //          -- neuron[]
-            //              -- weights[]
-
-            ILayer lastLayer = null;
-            Vector lastError = null;
-            double error = 0;
-
-            var errors = _network.ForwardPropagate((layer) =>
-            {
-                if (lastError == null)
-                {
-                    var errAndLoss = layer.CalculateError(targetOutput);
-                    
-                    error += errAndLoss.Loss;
-
-                    lastError = errAndLoss.DerivativeError;
-                }
-                else
-                {
-                    lastError = layer.ForEachNeuron((n, i) =>
-                    {
-                        var err = lastLayer.ForEachNeuron((nk, k) =>
-                        {
-                            return lastError[k] * nk[i];
-                        });
-
-                        return err.Sum * layer.Activator.Derivative(n.Output);
-                    });
-                }
-
-                lastLayer = layer;
-
-                return lastError;
-            }).Reverse().ToArray();
-
-            return new Tuple<Vector[], double>(errors, error);
+            return err;
         }
 
         protected virtual Tuple<Vector[], double> CalculateErrorV1(IVector actualOutput, IVector targetOutput)
@@ -128,10 +80,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 {
                     lastError = layer.ForEachNeuron((n, i) =>
                     {
-                        var err = lastLayer.ForEachNeuron((nk, k) =>
-                        {
-                            return lastError[k] * nk[i];
-                        });
+                        var err = lastLayer.ForEachNeuron((nk, k) => 
+                            lastError[k] * nk[i]);
 
                         return err.Sum * layer.Activator.Derivative(n.Output);
                     });
