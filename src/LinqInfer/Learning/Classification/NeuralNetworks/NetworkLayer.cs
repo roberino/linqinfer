@@ -44,9 +44,25 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public Matrix ExportWeights() => _neuronCluster.ExportData();
 
-        public override PortableDataDocument ExportData() => _neuronCluster.Export();
+        public override PortableDataDocument ExportData()
+        {
+            var baseData = base.ExportData();
+            var data = _neuronCluster.Export();
 
-        public void Import(PortableDataDocument data) => _neuronCluster.Import(data);
+            foreach (var prop in data.Properties)
+            {
+                baseData.Properties[prop.Key] = prop.Value;
+            }
+
+            foreach (var prop in data.Vectors)
+            {
+                baseData.Vectors.Add(prop);
+            }
+
+            return data;
+        }
+
+        public void ImportData(PortableDataDocument data) => _neuronCluster.Import(data);
 
         public override string ToString() => $"{Id}, {_neuronCluster.Size} neurons)";
 

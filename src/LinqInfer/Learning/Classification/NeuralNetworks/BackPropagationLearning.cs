@@ -20,7 +20,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
-            _network.ForEachLayer(l => l.WeightUpdateRule.AdjustLearningRate(rateAdjustment)).ToList();
+            _network.ForwardPropagate(f =>
+            {
+                if (f is ILayer layer)
+                {
+                    layer.WeightUpdateRule.AdjustLearningRate(rateAdjustment);
+                }
+            });
         }
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingSet, double errorThreshold = 0)
@@ -55,85 +61,85 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return err;
         }
 
-        protected virtual Tuple<Vector[], double> CalculateErrorV1(IVector actualOutput, IVector targetOutput)
-        {
-            // network
-            //    -- layers[]
-            //          -- neuron[]
-            //              -- weights[]
+        //protected virtual Tuple<Vector[], double> CalculateErrorV1(IVector actualOutput, IVector targetOutput)
+        //{
+        //    // network
+        //    //    -- layers[]
+        //    //          -- neuron[]
+        //    //              -- weights[]
 
-            ILayer lastLayer = null;
-            Vector lastError = null;
-            double error = 0;
+        //    ILayer lastLayer = null;
+        //    Vector lastError = null;
+        //    double error = 0;
 
-            var errors = _network.ForEachLayer((layer) =>
-            {
-                if (lastError == null)
-                {
-                    var errAndLoss = layer.LossFunction.Calculate(layer.Output, targetOutput, layer.Activator.Derivative);
+        //    var errors = _network.ForEachLayer((layer) =>
+        //    {
+        //        if (lastError == null)
+        //        {
+        //            var errAndLoss = layer.LossFunction.Calculate(layer.Output, targetOutput, layer.Activator.Derivative);
                     
-                    error += errAndLoss.Loss;
+        //            error += errAndLoss.Loss;
 
-                    lastError = errAndLoss.DerivativeError;
-                }
-                else
-                {
-                    lastError = layer.ForEachNeuron((n, i) =>
-                    {
-                        var err = lastLayer.ForEachNeuron((nk, k) => 
-                            lastError[k] * nk[i]);
+        //            lastError = errAndLoss.DerivativeError;
+        //        }
+        //        else
+        //        {
+        //            lastError = layer.ForEachNeuron((n, i) =>
+        //            {
+        //                var err = lastLayer.ForEachNeuron((nk, k) => 
+        //                    lastError[k] * nk[i]);
 
-                        return err.Sum * layer.Activator.Derivative(n.Output);
-                    });
-                }
+        //                return err.Sum * layer.Activator.Derivative(n.Output);
+        //            });
+        //        }
 
-                lastLayer = layer;
+        //        lastLayer = layer;
 
-                return lastError;
-            }).Reverse().ToArray();
+        //        return lastError;
+        //    }).Reverse().ToArray();
 
-            return new Tuple<Vector[], double>(errors, error);
-        }
+        //    return new Tuple<Vector[], double>(errors, error);
+        //}
 
-        protected virtual void Adjust(IPropagatedOutput input, Vector[] errors)
-        {
-            var previousLayer = input;
-            var i = 0;
+        //protected virtual void Adjust(IPropagatedOutput input, Vector[] errors)
+        //{
+        //    var previousLayer = input;
+        //    var i = 0;
 
-            _network.ForEachLayer(layer =>
-            {
-                var layerErrors = errors[i++];
+        //    _network.ForEachLayer(layer =>
+        //    {
+        //        var layerErrors = errors[i++];
 
-                var update = layer.ForEachNeuron((n, j) =>
-                {
-                    var error = layerErrors[j];
+        //        var update = layer.ForEachNeuron((n, j) =>
+        //        {
+        //            var error = layerErrors[j];
 
-                    n.Adjust((w, k) =>
-                    {
-                        var prevOutput = k < 0 ? 1 : previousLayer.Output[k];
+        //            n.Adjust((w, k) =>
+        //            {
+        //                var prevOutput = k < 0 ? 1 : previousLayer.Output[k];
 
-                        var wp = new WeightUpdateParameters()
-                        {
-                            CurrentWeightValue = w,
-                            Error = error,
-                            PreviousLayerOutput = prevOutput
-                        };
+        //                var wp = new WeightUpdateParameters()
+        //                {
+        //                    CurrentWeightValue = w,
+        //                    Error = error,
+        //                    PreviousLayerOutput = prevOutput
+        //                };
 
-                        var wu = layer.WeightUpdateRule.Execute(wp);
+        //                var wu = layer.WeightUpdateRule.Execute(wp);
 
-                        // DebugOutput.Log($"w = {wu} => error = {wp.Error} previous output = {wp.PreviousLayerOutput}, w = {wp.CurrentWeightValue}");
+        //                // DebugOutput.Log($"w = {wu} => error = {wp.Error} previous output = {wp.PreviousLayerOutput}, w = {wp.CurrentWeightValue}");
 
-                        return wu;
-                    });
+        //                return wu;
+        //            });
 
-                    return 0;
-                });
+        //            return 0;
+        //        });
 
-                previousLayer = layer;
+        //        previousLayer = layer;
 
-                return update;
-            }, false);
-        }
+        //        return update;
+        //    }, false);
+        //}
 
         void Validate(IVector output, IVector inputVector, IVector targetOutput)
         {

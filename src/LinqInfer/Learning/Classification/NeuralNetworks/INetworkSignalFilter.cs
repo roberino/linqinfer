@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public interface INetworkSignalFilter : IExportableAsDataDocument, IPropagatedOutput
+    public interface INetworkSignalFilter : IImportableFromDataDocument, IExportableAsDataDocument, IPropagatedOutput
     {
         string Id {get;}
 

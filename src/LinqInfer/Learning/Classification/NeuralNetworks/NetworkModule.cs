@@ -51,6 +51,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public virtual PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
+            doc.Properties[nameof(Id)] = Id;
+            doc.SetType(this);
             doc.SetName(nameof(NetworkModule));
             return doc;
         }
@@ -133,6 +135,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public override string ToString() => $"{Id} ({Output.Size})";
+
+        public void ImportData(PortableDataDocument doc)
+        {
+        }
 
         protected virtual double[] Calculate(IVector input)
         {

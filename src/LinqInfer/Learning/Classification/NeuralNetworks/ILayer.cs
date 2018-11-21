@@ -35,11 +35,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         /// <param name="index">The zero base index</param>
         INeuron this[int index] { get; }
-        
-        /// <summary>
-        /// Applies a function over each neuron supplying the neuron as a parameter
-        /// </summary>
-        IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func);
 
         /// <summary>
         /// Applies a function over each neuron supplying the neuron and the index as a parameter
@@ -61,10 +56,5 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Exports the raw data
         /// </summary>
         Matrix ExportWeights();
-
-        /// <summary>
-        /// Imports raw data
-        /// </summary>
-        void Import(PortableDataDocument data);
     }
 }

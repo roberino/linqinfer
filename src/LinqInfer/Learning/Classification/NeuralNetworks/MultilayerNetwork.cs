@@ -2,10 +2,8 @@
 using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -35,7 +33,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IEnumerable<Matrix> ExportRawData()
         {
-            return ForEachLayer(l => l.ExportWeights(), false);
+            var data = new List<Matrix>();
+
+            ForwardPropagate(x =>
+            {
+                if (x is ILayer layer)
+                {
+                    data.Add(layer.ExportWeights());
+                }
+            });
+
+            return data;
         }
 
         public void ForwardPropagate(Action<INetworkSignalFilter> work)
@@ -48,11 +56,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return OutputModule.BackwardPropagate(targetOutput);
         }
 
-        public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
-        {
-            return (reverse ? Layers.Reverse() : Layers).ForEach(func);
-        }
-
         /// <summary>
         /// Transforms the vector by evaluating the data through the network
         /// </summary>
@@ -61,37 +64,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             RootModule.Receive(vector);
 
             return OutputModule.Output;
-        }
-
-        public IEnumerable<ILayer> Layers
-        {
-            get
-            {
-                IEnumerable<ILayer> GetLayers(INetworkSignalFilter nsf)
-                {
-                    if (nsf == null)
-                    {
-                        yield break;
-                    }
-
-                    if (nsf is ILayer layer)
-                    {
-                        yield return layer;
-                    }
-
-                    foreach (var successor in ((NetworkModule)nsf).Successors)
-                    {
-                        foreach (var sc in GetLayers(successor))
-                        {
-                            yield return sc;
-                        }
-                    }
-                }
-
-                if (!_initd) InitialiseLayers();
-
-                return GetLayers(_rootLayer);
-            }
         }
 
         public int InputSize => Specification.InputVectorSize;
@@ -120,11 +92,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString()
         {
-            string s = string.Empty;
-            foreach (var layer in Layers)
-            {
-                s += "[Layer " + layer.Size + "]";
-            }
+            var s = string.Empty;
+            
+            ForwardPropagate(x => s += $"/{x.Id}");
 
             return $"Network({Specification.InputVectorSize}):{s}";
         }

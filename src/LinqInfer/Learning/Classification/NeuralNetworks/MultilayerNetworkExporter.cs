@@ -21,19 +21,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             doc.WriteChildObject(network.Specification);
 
-            int i = 0;
-
-            foreach (var layer in network.Layers)
+            network.ForwardPropagate(x =>
             {
-                i++;
+                var data = x.ExportData();
 
-                var layerDoc = layer.ExportData();
+                data.Properties["Label"] = x.ToString();
 
-                layerDoc.Properties["Label"] = "Layer " + i;
-                layerDoc.SetType<NetworkLayer>();
-
-                doc.Children.Add(layerDoc);
-            }
+                doc.Children.Add(data);
+            });
 
             return doc;
         }
@@ -50,12 +45,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var network = new MultilayerNetwork(spec, properties);
 
-            int i = 1;
-
-            foreach (var layer in network.Layers)
+            network.ForwardPropagate(x =>
             {
-                layer.Import(doc.Children[i++]);
-            }
+                var layerData = doc.Children.Single(c => c.Properties[nameof(INetworkSignalFilter.Id)] == x.Id);
+
+                x.ImportData(layerData);
+            });
 
             return network;
         }
