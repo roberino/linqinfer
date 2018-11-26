@@ -1,4 +1,5 @@
-﻿using LinqInfer.Data.Serialisation;
+﻿using System;
+using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
@@ -8,6 +9,8 @@ namespace LinqInfer.Maths
         {
             InputSize = vectorSize;
         }
+
+        public static Func<int, ISerialisableDataTransformation> Factory => n => new Softmax(n);
 
         public int InputSize { get; }
 

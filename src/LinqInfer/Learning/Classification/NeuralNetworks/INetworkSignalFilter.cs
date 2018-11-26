@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Executes an action through the network, pushing it backward to previous modules
         /// </summary>
-        double BackwardPropagate(IVector targetOutput, Vector previousError = null);
+        void BackwardPropagate(Vector error);
 
         /// <summary>
         /// Enqueues input to be processed

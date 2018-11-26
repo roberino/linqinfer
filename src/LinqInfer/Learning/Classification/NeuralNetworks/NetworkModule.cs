@@ -11,18 +11,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         readonly NetworkModuleSpecification _spec;
         readonly Func<IEnumerable<IVector>, IVector> _inputOperator;
-        readonly Queue<IVector> _receivedInputs;
+        readonly IList<IVector> _receivedInputs;
         
-        protected Vector _output;
+        protected Vector OutputVector;
 
         int? _inputVectorSize;
+
+        bool _flush;
 
         public NetworkModule(NetworkModuleSpecification spec)
         {
             _spec = spec;
-            _output = Vector.UniformVector(0, 0);
+            OutputVector = Vector.UniformVector(0, 0);
             _inputOperator = spec.InputOperator.CreateOperation();
-            _receivedInputs = new Queue<IVector>();
+            _receivedInputs = new List<IVector>();
 
             Successors = new List<NetworkModule>();
             Predecessors = new List<NetworkModule>();
@@ -46,18 +48,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int ProcessingVectorSize => _inputVectorSize.GetValueOrDefault();
 
-        public IVector Output => _output;
-        
+        public IVector Output => OutputVector;
+
+        public virtual void ImportData(PortableDataDocument doc)
+        {
+        }
+
         public virtual PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
             doc.Properties[nameof(Id)] = Id;
             doc.SetType(this);
-            doc.SetName(nameof(NetworkModule));
+            doc.SetName(GetType().Name);
             return doc;
         }
 
-        public virtual bool IsInitialised => _output.Size > 0; 
+        public virtual bool IsInitialised => OutputVector.Size > 0; 
 
         public virtual bool Initialise(params int[] inputSizes)
         {
@@ -94,7 +100,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Receive(IVector input)
         {
-            _receivedInputs.Enqueue(input);
+            if (_flush)
+            {
+                _receivedInputs.Clear();
+                _flush = false;
+            }
+
+            _receivedInputs.Add(input);
 
             if (_receivedInputs.Count >= Predecessors.Count)
             {
@@ -122,23 +134,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public virtual double BackwardPropagate(IVector targetOutput, Vector previousError = null)
+        public virtual void BackwardPropagate(Vector error)
         {
-            double loss = 0;
-
             foreach (var predecessor in Predecessors)
             {
-                loss += predecessor.BackwardPropagate(targetOutput, previousError);
+                predecessor.BackwardPropagate(error);
             }
-
-            return loss;
         }
 
         public override string ToString() => $"{Id} ({Output.Size})";
-
-        public void ImportData(PortableDataDocument doc)
-        {
-        }
 
         protected virtual double[] Calculate(IVector input)
         {
@@ -147,7 +151,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         protected virtual void Initialise(int inputSize)
         {
-            _output = Vector.UniformVector(inputSize, 0);
+            OutputVector = Vector.UniformVector(inputSize, 0);
         }
 
         void Process()
@@ -164,11 +168,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var aggrInput = RetrieveInput();
 
             previousOutput.Overwrite(Calculate(aggrInput));
-
-            if (_spec.OutputTransformation != null)
-            {
-                previousOutput.Overwrite(_spec.OutputTransformation.Apply(previousOutput).ToColumnVector().GetUnderlyingArray());
-            }
             
             foreach (var successor in Successors)
             {
@@ -185,10 +184,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 aggrInputs.Add(item.Output);
             }
 
-            while (_receivedInputs.Count > 0)
+            foreach (var item in _receivedInputs)
             {
-                aggrInputs.Add(_receivedInputs.Dequeue());
+                aggrInputs.Add(item);
             }
+
+            _flush = true;
 
             if (aggrInputs.Count == 1)
             {

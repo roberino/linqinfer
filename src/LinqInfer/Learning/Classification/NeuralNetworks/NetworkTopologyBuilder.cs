@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }
             }
 
-            var output = _moduleLookup[_specification.Output.Id].module;
+            var output = _moduleLookup[_specification.Output.OutputModuleId].module;
 
             var initd = false;
 
@@ -70,7 +70,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             if (!(output is NetworkLayer))
             {
-                output.Initialise(_specification.OutputVectorSize);
+                output.Initialise(_specification.Output.OutputVectorSize);
             }
 
             bool missing = false;

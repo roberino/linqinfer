@@ -12,6 +12,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         ICloneableObject<MultilayerNetwork>, INetworkModel, IHasNetworkTopology
     {
         readonly object _lockObj = new object();
+        IVector _lastOutput;
         INetworkSignalFilter _rootLayer;
         INetworkSignalFilter _outputModule;
         bool _initd;
@@ -53,7 +54,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public double BackwardPropagate(IVector targetOutput)
         {
-            return OutputModule.BackwardPropagate(targetOutput);
+            var lf = Specification.Output.LossFunction;
+            var dr = Activators.None().Derivative;
+
+            var errAndLoss = lf.Calculate(_lastOutput, targetOutput, dr);
+
+            OutputModule.BackwardPropagate(errAndLoss.DerivativeError);
+
+            return errAndLoss.Loss;
         }
 
         /// <summary>
@@ -62,8 +70,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IVector Apply(IVector vector)
         {
             RootModule.Receive(vector);
+            
+            if (Specification.Output.OutputTransformation != null)
+            {
+                _lastOutput = Specification.Output.OutputTransformation.Apply(OutputModule.Output);
+            }
+            else
+            {
+                _lastOutput = OutputModule.Output;
+            }
 
-            return OutputModule.Output;
+            return _lastOutput;
         }
 
         public int InputSize => Specification.InputVectorSize;
@@ -157,6 +174,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 _rootLayer = conf.root;
                 _outputModule = conf.output;
+                _lastOutput = _outputModule.Output;
             }
         }
     }

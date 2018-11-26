@@ -25,7 +25,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             _neuronCluster = neuronCluster;
 
-            _output = Vector.UniformVector(_spec.LayerSize, 0);
+            OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
         public event EventHandler<ColumnVector1DEventArgs> Calculation;
@@ -35,8 +35,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public int Size => _spec.LayerSize;
 
         public ActivatorExpression Activator => _spec.Activator;
-
-        public ILossFunction LossFunction => _spec.LossFunction;
 
         public WeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
@@ -62,53 +60,31 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return data;
         }
 
-        public void ImportData(PortableDataDocument data) => _neuronCluster.Import(data);
+        public override void ImportData(PortableDataDocument data)
+        {
+            base.ImportData(data);
+
+            _neuronCluster.Import(data);
+        }
 
         public override string ToString() => $"{Id}, {_neuronCluster.Size} neurons)";
 
-        public override double BackwardPropagate(IVector targetOutput, Vector previousError = null)
+        public override void BackwardPropagate(Vector error)
         {
-            double errOut = 0;
+            var nextError = new double[_neuronCluster.Size];
 
-            var nextErrors = new List<Vector>(Predecessors.Count);
+            for (var i = 0; i < nextError.Length; i++)
+            {
+                nextError[i] = ForEachNeuron((nk, k) =>
+                    error[k] * nk[i]).Sum;
+            }
 
             foreach (var predecessor in Predecessors)
             {
-                Vector nextError;
+                Adjust(predecessor, error);
 
-                if (previousError != null)
-                {
-                    if (predecessor is ILayer lastLayer)
-                    {
-                        nextError = ForEachNeuron((n, i) =>
-                        {
-                            var err = lastLayer.ForEachNeuron((nk, k) => 
-                                previousError[k] * nk[i]);
-
-                            return err.Sum * Activator.Derivative(n.Output);
-                        });
-                    }
-                    else
-                    {
-                        throw new NotSupportedException("TODO");
-                    }
-                }
-                else
-                {
-                    var err = CalculateError(targetOutput);
-
-                    nextError = err.DerivativeError;
-                    errOut = err.Loss;
-                }
-
-                nextErrors.Add(nextError);
-
-                Adjust(predecessor, nextError);
-
-                predecessor.BackwardPropagate(targetOutput, nextError);
+                predecessor.BackwardPropagate(new Vector(nextError));
             }
-
-            return errOut;
         }
 
         public void Grow(int numberOfNewNeurons = 1) => _neuronCluster.Grow(numberOfNewNeurons);
@@ -131,7 +107,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             _neuronCluster.Resize(ProcessingVectorSize, _spec.LayerSize);
 
-            _output = Vector.UniformVector(_spec.LayerSize, 0);
+            OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
         protected override double[] Calculate(IVector input)
@@ -145,11 +121,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
 
             return _neuronCluster.Neurons.Select(n => n.Evaluate(input)).ToArray();
-        }
-
-        ErrorAndLossVectors CalculateError(IVector targetOutput)
-        {
-            return LossFunction.Calculate(Output, targetOutput, Activator.Derivative);
         }
 
         void Adjust(INetworkSignalFilter previousLayer, Vector layerErrors)

@@ -32,16 +32,17 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var parameters = new NetworkSpecification(2, new NetworkLayerSpecification(1, 4));
             var network = new MultilayerNetwork(parameters);
 
-            network.ForEachLayer(l =>
+            network.ForwardPropagate(m =>
             {
-                l.ForEachNeuron((n, i) =>
+                if (m is ILayer l)
                 {
-                    n.Adjust((w, k) => w * 0.1);
+                    l.ForEachNeuron((n, i) =>
+                    {
+                        n.Adjust((w, k) => w * 0.1);
 
-                    return 0d;
-                });
-
-                return 1;
+                        return 0d;
+                    });
+                }
             });
 
             var topology = await network.ExportNetworkTopologyAsync();
@@ -51,16 +52,15 @@ namespace LinqInfer.UnitTests.Learning.Classification
             LogVerbose(xml.ToString());
         }
 
-
         [Test]
         public void WhenGivenNetworkFromSpecification_ThenCanExportAndImport()
         {
             var lp = new LearningParameters();
+
             var spec = new NetworkSpecification(lp,
                 16,
                 new NetworkLayerSpecification(1, 4,
                 Activators.Threshold(),
-                LossFunctions.CrossEntropy,
                 WeightUpdateRules.Default(),
                 new Range()));
 
@@ -91,16 +91,17 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         void AdjustData(MultilayerNetwork network)
         {
-            network.ForEachLayer(l =>
+            network.ForwardPropagate(m =>
             {
-                l.ForEachNeuron((n, i) =>
+                if (m is ILayer l)
                 {
-                    n.Adjust((w, k) => w * 0.1);
+                    l.ForEachNeuron((n, i) =>
+                    {
+                        n.Adjust((w, k) => w * 0.1);
 
-                    return 0d;
-                });
-
-                return 1;
+                        return 0d;
+                    });
+                }
             });
         }
     }
