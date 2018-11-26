@@ -10,22 +10,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     class NetworkModule : INetworkSignalFilter
     {
         readonly NetworkModuleSpecification _spec;
-        readonly Func<IEnumerable<IVector>, IVector> _inputOperator;
-        readonly IList<IVector> _receivedInputs;
-        
+        readonly VectorAggregator _vectorAggregator;
+
         protected Vector OutputVector;
 
         int? _inputVectorSize;
 
-        bool _flush;
-
         public NetworkModule(NetworkModuleSpecification spec)
         {
             _spec = spec;
-            OutputVector = Vector.UniformVector(0, 0);
-            _inputOperator = spec.InputOperator.CreateOperation();
-            _receivedInputs = new List<IVector>();
+            _vectorAggregator = new VectorAggregator(spec.InputOperator.CreateOperation(), () => RecurrentInputs.Select(i => i.Output));
 
+            OutputVector = Vector.UniformVector(0, 0);
             Successors = new List<NetworkModule>();
             Predecessors = new List<NetworkModule>();
             RecurrentInputs = new List<NetworkModule>();
@@ -100,17 +96,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Receive(IVector input)
         {
-            if (_flush)
-            {
-                _receivedInputs.Clear();
-                _flush = false;
-            }
+            var (received, data) = _vectorAggregator.Receive(input);
 
-            _receivedInputs.Add(input);
-
-            if (_receivedInputs.Count >= Predecessors.Count)
+            if (received)
             {
-                Process();
+                Process(data);
             }
         }
 
@@ -152,51 +142,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         protected virtual void Initialise(int inputSize)
         {
             OutputVector = Vector.UniformVector(inputSize, 0);
+
+            _vectorAggregator.SetExpectedSize(Predecessors.Count);
         }
 
-        void Process()
+        void Process(IVector aggregatedInput)
         {
             DebugOutput.Log($"Process {_spec.Id} {Output.Size} {_spec.InputOperator}");
 
-            if (_receivedInputs.Count == 0)
-            {
-                return;
-            }
-
             var previousOutput = (Vector)Output;
 
-            var aggrInput = RetrieveInput();
-
-            previousOutput.Overwrite(Calculate(aggrInput));
+            previousOutput.Overwrite(Calculate(aggregatedInput));
             
             foreach (var successor in Successors)
             {
                 successor.Receive(previousOutput);
             }
-        }
-
-        IVector RetrieveInput()
-        {
-            var aggrInputs = new List<IVector>();
-
-            foreach (var item in RecurrentInputs)
-            {
-                aggrInputs.Add(item.Output);
-            }
-
-            foreach (var item in _receivedInputs)
-            {
-                aggrInputs.Add(item);
-            }
-
-            _flush = true;
-
-            if (aggrInputs.Count == 1)
-            {
-                return aggrInputs[0];
-            }
-
-            return _inputOperator(aggrInputs); 
         }
     }
 }
