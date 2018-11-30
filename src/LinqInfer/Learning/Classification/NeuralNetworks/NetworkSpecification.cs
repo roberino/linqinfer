@@ -8,18 +8,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
-        public NetworkSpecification(LearningParameters learningParameters, params NetworkLayerSpecification[] networkLayers)
-        {
-            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
-
-            LearningParameters = learningParameters;
-            InputVectorSize = networkLayers.First().LayerSize;
-            Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
-            Output = new NetworkOutputSpecification(networkLayers.Last().Id, networkLayers.Last().LayerSize);
-        }
-
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params NetworkLayerSpecification[] networkLayers)
+        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
             ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
@@ -28,7 +17,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             LearningParameters = learningParameters;
             InputVectorSize = inputVectorSize;
             Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
-            Output = new NetworkOutputSpecification(networkLayers.Last().Id, networkLayers.Last().LayerSize);
+            Output = new NetworkOutputSpecification(networkLayers.Last(), lossFunction);
         }
 
         public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
@@ -43,7 +32,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Output = output;
         }
 
-        public NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, networkLayers)
+        public NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
         {
         }
 
@@ -78,7 +67,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return doc;
         }
 
-        internal static NetworkSpecification FromVectorDocument(PortableDataDocument doc,
+        internal static NetworkSpecification FromDataDocument(
+            PortableDataDocument doc,
             NetworkBuilderContext context = null)
         {
             NetworkSpecification networkSpecification = null;
@@ -88,13 +78,17 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
             var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
-            var layers = doc.Children.Select(c => 
-                string.Equals(c.Name, nameof(NetworkModuleSpecification), StringComparison.OrdinalIgnoreCase) ? 
-                NetworkModuleSpecification.FromVectorDocument(c, ctx) : 
-                NetworkLayerSpecification.FromVectorDocument(c, ctx)).ToArray();
+            var layers = doc.FindChildrenByName<NetworkLayerSpecification>()
+                .Select(c => NetworkLayerSpecification.FromVectorDocument(c, ctx));
 
-            var output = NetworkOutputSpecification
-                .FromVectorDocument(doc.Children.Single(d => d.Name == nameof(NetworkOutputSpecification)), ctx);
+            var modules = doc.FindChildrenByName<NetworkModuleSpecification>()
+                .Select(c => NetworkModuleSpecification.FromVectorDocument(c, ctx));
+
+            var output = doc.FindChildrenByName<NetworkOutputSpecification>()
+                .Select(c => NetworkOutputSpecification.FromVectorDocument(c, ctx))
+                .SingleOrDefault();
+
+            var all = layers.Concat(modules).ToArray();
 
             var learningParams = new LearningParameters()
             {
@@ -102,7 +96,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 MinimumError = minimumError
             };
 
-            return new NetworkSpecification(learningParams, inputVectorSize, output, layers)
+            return new NetworkSpecification(learningParams, inputVectorSize, output, all)
                 .Initialise();
         }
 

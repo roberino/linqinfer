@@ -5,9 +5,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class ModuleBuilderFactory
     {
-        readonly FluentNetworkBuilder _networkBuilder;
+        readonly RecurrentNetworkBuilder _networkBuilder;
 
-        internal ModuleBuilderFactory(FluentNetworkBuilder networkBuilder)
+        internal ModuleBuilderFactory(RecurrentNetworkBuilder networkBuilder)
         {
             _networkBuilder = networkBuilder;
         }
@@ -33,9 +33,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return layerSpec;
         }
 
-        public void Output(NetworkModuleSpecification moduleSpecification, ILossFunction lossFunction = null, Func<int, ISerialisableDataTransformation> transformation = null)
+        public NetworkOutputSpecification Output(NetworkModuleSpecification moduleSpecification, int outputSize, ILossFunction lossFunction = null, Func<int, ISerialisableDataTransformation> transformation = null)
         {
-            _networkBuilder.ConfigureOutput(moduleSpecification, lossFunction, transformation);
+            return new NetworkOutputSpecification(moduleSpecification, outputSize, lossFunction)
+            {
+                OutputTransformation = transformation?.Invoke(outputSize)
+            };
+        }
+
+        public NetworkOutputSpecification Output(NetworkLayerSpecification layerSpecification, ILossFunction lossFunction = null, Func<int, ISerialisableDataTransformation> transformation = null)
+        {
+            return new NetworkOutputSpecification(layerSpecification, lossFunction)
+            {
+                OutputTransformation = transformation?.Invoke(layerSpecification.LayerSize)
+            };
         }
     }
 }

@@ -5,20 +5,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class SquareLossFunction : LossFunctionBase
     {
-        protected override ErrorAndLossVectors CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative)
+        protected override NetworkError CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative)
         {
             var error = (targetOutput.ToColumnVector() - actualOutput.ToColumnVector());
 
             var dw = error.Calculate(actualOutput, (e, o) => e * derivative(o));
 
-            return new ErrorAndLossVectors()
+            return new NetworkError()
             {
                 Loss = error.Sq().Sum,
                 DerivativeError = dw
             };
         }
 
-        protected override ErrorAndLossVectors CalculateOneOfN(ColumnVector1D actualOutput, OneOfNVector targetOutput, Func<double, double> derivative)
+        protected override NetworkError CalculateOneOfN(ColumnVector1D actualOutput, OneOfNVector targetOutput, Func<double, double> derivative)
         {
             var error = actualOutput.Clone(true);
 
@@ -31,7 +31,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 return -y * derivative(y);
             });
 
-            return new ErrorAndLossVectors()
+            return new NetworkError()
             {
                 Loss = error.Sq().Sum,
                 DerivativeError = error

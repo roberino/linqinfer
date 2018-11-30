@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Learning.Features;
+﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;

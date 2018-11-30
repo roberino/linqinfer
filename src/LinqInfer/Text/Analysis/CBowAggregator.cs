@@ -67,10 +67,9 @@ namespace LinqInfer.Text.Analysis
         {
             var trainingSet = await GetTrainingSetAync(cancellationToken);
 
-            void NetworkBuilder(FluentNetworkBuilder b)
+            void NetworkBuilder(ConvolutionalNetworkBuilder b)
             {
                 b
-               .ParallelProcess()
                .ConfigureLearningParameters(p =>
                {
                    p.LearningRate = 0.2;

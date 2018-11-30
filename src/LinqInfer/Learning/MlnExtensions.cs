@@ -43,10 +43,10 @@ namespace LinqInfer.Learning
         /// <param name="networkBuilder">A delegate which builds the network specification</param>
         public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            Action<FluentNetworkBuilder> networkBuilder) 
+            Action<ConvolutionalNetworkBuilder> networkBuilder) 
             where TClass : IEquatable<TClass>
         {
-            var builder = new FluentNetworkBuilder(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
+            var builder = new ConvolutionalNetworkBuilder(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
 
             networkBuilder?.Invoke(builder);
 

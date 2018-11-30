@@ -6,12 +6,12 @@ using System.Linq;
 namespace LinqInfer.UnitTests.Learning.Classification
 {
     [TestFixture]
-    public class FluentNetworkBuilderTests
+    public class ConvolutionalNetworkBuilderTests
     {
         [Test]
         public void WhenGivenDefaults_ThenBuildsWithoutError()
         {
-            var builder = new FluentNetworkBuilder(8, 4);
+            var builder = new ConvolutionalNetworkBuilder(8, 4);
 
             var trainingNetwork = builder.Build();
 
@@ -21,12 +21,13 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenLearningParamsProvided_ThenSetCorrectlyInSpec()
         {
-            var spec = new FluentNetworkBuilder(8, 4)
+            var spec = new ConvolutionalNetworkBuilder(8, 4)
                 .ConfigureLearningParameters(p =>
                 {
                     p.LearningRate = 0.12d;
                     p.MinimumError = 0.33d;
                 })
+                .ConfigureOutput(LossFunctions.Square)
                 .Build()
                 .Parameters
                 .Specification;
@@ -38,8 +39,9 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenHiddenSigmoidLayersAdded_ThenBuildsWithoutError()
         {
-            var trainingNetwork = new FluentNetworkBuilder(8, 4)
+            var trainingNetwork = new ConvolutionalNetworkBuilder(8, 4)
                 .AddHiddenSigmoidLayer(16)
+                .ConfigureOutput(LossFunctions.Square)
                 .Build();
 
             Assert.That(trainingNetwork, Is.Not.Null);
@@ -52,25 +54,25 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenOutputLayerConfigured_ThenActivatorAndLossFunctionCustomised()
         {
-            var network = new FluentNetworkBuilder(8, 4)
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.CrossEntropy)
+            var network = new ConvolutionalNetworkBuilder(8, 4)
+                .ConfigureOutput(LossFunctions.CrossEntropy)
                 .Build()
                 .Output as MultilayerNetwork;
 
             Assert.That(network.Specification.Layers.Count, Is.EqualTo(1));
             Assert.That(network.Specification.Layers.Single().Activator.Name, Is.EqualTo(Activators.None().Name));
-            Assert.That(network.Specification.Layers.Single().LossFunction, Is.SameAs(LossFunctions.CrossEntropy));
+            Assert.That(network.Specification.Output.LossFunction, Is.SameAs(LossFunctions.CrossEntropy));
         }
 
         [Test]
         public void WhenOutputTransformationConfigured_ThenActivatorAndLossFunctionCustomised()
         {
-            var network = new FluentNetworkBuilder(8, 4)
-                .TransformOutput(new Softmax(4))
+            var network = new ConvolutionalNetworkBuilder(8, 4)
+                .ConfigureOutput(LossFunctions.CrossEntropy, Softmax.Factory)
                 .Build()
                 .Output as MultilayerNetwork;
 
-            Assert.That(network.Specification.Layers.Single().OutputTransformation.GetType().Name, Is.EqualTo(nameof(Softmax)));
+            Assert.That(network.Specification.Output.OutputTransformation.GetType().Name, Is.EqualTo(nameof(Softmax)));
         }
     }
 }

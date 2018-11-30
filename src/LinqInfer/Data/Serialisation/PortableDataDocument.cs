@@ -151,10 +151,11 @@ namespace LinqInfer.Data.Serialisation
 
         internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
 
-        public PortableDataDocument FindChild<T>()
-        {
-            return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
-        }
+        public PortableDataDocument FindChild<T>() 
+            => QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
+
+        public IEnumerable<PortableDataDocument> FindChildrenByName<T>(StringComparison comparison = StringComparison.OrdinalIgnoreCase) 
+            => Children.Where(c => string.Equals(c.Name, typeof(T).Name, comparison));
 
         public string Name => _rootName;
 

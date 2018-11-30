@@ -27,7 +27,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2, Is.Not.Null);
         }
@@ -55,15 +55,15 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = new NetworkSpecification(new LearningParameters(),
                   16,
+                LossFunctions.Square,
                   new NetworkLayerSpecification(1, 4,
                   Activators.Threshold(),
-                  LossFunctions.CrossEntropy,
                   WeightUpdateRules.Default(),
                   new Range()));
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2.InputVectorSize, Is.EqualTo(16));
             Assert.That(spec2.Layers.Single().LayerSize, Is.EqualTo(4));
@@ -74,17 +74,17 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            var transform = new SerialisableDataTransformation(new 
+            var transform = new SerialisableDataTransformation(new
                 Matrix(new[] {
                     new[] { 1d, 5d },
                     new[] { 11d, 123.3d } }));
 
-            spec.Layers.Last().OutputTransformation = transform;
+            spec.Output.OutputTransformation = transform;
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
-            var spec2transform = spec2.Layers.Last().OutputTransformation;
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
+            var spec2transform = spec2.Output.OutputTransformation;
 
             Assert.IsNotNull(spec2transform);
 
@@ -98,13 +98,12 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2.InputVectorSize, Is.EqualTo(spec.InputVectorSize));
             Assert.That(spec2.Layers.Count, Is.EqualTo(spec.Modules.Count));
             Assert.That(spec2.LearningParameters.LearningRate, Is.EqualTo(spec.LearningParameters.LearningRate));
             Assert.That(spec2.LearningParameters.MinimumError, Is.EqualTo(spec.LearningParameters.MinimumError));
-            // Assert.That(spec2.OutputVectorSize, Is.EqualTo(spec.OutputVectorSize));
 
             int i = 0;
             foreach (var layer in spec2.Layers)
@@ -119,9 +118,9 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         NetworkSpecification CreateSut()
         {
-            var layer1 = new NetworkLayerSpecification(1, 4, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var layer2 = new NetworkLayerSpecification(2, 2, Activators.Sigmoid(), LossFunctions.CrossEntropy, WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var spec = new NetworkSpecification(new LearningParameters(), layer1, layer2);
+            var layer1 = new NetworkLayerSpecification(1, 4, Activators.Sigmoid(), WeightUpdateRules.Default(), new Range(0.4, -0.3));
+            var layer2 = new NetworkLayerSpecification(2, 2, Activators.Sigmoid(), WeightUpdateRules.Default(), new Range(0.4, -0.3));
+            var spec = new NetworkSpecification(new LearningParameters(), layer1.LayerSize, LossFunctions.CrossEntropy, layer1, layer2);
 
             spec.LearningParameters.MinimumError = 0.999;
             spec.LearningParameters.LearningRate = 0.222;

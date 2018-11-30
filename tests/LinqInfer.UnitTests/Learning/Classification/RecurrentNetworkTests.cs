@@ -20,20 +20,19 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void AddModule_SimpleConfiguration_Train()
         {
-            var builder = new FluentNetworkBuilder(4, 2);
+            IRecurrentNetworkBuilder builder = new RecurrentNetworkBuilder(4);
 
-            builder.ConfigureModule(mb =>
-            {
-                var layer1 = mb.Layer(4, Activators.Sigmoid());
-                var layer2 = mb.Layer(2, Activators.Sigmoid());
+            var spec = builder.ConfigureModules(mb =>
+                {
+                    var layer1 = mb.Layer(4, Activators.Sigmoid());
+                    var layer2 = mb.Layer(2, Activators.Sigmoid());
 
-                layer1.ConnectTo(layer2);
-                layer1.ReceiveFrom(layer2);
+                    layer1.ConnectTo(layer2);
+                    layer1.ReceiveFrom(layer2);
 
-                mb.Output(layer2);
-            });
-
-            var spec = builder.Build();
+                    return mb.Output(layer2);
+                })
+                .Build();
 
             spec.Train(ColumnVector1D.Create(1, 2, 3, 4), ColumnVector1D.Create(1, 2));
         }
@@ -51,14 +50,14 @@ namespace LinqInfer.UnitTests.Learning.Classification
             Assert.That(output.Sum, Is.Not.EqualTo(0));
         }
 
-        public FluentNetworkBuilder SetupLstmNetwork()
+        public INetworkBuilder SetupLstmNetwork()
         {
             var inputSize = 4;
             var outputSize = 2;
 
-            var builder = new FluentNetworkBuilder(inputSize, outputSize);
+            IRecurrentNetworkBuilder builder = new RecurrentNetworkBuilder(inputSize);
 
-            builder.ConfigureModule(mb =>
+            return builder.ConfigureModules(mb =>
             {
                 var module = mb.Module(VectorAggregationType.Concatinate);
 
@@ -91,10 +90,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 module.ReceiveFrom(mult3);
                 mult1.ReceiveFrom(sum1);
 
-                mb.Output(mult3);
+                return mb.Output(mult3, outputSize);
             });
-
-            return builder;
         }
     }
 }

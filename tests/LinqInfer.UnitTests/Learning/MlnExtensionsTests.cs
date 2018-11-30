@@ -193,7 +193,7 @@ namespace LinqInfer.UnitTests.Learning
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(builder =>
             {
                 builder
-                    .AddHiddenLayer( 8, Activators.None(), LossFunctions.Square)
+                    .AddHiddenLayer(8, Activators.None())
                     .AddSoftmaxOutput();
             });
 
@@ -214,7 +214,7 @@ namespace LinqInfer.UnitTests.Learning
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(builder =>
             {
                 builder
-                    .AddHiddenLayer(8, Activators.None(), LossFunctions.Square)
+                    .AddHiddenLayer(8, Activators.None())
                     .AddSoftmaxOutput();
             });
 
@@ -241,7 +241,7 @@ namespace LinqInfer.UnitTests.Learning
             {
                 builder
                 .AddHiddenSigmoidLayer(6)
-                .ConfigureOutputLayer(Activators.None(), LossFunctions.Square);
+                .ConfigureOutput(LossFunctions.Square);
             });
 
             await trainingSet.RunAsync(CancellationToken.None);

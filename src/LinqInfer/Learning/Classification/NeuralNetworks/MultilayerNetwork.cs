@@ -11,11 +11,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     class MultilayerNetwork :
         ICloneableObject<MultilayerNetwork>, INetworkModel, IHasNetworkTopology
     {
-        readonly object _lockObj = new object();
         IVector _lastOutput;
-        INetworkSignalFilter _rootLayer;
         INetworkSignalFilter _outputModule;
-        bool _initd;
 
         public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
         {
@@ -25,7 +22,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             Properties = properties ?? new Dictionary<string, string>();
 
-            _initd = false;
+            var conf = new NetworkTopologyBuilder(Specification)
+                .CreateConfiguration();
+
+            _outputModule = conf.output;
+
+            RootModule = conf.root;
         }
 
         public IDictionary<string, string> Properties { get; }
@@ -59,25 +61,22 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var errAndLoss = lf.Calculate(_lastOutput, targetOutput, dr);
 
-            OutputModule.BackwardPropagate(errAndLoss.DerivativeError);
+            _outputModule.BackwardPropagate(errAndLoss.DerivativeError);
 
             return errAndLoss.Loss;
         }
 
-        /// <summary>
-        /// Transforms the vector by evaluating the data through the network
-        /// </summary>
         public IVector Apply(IVector vector)
         {
             RootModule.Receive(vector);
             
             if (Specification.Output.OutputTransformation != null)
             {
-                _lastOutput = Specification.Output.OutputTransformation.Apply(OutputModule.Output);
+                _lastOutput = Specification.Output.OutputTransformation.Apply(_outputModule.Output);
             }
             else
             {
-                _lastOutput = OutputModule.Output;
+                _lastOutput = _outputModule.Output;
             }
 
             return _lastOutput;
@@ -85,7 +84,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int InputSize => Specification.InputVectorSize;
 
-        public int OutputSize => OutputModule.Output.Size;
+        public int OutputSize => _outputModule.Output.Size;
 
         /// <summary>
         /// Exports the raw data
@@ -93,13 +92,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public PortableDataDocument ExportData()
         {
             return new MultilayerNetworkExporter().Export(this);
-        }
-
-        public void ImportData(PortableDataDocument doc)
-        {
-            var nn = CreateFromData(doc);
-
-            _rootLayer = nn._rootLayer;
         }
 
         public static MultilayerNetwork CreateFromData(PortableDataDocument doc)
@@ -116,20 +108,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return $"Network({Specification.InputVectorSize}):{s}";
         }
 
-        public MultilayerNetwork Clone(bool deep)
-        {
-            var data = ExportData();
-            var newNet = new MultilayerNetwork(Specification);
+        public MultilayerNetwork Clone(bool deep) => CreateFromData(ExportData());
 
-            newNet.ImportData(data);
-
-            return newNet;
-        }
-
-        public object Clone()
-        {
-            return Clone(true);
-        }
+        public object Clone() => Clone(true);
 
         public Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
             VisualSettings visualSettings = null,
@@ -138,44 +119,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new NetworkTopologyExporter(this).ExportAsync(visualSettings, store);
         }
 
-        internal INetworkSignalFilter RootModule
-        {
-            get
-            {
-                if (!_initd) InitialiseLayers();
-
-                return _rootLayer;
-            }
-        }
-
-        INetworkSignalFilter OutputModule
-        {
-            get
-            {
-                if (!_initd) InitialiseLayers();
-
-                return _outputModule;
-            }
-        }
-
-        void InitialiseLayers()
-        {
-            lock (_lockObj)
-            {
-                if (_initd)
-                {
-                    return;
-                }
-
-                _initd = true;
-
-                var conf = new NetworkTopologyBuilder(Specification)
-                    .CreateConfiguration();
-
-                _rootLayer = conf.root;
-                _outputModule = conf.output;
-                _lastOutput = _outputModule.Output;
-            }
-        }
+        internal INetworkSignalFilter RootModule { get; }
     }
 }

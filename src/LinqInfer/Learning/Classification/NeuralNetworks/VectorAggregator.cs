@@ -18,6 +18,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             _inputOperator = inputOperator;
             _recurrentInputs = recurrentInputs;
+            _receivedInputs = new List<IVector>();
         }
 
         public void SetExpectedSize(int size)

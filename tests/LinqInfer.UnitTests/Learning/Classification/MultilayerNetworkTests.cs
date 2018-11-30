@@ -59,6 +59,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var spec = new NetworkSpecification(lp,
                 16,
+                LossFunctions.Square,
                 new NetworkLayerSpecification(1, 4,
                 Activators.Threshold(),
                 WeightUpdateRules.Default(),

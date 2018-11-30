@@ -1,4 +1,5 @@
-﻿using LinqInfer.Data.Serialisation;
+﻿using System;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using System.Linq;
 
@@ -6,11 +7,24 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkOutputSpecification
     {
-        internal NetworkOutputSpecification(int outputModuleId, int outputVectorSize, ILossFunction lossFunction = null)
+        NetworkOutputSpecification(int outputModuleId, int outputVectorSize, ILossFunction lossFunction = null)
         {
             OutputModuleId = outputModuleId;
             OutputVectorSize = outputVectorSize;
             LossFunction = lossFunction ?? LossFunctions.Square;
+        }
+
+        internal NetworkOutputSpecification(NetworkModuleSpecification outputModule, int outputVectorSize, ILossFunction lossFunction = null) : this(outputModule.Id, outputVectorSize, lossFunction)
+        {
+            if (outputModule is NetworkLayerSpecification layer && layer.LayerSize != outputVectorSize)
+            {
+                throw new ArgumentException("Invalid output size");
+            }
+        }
+
+        internal NetworkOutputSpecification(NetworkLayerSpecification outputLayer, 
+            ILossFunction lossFunction = null) : this(outputLayer, outputLayer.LayerSize, lossFunction)
+        {
         }
 
         public int OutputModuleId { get; }
@@ -32,6 +46,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var doc = new PortableDataDocument();
 
             doc.SetName(nameof(NetworkOutputSpecification));
+            doc.SetPropertyFromExpression(() => OutputModuleId);
             doc.SetPropertyFromExpression(() => OutputVectorSize);
             doc.SetPropertyFromExpression(() => LossFunction, LossFunction.GetType().Name);
 

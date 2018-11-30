@@ -33,9 +33,6 @@ namespace LinqInfer.Benchmarking
         [Params(nameof(Activators.Sigmoid), nameof(Activators.HyperbolicTangent))]
         public string Activator { get; set; }
 
-        [Params(false, true)]
-        public bool ParallelProcess { get; set; }
-
         [Benchmark]
         public void AttachMultilayerNetworkClassifier_Run()
         {
@@ -56,10 +53,8 @@ namespace LinqInfer.Benchmarking
                     p.AddHiddenLayer(
                         LayerSize,
                         Activators.All().First(a => a.Name == Activator),
-                        LossFunctions.Square, 
                         WeightUpdateRules.Default(),
-                        new Range(1, -1),
-                        ParallelProcess);
+                        new Range(1, -1));
                 }
             });
 

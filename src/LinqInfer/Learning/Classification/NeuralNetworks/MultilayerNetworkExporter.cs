@@ -40,7 +40,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
         {
-            var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
+            var spec = NetworkSpecification.FromDataDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
 
             var network = new MultilayerNetwork(spec, properties);
