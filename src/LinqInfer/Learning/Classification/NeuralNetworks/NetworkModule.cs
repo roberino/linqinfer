@@ -32,7 +32,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Initialise(inputVectorSize);
         }
 
-        public virtual string Id => $"Module-{_spec.InputOperator}-{_spec.Id}";
+        public virtual string Id => $"Module-{_spec.InputOperator}-{(_spec.Id > -1 ? _spec.Id.ToString() : "Root")}";
 
         public IEnumerable<INetworkSignalFilter> Inputs => RecurrentInputs.Concat(Predecessors);
 
@@ -132,7 +132,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public override string ToString() => $"{Id} ({Output.Size})";
+        public override string ToString() => $"{Id} in {_inputVectorSize.GetValueOrDefault(Output.Size)} out {Output.Size}";
 
         protected virtual double[] Calculate(IVector input)
         {

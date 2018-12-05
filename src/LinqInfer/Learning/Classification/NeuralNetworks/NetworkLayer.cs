@@ -64,7 +64,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _neuronCluster.Import(data);
         }
 
-        public override string ToString() => $"{Id}, {_neuronCluster.Size} neurons)";
+        public override string ToString() => $"{Id}, in {_neuronCluster.InputSize} out {_neuronCluster.Size} neurons";
 
         public override void BackwardPropagate(Vector error)
         {
@@ -112,6 +112,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         void Adjust(INetworkSignalFilter previousLayer, Vector layerErrors)
         {
+            DebugOutput.LogVerbose($"Adjust from {previousLayer} to {this} using errors {layerErrors.Size}");
+
             _neuronCluster.ForEachNeuron((n, j) =>
             {
                 var error = layerErrors[j] * Activator.Derivative(n.Output);

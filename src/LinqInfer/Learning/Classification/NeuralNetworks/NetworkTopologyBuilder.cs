@@ -8,6 +8,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class NetworkTopologyBuilder
     {
+        const string CircularReferenceMessage = "Circular recurrence detected";
+        const string ConfigInvalidMessage = "Cannot create workable network graph";
+
         readonly NetworkSpecification _specification;
         readonly Dictionary<int, (NetworkModuleSpecification spec, NetworkModule module)> _moduleLookup;
 
@@ -60,7 +63,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             if (!initd)
             {
-                throw new ArgumentException("Cannot create workable network graph");
+                throw new ArgumentException(ConfigInvalidMessage);
             }
 
             return (root, output);
@@ -86,7 +89,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                     if (x > 10)
                     {
-                        throw new System.Exception("Too much recurrence");
+                        throw new Exception(CircularReferenceMessage);
                     }
 
                     return x + 1;
