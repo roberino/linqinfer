@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
+        internal NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
             ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
@@ -20,7 +20,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Output = new NetworkOutputSpecification(networkLayers.Last(), lossFunction);
         }
 
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
+        internal NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
         {
             ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
             ArgAssert.AssertGreaterThanZero(networkModules.Length, nameof(networkModules.Length));
@@ -32,7 +32,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Output = output;
         }
 
-        public NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
+        internal NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
         {
         }
 

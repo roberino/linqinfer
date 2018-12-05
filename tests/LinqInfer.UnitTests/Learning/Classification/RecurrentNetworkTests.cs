@@ -20,7 +20,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void AddModule_SimpleConfiguration_Train()
         {
-            IRecurrentNetworkBuilder builder = new RecurrentNetworkBuilder(4);
+            var builder = RecurrentNetworkBuilder.Create(4);
 
             var spec = builder.ConfigureModules(mb =>
                 {
@@ -44,7 +44,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var spec = builder.Build();
 
-            var output = spec.Parameters.Apply(ColumnVector1D.Create(1, 2, 3, 4));
+            var output = spec.Result.Apply(ColumnVector1D.Create(1, 2, 3, 4));
 
             Assert.That(output.Size, Is.EqualTo(2));
             Assert.That(output.Sum, Is.Not.EqualTo(0));
@@ -55,7 +55,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var inputSize = 4;
             var outputSize = 2;
 
-            IRecurrentNetworkBuilder builder = new RecurrentNetworkBuilder(inputSize);
+            var builder = RecurrentNetworkBuilder.Create(inputSize);
 
             return builder.ConfigureModules(mb =>
             {

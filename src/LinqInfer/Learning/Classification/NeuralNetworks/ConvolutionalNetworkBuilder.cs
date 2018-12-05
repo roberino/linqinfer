@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class ConvolutionalNetworkBuilder : INetworkBuilder, IConvolutionalNetworkBuilder
+    sealed class ConvolutionalNetworkBuilder : INetworkBuilder, IConvolutionalNetworkBuilder
     {
         readonly int? _expectedOutputSize;
         readonly IList<NetworkModuleSpecification> _layers;
@@ -17,7 +17,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         NetworkOutputSpecification _output;
 
-        internal ConvolutionalNetworkBuilder(int inputVectorSize, int? expectedOutputSize = null)
+        ConvolutionalNetworkBuilder(int inputVectorSize, int? expectedOutputSize = null)
         {
             _expectedOutputSize = expectedOutputSize;
             _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
@@ -27,7 +27,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _layers = new List<NetworkModuleSpecification>();
         }
 
-        public int CreateId() => ++_currentId;
+        int CreateId() => ++_currentId;
+
+        public static IConvolutionalNetworkBuilder Create(int inputVectorSize, int? expectedOutputSize = null)
+        {
+            return new ConvolutionalNetworkBuilder(inputVectorSize, expectedOutputSize);
+        }
 
         public IConvolutionalNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config)
         {
@@ -51,6 +56,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 CreateId(),
                 layerSize, activator,
                 weightUpdateRule, initialWeightRange);
+            
+            _layers.LastOrDefault()?.ConnectTo(layer);
 
             _layers.Add(layer);
 
@@ -65,13 +72,23 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Range? initialWeightRange = null)
         {
             AddHiddenLayer(_expectedOutputSize.GetValueOrDefault(_inputVectorSize), activator ?? Activators.None(), weightUpdateRule, initialWeightRange);
-
+            
             var outputLayer = (NetworkLayerSpecification)_layers.Last();
 
             _output = new NetworkOutputSpecification(outputLayer, lossFunction)
             {
                 OutputTransformation = transformationFactory?.Invoke(outputLayer.LayerSize)
             };
+
+            return this;
+        }
+
+        public INetworkBuilder ApplyDefaults()
+        {
+            if (_output == null)
+            {
+                return ConfigureOutput(LossFunctions.Square);
+            }
 
             return this;
         }

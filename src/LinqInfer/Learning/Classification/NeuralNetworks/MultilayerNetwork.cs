@@ -27,6 +27,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             _outputModule = conf.output;
 
+            _lastOutput = Vector.UniformVector(specification.Output.OutputVectorSize, 0d);
+
             RootModule = conf.root;
         }
 

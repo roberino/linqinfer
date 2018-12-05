@@ -26,7 +26,7 @@ namespace LinqInfer.Learning
             var targetDoc = existingClassifierData.FindChild<MultilayerNetwork>() ?? existingClassifierData;
             var network = MultilayerNetwork.CreateFromData(targetDoc);
             var trainingContext = new MultilayerNetworkTrainingContext(network);
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.Specification.LearningParameters);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Result.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
@@ -43,16 +43,16 @@ namespace LinqInfer.Learning
         /// <param name="networkBuilder">A delegate which builds the network specification</param>
         public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            Action<ConvolutionalNetworkBuilder> networkBuilder) 
+            Action<IConvolutionalNetworkBuilder> networkBuilder) 
             where TClass : IEquatable<TClass>
         {
-            var builder = new ConvolutionalNetworkBuilder(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
+            var builder = ConvolutionalNetworkBuilder.Create(trainingSet.FeaturePipeline.FeatureExtractor.VectorSize, trainingSet.OutputMapper.VectorSize);
 
             networkBuilder?.Invoke(builder);
 
-            var trainingContext = builder.Build();
+            var trainingContext = builder.ApplyDefaults().Build();
 
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Parameters.Specification.LearningParameters);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Result.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);

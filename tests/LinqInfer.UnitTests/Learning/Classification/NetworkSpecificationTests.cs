@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var doc = spec.ExportData();
 
             Assert.That(doc, Is.Not.Null);
-            Assert.That(doc.Children.Count, Is.EqualTo(2));
+            Assert.That(doc.Children.Count, Is.EqualTo(3));
         }
 
         [Test]

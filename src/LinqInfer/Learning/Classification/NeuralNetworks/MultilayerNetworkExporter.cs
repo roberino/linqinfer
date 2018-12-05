@@ -47,7 +47,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             network.ForwardPropagate(x =>
             {
-                var layerData = doc.Children.Single(c => c.Properties[nameof(INetworkSignalFilter.Id)] == x.Id);
+                var query = doc.QueryChildren(new
+                {
+                    x.Id
+                });
+
+                var layerData = query.Single(); //  doc.Children.Single(c => c.Properties[nameof(INetworkSignalFilter.Id)] == x.Id);
 
                 x.ImportData(layerData);
             });

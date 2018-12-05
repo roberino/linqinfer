@@ -2,7 +2,6 @@
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -27,8 +26,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
-
-        public event EventHandler<ColumnVector1DEventArgs> Calculation;
 
         public override string Id => $"Layer-{Activator.Name}-{_spec.Id}";
 
@@ -57,7 +54,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 baseData.Vectors.Add(prop);
             }
 
-            return data;
+            return baseData;
         }
 
         public override void ImportData(PortableDataDocument data)
@@ -71,12 +68,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override void BackwardPropagate(Vector error)
         {
-            var nextError = new double[_neuronCluster.Size];
+            var nextError = new double[_neuronCluster.InputSize];
 
             for (var i = 0; i < nextError.Length; i++)
             {
-                nextError[i] = ForEachNeuron((nk, k) =>
-                    error[k] * nk[i]).Sum;
+                nextError[i] = _neuronCluster.ForEachNeuron((nk, k) =>
+                    error[k] * nk[i]);
             }
 
             foreach (var predecessor in Predecessors)
@@ -90,16 +87,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public void Grow(int numberOfNewNeurons = 1) => _neuronCluster.Grow(numberOfNewNeurons);
 
         public void Prune(Func<INeuron, bool> predicate) => _neuronCluster.Prune(predicate);
-
-        public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
-        {
-            int i = 0;
-            var result = new ColumnVector1D(_neuronCluster.Neurons.Select(n => func(n, i++)).ToArray(_neuronCluster.Size));
-            OnCalculate(result);
-            return result;
-        }
-
-        public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func) => _neuronCluster.ForEachNeuron(func);
 
         public override bool IsInitialised => base.IsInitialised && _neuronCluster.Neurons.Any();
 
@@ -125,9 +112,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         void Adjust(INetworkSignalFilter previousLayer, Vector layerErrors)
         {
-            ForEachNeuron((n, j) =>
+            _neuronCluster.ForEachNeuron((n, j) =>
             {
-                var error = layerErrors[j];
+                var error = layerErrors[j] * Activator.Derivative(n.Output);
 
                 n.Adjust((w, k) =>
                 {
@@ -149,11 +136,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 return 0;
             });
-        }
-
-        void OnCalculate(ColumnVector1D vector)
-        {
-            Calculation?.Invoke(this, new ColumnVector1DEventArgs(vector));
         }
     }
 }

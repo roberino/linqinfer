@@ -32,18 +32,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var parameters = new NetworkSpecification(2, new NetworkLayerSpecification(1, 4));
             var network = new MultilayerNetwork(parameters);
 
-            network.ForwardPropagate(m =>
-            {
-                if (m is ILayer l)
-                {
-                    l.ForEachNeuron((n, i) =>
-                    {
-                        n.Adjust((w, k) => w * 0.1);
-
-                        return 0d;
-                    });
-                }
-            });
+            network.BackwardPropagate(Vector.UniformVector(network.OutputSize, 1.4));
 
             var topology = await network.ExportNetworkTopologyAsync();
 
@@ -92,18 +81,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         void AdjustData(MultilayerNetwork network)
         {
-            network.ForwardPropagate(m =>
-            {
-                if (m is ILayer l)
-                {
-                    l.ForEachNeuron((n, i) =>
-                    {
-                        n.Adjust((w, k) => w * 0.1);
-
-                        return 0d;
-                    });
-                }
-            });
+            network.BackwardPropagate(Vector.UniformVector(network.OutputSize, 1.123d));
         }
     }
 }

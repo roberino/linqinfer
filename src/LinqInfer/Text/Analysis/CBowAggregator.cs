@@ -67,7 +67,7 @@ namespace LinqInfer.Text.Analysis
         {
             var trainingSet = await GetTrainingSetAync(cancellationToken);
 
-            void NetworkBuilder(ConvolutionalNetworkBuilder b)
+            void NetworkBuilder(IConvolutionalNetworkBuilder b)
             {
                 b
                .ConfigureLearningParameters(p =>

@@ -1,7 +1,5 @@
-﻿using LinqInfer.Data.Serialisation;
-using LinqInfer.Maths;
+﻿using LinqInfer.Maths;
 using System;
-using System.Collections.Generic;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -30,11 +28,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// </summary>
         /// <param name="index">The zero base index</param>
         INeuron this[int index] { get; }
-
-        /// <summary>
-        /// Applies a function over each neuron supplying the neuron and the index as a parameter
-        /// </summary>
-        ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func);
 
         /// <summary>
         /// Expands the layer by adding new neurons

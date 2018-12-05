@@ -11,9 +11,9 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenGivenDefaults_ThenBuildsWithoutError()
         {
-            var builder = new ConvolutionalNetworkBuilder(8, 4);
+            var builder = ConvolutionalNetworkBuilder.Create(8, 4);
 
-            var trainingNetwork = builder.Build();
+            var trainingNetwork = builder.ApplyDefaults().Build();
 
             Assert.That(trainingNetwork, Is.Not.Null);
         }
@@ -21,7 +21,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenLearningParamsProvided_ThenSetCorrectlyInSpec()
         {
-            var spec = new ConvolutionalNetworkBuilder(8, 4)
+            var spec = ConvolutionalNetworkBuilder.Create(8, 4)
                 .ConfigureLearningParameters(p =>
                 {
                     p.LearningRate = 0.12d;
@@ -29,7 +29,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 })
                 .ConfigureOutput(LossFunctions.Square)
                 .Build()
-                .Parameters
+                .Result
                 .Specification;
 
             Assert.That(spec.LearningParameters.LearningRate, Is.EqualTo(0.12d));
@@ -39,7 +39,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenHiddenSigmoidLayersAdded_ThenBuildsWithoutError()
         {
-            var trainingNetwork = new ConvolutionalNetworkBuilder(8, 4)
+            var trainingNetwork = ConvolutionalNetworkBuilder.Create(8, 4)
                 .AddHiddenSigmoidLayer(16)
                 .ConfigureOutput(LossFunctions.Square)
                 .Build();
@@ -54,7 +54,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenOutputLayerConfigured_ThenActivatorAndLossFunctionCustomised()
         {
-            var network = new ConvolutionalNetworkBuilder(8, 4)
+            var network = ConvolutionalNetworkBuilder.Create(8, 4)
                 .ConfigureOutput(LossFunctions.CrossEntropy)
                 .Build()
                 .Output as MultilayerNetwork;
@@ -67,7 +67,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenOutputTransformationConfigured_ThenActivatorAndLossFunctionCustomised()
         {
-            var network = new ConvolutionalNetworkBuilder(8, 4)
+            var network = ConvolutionalNetworkBuilder.Create(8, 4)
                 .ConfigureOutput(LossFunctions.CrossEntropy, Softmax.Factory)
                 .Build()
                 .Output as MultilayerNetwork;

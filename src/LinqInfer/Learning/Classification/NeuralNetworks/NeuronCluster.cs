@@ -31,6 +31,18 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Neurons = new List<INeuron>();
         }
 
+        public double ForEachNeuron(Func<INeuron, int, double> func)
+        {
+            var result = 0d;
+
+            for (var i = 0; i < Neurons.Count; i++)
+            {
+                result += func(Neurons[i], i);
+            }
+
+            return result;
+        }
+
         public void Resize(int inputSize, int neuronCount)
         {
             Neurons.Clear();
@@ -44,6 +56,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         public IList<INeuron> Neurons { get; }
+
+        public int InputSize => _inputSize;
 
         public int Size => Neurons.Count;
 

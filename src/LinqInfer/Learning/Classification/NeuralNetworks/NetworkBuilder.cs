@@ -15,13 +15,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         NetworkOutputSpecification _output;
 
-        internal RecurrentNetworkBuilder(int inputVectorSize)
+        RecurrentNetworkBuilder(int inputVectorSize)
         {
             _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
             _currentId = 0;
             _learningParams = new LearningParameters();
             _modules = new List<NetworkModuleSpecification>();
         }
+
+        public static IRecurrentNetworkBuilder Create(int inputVectorSize) => new RecurrentNetworkBuilder(inputVectorSize);
 
         public void AddModule(NetworkModuleSpecification networkModule)
         {

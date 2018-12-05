@@ -6,8 +6,8 @@ namespace LinqInfer.Learning.Classification
     /// Represents the context information required
     /// for training a classifier.
     /// </summary>
-    /// <typeparam name="TParameters">The parameters used to create the classifier</typeparam>
-    public interface IClassifierTrainingContext<TParameters> : IClassifierTrainer, ICloneableObject<IClassifierTrainingContext<TParameters>>
+    /// <typeparam name="TResult">The parameters used to create the classifier</typeparam>
+    public interface IClassifierTrainingContext<TResult> : IClassifierTrainer, ICloneableObject<IClassifierTrainingContext<TResult>>
     {
         /// <summary>
         /// Gets a localised id for the training context
@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Returns the parameters used by this training instance
         /// </summary>
-        TParameters Parameters { get; }
+        TResult Result { get; }
 
         /// <summary>
         /// Returns the current rate of error change.

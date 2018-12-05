@@ -33,7 +33,7 @@ namespace LinqInfer.Text.Analysis
             return await ExtractVectorsAsync(trainingSet, cancellationToken, classifier);
         }
 
-        static Action<ConvolutionalNetworkBuilder> NetworkBuilder(int vectorSize)
+        static Action<IConvolutionalNetworkBuilder> NetworkBuilder(int vectorSize)
         {
             return b => b.ConfigureSoftmaxNetwork(vectorSize, c =>
             {
