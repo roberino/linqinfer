@@ -3,11 +3,12 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
+    [DebuggerDisplay("in {InputSize} out {Size}")]
     class NeuronCluster
     {
         readonly Func<int, int, IList<INeuron>> _neuronsFactory;
@@ -69,7 +70,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Grow(int numberOfNewNeurons = 1)
         {
-            Contract.Assert(numberOfNewNeurons > 0);
+            ArgAssert.Assert(() => numberOfNewNeurons > 0, nameof(numberOfNewNeurons));
 
             var newNeurons = _neuronsFactory(numberOfNewNeurons, _inputSize);
 
@@ -81,11 +82,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var toBeRemoved = Neurons.Where(predicate).ToList();
 
             foreach (var n in toBeRemoved) Neurons.Remove(n);
-        }
-
-        public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func)
-        {
-            return Neurons.ForEach(func);
         }
 
         public PortableDataDocument Export()

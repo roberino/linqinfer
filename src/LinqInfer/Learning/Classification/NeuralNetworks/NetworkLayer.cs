@@ -66,24 +66,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString() => $"{Id}, in {_neuronCluster.InputSize} out {_neuronCluster.Size} neurons";
 
-        public override void BackwardPropagate(Vector error)
-        {
-            var nextError = new double[_neuronCluster.InputSize];
-
-            for (var i = 0; i < nextError.Length; i++)
-            {
-                nextError[i] = _neuronCluster.ForEachNeuron((nk, k) =>
-                    error[k] * nk[i]);
-            }
-
-            foreach (var predecessor in Predecessors)
-            {
-                Adjust(predecessor, error);
-
-                predecessor.BackwardPropagate(new Vector(nextError));
-            }
-        }
-
         public void Grow(int numberOfNewNeurons = 1) => _neuronCluster.Grow(numberOfNewNeurons);
 
         public void Prune(Func<INeuron, bool> predicate) => _neuronCluster.Prune(predicate);
@@ -95,6 +77,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _neuronCluster.Resize(ProcessingVectorSize, _spec.LayerSize);
 
             OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
+        }
+
+        protected override Vector ProcessErrorAndReturnNextError(Vector error, IVector predecessorOutput)
+        {
+            var nextError = new double[_neuronCluster.InputSize];
+
+            for (var i = 0; i < nextError.Length; i++)
+            {
+                nextError[i] = _neuronCluster.ForEachNeuron((nk, k) =>
+                    error[k] * nk[i]);
+            }
+
+            Adjust(predecessorOutput, error);
+
+            return new Vector(nextError);
         }
 
         protected override double[] Calculate(IVector input)
@@ -110,9 +107,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neuronCluster.Neurons.Select(n => n.Evaluate(input)).ToArray();
         }
 
-        void Adjust(INetworkSignalFilter previousLayer, Vector layerErrors)
+        void Adjust(IVector previousOutput, Vector layerErrors)
         {
-            DebugOutput.LogVerbose($"Adjust from {previousLayer} to {this} using errors {layerErrors.Size}");
+            DebugOutput.LogVerbose($"Adjust from previous {previousOutput.Size} to {this} using errors {layerErrors.Size}");
 
             _neuronCluster.ForEachNeuron((n, j) =>
             {
@@ -120,7 +117,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 n.Adjust((w, k) =>
                 {
-                    var prevOutput = k < 0 ? 1 : previousLayer.Output[k];
+                    var prevOutput = k < 0 ? 1 : previousOutput[k];
 
                     var wp = new WeightUpdateParameters()
                     {

@@ -10,7 +10,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     class NetworkModule : INetworkSignalFilter
     {
         readonly NetworkModuleSpecification _spec;
-        readonly VectorAggregator _vectorAggregator;
+        readonly VectorAggregator _inputAggregator;
+        readonly VectorAggregator _errorAggregator;
 
         protected Vector OutputVector;
 
@@ -19,7 +20,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public NetworkModule(NetworkModuleSpecification spec)
         {
             _spec = spec;
-            _vectorAggregator = new VectorAggregator(spec.InputOperator.CreateOperation(), () => RecurrentInputs.Select(i => i.Output));
+            _inputAggregator = new VectorAggregator(spec.InputOperator, () => RecurrentInputs.Select(i => i.Output));
+            _errorAggregator = new VectorAggregator(VectorAggregationType.Add);
 
             OutputVector = Vector.UniformVector(0, 0);
             Successors = new List<NetworkModule>();
@@ -63,31 +65,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public virtual bool Initialise(params int[] inputSizes)
         {
-            int outputSize;
+            var outputSize = _inputAggregator.CalculateVectorSize(inputSizes);
 
-            if (inputSizes.Length > 1)
+            if (!outputSize.HasValue)
             {
-                switch (_spec.InputOperator)
-                {
-                    case VectorAggregationType.Concatinate:
-                    case VectorAggregationType.HyperbolicTangent:
-                        if(inputSizes.Any(x => x == 0))
-                        {
-                            return false;
-                        }
-                        outputSize = inputSizes.Sum();
-                        break;
-                    default:
-                        outputSize = inputSizes.Max();
-                        break;
-                }
-            }
-            else
-            {
-                outputSize = inputSizes[0];
+                return false;
             }
 
-            _inputVectorSize = outputSize;
+            _inputVectorSize = outputSize.Value;
             
             Initialise(_inputVectorSize.Value);
 
@@ -96,7 +81,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void Receive(IVector input)
         {
-            var (received, data) = _vectorAggregator.Receive(input);
+            var (received, data) = _inputAggregator.Receive(input);
 
             if (received)
             {
@@ -124,15 +109,28 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public virtual void BackwardPropagate(Vector error)
+        public void BackwardPropagate(Vector error)
         {
-            foreach (var predecessor in Predecessors)
+            var aggregateError = _errorAggregator.Receive(error);
+            var lastInput = _inputAggregator.LastInput;
+
+            if (aggregateError.received && lastInput != null)
             {
-                predecessor.BackwardPropagate(error);
+                var nextError = ProcessErrorAndReturnNextError(error, lastInput);
+
+                foreach (var predecessor in Predecessors)
+                {
+                    predecessor.BackwardPropagate(nextError);
+                }
             }
         }
 
         public override string ToString() => $"{Id} in {_inputVectorSize.GetValueOrDefault(Output.Size)} out {Output.Size}";
+
+        protected virtual Vector ProcessErrorAndReturnNextError(Vector error, IVector predecessorOutput)
+        {
+            return error;
+        }
 
         protected virtual double[] Calculate(IVector input)
         {
@@ -143,7 +141,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             OutputVector = Vector.UniformVector(inputSize, 0);
 
-            _vectorAggregator.SetExpectedSize(Predecessors.Count);
+            _inputAggregator.SetExpectedSize(Predecessors.Count);
+            _errorAggregator.SetExpectedSize(Successors.Count);
         }
 
         void Process(IVector aggregatedInput)
