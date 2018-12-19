@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    [DebuggerDisplay("{AverageError}:{Result}")]
+    [DebuggerDisplay("{AverageError}:{Model}")]
     class MultilayerNetworkTrainingContext : IClassifierTrainingContext<INetworkModel>
     {
         readonly MultilayerNetwork _network;
@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _currentId = 1;
             _idFunc = idFunc ?? (() => Interlocked.Increment(ref _currentId));
 
-            Result = _network = network;
+            Model = _network = network;
             Id = _idFunc();
 
             _rawLearningProcessor = new BackPropagationLearning(_network);
@@ -36,7 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVectorClassifier Output => _network;
 
-        public INetworkModel Result { get; }
+        public INetworkModel Model { get; }
 
         public double? CumulativeError => _error;
 
@@ -94,7 +94,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public override string ToString()
         {
             return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError,
-                Result);
+                Model);
         }
 
         public IClassifierTrainingContext<INetworkModel> Clone(bool deep)

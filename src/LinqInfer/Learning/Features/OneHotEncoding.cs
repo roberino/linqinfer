@@ -8,7 +8,7 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Features
 {
-    class OneHotEncoding<T> : IExportableAsDataDocument
+    class OneHotEncoding<T> : IOneHotEncoding<T>
     {
         public OneHotEncoding(ISet<T> classes)
         {
@@ -84,6 +84,8 @@ namespace LinqInfer.Learning.Features
 
             return doc;
         }
+
+        public IEnumerable<KeyValuePair<T, int>> IndexTable => Lookup.Select(x => new KeyValuePair<T, int>(x.Key, x.Value));
 
         public static OneHotEncoding<T> ImportData(PortableDataDocument data)
         {

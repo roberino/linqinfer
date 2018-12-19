@@ -13,7 +13,7 @@ namespace LinqInfer.Learning.Features
             IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             ICategoricalOutputMapper<TClass> outputMapper)
-            : base(ExtractBatches(pipeline, outputMapper, classf.Compile()))
+            : base(ExtractBatches(pipeline, outputMapper, classf?.Compile()))
         {
             FeaturePipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             ClassifyingExpression = classf ?? throw new ArgumentNullException(nameof(classf));

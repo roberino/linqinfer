@@ -79,7 +79,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
-        protected override Vector ProcessErrorAndReturnNextError(Vector error, IVector predecessorOutput)
+        protected override Vector ProcessError(Vector error, IVector predecessorOutput)
         {
             var nextError = new double[_neuronCluster.InputSize];
 

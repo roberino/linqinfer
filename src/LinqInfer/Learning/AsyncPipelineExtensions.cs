@@ -2,13 +2,13 @@
 using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Utility;
 
 namespace LinqInfer.Learning
 {
@@ -67,7 +67,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Builds an asyncronous pipeline, given a number of feature extractor strategies
+        /// Builds an asynchronous pipeline, given a number of feature extractor strategies
         /// </summary>
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
@@ -83,7 +83,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asyncronous pipeline, given a feature extractor
+        /// Creates an asynchronous pipeline, given a feature extractor
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IEnumerable<TInput> dataset,
@@ -93,7 +93,40 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asyncronous pipeline, given a feature extractor
+        /// Creates an asynchronous pipeline, given a set of data which is categorical
+        /// </summary>
+        public static async Task<IAsyncFeatureProcessingPipeline<TInput>> CreateCategoricalPipelineAsync<TInput>(
+            this IAsyncEnumerator<TInput> dataset,
+            int sampleSize = 10000)
+            where TInput : IEquatable<TInput>
+        {
+            var categories = await dataset.ToDistinctSetAsync(CancellationToken.None, sampleSize);
+
+            var md = Feature.CreateDefaults(categories.Select(c => c.ToString()));
+
+            var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, md, categories);
+            return new AsyncFeatureProcessingPipeline<TInput>(dataset, cfe);
+        }
+
+        /// <summary>
+        /// Creates a time sequence which can be used for training
+        /// </summary>
+        public static async Task<IAsyncTrainingSet<TInput, TInput>>
+            CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
+                this IAsyncEnumerator<TInput> dataset,
+                int sampleSize = 10000)
+            where TInput : IEquatable<TInput>
+        {
+            var categories = await dataset.ToDistinctSetAsync(CancellationToken.None, sampleSize);
+
+            var md = Feature.CreateDefaults(categories.Select(c => c.ToString()));
+
+            var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, md, categories);
+            return new TimeSequenceAsyncTrainingSet<TInput>(dataset, cfe);
+        }
+
+        /// <summary>
+        /// Creates an asynchronous pipeline, given a feature extractor
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IEnumerable<TInput> dataset,
@@ -104,7 +137,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asyncronous pipeline, given a feature extractor
+        /// Creates an asynchronous pipeline, given a feature extractor
         /// </summary>
         internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
@@ -115,7 +148,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asyncronous pipeline, given a feature extractor function
+        /// Creates an asynchronous pipeline, given a feature extractor function
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
@@ -128,7 +161,7 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asyncronous pipeline from a data loading function
+        /// Creates an asynchronous pipeline from a data loading function
         /// </summary>
         /// <typeparam name="TInput"></typeparam>
         /// <param name="batchLoaderFunc">A batch loader function</param>
@@ -227,14 +260,14 @@ namespace LinqInfer.Learning
             where TClass : IEquatable<TClass>
         {
             await trainingSet
-                .ExtractInputOutputIVectorBatches()
-               .ProcessUsing(async b =>
-               {
-                   var batch = new TrainingBatch(b);
-                   var msg = batch.AsMessage();
+                .Source
+                .ProcessUsing(async b =>
+                {
+                    var batch = new TrainingBatch(b);
+                    var msg = batch.AsMessage();
 
-                   await publisher.PublishAsync(msg);
-               }, cancellationToken);
+                    await publisher.PublishAsync(msg);
+                }, cancellationToken);
 
             return trainingSet;
         }

@@ -31,7 +31,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_LoopThenFunc_BehavesCorrectly()
         {
-            var exp = "(a) => Loop(x => x * 5, 5).Then(result => result[2]).Result".AsExpression<double, int>();
+            var exp = "(a) => Loop(x => x * 5, 5).Then(result => result[2]).Model".AsExpression<double, int>();
 
             var result = exp.Compile().Invoke(1);
 
@@ -43,7 +43,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             ControlFunctions.Recurse<int>((i, x) => (1, true));
 
-            var exp = "(a) => Recurse((i, x : int) => ((x + 1) * 5, x > 1)).Result".AsExpression<double, int[]>();
+            var exp = "(a) => Recurse((i, x : int) => ((x + 1) * 5, x > 1)).Model".AsExpression<double, int[]>();
 
             var result = exp.Compile().Invoke(1);
 
@@ -211,7 +211,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_TaskResult_ReturnsValue()
         {
-            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}(x).Result".AsExpression<double, double>();
+            var exp = $"x => {nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}(x).Model".AsExpression<double, double>();
 
             var result = exp.Compile().Invoke(3);
 
@@ -223,7 +223,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
 
-            var exp = $"x => {methodName}(x).Then(r => r + 1).Result".AsExpression<double, double>();
+            var exp = $"x => {methodName}(x).Then(r => r + 1).Model".AsExpression<double, double>();
 
             var result = exp.Compile().Invoke(3);
 
@@ -233,7 +233,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_Do_CanUseOuterScopedParameter()
         {
-            var exp = "x => Do(() => 1 + x).Result".AsExpression<double, double>();
+            var exp = "x => Do(() => 1 + x).Model".AsExpression<double, double>();
 
             var result = exp.Compile().Invoke(3);
 
@@ -245,7 +245,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         {
             var methodName = $"{nameof(StaticExampleMethods)}.{nameof(StaticExampleMethods.GetValueX15Async)}";
 
-            var exp = $"x => {methodName}(x).ThenAsync(r => {methodName}(r)).Result".AsExpression<double, double>();
+            var exp = $"x => {methodName}(x).ThenAsync(r => {methodName}(r)).Model".AsExpression<double, double>();
 
             var result = exp.Compile().Invoke(3);
 

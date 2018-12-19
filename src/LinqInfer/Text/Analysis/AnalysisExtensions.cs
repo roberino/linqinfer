@@ -1,12 +1,10 @@
-﻿using LinqInfer.Learning;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
 using LinqInfer.Text.VectorExtraction;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {

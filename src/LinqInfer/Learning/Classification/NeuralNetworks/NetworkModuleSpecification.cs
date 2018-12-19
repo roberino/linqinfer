@@ -69,7 +69,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var id = doc.PropertyOrDefault(nameof(Id), 0);
             var op = doc.PropertyOrDefault(nameof(InputOperator), VectorAggregationType.None);
             var outputs = doc.PropertyOrDefault(nameof(NetworkConnectionSpecification.Outputs), string.Empty);
-            var inputs = doc.PropertyOrDefault(nameof(NetworkConnectionSpecification.Outputs), string.Empty);
+            var inputs = doc.PropertyOrDefault(nameof(NetworkConnectionSpecification.Inputs), string.Empty);
 
             var spec = new NetworkModuleSpecification(id)
             {

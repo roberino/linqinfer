@@ -5,7 +5,7 @@ using System;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    public sealed class NetworkLayerSpecification : NetworkModuleSpecification, IExportableAsDataDocument
+    public sealed class NetworkLayerSpecification : NetworkModuleSpecification
     {
         public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
 

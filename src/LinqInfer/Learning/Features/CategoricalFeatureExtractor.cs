@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using LinqInfer.Utility.Expressions;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,6 @@ namespace LinqInfer.Learning.Features
 {
     public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>
     {
-        readonly OneHotEncoding<TCategory> _encoder;
         readonly Func<TInput, TCategory> _categorySelector;
         readonly Expression<Func<TInput, TCategory>> _categorySelectorExp;
 
@@ -22,19 +20,21 @@ namespace LinqInfer.Learning.Features
 
         CategoricalFeatureExtractor(Expression<Func<TInput, TCategory>> categorySelector, IEnumerable<IFeature> features, OneHotEncoding<TCategory> encoder)
         {
-            _encoder = encoder;
             _categorySelectorExp = categorySelector;
             _categorySelector = categorySelector.Compile();
             FeatureMetadata = features;
+            Encoder = encoder;
         }
 
-        public int VectorSize => _encoder.VectorSize;
+        public int VectorSize => Encoder.VectorSize;
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
+        public IOneHotEncoding<TCategory> Encoder { get; }
+
         public IVector ExtractIVector(TInput obj)
         {
-            return _encoder.Encode(_categorySelector(obj));
+            return Encoder.Encode(_categorySelector(obj));
         }
 
         public double[] ExtractVector(TInput obj)
@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Features
         {
             var doc = new PortableDataDocument();
 
-            var encDoc = _encoder.ExportData();
+            var encDoc = Encoder.ExportData();
 
             doc.SetType(this);
 

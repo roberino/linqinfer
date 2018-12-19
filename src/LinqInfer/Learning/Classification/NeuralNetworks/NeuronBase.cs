@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -61,8 +62,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _weights = _weights.RemoveValuesAt(indexes);
         }
 
-        public object Clone() => Clone(true);
-
         public INeuron Clone(bool deep)
         {
             return new NeuronBase(_weights.Clone(true), Activator)
@@ -76,8 +75,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         
         public void Import(ColumnVector1D data)
         {
-            Contract.Assert(data != null);
-            Contract.Assert(data.Size == _weights.Size + 1);
+            ArgAssert.AssertEquals(data.Size, _weights.Size + 1, nameof(data.Size));
 
             Bias = data[0];
 

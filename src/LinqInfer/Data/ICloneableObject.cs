@@ -1,9 +1,6 @@
-﻿using System;
-using System.Runtime;
-
-namespace LinqInfer.Data
+﻿namespace LinqInfer.Data
 {
-    public interface ICloneableObject<T> // : ICloneable
+    public interface ICloneableObject<out T>
     {
         T Clone(bool deep);
     }

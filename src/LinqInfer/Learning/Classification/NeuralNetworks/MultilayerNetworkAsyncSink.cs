@@ -29,8 +29,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Reset();
         }
 
-        public IVectorClassifier Classifier => _trainingContext.Output;
-
         public bool CanReceive { get; private set; }
 
         public IVectorClassifier Output => _trainingContext.Output;

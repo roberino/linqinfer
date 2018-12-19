@@ -18,7 +18,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         }
 
         [Test]
-        public void AddModule_SimpleConfiguration_Train()
+        public void SimpleConfiguration_BuildAndTrain_ReturnsNonZeroError()
         {
             var builder = RecurrentNetworkBuilder.Create(4);
 
@@ -34,64 +34,28 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 })
                 .Build();
 
-            spec.Train(ColumnVector1D.Create(1, 2, 3, 4), ColumnVector1D.Create(1, 2));
+            var err = spec.Train(ColumnVector1D.Create(1, 2, 3, 4), ColumnVector1D.Create(1, 2));
+
+            Assert.That(err, Is.GreaterThan(0));
         }
 
         [Test]
-        public void AddModule_ComplexConfiguration_Train()
+        public void Lstm_BuildAndTrain_ReturnsNonZeroError()
         {
             var builder = SetupLstmNetwork();
 
             var spec = builder.Build();
 
-            var output = spec.Result.Apply(ColumnVector1D.Create(1, 2, 3, 4));
+            var err = spec.Train(new Vector(1d, 2d, 3d, 4d), new OneOfNVector(2, 1));
 
-            Assert.That(output.Size, Is.EqualTo(2));
-            Assert.That(output.Sum, Is.Not.EqualTo(0));
+            Assert.That(err, Is.GreaterThan(0));
         }
 
-        public INetworkBuilder SetupLstmNetwork()
+        public INetworkBuilder SetupLstmNetwork(int inputSize = 4, int outputSize = 2)
         {
-            var inputSize = 4;
-            var outputSize = 2;
-
             var builder = RecurrentNetworkBuilder.Create(inputSize);
 
-            return builder.ConfigureModules(mb =>
-            {
-                var module = mb.Module(VectorAggregationType.Concatinate);
-
-                var mult1 = mb.Module(VectorAggregationType.Multiply);
-                var mult2 = mb.Module(VectorAggregationType.Multiply);
-                var mult3 = mb.Module(VectorAggregationType.Multiply);
-                var sum1 = mb.Module(VectorAggregationType.Add);
-                var tanop1 = mb.Module(VectorAggregationType.HyperbolicTangent);
-
-                var sig1 = mb.Layer(outputSize, Activators.Sigmoid());
-                var sig2 = mb.Layer(outputSize, Activators.Sigmoid());
-                var tan1 = mb.Layer(outputSize, Activators.HyperbolicTangent());
-                var sig3 = mb.Layer(outputSize, Activators.Sigmoid());
-
-                module.ConnectTo(sig1, sig2, tan1, sig3);
-
-                sig1.ConnectTo(mult1);
-
-                sig2.ConnectTo(mult2);
-                tan1.ConnectTo(mult2);
-
-                mult1.ConnectTo(sum1);
-                mult2.ConnectTo(sum1);
-
-                sum1.ConnectTo(tanop1);
-
-                tanop1.ConnectTo(mult3);
-                sig3.ConnectTo(mult3);
-
-                module.ReceiveFrom(mult3);
-                mult1.ReceiveFrom(sum1);
-
-                return mb.Output(mult3, outputSize);
-            });
+            return builder.ConfigureLongShortTermMemoryNetwork(outputSize);
         }
     }
 }

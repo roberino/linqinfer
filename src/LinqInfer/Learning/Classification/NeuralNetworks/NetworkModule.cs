@@ -116,7 +116,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             if (aggregateError.received && lastInput != null)
             {
-                var nextError = ProcessErrorAndReturnNextError(error, lastInput);
+                var nextError = ProcessError(error, lastInput);
 
                 foreach (var predecessor in Predecessors)
                 {
@@ -127,7 +127,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString() => $"{Id} in {_inputVectorSize.GetValueOrDefault(Output.Size)} out {Output.Size}";
 
-        protected virtual Vector ProcessErrorAndReturnNextError(Vector error, IVector predecessorOutput)
+        protected virtual Vector ProcessError(Vector error, IVector predecessorOutput)
         {
             return error;
         }

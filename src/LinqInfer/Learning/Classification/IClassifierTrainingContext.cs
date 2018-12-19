@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Classification
         /// <summary>
         /// Returns the parameters used by this training instance
         /// </summary>
-        TResult Result { get; }
+        TResult Model { get; }
 
         /// <summary>
         /// Returns the current rate of error change.

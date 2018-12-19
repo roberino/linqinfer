@@ -29,7 +29,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 })
                 .ConfigureOutput(LossFunctions.Square)
                 .Build()
-                .Result
+                .Model
                 .Specification;
 
             Assert.That(spec.LearningParameters.LearningRate, Is.EqualTo(0.12d));

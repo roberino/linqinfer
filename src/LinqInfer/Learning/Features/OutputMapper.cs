@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +9,16 @@ namespace LinqInfer.Learning.Features
 {
     class OutputMapper<T> : ICategoricalOutputMapper<T> where T : IEquatable<T>
     {
-        OneHotEncoding<T> _encoder;
+        IOneHotEncoding<T> _encoder;
 
         public OutputMapper(IEnumerable<T> outputs): this (new OneHotEncoding<T>(new HashSet<T>(outputs)))
         {
         }
 
-        OutputMapper(OneHotEncoding<T> encoder)
+        internal OutputMapper(IOneHotEncoding<T> encoder)
         {
             _encoder = encoder;
-            FeatureMetadata = Feature.CreateDefaults(_encoder.Lookup.Keys.Select(k => k.ToString()));
+            FeatureMetadata = Feature.CreateDefaults(_encoder.IndexTable.Select(k => k.ToString()));
         }
 
         public IEnumerable<ClassifyResult<T>> Map(IVector output)
@@ -36,16 +35,16 @@ namespace LinqInfer.Learning.Features
                 {
                     yield return new ClassifyResult<T>()
                     {
-                        ClassType = _encoder.Lookup.Single(x => x.Value == o.index).Key,
+                        ClassType = _encoder.IndexTable.Single(x => x.Value == o.index).Key,
                         Score = o.value
                     };
                 }
             }
         }
 
-        public IEnumerable<T> OutputClasses => _encoder.Lookup.Keys;
+        public IEnumerable<T> OutputClasses => _encoder.IndexTable.Select(x => x.Key);
 
-        public int VectorSize => _encoder.Lookup.Count;
+        public int VectorSize => _encoder.IndexTable.Count();
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 

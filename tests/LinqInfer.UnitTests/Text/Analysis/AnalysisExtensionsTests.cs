@@ -40,19 +40,9 @@ namespace LinqInfer.UnitTests.Text.Analysis
 
             int counter = 0;
 
-            await trainingData
-                .ExtractInputOutputIVectorBatches()
-                .ProcessUsing(p =>
-                {
-                    Assert.That(counter, Is.EqualTo(p.BatchNumber));
-                    Assert.That(p.Items.Count, Is.EqualTo(_numberOfCorpusItems));
+            var data = await trainingData.Source.ToMemoryAsync(CancellationToken.None);
 
-                    counter++;
-
-                    return true;
-                });
-
-            Assert.That(counter, Is.EqualTo(1));
+            Assert.That(data.Count, Is.EqualTo(_numberOfCorpusItems));
         }
 
         [Test]

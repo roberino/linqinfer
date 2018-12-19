@@ -1,7 +1,6 @@
 ﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Learning.Features;
 using LinqInfer.Text.VectorExtraction;
 using LinqInfer.Utility;
 using System;
@@ -12,111 +11,18 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
+using LinqInfer.Text.Analysis;
 
 namespace LinqInfer.Text
 {
     public static class TextExtensions
     {
         /// <summary>
-        /// Creates a feature processing pipeline which extracts sematic vectors
-        /// based on term frequency.
+        /// Returns a corpus from a text reader
         /// </summary>
-        /// <param name="data">A queryable set of strings</param>
-        /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
-        /// <returns></returns>
-        public static FeatureProcessingPipeline<string> CreateTextFeaturePipeline(this IQueryable<string> data, int maxVectorSize = 128)
+        public static ICorpus CreateCorpus(this TextReader textReader, ITokeniser tokeniser = null)
         {
-            var identityFunc = new Func<string, string>((x => x == null ? "" : x.GetHashCode().ToString()));
-
-            var index = new DocumentIndex();
-            var tokeniser = new Tokeniser();
-            var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), tokeniser.Tokenise(x)));
-
-            index.IndexDocuments(docs);
-
-            return new FeatureProcessingPipeline<string>(data, index.CreateVectorExtractor<string>(tokeniser.Tokenise, maxVectorSize));
-        }
-
-        /// <summary>
-        /// Creates a feature processing pipeline which extracts sematic vectors
-        /// based on term frequency.
-        /// </summary>
-        public static FeatureProcessingPipeline<TokenisedTextDocument> CreateTextFeaturePipeline(this IQueryable<TokenisedTextDocument> documents, ISemanticSet keyTerms)
-        {
-            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
-
-            return new FeatureProcessingPipeline<TokenisedTextDocument>(documents, ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens));
-        }
-
-        /// <summary>
-        /// Creates a feature extractor which extracts sematic vectors
-        /// based on term frequency.
-        /// </summary>
-        public static IFloatingPointFeatureExtractor<TokenisedTextDocument> CreateTextFeatureExtractor(this ISemanticSet keyTerms, ITokeniser tokeniser = null)
-        {
-            if (tokeniser == null) tokeniser = new Tokeniser();
-
-            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
-
-            return ve.CreateObjectTextVectoriser<TokenisedTextDocument>(s => s.Tokens);
-        }
-
-        /// <summary>
-        /// Creates a feature processing pipeline which extracts sematic vectors
-        /// based on term frequency.
-        /// </summary>
-        public static FeatureProcessingPipeline<string> CreateTextFeaturePipeline(this IQueryable<string> data, ISemanticSet keyTerms, ITokeniser tokeniser = null)
-        {
-            if (tokeniser == null) tokeniser = new Tokeniser();
-
-            var ve = new TextDataExtractor(keyTerms.Words, 0, false);
-
-            return new FeatureProcessingPipeline<string>(data, ve.CreateObjectTextVectoriser<string>(s => tokeniser.Tokenise(s)));
-        }
-
-        /// <summary>
-        /// Creates a feature processing pipeline which extracts sematic vectors
-        /// based on term frequency.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data">The data</param>
-        /// <param name="identityFunc">A function which determines how the data will be indexed</param>
-        /// <param name="maxVectorSize">The maximum size of the extracted vector</param>
-        /// <returns></returns>
-        public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, Func<T, string> identityFunc = null, int maxVectorSize = 128) where T : class
-        {
-            if (identityFunc == null) identityFunc = (x => x == null ? "" : x.GetHashCode().ToString());
-
-            var index = new DocumentIndex();
-            var tokeniser = new ObjectTextExtractor<T>(index.Tokeniser);
-            var objtokeniser = tokeniser.CreateObjectTextTokeniser();
-            var docs = data.Select(x => new TokenisedTextDocument(identityFunc(x), objtokeniser(x)));
-
-            index.IndexDocuments(docs);
-
-            return new FeatureProcessingPipeline<T>(data, index.CreateVectorExtractorByDocumentKey(objtokeniser, maxVectorSize));
-        }
-
-        /// <summary>
-        /// Creates a feature processing pipeline which extracts sematic vectors
-        /// using the supplied keywords
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="keywords">The keywords to use for constructing a vector</param>
-        /// <returns></returns>
-        public static FeatureProcessingPipeline<T> CreateTextFeaturePipeline<T>(this IQueryable<T> data, params string[] keywords) where T : class
-        {
-            var tokeniser = new Tokeniser();
-            var otokeniser = new ObjectTextExtractor<T>(tokeniser);
-            var objtokeniser = otokeniser.CreateObjectTextTokeniser();
-            var vectorExtractor = new TextDataExtractor(keywords, 100, false);
-
-            var pipeline = new FeatureProcessingPipeline<T>(data, vectorExtractor.CreateObjectTextVectoriser(objtokeniser));
-
-            pipeline.NormaliseData();
-
-            return pipeline;
+            return new TextReaderToCorpusAdapter(tokeniser).CreateCorpus(textReader);
         }
 
         /// <summary>

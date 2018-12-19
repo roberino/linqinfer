@@ -26,7 +26,7 @@ namespace LinqInfer.Learning
             var targetDoc = existingClassifierData.FindChild<MultilayerNetwork>() ?? existingClassifierData;
             var network = MultilayerNetwork.CreateFromData(targetDoc);
             var trainingContext = new MultilayerNetworkTrainingContext(network);
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Result.Specification.LearningParameters);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Model.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
@@ -39,7 +39,7 @@ namespace LinqInfer.Learning
         /// </summary>
         /// <typeparam name="TInput">The input type</typeparam>
         /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="trainingSet">A asyncronous training set</param>
+        /// <param name="trainingSet">A asynchronous training set</param>
         /// <param name="networkBuilder">A delegate which builds the network specification</param>
         public static INetworkClassifier<TClass, TInput> AttachMultilayerNetworkClassifier<TInput, TClass>(
             this IAsyncTrainingSet<TInput, TClass> trainingSet,
@@ -52,7 +52,7 @@ namespace LinqInfer.Learning
 
             var trainingContext = builder.ApplyDefaults().Build();
 
-            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Result.Specification.LearningParameters);
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Model.Specification.LearningParameters);
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);
