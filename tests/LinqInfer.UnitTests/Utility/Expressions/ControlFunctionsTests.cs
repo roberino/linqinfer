@@ -76,7 +76,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_PLoop_ReturnsCorrectSizedResult()
         {
-            var exp = "x => PLoop(y => Loop(z => z * 5, x).Model.Sum(), 5).Model.Length"
+            var exp = "x => PLoop(y => Loop(z => z * 5, x).Result.Sum(), 5).Result.Length"
                 .AsExpression<int, int>();
 
             var f = exp.Compile();
@@ -102,7 +102,7 @@ namespace LinqInfer.UnitTests.Utility.Expressions
         [Test]
         public void AsExpression_WithPromise_IsConvertedToRequiredType()
         {
-            var exp = "x => Loop(i => 5 * i, Do(() => 1 + x)).Model[1]".AsExpression<int, double>();
+            var exp = "x => Loop(i => 5 * i, Do(() => 1 + x)).Result[1]".AsExpression<int, double>();
 
             var f = exp.Compile();
 

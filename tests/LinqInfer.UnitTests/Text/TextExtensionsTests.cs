@@ -1,9 +1,8 @@
-﻿using System;
+﻿using LinqInfer.Text;
+using NUnit.Framework;
+using System;
 using System.Linq;
 using System.Xml.Linq;
-using LinqInfer.Text;
-using LinqInfer.Utility;
-using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text
 {
@@ -41,7 +40,7 @@ namespace LinqInfer.UnitTests.Text
 
             var results = classifier.Classify(new
             {
-                a = "hi you",
+                a = "hi there you",
                 b = "?"
             });
 
@@ -50,7 +49,8 @@ namespace LinqInfer.UnitTests.Text
                 Console.WriteLine(result);
             }
 
-            Assert.That(results.OrderByDescending(r => r.Score).First().ClassType, 
+            Assert.That(results
+                    .OrderByDescending(r => r.Score).First().ClassType, 
                 Is.EqualTo("greeting"));
         }
 

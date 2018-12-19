@@ -5,7 +5,6 @@ using LinqInfer.Learning.Features;
 using NSubstitute;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,7 +66,7 @@ namespace LinqInfer.UnitTests.Learning
             int counter = 0;
 
             await trainingData
-                .ExtractInputOutputIVectorBatches()
+                .Source
                 .ProcessUsing(b =>
                 {
                     counter++;
