@@ -147,7 +147,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         void Process(IVector aggregatedInput)
         {
-            DebugOutput.Log($"Process {_spec.Id} {Output.Size} {_spec.InputOperator}");
+            DebugOutput.LogVerbose($"Process {_spec.Id} {Output.Size} {_spec.InputOperator}");
 
             var previousOutput = (Vector)Output;
 

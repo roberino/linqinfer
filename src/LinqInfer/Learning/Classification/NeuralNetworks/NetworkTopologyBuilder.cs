@@ -85,7 +85,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
                 visited.AddOrUpdate(m.Id, 1, (id, x) =>
                 {
-                    DebugOutput.Log($"Visited {m} ({x})");
+                    DebugOutput.LogVerbose($"Visited {m} ({x})");
 
                     if (x > 10)
                     {

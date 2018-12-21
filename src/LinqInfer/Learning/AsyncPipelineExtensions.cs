@@ -111,8 +111,7 @@ namespace LinqInfer.Learning
         /// <summary>
         /// Creates a time sequence which can be used for training
         /// </summary>
-        public static async Task<IAsyncTrainingSet<TInput, TInput>>
-            CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
+        public static async Task<IAsyncTrainingSet<TInput, TInput>> CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
                 this IAsyncEnumerator<TInput> dataset,
                 int sampleSize = 10000)
             where TInput : IEquatable<TInput>
@@ -123,6 +122,18 @@ namespace LinqInfer.Learning
 
             var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, md, categories);
             return new TimeSequenceAsyncTrainingSet<TInput>(dataset, cfe);
+        }
+
+        /// <summary>
+        /// Creates a time sequence which can be used for training
+        /// </summary>
+        public static IAsyncTrainingSet<TInput, TInput> CreateCategoricalTimeSequenceTrainingSet<TInput>(
+                this IAsyncFeatureProcessingPipeline<TInput> dataset,
+                IOneHotEncoding<TInput> encoding)
+            where TInput : IEquatable<TInput>
+        {
+            var outputMapper = new OutputMapper<TInput>(encoding);
+            return new TimeSequenceAsyncTrainingSet<TInput>(dataset, outputMapper);
         }
 
         /// <summary>

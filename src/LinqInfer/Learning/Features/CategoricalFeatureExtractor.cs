@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>
+    public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>, IHasCategoricalEncoding<TCategory>
     {
         readonly Func<TInput, TCategory> _categorySelector;
         readonly Expression<Func<TInput, TCategory>> _categorySelectorExp;

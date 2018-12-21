@@ -15,7 +15,7 @@ namespace LinqInfer.Learning.Features
         {
         }
 
-        TimeSequenceAsyncTrainingSet(IAsyncFeatureProcessingPipeline<T> pipeline,
+        public TimeSequenceAsyncTrainingSet(IAsyncFeatureProcessingPipeline<T> pipeline,
             ICategoricalOutputMapper<T> outputMapper) : base(ExtractBatches(pipeline))
         {
             FeaturePipeline = pipeline;
@@ -25,11 +25,6 @@ namespace LinqInfer.Learning.Features
         public IAsyncFeatureProcessingPipeline<T> FeaturePipeline { get; }
 
         public ICategoricalOutputMapper<T> OutputMapper { get; }
-
-        public IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
-        {
-            return ExtractBatches(FeaturePipeline);
-        }
 
         static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<T> pipeline)
         {

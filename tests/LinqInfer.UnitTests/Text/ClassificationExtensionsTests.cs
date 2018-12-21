@@ -2,13 +2,17 @@
 using NUnit.Framework;
 using System;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
-    public class TextExtensionsTests : TestFixtureBase
+    public class ClassificationExtensionsTests
     {
+        public void T()
+        {
+            var corpus = TestData.TestCorpus();
+        }
+
         [Test]
         public void CreateSemanticClassifier_WithAnonymousObjects_ReturnsClassifier()
         {
@@ -50,44 +54,8 @@ namespace LinqInfer.UnitTests.Text
             }
 
             Assert.That(results
-                    .OrderByDescending(r => r.Score).First().ClassType, 
+                    .OrderByDescending(r => r.Score).First().ClassType,
                 Is.EqualTo("greeting"));
-        }
-
-        [Test]
-        public void WhenTokenisedAndIndexed_ThenDocsCanBeSearched()
-        {
-            var docs = new[]
-            {
-                XDocument.Parse("<doc1>a b c</doc1>"),
-                XDocument.Parse("<doc2>a b c d e</doc2>"),
-                XDocument.Parse("<doc3>c d e f g</doc3>")
-            };
-
-            var index = docs
-                .AsTokenisedDocuments(d => d.Root.Name.LocalName)
-                .CreateIndex();
-
-            var results = index.Search("g");
-            
-            Assert.That(results.Single().DocumentKey == "doc3");
-        }
-
-        [Test]
-        public void WhenExportedAsXmlAndOpenAsIndex_ThenNewIndexInstanceCanBeCreated()
-        {
-            var docs = new[]
-            {
-                XDocument.Parse("<doc1>a b c</doc1>"),
-                XDocument.Parse("<doc2>a b c d e</doc2>"),
-                XDocument.Parse("<doc3>c d e f g</doc3>")
-            };
-
-            var index = docs.AsTokenisedDocuments(k => k.Root.Name.LocalName).CreateIndex();
-            var xml = index.ExportAsXml();
-            var index2 = xml.OpenAsIndex();
-
-            Assert.That(xml.ToString(), Is.EqualTo(index2.ExportAsXml().ToString()));
         }
     }
 }
