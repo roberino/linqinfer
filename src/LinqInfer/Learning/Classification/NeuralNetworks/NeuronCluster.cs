@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LinqInfer.Utility.Diagnostics;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -13,7 +14,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         readonly Func<int, int, IList<INeuron>> _neuronsFactory;
 
-        int _inputSize;
+        double[] _buffer;
 
         public NeuronCluster(
             Func<int, INeuron> neuronFactory,
@@ -29,19 +30,41 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 }).ToList();
             };
 
+            _buffer = new double[0];
+
             Neurons = new List<INeuron>();
         }
 
-        public double ForEachNeuron(Func<INeuron, int, double> func)
+        public double[] Evaluate(IVector input, bool parallelProcess)
         {
-            var result = 0d;
-
-            for (var i = 0; i < Neurons.Count; i++)
+            return Interceptor.Default.Intercept(() =>
             {
-                result += func(Neurons[i], i);
-            }
+                if (parallelProcess)
+                {
+                    var outputItems = Neurons.AsParallel()
+                        .ForEach(n => n.Evaluate(input));
 
-            return result;
+                    return outputItems.ToArray(_buffer);
+                }
+
+                return Neurons.Select(n => n.Evaluate(input)).ToArray(_buffer);
+
+            }, nameof(INeuron.Evaluate));
+        }
+
+        public double ForEachNeuron(Func<INeuron, int, double> func, string operationName = null)
+        {
+            return Interceptor.Default.Intercept(() =>
+            {
+                var result = 0d;
+
+                for (var i = 0; i < Neurons.Count; i++)
+                {
+                    result += func(Neurons[i], i);
+                }
+
+                return result;
+            }, operationName ?? nameof(ForEachNeuron));
         }
 
         public void Resize(int inputSize, int neuronCount)
@@ -53,12 +76,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 Neurons.Add(n);
             }
 
-            _inputSize = inputSize;
+            InputSize = inputSize;
+            _buffer = new double[neuronCount];
         }
 
         public IList<INeuron> Neurons { get; }
 
-        public int InputSize => _inputSize;
+        public int InputSize { get; private set; }
 
         public int Size => Neurons.Count;
 
@@ -72,7 +96,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             ArgAssert.Assert(() => numberOfNewNeurons > 0, nameof(numberOfNewNeurons));
 
-            var newNeurons = _neuronsFactory(numberOfNewNeurons, _inputSize);
+            var newNeurons = _neuronsFactory(numberOfNewNeurons, InputSize);
 
             foreach (var n in newNeurons) Neurons.Add(n);
         }

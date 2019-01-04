@@ -96,15 +96,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         protected override double[] Calculate(IVector input)
         {
-            if (_spec.ParallelProcess)
-            {
-                var outputItems = _neuronCluster.Neurons.AsParallel()
-                    .ForEach(n => n.Evaluate(input));
-
-                return outputItems.ToArray();
-            }
-
-            return _neuronCluster.Neurons.Select(n => n.Evaluate(input)).ToArray();
+            return _neuronCluster.Evaluate(input, _spec.ParallelProcess);
         }
 
         void Adjust(IVector previousOutput, Vector layerErrors)
@@ -134,7 +126,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 });
 
                 return 0;
-            });
+            }, "AdjustWeights");
         }
     }
 }

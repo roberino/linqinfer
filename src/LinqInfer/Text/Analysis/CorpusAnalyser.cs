@@ -13,7 +13,6 @@ namespace LinqInfer.Text.Analysis
 
         readonly DocumentIndex _index;
         readonly DiscreteMarkovChain<string> _markovChain;
-        readonly Matrix _documentTermMatrix;
 
         IFloatingPointFeatureExtractor<IEnumerable<IToken>> _featureExtractor;
 
@@ -22,7 +21,7 @@ namespace LinqInfer.Text.Analysis
             _index = new DocumentIndex();
             _markovChain = new DiscreteMarkovChain<string>();
 
-            _documentTermMatrix = Analyse(samples);
+            DocumentTermMatrix = Analyse(samples);
         }
 
         public CorpusAnalyser(IEnumerable<string> samples)
@@ -30,21 +29,12 @@ namespace LinqInfer.Text.Analysis
             _index = new DocumentIndex();
             _markovChain = new DiscreteMarkovChain<string>();
 
-            _documentTermMatrix = Analyse(samples.Select(s => new TokenisedTextDocument(Guid.NewGuid().ToString(), _index.Tokeniser.Tokenise(s))));
+            DocumentTermMatrix = Analyse(samples.Select(s => new TokenisedTextDocument(Guid.NewGuid().ToString(), _index.Tokeniser.Tokenise(s))));
         }
 
-        public Matrix DocumentTermMatrix
-        {
-            get { return _documentTermMatrix; }
-        }
+        public Matrix DocumentTermMatrix { get; }
 
-        public IEnumerable<IFeature> Terms
-        {
-            get
-            {
-                return _featureExtractor.FeatureMetadata;
-            }
-        }
+        public IEnumerable<IFeature> Terms => _featureExtractor.FeatureMetadata;
 
         public IDictionary<IFeature, IDictionary<IFeature, double>> FindCorrelations(double minCovariance = 0)
         {
@@ -52,7 +42,7 @@ namespace LinqInfer.Text.Analysis
 
             int index = 0;
 
-            foreach (var row in _documentTermMatrix.CovarianceMatrix.Rows)
+            foreach (var row in DocumentTermMatrix.CovarianceMatrix.Rows)
             {
                 var term = Terms.Single(t => t.Index == index);
 
@@ -68,13 +58,7 @@ namespace LinqInfer.Text.Analysis
             return results;
         }
 
-        public Matrix DocumentTermCovarianceMatrix
-        {
-            get
-            {
-                return _documentTermMatrix.CovarianceMatrix;
-            }
-        }
+        public Matrix DocumentTermCovarianceMatrix => DocumentTermMatrix.CovarianceMatrix;
 
         Matrix Analyse(IEnumerable<TokenisedTextDocument> samples)
         {

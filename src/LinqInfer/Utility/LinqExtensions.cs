@@ -46,19 +46,31 @@ namespace LinqInfer.Utility
             return i == 1 ? value : null;
         }
 
-        public static T[] ToArray<T>(this IEnumerable<T> values, int size)
+        public static T[] ToArray<T>(this IList<T> values, T[] buffer)
         {
-            var arr = new T[size];
-            int i = 0;
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i++] = values[i];
+                if (i == values.Count) break;
+            }
+
+            return buffer;
+        }
+
+        public static T[] ToArray<T>(this IEnumerable<T> values, T[] buffer)
+        {
+            var i = 0;
 
             foreach (var item in values)
             {
-                arr[i++] = item;
-                if (i == arr.Length) break;
+                buffer[i++] = item;
+                if (i == buffer.Length) break;
             }
 
-            return arr;
+            return buffer;
         }
+
+        public static T[] ToArray<T>(this IEnumerable<T> values, int size) => values.ToArray(new T[size]);
 
         /// <summary>
         /// Returns true if all members of an enumeration

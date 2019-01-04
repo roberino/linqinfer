@@ -18,11 +18,10 @@ namespace LinqInfer.IntegrationTests.Text
         {
             DebugOutput.VerboseOn = false;
 
-            var dictionary = new EnglishDictionary();
-            var corpus = CorpusDataSource.GetCorpus(1000);
+            var corpus = CorpusDataSource.GetCorpus(2500);
             var keyTerms = await corpus.ExtractAllTermsAsync();
-            // var keyTerms = corpus.ExtractKeyTermsAsync(CancellationToken.None);
-            var trainingSet = corpus.CreateTextTimeSequenceTrainingSet(keyTerms);
+
+            var trainingSet = corpus.CreateTimeSequenceTrainingSet(keyTerms);
 
             var lstm = trainingSet.AttachLongShortTermMemoryNetwork();
 

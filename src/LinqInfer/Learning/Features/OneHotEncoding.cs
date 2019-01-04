@@ -10,18 +10,28 @@ namespace LinqInfer.Learning.Features
 {
     class OneHotEncoding<T> : IOneHotEncoding<T>
     {
+        public OneHotEncoding(int maxSize)
+        {
+            ArgAssert.AssertGreaterThanZero(maxSize, nameof(maxSize));
+
+            Lookup = new Dictionary<T, int>();
+            VectorSize = maxSize;
+        }
+
         public OneHotEncoding(ISet<T> classes)
         {
             int i = 0;
             Lookup = classes.ToDictionary(c => c, _ => i++);
+            VectorSize = Lookup.Count;
         }
 
         OneHotEncoding(IDictionary<T, int> lookup)
         {
             Lookup = lookup;
+            VectorSize = Lookup.Count;
         }
 
-        public int VectorSize => Lookup.Count;
+        public int VectorSize { get; }
 
         public OneOfNVector Encode(T obj)
         {
@@ -33,6 +43,13 @@ namespace LinqInfer.Learning.Features
             if (Lookup.TryGetValue(obj, out int index))
             {
                 return new OneOfNVector(VectorSize, index);
+            }
+
+            if (Lookup.Count < VectorSize)
+            {
+                Lookup[obj] = Lookup.Count;
+
+                return Encode(obj);
             }
 
             return new OneOfNVector(VectorSize);

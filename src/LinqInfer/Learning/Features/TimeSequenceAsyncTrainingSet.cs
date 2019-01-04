@@ -10,7 +10,8 @@ namespace LinqInfer.Learning.Features
         AsyncPipe<TrainingPair<IVector, IVector>>, IAsyncTrainingSet<T, T>
         where T : IEquatable<T>
     {
-        public TimeSequenceAsyncTrainingSet(IAsyncEnumerator<T> dataSource,
+        public TimeSequenceAsyncTrainingSet(
+            IAsyncEnumerator<T> dataSource,
             CategoricalFeatureExtractor<T, T> featureExtractor) : this(new AsyncFeatureProcessingPipeline<T>(dataSource, featureExtractor), new OutputMapper<T>(featureExtractor.Encoder))
         {
         }

@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using LinqInfer.Learning;
+﻿using LinqInfer.Learning;
 using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.Analysis;
 using LinqInfer.Text.VectorExtraction;
 using LinqInfer.Utility;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 
 namespace LinqInfer.Text
 {
     public static class ClassificationExtensions
     {
-        public static IAsyncTrainingSet<string, string> CreateTextTimeSequenceTrainingSet(this ICorpus corpus, ISemanticSet vocabulary)
+        public static IAsyncTrainingSet<string, string> CreateTimeSequenceTrainingSet(this ICorpus corpus, ISemanticSet vocabulary)
         {
             var encoding = new OneHotTextEncoding<string>(vocabulary, t => t);
 
