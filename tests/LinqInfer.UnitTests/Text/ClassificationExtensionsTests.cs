@@ -1,16 +1,39 @@
-﻿using LinqInfer.Text;
+﻿using LinqInfer.Learning;
+using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class ClassificationExtensionsTests
     {
-        public void T()
+        [Test]
+        public async Task CreateTimeSequenceTrainingSet_ExportData_CanOpenAsTextClassifier()
         {
-            var corpus = TestData.TestCorpus();
+            var docs = TestData.TestDocuments();
+
+            var tokenDocs = docs.AsTokenisedDocuments(k => k.Root.Attribute("id").Value);
+
+            var corpus = new Corpus();
+
+            corpus.Append(tokenDocs.SelectMany(d => d.Tokens));
+
+            var semanticSet = await corpus.ExtractKeyTermsAsync(CancellationToken.None);
+
+            var trainingSet = corpus.CreateTimeSequenceTrainingSet(semanticSet);
+
+            var lstm = trainingSet.AttachLongShortTermMemoryNetwork();
+            
+            var data = lstm.ExportData();
+
+            var classifier = data.OpenTextClassifier();
+
+            Assert.That(classifier, Is.Not.Null);
         }
 
         [Test]

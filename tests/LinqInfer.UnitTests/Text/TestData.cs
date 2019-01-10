@@ -1,9 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace LinqInfer.UnitTests.Text
 {
     public static class TestData
     {
+        public static IEnumerable<XDocument> TestDocuments() =>
+            TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+
         public static IEnumerable<string> TestCorpus()
         {
             var doc1 = @"<doc id='1'><line>Shall I compare thee to a summer’s day?</line><line>

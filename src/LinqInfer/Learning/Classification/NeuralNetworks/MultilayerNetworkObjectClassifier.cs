@@ -57,13 +57,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return root;
         }
 
-        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data)
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data) =>
+            Create(data, FeatureExtractorFactory<TInput>.Default);
+
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data, IFeatureExtractorFactory<TInput> featureExtractorFactory)
         {
             var stats = new ClassifierStats();
 
             stats.ImportData(data.Children[0]);
 
-            var featureExtractor = FeatureExtractorFactory<TInput>.Default.Create(data.Children[1]);
+            var featureExtractor = featureExtractorFactory.Create(data.Children[1]);
 
             var network = MultilayerNetwork.CreateFromData(data.Children[2]);
             var outputMapper = OutputMapper<TClass>.ImportData(data.Children[3]);

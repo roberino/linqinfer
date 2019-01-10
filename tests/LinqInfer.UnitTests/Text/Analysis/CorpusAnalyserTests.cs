@@ -13,7 +13,7 @@ namespace LinqInfer.UnitTests.Text.Analysis
         [Test]
         public void DocumentTermCovarianceMatrix()
         {
-            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+            var docs = TestData.TestDocuments();
 
             var analyser = new CorpusAnalyser(docs.Select(x => x.Root.Value));
 

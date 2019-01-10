@@ -28,6 +28,11 @@ namespace LinqInfer.Text.Analysis
             _tokens.Add(token);
         }
 
+        public void Append(IEnumerable<IToken> tokens)
+        {
+            _tokens.Add(tokens);
+        }
+
         public IAsyncEnumerator<IToken> ReadBlocksAsync()
         {
             return ReadBlocksAsyncInternal().AsAsyncEnumerator();

@@ -9,7 +9,11 @@ namespace LinqInfer.Learning.Features
         int VectorSize { get; }
 
         OneOfNVector Encode(T obj);
-        
+
+        BitVector Encode(IEnumerable<T> categories);
+
+        IVector Encode(T[] categories);
+
         IEnumerable<KeyValuePair<T, int>> IndexTable { get; }
     }
 }

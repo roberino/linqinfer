@@ -29,6 +29,13 @@ namespace LinqInfer.Learning.Features
             _featureExtractorFactories = factories.ToDictionary(f => f.type, f => f.fact);
         }
 
+        public IFeatureExtractorFactory<T> Register<TF>(Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>> factoryMethod)
+            where TF : IFloatingPointFeatureExtractor<T>
+        {
+            _featureExtractorFactories[NameOf<TF>()] = factoryMethod;
+            return this;
+        }
+
         public static FeatureExtractorFactory<T> Default
         {
             get
@@ -51,9 +58,16 @@ namespace LinqInfer.Learning.Features
 
         public IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc)
         {
-            var factory = _featureExtractorFactories[doc.TypeName];
+            try
+            {
+                var factory = _featureExtractorFactories[doc.TypeName];
 
-            return factory(new FeatureExtractorLoadContext<T>(doc, this));
+                return factory(new FeatureExtractorLoadContext<T>(doc, this));
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new ArgumentException($"Type not found {doc.TypeName}");
+            }
         }
 
         static string NameOf<TX>()

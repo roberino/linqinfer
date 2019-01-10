@@ -50,6 +50,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public virtual void ImportData(PortableDataDocument doc)
         {
+            DebugOutput.LogVerbose($"Importing data into {Id}");
         }
 
         public virtual PortableDataDocument ExportData()

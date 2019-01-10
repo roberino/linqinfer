@@ -56,6 +56,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
             doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
             doc.SetPropertyFromExpression(() => InputVectorSize);
+            doc.Properties[nameof(Root)] = Root.Id.ToString();
 
             foreach (var child in Modules)
             {
@@ -88,7 +89,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 .Select(c => NetworkOutputSpecification.FromVectorDocument(c, ctx))
                 .SingleOrDefault();
 
-            var all = layers.Concat(modules).ToArray();
+            var rootId = doc.PropertyOrDefault(nameof(Root), -1);
+
+            var all = layers
+                .Concat(modules)
+                .OrderBy(m => m.Id == rootId ? -1 : 0)
+                .ThenBy(m => m.Id)
+                .ToArray();
 
             var learningParams = new LearningParameters()
             {

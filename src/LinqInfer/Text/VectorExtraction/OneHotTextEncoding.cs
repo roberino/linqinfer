@@ -1,32 +1,33 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using LinqInfer.Utility.Expressions;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IImportableFromDataDocument
+    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>
     {
+        readonly Expression<Func<T, string[]>> _objectToStringTransformExpression;
         readonly Func<T, string[]> _objectToStringTransform;
 
-        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
+        OneHotTextEncoding(IOneHotEncoding<string> encoding, Expression<Func<T, string[]>> objectToStringTransform)
         {
-            _objectToStringTransform = x => new[] { objectToStringTransform(x) };
-            Encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
-            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
+            _objectToStringTransformExpression = objectToStringTransform;
+            _objectToStringTransform = objectToStringTransform.Compile();
+            Encoder = encoding;
+            FeatureMetadata = Feature.CreateDefaults(encoding.IndexTable.Select(x => x.Key), FeatureVectorModel.Categorical);
         }
 
-        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string[]> objectToStringTransform)
+        public OneHotTextEncoding(ISemanticSet vocabulary, Expression<Func<T, string[]>> objectToStringTransform)
+            : this(new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words)), objectToStringTransform)
         {
-            _objectToStringTransform = objectToStringTransform;
-            Encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
-            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
         }
 
-        public OneHotEncoding<string> Encoder { get; }
+        public IOneHotEncoding<string> Encoder { get; }
 
         public int VectorSize => Encoder.VectorSize;
 
@@ -52,26 +53,25 @@ namespace LinqInfer.Text.VectorExtraction
             return Encoder.Encode(tokens);
         }
 
-        public IVector Encode(IToken token)
-        {
-            return ExtractOneOfNVector(new[] { token.Text.ToLowerInvariant() });
-        }
-
         public PortableDataDocument ExportData()
         {
-            return new KeyValueDocument(Encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ExportData();
+            var doc = Encoder.ExportData();
+
+            doc.SetType(this);
+            doc.Properties["Expression"] = _objectToStringTransformExpression.ExportExpression();
+
+            return doc;
         }
 
-        public void ImportData(PortableDataDocument doc)
+        public static OneHotTextEncoding<T> Create(PortableDataDocument doc)
         {
-            var kvdoc = new KeyValueDocument();
+            var encoding = OneHotEncoding<string>.ImportData(doc);
 
-            kvdoc.ImportData(doc);
+            var expression = doc.Properties["Expression"].AsExpression<T, string[]>();
 
-            foreach (var kv in kvdoc.Data)
-            {
-                Encoder.Lookup[kv.Key] = int.Parse(kv.Value);
-            }
+            var textEncoding = new OneHotTextEncoding<T>(encoding, expression);
+
+            return textEncoding;
         }
     }
 }

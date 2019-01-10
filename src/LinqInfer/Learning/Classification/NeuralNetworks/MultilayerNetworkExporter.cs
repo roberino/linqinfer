@@ -1,5 +1,7 @@
-﻿using LinqInfer.Data.Serialisation;
+﻿using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 using System.Linq;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -21,13 +23,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             doc.WriteChildObject(network.Specification);
 
+            var idTracker = new HashSet<string>();
+
             network.ForwardPropagate(x =>
             {
-                var data = x.ExportData();
+                if (!idTracker.Contains(x.Id))
+                {
+                    var data = x.ExportData();
 
-                data.Properties["Label"] = x.ToString();
+                    data.Properties["Label"] = x.ToString();
 
-                doc.Children.Add(data);
+                    doc.Children.Add(data);
+
+                    idTracker.Add(x.Id);
+                }
             });
 
             return doc;
@@ -50,9 +59,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 var query = doc.QueryChildren(new
                 {
                     x.Id
-                });
+                }).ToList();
 
-                var layerData = query.Single(); //  doc.Children.Single(c => c.Properties[nameof(INetworkSignalFilter.Id)] == x.Id);
+                if (query.Count > 1)
+                {
+                    ArgAssert.AssertEquals(query.Count, 1, $"Multiple ids found for {x.Id}");
+                }
+
+                var layerData = query.Single();
 
                 x.ImportData(layerData);
             });

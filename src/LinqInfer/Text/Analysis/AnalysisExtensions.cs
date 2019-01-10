@@ -10,7 +10,7 @@ namespace LinqInfer.Text.Analysis
 {
     public static class AnalysisExtensions
     {
-        public static async Task<IImportableExportableSemanticSet> ExtractKeyTermsAsync(this ICorpus corpus, CancellationToken cancellationToken)
+        public static async Task<IImportableExportableSemanticSet> ExtractKeyTermsAsync(this ICorpus corpus, CancellationToken cancellationToken = default)
         {
             var builder = new SemanticSetBuilder();
 
@@ -80,7 +80,7 @@ namespace LinqInfer.Text.Analysis
 
         public static IAsyncTrainingSet<BiGram, string> AsBiGramAsyncTrainingSet(this AsyncContinuousBagOfWords cbow, int contextPadding = 2)
         {
-            var encoder = new OneHotTextEncoding<BiGram>(cbow.WiderVocabulary, t => t.Input);
+            var encoder = new OneHotTextEncoding<BiGram>(cbow.WiderVocabulary, t => new []{ t.Input });
 
             var pipeline = new AsyncFeatureProcessingPipeline<BiGram>(cbow.GetBiGramSource(contextPadding), encoder);
 

@@ -123,7 +123,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var search = new DocumentIndex();
 
-            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+            var docs = TestData.TestDocuments();
 
             search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -143,7 +143,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var index1 = new DocumentIndex();
 
-            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+            var docs = TestData.TestDocuments();
 
             index1.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -163,7 +163,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var search = new DocumentIndex();
 
-            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+            var docs = TestData.TestDocuments();
 
             search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -178,7 +178,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var index = new DocumentIndex();
 
-            var docs = TestData.TestCorpus().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+            var docs = TestData.TestDocuments();
 
             int id = 0;
 
