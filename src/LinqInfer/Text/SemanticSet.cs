@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using LinqInfer.Text.Tokenisers;
 
 namespace LinqInfer.Text
 {

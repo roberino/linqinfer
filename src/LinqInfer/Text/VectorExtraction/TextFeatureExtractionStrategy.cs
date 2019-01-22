@@ -6,6 +6,7 @@ using LinqInfer.Data.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
 using LinqInfer.Data;
+using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text.VectorExtraction
 {

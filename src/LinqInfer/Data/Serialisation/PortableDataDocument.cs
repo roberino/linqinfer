@@ -30,8 +30,6 @@ namespace LinqInfer.Data.Serialisation
         {
             var properties = new ConstrainableDictionary<string, string>(v => v != null);
 
-            properties.AddContraint((k, v) => XmlConvert.VerifyName(k) != null);
-
             Properties = properties;
             Blobs = new Dictionary<string, byte[]>();
             Vectors = new List<IVector>();
@@ -427,7 +425,7 @@ namespace LinqInfer.Data.Serialisation
             if (Properties.Any())
             {
                 var propsNode = new XElement(PropertiesName,
-                    Properties.Select(p => new XElement(p.Key, p.Value)));
+                    Properties.Select(PropertyElement));
 
                 doc.Root.Add(propsNode);
             }
@@ -458,7 +456,19 @@ namespace LinqInfer.Data.Serialisation
             return doc;
         }
 
-        void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
+        static XElement PropertyElement(KeyValuePair<string, string> property)
+        {
+            try
+            {
+                return new XElement(property.Key, property.Value);
+            }
+            catch (XmlException)
+            {
+                return new XElement("property", new XAttribute("key", property.Key), property.Value);
+            }
+        }
+
+        static void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
         {
             while (true)
             {
@@ -483,7 +493,7 @@ namespace LinqInfer.Data.Serialisation
 
             foreach (var prop in ChildElements(rootNode, PropertiesName))
             {
-                Properties[prop.Name.LocalName] = prop.Value;
+                Properties[prop.Attribute("key")?.Value ?? prop.Name.LocalName] = prop.Value;
             }
 
             foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == VectorName))
@@ -518,7 +528,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        IEnumerable<XElement> ChildElements(XElement parent, string name)
+        static IEnumerable<XElement> ChildElements(XElement parent, string name)
         {
             var e = parent.Element(XName.Get(name));
 

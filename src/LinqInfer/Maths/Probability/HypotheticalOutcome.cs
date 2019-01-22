@@ -12,7 +12,7 @@ namespace LinqInfer.Maths.Probability
             PosteriorProbability = prior;
         }
 
-        public event EventHandler<FractionEventArgs> Updated;
+        public event Action<Fraction> Updated;
 
         public T Outcome { get; }
 
@@ -22,21 +22,16 @@ namespace LinqInfer.Maths.Probability
 
         public Fraction PosteriorProbability { get; private set; }
 
-        public Fraction Calculate(Fraction likelyhoodGivenHypo, Fraction likelyhood)
+        public Fraction Calculate(Fraction likelihoodGivenHypo, Fraction likelihood)
         {
-            return Fraction.Divide(Fraction.Multiply(PosteriorProbability, likelyhoodGivenHypo, true), likelyhood, true);
+            return Fraction.Divide(Fraction.Multiply(PosteriorProbability, likelihoodGivenHypo, true), likelihood, true);
         }
 
-        public IHypotheticalOutcome<T> Update(Fraction likelyhoodGivenHypo, Fraction likelyhood)
+        public IHypotheticalOutcome<T> Update(Fraction likelihoodGivenHypo, Fraction likelihood)
         {
-            PosteriorProbability = Calculate(likelyhoodGivenHypo, likelyhood);
+            PosteriorProbability = Calculate(likelihoodGivenHypo, likelihood);
 
-            var ev = Updated;
-
-            if (ev != null)
-            {
-                ev.Invoke(this, new FractionEventArgs(PosteriorProbability));
-            }
+            Updated?.Invoke(PosteriorProbability);
 
             return this;
         }

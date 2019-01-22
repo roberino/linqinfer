@@ -12,11 +12,6 @@ namespace LinqInfer.Learning.Classification
     public interface IAssistedLearningProcessor
     {
         /// <summary>
-        /// Changes the current learning rate
-        /// </summary>
-        void AdjustLearningRate(Func<double, double> rateAdjustment);
-
-        /// <summary>
         /// Trains the model using the set of training data
         /// </summary>
         /// <param name="trainingData">A set of training vector inputs and target outputs</param>

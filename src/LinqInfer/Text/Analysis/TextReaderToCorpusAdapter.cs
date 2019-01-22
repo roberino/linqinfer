@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Text.Tokenisers;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -48,10 +49,11 @@ namespace LinqInfer.Text.Analysis
             readonly TextReader _reader;
             readonly ITokeniser _tokeniser;
 
-            Task currentTask;
-            IList<IToken> currentData;
-            bool moveNext;
-            bool eof;
+            Task _currentTask;
+            IList<IToken> _currentData;
+            bool _moveNext;
+            bool _eof;
+            int _indexOffset;
 
             public Enumerator(TextReader reader, ITokeniser tokeniser)
             {
@@ -61,9 +63,9 @@ namespace LinqInfer.Text.Analysis
 
             public bool MoveNext()
             {
-                if (!eof)
+                if (!_eof)
                 {
-                    moveNext = true;
+                    _moveNext = true;
                     return true;
                 }
 
@@ -81,24 +83,24 @@ namespace LinqInfer.Text.Analysis
 
             public void Dispose()
             {
-                eof = true;
+                _eof = true;
             }
 
             async Task<IList<IToken>> GetDataAsync()
             {
-                if (moveNext)
+                if (_moveNext)
                 {
-                    if (currentTask != null && !currentTask.IsCompleted)
+                    if (_currentTask != null && !_currentTask.IsCompleted)
                     {
                         throw new InvalidOperationException();
                     }
 
-                    currentTask = MoveNextAsync();
+                    _currentTask = MoveNextAsync();
 
-                    await currentTask;
+                    await _currentTask;
                 }
 
-                return currentData;
+                return _currentData;
             }
 
             async Task MoveNextAsync()
@@ -107,13 +109,15 @@ namespace LinqInfer.Text.Analysis
 
                 if (nextLine == null)
                 {
-                    eof = true;
-                    moveNext = false;
-                    currentData = new List<IToken>();
+                    _eof = true;
+                    _moveNext = false;
+                    _currentData = new List<IToken>();
                 }
                 else
                 {
-                    currentData = _tokeniser.Tokenise(nextLine).ToList();
+                    _currentData = _tokeniser.Tokenise(nextLine + Environment.NewLine, _indexOffset).ToList();
+
+                    _indexOffset += nextLine.Length + 1;
                 }
             }
         }

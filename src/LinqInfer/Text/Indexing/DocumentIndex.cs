@@ -1,7 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning.Features;
-using LinqInfer.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -9,8 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Features;
+using LinqInfer.Text.Tokenisers;
+using LinqInfer.Utility;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Text.Indexing
 {
     class DocumentIndex : IDocumentIndex
     {

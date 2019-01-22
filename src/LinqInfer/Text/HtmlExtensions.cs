@@ -1,14 +1,8 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
-using LinqInfer.Learning.Features;
+﻿using LinqInfer.Text.Html;
 using LinqInfer.Text.Http;
-using LinqInfer.Text.VectorExtraction;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -23,6 +17,23 @@ namespace LinqInfer.Text
         }
 
         /// <summary>
+        /// Read a HTML document from the text reader, converting it into an <see cref="XDocument"/>
+        /// </summary>
+        /// <param name="reader">A text reader</param>
+        /// <returns>An <see cref="XDocument"/></returns>
+        public static XDocument OpenAsHtmlDocument(this TextReader reader)
+        {
+            var nodes = new HtmlParser(true).Parse(reader).ToList();
+
+            if (nodes.Count == 1 && nodes.Single().NodeType == System.Xml.XmlNodeType.Element)
+            {
+                return new XDocument(nodes.Single());
+            }
+
+            return new XDocument(new XElement("html", new XElement("body", nodes)));
+        }
+
+        /// <summary>
         /// Parses a stream as a HTML document, converting it into an <see cref="XDocument"/>
         /// </summary>
         /// <param name="stream">The HTML stream</param>
@@ -32,16 +43,7 @@ namespace LinqInfer.Text
         {
             using (var reader = encoding == null ? new StreamReader(stream, true) : new StreamReader(stream, encoding))
             {
-                var nodes = new HtmlParser(true).Parse(reader).ToList();
-
-                if (nodes.Count == 1 && nodes.Single().NodeType == System.Xml.XmlNodeType.Element)
-                {
-                    return new XDocument(nodes.Single());
-                }
-                else
-                {
-                    return new XDocument(new XElement("html", new XElement("body", nodes)));
-                }
+                return reader.OpenAsHtmlDocument();
             }
         }
     }

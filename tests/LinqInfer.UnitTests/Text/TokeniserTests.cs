@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using LinqInfer.Text;
+using LinqInfer.Text.Tokenisers;
 using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text

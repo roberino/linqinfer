@@ -1,9 +1,9 @@
-﻿using LinqInfer.Maths;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinqInfer.Maths;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Text.Indexing
 {
     public sealed class DocumentTermWeightingData : IEquatable<DocumentTermWeightingData>
     {

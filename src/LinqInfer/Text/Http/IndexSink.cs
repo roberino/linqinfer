@@ -3,6 +3,7 @@ using LinqInfer.Data.Pipes;
 using LinqInfer.Utility;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text.Http
 {

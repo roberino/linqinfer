@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using LinqInfer.Text;
+using LinqInfer.Text.Html;
 using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text

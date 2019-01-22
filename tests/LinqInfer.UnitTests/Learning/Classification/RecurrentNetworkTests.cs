@@ -1,4 +1,5 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+﻿using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Maths;
 using NUnit.Framework;
 

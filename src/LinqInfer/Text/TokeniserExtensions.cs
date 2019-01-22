@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
+using LinqInfer.Text.Indexing;
+using LinqInfer.Text.Tokenisers;
 
 namespace LinqInfer.Text
 {
@@ -53,6 +55,17 @@ namespace LinqInfer.Text
         public static IEnumerable<IToken> Tokenise(this Stream stream, Encoding encoding = null, ITokeniser tokeniser = null)
         {
             return (new StreamTokeniser(encoding, tokeniser).Tokenise(stream));
+        }
+
+        /// <summary>
+        /// Converts a stream into an enumeration of tokens.
+        /// </summary>
+        /// <param name="reader">The stream of text</param>
+        /// <param name="tokeniser">An optional tokeniser</param>
+        /// <returns>An enumeration of <see cref="IToken"/></returns>
+        public static IEnumerable<IToken> Tokenise(this TextReader reader, ITokeniser tokeniser = null)
+        {
+            return (new TextReaderTokeniser(tokeniser).Tokenise(reader));
         }
     }
 }

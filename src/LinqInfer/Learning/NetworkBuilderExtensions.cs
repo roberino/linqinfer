@@ -1,9 +1,11 @@
 ﻿using System;
+using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Maths;
 
-namespace LinqInfer.Learning.Classification.NeuralNetworks
+namespace LinqInfer.Learning
 {
-    static class NetworkBuilderExtensions
+    public static class NetworkBuilderExtensions
     {
         /// <summary>
         /// Configures a long short term memory network (LSTM)

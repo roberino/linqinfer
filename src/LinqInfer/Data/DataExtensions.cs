@@ -1,9 +1,8 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data
 {

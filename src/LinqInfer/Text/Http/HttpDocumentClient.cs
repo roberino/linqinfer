@@ -8,8 +8,6 @@ namespace LinqInfer.Text.Http
 {
     public sealed class HttpDocumentClient : IDisposable
     {
-        const int MaxVisited = 350;
-
         readonly IHttpClient _client;
         readonly IContentReader _contentReader;
 

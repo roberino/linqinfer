@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Learning;
 
 namespace LinqInfer.TextCrawler
 {
@@ -31,6 +32,11 @@ namespace LinqInfer.TextCrawler
             {
                 await Extract(options);
             }
+        }
+
+        static async Task I(Options options)
+        {
+            //var nf = new NetworkFactory<string>()
         }
 
         static async Task Index(Options options)

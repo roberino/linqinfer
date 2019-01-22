@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
+using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text
 {
-    public static class IndexExtensions
+    public static class IndexingExtensions
     {
         /// <summary>
         /// Returns a document index from an enumeration of tokenised documents

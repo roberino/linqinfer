@@ -24,7 +24,7 @@ namespace LinqInfer.UnitTests.Learning
             Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
 
             var items = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None, 10);
-
+            
             Assert.That(items.First().Vector.Size, Is.EqualTo(2));
         }
 

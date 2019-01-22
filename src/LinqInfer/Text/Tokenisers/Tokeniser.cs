@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Text.Tokenisers
 {
     public class Tokeniser : ITokeniser
     {
-        public IEnumerable<IToken> Tokenise(string corpus)
+        public IEnumerable<IToken> Tokenise(string corpus, int? indexOffset = null)
         {
             if (corpus == null) yield break;
 
@@ -15,7 +15,7 @@ namespace LinqInfer.Text
 
             var type = TokenType.Null;
 
-            int i = 0;
+            int i = indexOffset.GetValueOrDefault();
 
             foreach (var c in corpus)
             {

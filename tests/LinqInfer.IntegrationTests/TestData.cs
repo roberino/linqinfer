@@ -2,18 +2,12 @@
 using LinqInfer.Learning.Features;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace LinqInfer.IntegrationTests
 {
     static class TestData
     {
-        public static IQueryable<Pirate> CreateQueryablePirates()
-        {
-            return CreatePirates().AsQueryable();
-        }
-
         public static IEnumerable<Pirate> CreatePirates()
         {
             yield return new Pirate() { Gold = 100, Age = 25, IsCaptain = false, Ships = 1, Category = "a" };

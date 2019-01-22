@@ -22,31 +22,14 @@ namespace LinqInfer.Text
             _set = _baseSet.Clone(true);
         }
 
-        EnglishDictionary(SemanticSet wordSet)
-        {
-            _set = wordSet;
-        }
-
-        public string this[int id]
-        {
-            get
-            {
-                return _set[id];
-            }
-        }
+        public string this[int id] => _set[id];
 
         public int Append(string word)
         {
             return _set.Append(word);
         }
 
-        public IEnumerable<string> Words
-        {
-            get
-            {
-                return _set.Words;
-            }
-        }
+        public IEnumerable<string> Words => _set.Words;
 
         public string RandomWord()
         {
@@ -56,7 +39,7 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns the count of the words in the set
         /// </summary>
-        public int Count { get { return _set.Count; } }
+        public int Count => _set.Count;
 
         public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75F)
         {

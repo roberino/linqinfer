@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Features
 
                     var exp = $"x => ToString(Property(x, {valueSet.Key}, empty))".AsExpression<T, string>();
 
-                    var fe = new CategoricalFeatureExtractor<T, string>(exp, Feature.CreateDefaults(new[] { valueSet.Key }, FeatureVectorModel.Categorical), set);
+                    var fe = new CategoricalFeatureExtractor<T, string>(exp, set);
 
                     extractors.Add(fe);
                 }

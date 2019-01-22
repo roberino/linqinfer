@@ -1,8 +1,7 @@
-﻿using LinqInfer.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using LinqInfer.Data.Serialisation;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Text.Indexing
 {
     public interface IDocumentIndex : IBinaryPersistable, IXmlExportable, IXmlImportable
     {

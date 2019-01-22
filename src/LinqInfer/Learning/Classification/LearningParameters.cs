@@ -37,6 +37,7 @@ namespace LinqInfer.Learning.Classification
 
         /// <summary>
         /// Gets or sets the size of the error history to retain
+        /// which can be used to calculate the trend of the error
         /// </summary>
         public int ErrorHistoryCount { get; set; } = 3;
 

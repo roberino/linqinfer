@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace LinqInfer.Text
+namespace LinqInfer.Text.Html
 {
     /// <summary>
     /// Crude HTML to Xml document parser.

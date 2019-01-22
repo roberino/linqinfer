@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using NUnit.Framework;
 using System.Linq;
+using LinqInfer.Learning;
 
 namespace LinqInfer.UnitTests.Learning.Classification
 {

@@ -37,34 +37,27 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public double[] Evaluate(IVector input, bool parallelProcess)
         {
-            return Interceptor.Default.Intercept(() =>
+            if (parallelProcess)
             {
-                if (parallelProcess)
-                {
-                    var outputItems = Neurons.AsParallel()
-                        .ForEach(n => n.Evaluate(input));
+                var outputItems = Neurons.AsParallel()
+                    .ForEach(n => n.Evaluate(input));
 
-                    return outputItems.ToArray(_buffer);
-                }
+                return outputItems.ToArray(_buffer);
+            }
 
-                return Neurons.Select(n => n.Evaluate(input)).ToArray(_buffer);
-
-            }, nameof(INeuron.Evaluate));
+            return Neurons.Select(n => n.Evaluate(input)).ToArray(_buffer);
         }
 
         public double ForEachNeuron(Func<INeuron, int, double> func, string operationName = null)
         {
-            return Interceptor.Default.Intercept(() =>
+            var result = 0d;
+
+            for (var i = 0; i < Neurons.Count; i++)
             {
-                var result = 0d;
+                result += func(Neurons[i], i);
+            }
 
-                for (var i = 0; i < Neurons.Count; i++)
-                {
-                    result += func(Neurons[i], i);
-                }
-
-                return result;
-            }, operationName ?? nameof(ForEachNeuron));
+            return result;
         }
 
         public void Resize(int inputSize, int neuronCount)

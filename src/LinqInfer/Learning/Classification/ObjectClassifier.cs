@@ -16,11 +16,6 @@ namespace LinqInfer.Learning.Classification
             _featureExtract = featureExtract;
         }
 
-        public ClassifyResult<TClass> ClassifyAsBestMatch(TInput obj)
-        {
-            return _classifier.ClassifyAsBestMatch(_featureExtract.ExtractVector(obj));
-        }
-
         public IEnumerable<ClassifyResult<TClass>> Classify(TInput obj)
         {
             return _classifier.Classify(_featureExtract.ExtractVector(obj));

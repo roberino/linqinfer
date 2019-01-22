@@ -93,22 +93,6 @@ namespace LinqInfer.Learning
         }
 
         /// <summary>
-        /// Creates an asynchronous pipeline, given a set of data which is categorical
-        /// </summary>
-        public static async Task<IAsyncFeatureProcessingPipeline<TInput>> CreateCategoricalPipelineAsync<TInput>(
-            this IAsyncEnumerator<TInput> dataset,
-            int sampleSize = 10000)
-            where TInput : IEquatable<TInput>
-        {
-            var categories = await dataset.ToDistinctSetAsync(CancellationToken.None, sampleSize);
-
-            var md = Feature.CreateDefaults(categories.Select(c => c.ToString()));
-
-            var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, md, categories);
-            return new AsyncFeatureProcessingPipeline<TInput>(dataset, cfe);
-        }
-
-        /// <summary>
         /// Creates a time sequence which can be used for training
         /// </summary>
         public static async Task<IAsyncTrainingSet<TInput, TInput>> CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
@@ -118,9 +102,7 @@ namespace LinqInfer.Learning
         {
             var categories = await dataset.ToDistinctSetAsync(CancellationToken.None, sampleSize);
 
-            var md = Feature.CreateDefaults(categories.Select(c => c.ToString()));
-
-            var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, md, categories);
+            var cfe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, categories);
             return new TimeSequenceAsyncTrainingSet<TInput>(dataset, cfe);
         }
 

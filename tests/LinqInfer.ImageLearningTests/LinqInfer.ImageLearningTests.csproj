@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyName>LinqInfer.UnitTests</AssemblyName>
-    <RootNamespace>LinqInfer.UnitTests</RootNamespace>
+    <AssemblyName>LinqInfer.ImageLearningTests</AssemblyName>
+    <RootNamespace>LinqInfer.ImageLearningTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

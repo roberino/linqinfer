@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text.Http
 {
@@ -25,7 +26,7 @@ namespace LinqInfer.Text.Http
         /// </summary>
         public static ICorpus CreateVirtualCorpus(this IAsyncEnumerator<HttpDocument> httpDocumentSource)
         {
-            var tokenSource = httpDocumentSource.TransformEachBatch(b =>
+            var tokenSource = (AsyncEnumerator<IToken>)httpDocumentSource.TransformEachBatch(b =>
             {
                 return b.SelectMany(d => d.Tokens).ToList();
             });

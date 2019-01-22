@@ -1,4 +1,5 @@
 ﻿using LinqInfer.Text;
+using LinqInfer.Text.Html;
 using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text

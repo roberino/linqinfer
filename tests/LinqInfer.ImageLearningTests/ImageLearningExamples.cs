@@ -1,16 +1,14 @@
-﻿using System;
+﻿using LinqInfer.Learning;
+using LinqInfer.Maths;
+using LinqInfer.Utility;
+using NUnit.Framework;
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Learning;
-using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Maths;
-using LinqInfer.Tests.Learning;
-using LinqInfer.Utility;
-using NUnit.Framework;
 
-namespace LinqInfer.UnitTests
+namespace LinqInfer.ImageLearningTests
 {
     [TestFixture]
     public class ImageLearningExamples
@@ -20,17 +18,17 @@ namespace LinqInfer.UnitTests
         {
             const int size = 15;
 
-            var chars = ImageSampleGeneration.Characters('O', 'i', 'X').ToArray();
+            var chars = new[] {'O', 'i', 'X'};
 
             var bitmapDataSource = chars
                 .Letters(size, FontFamily.GenericMonospace)
                 .Concat(chars.Letters(size, FontFamily.GenericSansSerif))
                 .RandomOrder()
                 .ToList();
-
+            
             var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(180));
             var token = tokenSource.Token;
-
+            
             var trainingSet = await bitmapDataSource
                 .AsAsyncEnumerator()
                 .CreatePipeline(l => l.VectorData, size * size)
@@ -51,7 +49,7 @@ namespace LinqInfer.UnitTests
                 });
             });
 
-            await trainingSet.RunAsync(token, 2500);
+            await trainingSet.RunAsync(token, 300);
 
             var data = network.ExportData();
 

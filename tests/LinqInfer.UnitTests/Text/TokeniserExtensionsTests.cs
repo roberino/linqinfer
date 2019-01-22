@@ -1,13 +1,26 @@
 ﻿using LinqInfer.Text;
 using NUnit.Framework;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using LinqInfer.Data.Pipes;
 
 namespace LinqInfer.UnitTests.Text
 {
     [TestFixture]
     public class TokeniserExtensionsTests : TestFixtureBase
     {
+        [Test]
+        public async Task CreateCorpus_FromTextReader_CanReadTokens()
+        {
+            var corpus = TestData.CreateReader().CreateCorpus();
+
+            var data = await corpus.ReadBlocksAsync().ToMemoryAsync(CancellationToken.None);
+
+            Assert.That(data.Count, Is.GreaterThanOrEqualTo(500));
+        }
+
         [Test]
         public void WhenTokenisedAndIndexed_ThenDocsCanBeSearched()
         {

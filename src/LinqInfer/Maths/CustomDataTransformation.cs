@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility.Expressions;
+using System;
+using System.Linq.Expressions;
 
 namespace LinqInfer.Maths
 {

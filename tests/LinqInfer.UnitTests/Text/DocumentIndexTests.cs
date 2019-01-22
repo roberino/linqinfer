@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
+using LinqInfer.Text.Indexing;
 using NUnit.Framework;
 
 namespace LinqInfer.UnitTests.Text
@@ -123,7 +124,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var search = new DocumentIndex();
 
-            var docs = TestData.TestDocuments();
+            var docs = TestData.CreateTextDocuments();
 
             search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -143,7 +144,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var index1 = new DocumentIndex();
 
-            var docs = TestData.TestDocuments();
+            var docs = TestData.CreateTextDocuments();
 
             index1.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -163,7 +164,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var search = new DocumentIndex();
 
-            var docs = TestData.TestDocuments();
+            var docs = TestData.CreateTextDocuments();
 
             search.IndexDocuments(docs, d => d.Root.Attribute("id").Value);
 
@@ -178,7 +179,7 @@ namespace LinqInfer.UnitTests.Text
         {
             var index = new DocumentIndex();
 
-            var docs = TestData.TestDocuments();
+            var docs = TestData.CreateTextDocuments();
 
             int id = 0;
 
