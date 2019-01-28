@@ -19,18 +19,18 @@ namespace LinqInfer.Learning.Features
                 propertyExtractor.HasValue;
         }
 
-        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder();
         }
 
-        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IVectorFeatureExtractor<T>>
         {
             public bool CanReceive => false;
 
-            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            public Task<IVectorFeatureExtractor<T>> BuildAsync()
             {
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(
+                return Task.FromResult<IVectorFeatureExtractor<T>>(
                     new ObjectFeatureExtractor<T>());
             }
 

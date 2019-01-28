@@ -20,17 +20,17 @@ namespace LinqInfer.Learning.Features
     class FeatureExtractorFactory<T> : IFeatureExtractorFactory<T>
     {
         readonly IDictionary<string,
-                Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>>>
+                Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>>>
             _featureExtractorFactories;
 
         public FeatureExtractorFactory(
-            params (string type, Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>> fact)[] factories)
+            params (string type, Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>> fact)[] factories)
         {
             _featureExtractorFactories = factories.ToDictionary(f => f.type, f => f.fact);
         }
 
-        public IFeatureExtractorFactory<T> Register<TF>(Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>> factoryMethod)
-            where TF : IFloatingPointFeatureExtractor<T>
+        public IFeatureExtractorFactory<T> Register<TF>(Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>> factoryMethod)
+            where TF : IVectorFeatureExtractor<T>
         {
             _featureExtractorFactories[NameOf<TF>()] = factoryMethod;
             return this;
@@ -56,7 +56,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc)
+        public IVectorFeatureExtractor<T> Create(PortableDataDocument doc)
         {
             try
             {

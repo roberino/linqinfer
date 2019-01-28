@@ -28,5 +28,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Enqueues input to be processed
         /// </summary>
         void Receive(IVector input);
+
+        /// <summary>
+        /// Resets the state back to empty (clears the last outputs)
+        /// </summary>
+        void Reset();
     }
 }

@@ -9,7 +9,7 @@ using LinqInfer.Utility.Expressions;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>
+    class OneHotTextEncoding<T> : IVectorFeatureExtractor<T>
     {
         readonly Expression<Func<T, string[]>> _objectToStringTransformExpression;
         readonly Func<T, string[]> _objectToStringTransform;
@@ -33,19 +33,11 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractVector(_objectToStringTransform(obj));
-        }
+        public bool CanEncode(T obj) => true;
 
         public IVector ExtractIVector(T obj)
         {
             return ExtractOneOfNVector(_objectToStringTransform(obj));
-        }
-
-        public double[] ExtractVector(string[] tokens)
-        {
-            return ExtractOneOfNVector(tokens).ToColumnVector().GetUnderlyingArray();
         }
 
         public IVector ExtractOneOfNVector(string[] tokens)

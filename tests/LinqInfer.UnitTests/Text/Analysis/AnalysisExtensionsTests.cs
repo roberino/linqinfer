@@ -39,7 +39,6 @@ namespace LinqInfer.UnitTests.Text.Analysis
             var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
             var trainingData = cbow.AsNGramAsyncTrainingSet(contextPadding);
 
-            int counter = 0;
 
             var data = await trainingData.Source.ToMemoryAsync(CancellationToken.None);
 

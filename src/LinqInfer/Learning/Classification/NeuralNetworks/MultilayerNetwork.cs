@@ -1,5 +1,4 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
 using System;
@@ -8,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    class MultilayerNetwork :
-        ICloneableObject<MultilayerNetwork>, INetworkModel, IHasNetworkTopology
+    class MultilayerNetwork : IMultilayerNetwork
     {
         IVector _lastOutput;
         INetworkSignalFilter _outputModule;
@@ -49,6 +47,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             });
 
             return data;
+        }
+
+        public void Reset()
+        {
+            ForwardPropagate(n => n.Reset());
         }
 
         public void ForwardPropagate(Action<INetworkSignalFilter> work)
@@ -110,7 +113,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return $"Network({Specification.InputVectorSize}):{s}";
         }
 
-        public MultilayerNetwork Clone(bool deep) => CreateFromData(ExportData());
+        public IMultilayerNetwork Clone(bool deep) => CreateFromData(ExportData());
 
         public object Clone() => Clone(true);
 

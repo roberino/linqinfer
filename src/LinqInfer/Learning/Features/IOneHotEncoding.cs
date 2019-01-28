@@ -8,6 +8,8 @@ namespace LinqInfer.Learning.Features
     {
         int VectorSize { get; }
 
+        bool HasEntry(T obj);
+
         OneOfNVector Encode(T obj);
 
         BitVector Encode(IEnumerable<T> categories);

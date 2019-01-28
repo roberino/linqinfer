@@ -48,7 +48,7 @@ namespace LinqInfer.Learning
             return graph;
         }
 
-        async Task CreateBinaryGraph(IFloatingPointFeatureExtractor<TInput> featureExtractor, WeightedGraphNode<DataLabel<TInput>, double> parent, IEnumerable<TInput> input, CancellationToken cancellationToken)
+        async Task CreateBinaryGraph(IVectorFeatureExtractor<TInput> featureExtractor, WeightedGraphNode<DataLabel<TInput>, double> parent, IEnumerable<TInput> input, CancellationToken cancellationToken)
         {
             DebugOutput.Log($"Map nodes: {input.Count()}");
 

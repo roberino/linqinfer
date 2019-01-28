@@ -7,14 +7,14 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    class TransformingFeatureExtractor<TInput> : IFloatingPointFeatureExtractor<TInput>
+    class TransformingFeatureExtractor<TInput> : IVectorFeatureExtractor<TInput>
     {
-        readonly IFloatingPointFeatureExtractor<TInput> _baseFeatureExtractor;
+        readonly IVectorFeatureExtractor<TInput> _baseFeatureExtractor;
         readonly List<ISerialisableDataTransformation> _transformations;
 
         IList<IFeature> _transformedFeatures;
 
-        public TransformingFeatureExtractor(IFloatingPointFeatureExtractor<TInput> baseFeatureExtractor)
+        public TransformingFeatureExtractor(IVectorFeatureExtractor<TInput> baseFeatureExtractor)
         {
             _baseFeatureExtractor = baseFeatureExtractor;
             _transformations = new List<ISerialisableDataTransformation>();
@@ -40,15 +40,7 @@ namespace LinqInfer.Learning.Features
             }
         }
 
-        public double[] ExtractVector(TInput obj)
-        {
-            return ExtractColumnVector(obj).GetUnderlyingArray();
-        }
-
-        public ColumnVector1D ExtractColumnVector(TInput obj)
-        {
-            return ExtractIVector(obj).ToColumnVector();
-        }
+        public bool CanEncode(TInput obj) => _baseFeatureExtractor.CanEncode(obj);
 
         public IVector ExtractIVector(TInput obj)
         {
@@ -81,7 +73,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public static TransformingFeatureExtractor<TInput> Create(PortableDataDocument doc, Func<PortableDataDocument, IFloatingPointFeatureExtractor<TInput>> baseFeatureExtractorLoader = null)
+        public static TransformingFeatureExtractor<TInput> Create(PortableDataDocument doc, Func<PortableDataDocument, IVectorFeatureExtractor<TInput>> baseFeatureExtractorLoader = null)
         {
             if (doc.Children.Count != 2)
             {

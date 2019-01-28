@@ -70,26 +70,5 @@ namespace LinqInfer.IntegrationTests
 
             Assert.That(mostProbable, Is.EqualTo("businessmen"));
         }
-
-        [Test]
-        public void CombineClassifier_WithHypotheses()
-        {
-            var pirateSample = TestData.CreatePirates().ToList();
-            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => (p.Age + (p.IsCaptain ? 4 : 0) + p.Ships + p.Gold / 4) > 150 ? "A" : "B");
-
-            var distribution = classifier.Invoke(new TestData.Pirate()
-            {
-                Gold = 120,
-                Age = 26,
-                IsCaptain = false,
-                Ships = 1
-            });
-
-            var hypos = distribution.Select(x => P.Hypothesis(x.Key, x.Value)).AsHypotheses();
-
-            hypos.Update(x => x == "A" ? (5).OutOf(6) : (1).OutOf(10));
-
-            var newPosterier = hypos["A"];
-        }
     }
 }

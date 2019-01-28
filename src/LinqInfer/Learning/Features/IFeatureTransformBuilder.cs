@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Returns the feature extractor
         /// </summary>
-        IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
+        IVectorFeatureExtractor<T> FeatureExtractor { get; }
         
         /// <summary>
         /// Centres the features around the mean

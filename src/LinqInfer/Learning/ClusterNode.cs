@@ -15,7 +15,7 @@ namespace LinqInfer.Learning
     {
         readonly ClusteringParameters _parameters;
         readonly ConcurrentDictionary<T, int> _values;
-        readonly IFloatingPointFeatureExtractor<T> _featureExtractor;
+        readonly IVectorFeatureExtractor<T> _featureExtractor;
 
         /// <summary>
         /// Creates a new node.
@@ -25,7 +25,7 @@ namespace LinqInfer.Learning
         /// <param name="initialLearningRate">The initial learning rate</param>
         /// <param name="initialRadius">When set, this is used to determine the radius of the cluster node which is used to calculate the influence this node has on neighbouring nodes when updating weights.</param>
         /// <param name="learningRateDecayFunction">A function which take the initial rate, current iteration and number of iteration</param>
-        internal ClusterNode(IFloatingPointFeatureExtractor<T> featureExtractor, ColumnVector1D initialWeights, ClusteringParameters parameters)
+        internal ClusterNode(IVectorFeatureExtractor<T> featureExtractor, ColumnVector1D initialWeights, ClusteringParameters parameters)
         {
             _parameters = parameters;
 

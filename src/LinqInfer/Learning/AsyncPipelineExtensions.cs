@@ -87,7 +87,7 @@ namespace LinqInfer.Learning
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IEnumerable<TInput> dataset,
-            IFloatingPointFeatureExtractor<TInput> featureExtractor)
+            IVectorFeatureExtractor<TInput> featureExtractor)
         {
             return new AsyncFeatureProcessingPipeline<TInput>(dataset.AsAsyncEnumerator(), featureExtractor);
         }
@@ -134,7 +134,7 @@ namespace LinqInfer.Learning
         /// </summary>
         internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
             this IAsyncEnumerator<TInput> asyncEnumerator,
-            IFloatingPointFeatureExtractor<TInput> featureExtractor)
+            IVectorFeatureExtractor<TInput> featureExtractor)
             where TInput : class
         {
             return new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor);
@@ -162,7 +162,7 @@ namespace LinqInfer.Learning
         public static IAsyncFeatureProcessingPipeline<TInput>
             CreatePipeline<TInput>(
                 this Func<int, AsyncBatch<TInput>> batchLoaderFunc,
-                IFloatingPointFeatureExtractor<TInput> featureExtractor = null)
+                IVectorFeatureExtractor<TInput> featureExtractor = null)
             where TInput : class
         {
             var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);

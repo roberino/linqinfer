@@ -14,19 +14,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         protected readonly Config _config;
 
-        protected MultilayerNetwork _network;
+        protected IMultilayerNetwork _network;
 
         public MultilayerNetworkObjectClassifier(
-            IFloatingPointFeatureExtractor<TInput> featureExtractor,
+            IVectorFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
-            MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
+            IMultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
             Statistics = new ClassifierStats();
 
-            if (network != null)
-            {
-                Setup(network);
-            }
+            _network = network;
         }
 
         MultilayerNetworkObjectClassifier(Config config)
@@ -34,6 +31,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Statistics = new ClassifierStats();
 
             _config = config;
+        }
+
+        public void Reset()
+        {
+            _network.Reset();
         }
 
         public ClassifierStats Statistics { get; private set; }
@@ -134,7 +136,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         static Config Setup(
-            IFloatingPointFeatureExtractor<TInput> featureExtractor,
+            IVectorFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
@@ -146,16 +148,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        void Setup(MultilayerNetwork network)
-        {
-            _network = network;
-        }
-
         protected class Config
         {
             public TInput NormalisingSample { get; set; }
             public ICategoricalOutputMapper<TClass> OutputMapper { get; set; }
-            public IFloatingPointFeatureExtractor<TInput> FeatureExtractor { get; set; }
+            public IVectorFeatureExtractor<TInput> FeatureExtractor { get; set; }
         }
     }
 }

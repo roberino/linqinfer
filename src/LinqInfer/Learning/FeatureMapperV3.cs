@@ -95,7 +95,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        internal HashSet<ClusterNode<T>> SetupOutputNodes(IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal HashSet<ClusterNode<T>> SetupOutputNodes(IVectorFeatureExtractor<T> featureExtractor)
         {
             return new HashSet<ClusterNode<T>>(
                     Enumerable

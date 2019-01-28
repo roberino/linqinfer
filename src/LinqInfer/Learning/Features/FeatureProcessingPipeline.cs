@@ -12,7 +12,7 @@ namespace LinqInfer.Learning.Features
     {
         TransformingFeatureExtractor<T> _featureExtractor;
 
-        internal FeatureProcessingPipeline(IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null)
+        internal FeatureProcessingPipeline(IQueryable<T> data, IVectorFeatureExtractor<T> featureExtractor = null)
         {
             Data = data;
             
@@ -31,7 +31,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Returns the feature extractor
         /// </summary>
-        public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
+        public IVectorFeatureExtractor<T> FeatureExtractor => _featureExtractor;
 
         /// <summary>
         /// Returns the size of the vector returned

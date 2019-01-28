@@ -9,14 +9,14 @@ namespace LinqInfer.Learning
 {
     public class NetworkFactory<TInput>
     {
-        readonly IFloatingPointFeatureExtractor<TInput> _featureExtractor;
+        readonly IVectorFeatureExtractor<TInput> _featureExtractor;
 
-        NetworkFactory(IFloatingPointFeatureExtractor<TInput> featureExtractor)
+        NetworkFactory(IVectorFeatureExtractor<TInput> featureExtractor)
         {
             _featureExtractor = featureExtractor;
         }
 
-        public static NetworkFactory<TInput> CreateNetworkFactory(IFloatingPointFeatureExtractor<TInput> featureExtractor)
+        public static NetworkFactory<TInput> CreateNetworkFactory(IVectorFeatureExtractor<TInput> featureExtractor)
         {
             return new NetworkFactory<TInput>(featureExtractor);
         }

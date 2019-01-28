@@ -1,22 +1,26 @@
-﻿using LinqInfer.Text.Http;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning;
+using LinqInfer.Learning.Classification.NeuralNetworks;
+using LinqInfer.Text;
+using LinqInfer.Text.Http;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using LinqInfer.Learning;
 
 namespace LinqInfer.TextCrawler
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var options = new Options();
 
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
-                Run(options).Wait();
+                await Run(options);
             }
 
             Console.ReadKey();
@@ -24,19 +28,90 @@ namespace LinqInfer.TextCrawler
 
         static async Task Run(Options options)
         {
-            if(options.OutputPath == "i")
+            if(options.Mode == "i")
             {
                 await Index(options);
             }
             else
             {
-                await Extract(options);
+                if (options.Mode == "n")
+                {
+                    await Network(options);
+                }
+                else
+                {
+                    await Extract(options);
+                }
             }
         }
 
-        static async Task I(Options options)
+        static async Task Network(Options options)
         {
-            //var nf = new NetworkFactory<string>()
+            var nf = NetworkFactory<string>.CreateCategoricalNetworkFactory(1024);
+
+            INetworkClassifier<string, string> network;
+
+            if (File.Exists("network.xml"))
+            {
+                using (var file = File.OpenText("network.xml"))
+                {
+                    var doc = XDocument.Load(file);
+                    var pdoc = new PortableDataDocument(doc);
+                    network = pdoc.OpenAsMultilayerNetworkClassifier<string, string>();
+                }
+            }
+            else
+            {
+                network = nf.CreateLongShortTermMemoryNetwork<string>(1024);
+            }
+
+            while (true)
+            {
+                var line = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(line))
+                {
+                    break;
+                }
+
+                var tokens = line.Tokenise();
+
+                var words = tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd).ToList();
+
+                if (line.EndsWith('?'))
+                {
+                    var lastResult = string.Empty;
+
+                    foreach (var token in words)
+                    {
+                        var results = network.Classify(token.NormalForm());
+                        lastResult = results.First().ClassType;
+                        Console.Write(token.Text + ' ');
+                    }
+
+                    Console.Write(lastResult);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    var last = words.FirstOrDefault();
+
+                    foreach (var token in words.Skip(1))
+                    {
+                        network.Train(last.NormalForm(), token.NormalForm());
+                        last = token;
+                    }
+
+                    using (var file = File.OpenWrite("network.xml"))
+                    {
+                        network.ExportData().ExportAsXml().Save(file);
+                    }
+                }
+
+                network.Reset();
+            }
+
+            await Task.CompletedTask;
         }
 
         static async Task Index(Options options)

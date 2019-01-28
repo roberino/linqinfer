@@ -359,7 +359,7 @@ namespace LinqInfer.Text.Indexing
                 .Select(d => new KeyValuePair<string, float>(d.key, (float)d.score));
         }
 
-        internal IFloatingPointFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
+        internal IVectorFeatureExtractor<T> CreateVectorExtractor<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
         {
             Contract.Requires(maxVectorSize > 0);
 
@@ -377,7 +377,7 @@ namespace LinqInfer.Text.Indexing
                 .Take(maxVectorSize), wf.Select(f => (int)f.TermFrequency).ToArray()).CreateObjectTextVectoriser(tokeniser);
         }
 
-        internal IFloatingPointFeatureExtractor<T> CreateVectorExtractorByDocumentKey<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
+        internal IVectorFeatureExtractor<T> CreateVectorExtractorByDocumentKey<T>(Func<T, IEnumerable<IToken>> tokeniser, int maxVectorSize = 128) where T : class
         {
             Contract.Requires(maxVectorSize > 0);
 
@@ -410,7 +410,7 @@ namespace LinqInfer.Text.Indexing
                 .CreateObjectTextVectoriser(tokeniser);
         }
 
-        internal IFloatingPointFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128, bool normalise = true)
+        internal IVectorFeatureExtractor<IEnumerable<IToken>> CreateVectorExtractor(int maxVectorSize = 128, bool normalise = true)
         {
             Contract.Requires(maxVectorSize > 0);
 

@@ -21,11 +21,11 @@ namespace LinqInfer.Learning.Features
             Setup();
         }
 
-        public async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(
+        public async Task<IVectorFeatureExtractor<T>> BuildAsync(
             IAsyncEnumerator<T> samples,
             CancellationToken cancellationToken)
         {
-            var extractors = new List<IFloatingPointFeatureExtractor<T>>();
+            var extractors = new List<IVectorFeatureExtractor<T>>();
 
             var strategyBuilders = _strategies
                 .Where(s => s.CanBuild)

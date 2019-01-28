@@ -1,8 +1,7 @@
 ﻿using LinqInfer.Maths;
-using System;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using LinqInfer.Utility;
+using System;
+using System.Linq;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -27,7 +26,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public NeuronBase(int inputVectorSize, Range range)
         {
-            Bias = Functions.RandomDouble(range.Min, range.Max);
+            Bias = range.AsRandomGenerator()();
             _weights = range.Size == 0 ?
                 Vector.UniformVector(inputVectorSize, 0).ToColumnVector() :
                 Functions.RandomVector(inputVectorSize, range);

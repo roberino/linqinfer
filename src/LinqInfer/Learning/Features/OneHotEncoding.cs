@@ -35,6 +35,8 @@ namespace LinqInfer.Learning.Features
 
         public int VectorSize { get; }
 
+        public bool HasEntry(T obj) => Lookup.ContainsKey(obj);
+
         public OneOfNVector Encode(T obj)
         {
             return new OneOfNVector(VectorSize, GetIndex(obj));

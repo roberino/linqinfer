@@ -18,7 +18,6 @@ namespace LinqInfer.Learning.Features
         internal OutputMapper(IOneHotEncoding<T> encoder)
         {
             _encoder = encoder;
-            FeatureMetadata = Feature.CreateDefaults(_encoder.IndexTable.Select(k => k.ToString()));
         }
 
         public IEnumerable<ClassifyResult<T>> Map(IVector output)
@@ -44,18 +43,23 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<T> OutputClasses => _encoder.IndexTable.Select(x => x.Key);
 
-        public int VectorSize => _encoder.IndexTable.Count();
+        public int VectorSize => _encoder.VectorSize;
 
-        public IEnumerable<IFeature> FeatureMetadata { get; }
+        public IEnumerable<IFeature> FeatureMetadata =>
+            _encoder.IndexTable.Select(k => new Feature()
+            {
+                Key = k.Value.ToString(),
+                Label = k.Key.ToString(),
+                Index = k.Value,
+                Model = FeatureVectorModel.Categorical,
+                DataType = Type.GetTypeCode(typeof(T))
+            });
+
+        public bool CanEncode(T obj) => _encoder.HasEntry(obj);
 
         public IVector ExtractIVector(T obj)
         {
             return _encoder.Encode(obj);
-        }
-
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
         public PortableDataDocument ExportData()

@@ -23,14 +23,14 @@ namespace LinqInfer.UnitTests.Learning.Features
 
             var extractor = await builder.BuildAsync();
 
-            var vect = extractor.ExtractVector(new CategoricalModel()
+            var vect = extractor.ExtractIVector(new CategoricalModel()
             {
                 Colour = "Red",
                 TypeChar = "C",
                 Weight = 4323
             });
 
-            Assert.That(vect.Length, Is.EqualTo(6));
+            Assert.That(vect.Size, Is.EqualTo(6));
         }
 
         [Test]

@@ -14,6 +14,11 @@ namespace LinqInfer.Learning.Classification
         ClassifierStats Statistics { get; }
 
         /// <summary>
+        /// Resets the state of the classifier
+        /// </summary>
+        void Reset();
+
+        /// <summary>
         /// Adds a new training sample to the classifier
         /// </summary>
         /// <param name="obj">The object being classified</param>

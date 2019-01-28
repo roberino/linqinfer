@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
-    public class CategoricalFeatureExtractor<TInput, TCategory> : IFloatingPointFeatureExtractor<TInput>, IHasCategoricalEncoding<TCategory>
+    public class CategoricalFeatureExtractor<TInput, TCategory> : IVectorFeatureExtractor<TInput>, IHasCategoricalEncoding<TCategory>
     {
         readonly Func<TInput, TCategory> _categorySelector;
         readonly Expression<Func<TInput, TCategory>> _categorySelectorExp;
@@ -44,14 +44,11 @@ namespace LinqInfer.Learning.Features
 
         public IOneHotEncoding<TCategory> Encoder { get; }
 
+        public bool CanEncode(TInput obj) => Encoder.HasEntry(_categorySelector(obj));
+
         public IVector ExtractIVector(TInput obj)
         {
             return Encoder.Encode(_categorySelector(obj));
-        }
-
-        public double[] ExtractVector(TInput obj)
-        {
-            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
         public PortableDataDocument ExportData()

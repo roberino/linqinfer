@@ -14,7 +14,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Returns the feature extractor
         /// </summary>
-        IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
+        IVectorFeatureExtractor<T> FeatureExtractor { get; }
 
         /// <summary>
         /// Returns an enumeration of vector data in batches.

@@ -10,7 +10,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     [DebuggerDisplay("{AverageError}:{Model}")]
     class MultilayerNetworkTrainingContext : IClassifierTrainingContext<INetworkModel>
     {
-        readonly MultilayerNetwork _network;
+        readonly IMultilayerNetwork _network;
         readonly IAssistedLearningProcessor _rawLearningProcessor;
         readonly Func<int> _idFunc;
 
@@ -19,7 +19,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         int _trainingCounter;
         int _currentId;
 
-        public MultilayerNetworkTrainingContext(MultilayerNetwork network, Func<int> idFunc = null)
+        public MultilayerNetworkTrainingContext(IMultilayerNetwork network, Func<int> idFunc = null)
         {
             _currentId = 1;
             _idFunc = idFunc ?? (() => Interlocked.Increment(ref _currentId));

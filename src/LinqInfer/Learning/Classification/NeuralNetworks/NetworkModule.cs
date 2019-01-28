@@ -48,6 +48,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVector Output => OutputVector;
 
+        public void Reset()
+        {
+            OutputVector = Vector.UniformVector(OutputVector.Size, 0);
+        }
+
         public virtual void ImportData(PortableDataDocument doc)
         {
             DebugOutput.LogVerbose($"Importing data into {Id}");

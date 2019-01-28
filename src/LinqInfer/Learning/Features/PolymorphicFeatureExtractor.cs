@@ -2,7 +2,7 @@
 
 namespace LinqInfer.Learning.Features
 {
-    class PolymorphicFeatureExtractor<T> : TypeMapper<T>, IFloatingPointFeatureExtractor<T>
+    class PolymorphicFeatureExtractor<TInput> : TypeMapper<TInput>, IVectorFeatureExtractor<TInput>
     {
         public PolymorphicFeatureExtractor(int vectorSize) : base(vectorSize)
         {
@@ -10,7 +10,9 @@ namespace LinqInfer.Learning.Features
 
         public bool CapacityReached => VectorSize <= CurrentSize;
 
-        public IVector ExtractIVector(T obj)
+        public bool CanEncode(TInput obj) => true;
+
+        public IVector ExtractIVector(TInput obj)
         {
             var map = GetOrCreateMap(obj.GetType());
 
@@ -22,11 +24,6 @@ namespace LinqInfer.Learning.Features
             }
 
             return new ColumnVector1D(data);
-        }
-
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
     }
 }

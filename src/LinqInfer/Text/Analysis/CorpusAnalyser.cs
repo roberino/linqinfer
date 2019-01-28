@@ -15,7 +15,7 @@ namespace LinqInfer.Text.Analysis
         readonly DocumentIndex _index;
         readonly DiscreteMarkovChain<string> _markovChain;
 
-        IFloatingPointFeatureExtractor<IEnumerable<IToken>> _featureExtractor;
+        IVectorFeatureExtractor<IEnumerable<IToken>> _featureExtractor;
 
         public CorpusAnalyser(IEnumerable<TokenisedTextDocument> samples)
         {

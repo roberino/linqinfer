@@ -12,14 +12,14 @@ namespace LinqInfer.Learning.Features
         readonly TransformingFeatureExtractor<T> _featureExtractor;
         readonly IAsyncEnumerator<T> _dataLoader;
 
-        internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IVectorFeatureExtractor<T> featureExtractor)
             : base(ExtractBatches(asyncDataLoader, featureExtractor))
         {
             _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
             _featureExtractor = featureExtractor as TransformingFeatureExtractor<T> ?? new TransformingFeatureExtractor<T>(featureExtractor);
         }
 
-        public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
+        public IVectorFeatureExtractor<T> FeatureExtractor => _featureExtractor;
 
         /// <summary>
         /// Centres and scales the data
@@ -50,7 +50,7 @@ namespace LinqInfer.Learning.Features
             return ExtractBatches(_dataLoader, _featureExtractor);
         }
 
-        static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
+        static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IVectorFeatureExtractor<T> fe)
         {
             return dataLoader
                 .TransformEachBatch(b => b

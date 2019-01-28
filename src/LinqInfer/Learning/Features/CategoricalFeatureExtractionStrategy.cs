@@ -15,12 +15,12 @@ namespace LinqInfer.Learning.Features
             return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == FeatureVectorModel.Categorical;
         }
 
-        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder();
         }
 
-        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IVectorFeatureExtractor<T>>
         {
             readonly TypeMapper<T> _typeMapper;
             readonly IDictionary<string, IDictionary<string, bool>> _lookup;
@@ -35,9 +35,9 @@ namespace LinqInfer.Learning.Features
 
             public bool CanReceive => true;
 
-            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            public Task<IVectorFeatureExtractor<T>> BuildAsync()
             {
-                var extractors = new List<IFloatingPointFeatureExtractor<T>>(_lookup.Count);
+                var extractors = new List<IVectorFeatureExtractor<T>>(_lookup.Count);
 
                 foreach (var valueSet in _lookup)
                 {
@@ -50,7 +50,7 @@ namespace LinqInfer.Learning.Features
                     extractors.Add(fe);
                 }
 
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new MultiStrategyFeatureExtractor<T>(extractors.ToArray()));
+                return Task.FromResult<IVectorFeatureExtractor<T>>(new MultiStrategyFeatureExtractor<T>(extractors.ToArray()));
             }
 
             public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
