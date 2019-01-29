@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class TextDataExtractor : IVectorFeatureExtractor<IEnumerable<IToken>>, IImportableFromDataDocument
+    class TextDataExtractor : IVectorFeatureExtractor<IEnumerable<IToken>>
     {
         const int EXTENDED_FEATURE_COUNT = 4;
         readonly IList<IFeature> _features;
@@ -154,7 +154,16 @@ namespace LinqInfer.Text.VectorExtraction
             return doc;
         }
 
-        public void ImportData(PortableDataDocument doc)
+        public static TextDataExtractor Create(PortableDataDocument doc)
+        {
+            var textDataExtractor = new TextDataExtractor();
+
+            textDataExtractor.ImportData(doc);
+
+            return textDataExtractor;
+        }
+
+        void ImportData(PortableDataDocument doc)
         {
             foreach (var prop in doc.Properties.Where(p => !p.Key.StartsWith("_")))
             {

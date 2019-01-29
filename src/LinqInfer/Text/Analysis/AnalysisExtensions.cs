@@ -67,7 +67,7 @@ namespace LinqInfer.Text.Analysis
 
         public static IAsyncTrainingSet<SyntacticContext, string> AsNGramAsyncTrainingSet(this AsyncContinuousBagOfWords cbow, int contextPadding = 2)
         {
-            var encoder = new OneHotTextEncoding<SyntacticContext>(cbow.WiderVocabulary, t => t.ContextualWords.Select(w => w.Text.ToLowerInvariant()).ToArray());
+            var encoder = new OneHotTextEncoding<SyntacticContext>(cbow.WiderVocabulary, t => t.ContextualWords.Select(w => w.NormalForm()).ToArray());
 
             var pipeline = new AsyncFeatureProcessingPipeline<SyntacticContext>(cbow.GetNGramSource(contextPadding), encoder);
 
@@ -75,7 +75,7 @@ namespace LinqInfer.Text.Analysis
 
             var mapper = omf.Create(cbow.TargetVocabulary.Words);
 
-            return pipeline.AsTrainingSet(t => t.TargetWord.Text.ToLowerInvariant(), mapper);
+            return pipeline.AsTrainingSet(t => t.TargetWord.NormalForm(), mapper);
         }
 
         public static IAsyncTrainingSet<BiGram, string> AsBiGramAsyncTrainingSet(this AsyncContinuousBagOfWords cbow, int contextPadding = 2)

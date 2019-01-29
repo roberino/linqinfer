@@ -47,13 +47,16 @@ namespace LinqInfer.TextCrawler
 
         static async Task Network(Options options)
         {
-            var nf = NetworkFactory<string>.CreateCategoricalNetworkFactory(1024);
+            const string fileName = "network-100.xml";
+            const int size = 100;
+
+            var nf = NetworkFactory<string>.CreateCategoricalNetworkFactory(size);
 
             INetworkClassifier<string, string> network;
 
-            if (File.Exists("network.xml"))
+            if (File.Exists(fileName))
             {
-                using (var file = File.OpenText("network.xml"))
+                using (var file = File.OpenText(fileName))
                 {
                     var doc = XDocument.Load(file);
                     var pdoc = new PortableDataDocument(doc);
@@ -62,7 +65,7 @@ namespace LinqInfer.TextCrawler
             }
             else
             {
-                network = nf.CreateLongShortTermMemoryNetwork<string>(1024);
+                network = nf.CreateLongShortTermMemoryNetwork<string>(size);
             }
 
             while (true)
@@ -102,7 +105,7 @@ namespace LinqInfer.TextCrawler
                         last = token;
                     }
 
-                    using (var file = File.OpenWrite("network.xml"))
+                    using (var file = File.Open(fileName, FileMode.Create, FileAccess.Write))
                     {
                         network.ExportData().ExportAsXml().Save(file);
                     }

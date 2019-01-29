@@ -28,24 +28,14 @@ namespace LinqInfer.UnitTests.Text.VectorExtraction
         {
             var ve = new TextDataExtractor(new[] { "apples", "oranges" }, 5);
 
-            using(var ms = new MemoryStream())
-            {
-                ve.Save(ms);
+            var data = ve.ExportData();
 
-                var data = ms.ToArray();
+            var ve2 = TextDataExtractor.Create(data);
 
-                using (var input = new MemoryStream(data))
-                {
-                    var ve2 = new TextDataExtractor();
+            var vector = ve2.ExtractColumnVector(new[] { new Token("oranges", 0) });
 
-                    ve2.Load(input);
-
-                    var vector = ve2.ExtractColumnVector(new[] { new Token("oranges", 0) });
-
-                    Assert.That(vector.Size, Is.EqualTo(6));
-                    Assert.That((int)(vector[1] * 1000), Is.EqualTo(662));
-                }
-            }
+            Assert.That(vector.Size, Is.EqualTo(6));
+            Assert.That((int)(vector[1] * 1000), Is.EqualTo(662));
         }
     }
 }
