@@ -23,7 +23,7 @@ namespace LinqInfer.UnitTests.Learning
 
             var classifier = trainingSet.AttachLongShortTermMemoryNetwork();
 
-            await trainingSet.RunAsync(CancellationToken.None);
+            await trainingSet.RunAsync(CancellationToken.None, 5);
 
             var results = classifier.Classify('e');
 
