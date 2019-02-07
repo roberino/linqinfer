@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     public sealed class RecurrentNetworkBuilder : INetworkBuilder, IRecurrentNetworkBuilder
     {
         readonly IList<NetworkModuleSpecification> _modules;
-        readonly LearningParameters _learningParams;
+        readonly TrainingParameters trainingParams;
         readonly int _inputVectorSize;
 
         int _currentId;
@@ -19,7 +19,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
             _currentId = 0;
-            _learningParams = new LearningParameters();
+            trainingParams = new TrainingParameters();
             _modules = new List<NetworkModuleSpecification>();
         }
 
@@ -32,15 +32,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public int CreateId() => ++_currentId;
 
-        public IRecurrentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config)
+        public IRecurrentNetworkBuilder ConfigureLearningParameters(Action<TrainingParameters> config)
         {
-            var lp = _learningParams.Clone(true);
+            var lp = trainingParams.Clone(true);
 
             config(lp);
 
             lp.Validate();
 
-            config(_learningParams);
+            config(trainingParams);
 
             return this;
         }
@@ -57,7 +57,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IClassifierTrainingContext<INetworkModel> Build()
         {
             var spec = new NetworkSpecification(
-                _learningParams,
+                trainingParams,
                 _inputVectorSize,
                 _output,
                 _modules.ToArray());

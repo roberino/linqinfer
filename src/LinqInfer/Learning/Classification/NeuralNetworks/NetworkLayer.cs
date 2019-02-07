@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -79,19 +80,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
-        protected override Vector ProcessError(Vector error, IVector predecessorOutput)
+        protected override async Task<Vector> ProcessError(Vector error, IVector predecessorOutput)
         {
-            var nextError = new double[_neuronCluster.InputSize];
+            var nextError = await _neuronCluster.EvaluateError(error);
 
-            for (var i = 0; i < nextError.Length; i++)
-            {
-                nextError[i] = _neuronCluster.ForEachNeuron((nk, k) =>
-                    error[k] * nk[i]);
-            }
+            await Adjust(predecessorOutput, error);
 
-            Adjust(predecessorOutput, error);
-
-            return new Vector(nextError);
+            return nextError;
         }
 
         protected override double[] Calculate(IVector input)
@@ -99,11 +94,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neuronCluster.Evaluate(input, _spec.ParallelProcess);
         }
 
-        void Adjust(IVector previousOutput, Vector layerErrors)
+        Task Adjust(IVector previousOutput, Vector layerErrors)
         {
             DebugOutput.LogVerbose($"Adjust from previous {previousOutput.Size} to {this} using errors {layerErrors.Size}");
 
-            _neuronCluster.ForEachNeuron((n, j) =>
+            return _neuronCluster.ForEachNeuronAsync((n, j) =>
             {
                 var error = layerErrors[j] * Activator.Derivative(n.Output);
 
@@ -126,7 +121,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 });
 
                 return 0;
-            }, "AdjustWeights");
+            });
         }
     }
 }

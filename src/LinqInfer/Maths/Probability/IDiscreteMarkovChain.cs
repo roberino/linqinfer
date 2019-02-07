@@ -1,7 +1,6 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.Collections.Generic;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths.Probability
 {

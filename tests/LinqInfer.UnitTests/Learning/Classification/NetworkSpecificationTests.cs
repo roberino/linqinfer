@@ -37,15 +37,15 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            spec.LearningParameters.MinimumError = 0.1;
+            spec.TrainingParameters.MinimumError = 0.1;
 
-            var halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.09);
+            var halt = spec.TrainingParameters.EvaluateHaltingFunction(0, 0.09);
 
             Assert.True(halt);
 
-            spec.LearningParameters.MinimumError = 0.5;
+            spec.TrainingParameters.MinimumError = 0.5;
 
-            halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.4);
+            halt = spec.TrainingParameters.EvaluateHaltingFunction(0, 0.4);
 
             Assert.True(halt);
         }
@@ -53,7 +53,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void ToVectorDocument_WhenGivenSingleLayerSpec_ThenCorrectInputVectorSizeReturnedWhenImported()
         {
-            var spec = new NetworkSpecification(new LearningParameters(),
+            var spec = new NetworkSpecification(new TrainingParameters(),
                   16,
                 LossFunctions.Square,
                   new NetworkLayerSpecification(1, 4,
@@ -102,8 +102,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             Assert.That(spec2.InputVectorSize, Is.EqualTo(spec.InputVectorSize));
             Assert.That(spec2.Layers.Count, Is.EqualTo(spec.Modules.Count));
-            Assert.That(spec2.LearningParameters.LearningRate, Is.EqualTo(spec.LearningParameters.LearningRate));
-            Assert.That(spec2.LearningParameters.MinimumError, Is.EqualTo(spec.LearningParameters.MinimumError));
+            Assert.That(spec2.TrainingParameters.LearningRate, Is.EqualTo(spec.TrainingParameters.LearningRate));
+            Assert.That(spec2.TrainingParameters.MinimumError, Is.EqualTo(spec.TrainingParameters.MinimumError));
 
             int i = 0;
             foreach (var layer in spec2.Layers)
@@ -120,10 +120,10 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var layer1 = new NetworkLayerSpecification(1, 4, Activators.Sigmoid(), WeightUpdateRules.Default(), new Range(0.4, -0.3));
             var layer2 = new NetworkLayerSpecification(2, 2, Activators.Sigmoid(), WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var spec = new NetworkSpecification(new LearningParameters(), layer1.LayerSize, LossFunctions.CrossEntropy, layer1, layer2);
+            var spec = new NetworkSpecification(new TrainingParameters(), layer1.LayerSize, LossFunctions.CrossEntropy, layer1, layer2);
 
-            spec.LearningParameters.MinimumError = 0.999;
-            spec.LearningParameters.LearningRate = 0.222;
+            spec.TrainingParameters.MinimumError = 0.999;
+            spec.TrainingParameters.LearningRate = 0.222;
 
             return spec;
         }

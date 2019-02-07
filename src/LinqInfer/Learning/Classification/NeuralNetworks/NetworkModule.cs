@@ -3,6 +3,7 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
@@ -115,27 +116,26 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
         }
 
-        public void BackwardPropagate(Vector error)
+        public async Task BackwardPropagate(Vector error)
         {
             var aggregateError = _errorAggregator.Receive(error);
             var lastInput = _inputAggregator.LastInput;
 
             if (aggregateError.received && lastInput != null)
             {
-                var nextError = ProcessError(error, lastInput);
+                var nextError = await ProcessError(error, lastInput);
 
-                foreach (var predecessor in Predecessors)
-                {
-                    predecessor.BackwardPropagate(nextError);
-                }
+                var tasks = Predecessors.Select(p => p.BackwardPropagate(nextError));
+
+                await Task.WhenAll(tasks);
             }
         }
 
         public override string ToString() => $"{Id} in {_inputVectorSize.GetValueOrDefault(Output.Size)} out {Output.Size}";
 
-        protected virtual Vector ProcessError(Vector error, IVector predecessorOutput)
+        protected virtual Task<Vector> ProcessError(Vector error, IVector predecessorOutput)
         {
-            return error;
+            return Task.FromResult(error);
         }
 
         protected virtual double[] Calculate(IVector input)

@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Maths.Graphs;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks

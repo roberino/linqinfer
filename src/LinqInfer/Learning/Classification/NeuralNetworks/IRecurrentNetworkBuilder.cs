@@ -4,7 +4,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public interface IRecurrentNetworkBuilder
     {
-        IRecurrentNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config);
+        IRecurrentNetworkBuilder ConfigureLearningParameters(Action<TrainingParameters> config);
 
         INetworkBuilder ConfigureModules(Func<ModuleBuilderFactory, NetworkOutputSpecification> moduleConfig);
     }

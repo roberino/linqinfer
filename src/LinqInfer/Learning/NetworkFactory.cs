@@ -1,70 +1,97 @@
-﻿using LinqInfer.Learning.Classification.NeuralNetworks;
+﻿using LinqInfer.Data.Serialisation;
+using LinqInfer.Learning.Classification;
+using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using System;
 using System.Linq.Expressions;
-using LinqInfer.Learning.Classification;
-using LinqInfer.Maths;
 
 namespace LinqInfer.Learning
 {
-    public class NetworkFactory<TInput>
+    public static class NetworkFactory
     {
-        readonly IVectorFeatureExtractor<TInput> _featureExtractor;
-
-        NetworkFactory(IVectorFeatureExtractor<TInput> featureExtractor)
+        static INetworkFactory<TInput> CreateNetworkFactory<TInput>(IVectorFeatureExtractor<TInput> featureExtractor)
         {
-            _featureExtractor = featureExtractor;
+            return new NetworkFactoryImpl<TInput>(featureExtractor);
         }
 
-        public static NetworkFactory<TInput> CreateNetworkFactory(IVectorFeatureExtractor<TInput> featureExtractor)
-        {
-            return new NetworkFactory<TInput>(featureExtractor);
-        }
+        public static INetworkFactory<TInput> CreateNetworkFactory<TInput>() =>
+            CreateNetworkFactory(new ObjectFeatureExtractor<TInput>());
 
-        public static NetworkFactory<TInput> CreateNetworkFactory()
-        {
-            var fe = new ObjectFeatureExtractor<TInput>();
+        public static INetworkFactory<TInput> CreateNetworkFactory<TInput>(
+            Expression<Func<TInput, IVector>> vectorExpression, int vectorSize)
+            => CreateNetworkFactory(new ExpressionFeatureExtractor<TInput>(vectorExpression, vectorSize));
 
-            return new NetworkFactory<TInput>(fe);
-        }
-
-        public static NetworkFactory<TInput> CreateNetworkFactoryFromExpression(Expression<Func<TInput, IVector>> vectorExpression, int vectorSize)
-        {
-            var fe = new ExpressionFeatureExtractor<TInput>(vectorExpression, vectorSize);
-
-            return new NetworkFactory<TInput>(fe);
-        }
-
-        public static NetworkFactory<TInput> CreateCategoricalNetworkFactory(int maxCategories)
+        public static ICategoricalNetworkFactory<TInput> CreateCategoricalNetworkFactory<TInput>(int maxCategories)
+            where TInput : IEquatable<TInput>
         {
             var fe = new CategoricalFeatureExtractor<TInput, TInput>(x => x, maxCategories);
 
-            return new NetworkFactory<TInput>(fe);
+            return new CategoricalNetworkFactoryImpl<TInput>(fe);
         }
 
-        public INetworkClassifier<TClass, TInput> CreateLongShortTermMemoryNetwork<TClass>(
-            int maxOutputs)
-            where TClass : IEquatable<TClass>
+        class NetworkFactoryImpl<TInput> : INetworkFactory<TInput>
         {
-            var outputMapper = new OutputMapper<TClass>(new OneHotEncoding<TClass>(maxOutputs));
+            protected readonly IVectorFeatureExtractor<TInput> FeatureExtractor;
 
-            return BuildLongShortTermMemoryNetwork(outputMapper).classifier;
+            public NetworkFactoryImpl(IVectorFeatureExtractor<TInput> featureExtractor)
+            {
+                FeatureExtractor = featureExtractor;
+            }
+
+            public INetworkClassifier<TClass, TInput> CreateConvolutionalNetwork<TClass>(
+                int maxOutputs, 
+                int? hiddenLayerSize = null, 
+                Action<LearningParameters> learningConfig = null) where TClass : IEquatable<TClass>
+            {
+                var outputMapper = new OutputMapper<TClass>(new OneHotEncoding<TClass>(maxOutputs));
+
+                var builder = ConvolutionalNetworkBuilder
+                    .Create(FeatureExtractor.VectorSize)
+                    .ConfigureSoftmaxNetwork(hiddenLayerSize.GetValueOrDefault(maxOutputs * 2), learningConfig);
+
+                var trainingContext = builder.Build();
+
+                var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(FeatureExtractor, outputMapper,
+                    (MultilayerNetwork)trainingContext.Output);
+
+                return classifier;
+            }
         }
 
-        internal (INetworkClassifier<TClass, TInput> classifier, IClassifierTrainingContext<INetworkModel> trainer) BuildLongShortTermMemoryNetwork<TClass>(
-            ICategoricalOutputMapper<TClass> outputMapper)
-            where TClass : IEquatable<TClass>
+        class CategoricalNetworkFactoryImpl<TInput> : NetworkFactoryImpl<TInput>, ICategoricalNetworkFactory<TInput>
+            where TInput : IEquatable<TInput>
         {
-            var builder = RecurrentNetworkBuilder
-                .Create(_featureExtractor.VectorSize)
-                .ConfigureLongShortTermMemoryNetwork(outputMapper.VectorSize);
+            public CategoricalNetworkFactoryImpl(IVectorFeatureExtractor<TInput> featureExtractor) : base(featureExtractor)
+            {
+            }
 
-            var trainingContext = builder.Build();
+            public ITimeSequenceAnalyser<TInput> CreateTimeSequenceAnalyser()
+            {
+                var outputMapper = new OutputMapper<TInput>(new OneHotEncoding<TInput>(FeatureExtractor.VectorSize));
 
-            var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(_featureExtractor, outputMapper,
-                (MultilayerNetwork)trainingContext.Output);
+                return new TimeSequenceAnalyser<TInput>(BuildLongShortTermMemoryNetwork(outputMapper).classifier);
+            }
 
-            return (classifier, trainingContext);
+            public ITimeSequenceAnalyser<TInput> CreateTimeSequenceAnalyser(PortableDataDocument data)
+            {
+                return TimeSequenceAnalyser<TInput>.Create(data);
+            }
+
+            (INetworkClassifier<TInput, TInput> classifier, IClassifierTrainingContext<INetworkModel> trainer)
+                BuildLongShortTermMemoryNetwork(ICategoricalOutputMapper<TInput> outputMapper)
+            {
+                var builder = RecurrentNetworkBuilder
+                    .Create(FeatureExtractor.VectorSize)
+                    .ConfigureLongShortTermMemoryNetwork(outputMapper.VectorSize);
+
+                var trainingContext = builder.Build();
+
+                var classifier = new MultilayerNetworkObjectClassifier<TInput, TInput>(FeatureExtractor, outputMapper,
+                    (MultilayerNetwork) trainingContext.Output);
+
+                return (classifier, trainingContext);
+            }
         }
     }
 }

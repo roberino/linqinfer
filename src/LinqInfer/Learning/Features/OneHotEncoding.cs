@@ -37,6 +37,11 @@ namespace LinqInfer.Learning.Features
 
         public bool HasEntry(T obj) => Lookup.ContainsKey(obj);
 
+        public T GetEntry(int index)
+        {
+            return Lookup.FirstOrDefault(k => k.Value == index).Key;
+        }
+
         public OneOfNVector Encode(T obj)
         {
             return new OneOfNVector(VectorSize, GetIndex(obj));

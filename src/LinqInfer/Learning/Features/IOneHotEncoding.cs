@@ -16,6 +16,8 @@ namespace LinqInfer.Learning.Features
 
         IVector Encode(T[] categories);
 
+        T GetEntry(int index);
+
         IEnumerable<KeyValuePair<T, int>> IndexTable { get; }
     }
 }

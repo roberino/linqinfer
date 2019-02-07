@@ -50,9 +50,10 @@ namespace LinqInfer.TextCrawler
             const string fileName = "network-100.xml";
             const int size = 100;
 
-            var nf = NetworkFactory<string>.CreateCategoricalNetworkFactory(size);
-
-            INetworkClassifier<string, string> network;
+            var factory = NetworkFactory
+                .CreateCategoricalNetworkFactory<string>(size);
+            
+            ITimeSequenceAnalyser<string> network;
 
             if (File.Exists(fileName))
             {
@@ -60,12 +61,12 @@ namespace LinqInfer.TextCrawler
                 {
                     var doc = XDocument.Load(file);
                     var pdoc = new PortableDataDocument(doc);
-                    network = pdoc.OpenAsMultilayerNetworkClassifier<string, string>();
+                    network = factory.CreateTimeSequenceAnalyser(pdoc);
                 }
             }
             else
             {
-                network = nf.CreateLongShortTermMemoryNetwork<string>(size);
+                network = factory.CreateTimeSequenceAnalyser();
             }
 
             while (true)
@@ -79,31 +80,21 @@ namespace LinqInfer.TextCrawler
 
                 var tokens = line.Tokenise();
 
-                var words = tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd).ToList();
+                var words = tokens
+                    .Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd)
+                    .Select(w => w.NormalForm())
+                    .ToList();
 
                 if (line.EndsWith('?'))
                 {
-                    var lastResult = string.Empty;
-
-                    foreach (var token in words)
-                    {
-                        var results = network.Classify(token.NormalForm());
-                        lastResult = results.First().ClassType;
-                        Console.Write(token.Text + ' ');
-                    }
+                    var lastResult = network.SimulateNext(words);
 
                     Console.Write(lastResult);
                     Console.WriteLine();
                 }
                 else
                 {
-                    var last = words.FirstOrDefault();
-
-                    foreach (var token in words.Skip(1))
-                    {
-                        network.Train(last.NormalForm(), token.NormalForm());
-                        last = token;
-                    }
+                    network.Train(words);
 
                     using (var file = File.Open(fileName, FileMode.Create, FileAccess.Write))
                     {

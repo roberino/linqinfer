@@ -33,8 +33,8 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 .Model
                 .Specification;
 
-            Assert.That(spec.LearningParameters.LearningRate, Is.EqualTo(0.12d));
-            Assert.That(spec.LearningParameters.MinimumError, Is.EqualTo(0.33d));
+            Assert.That(spec.TrainingParameters.LearningRate, Is.EqualTo(0.12d));
+            Assert.That(spec.TrainingParameters.MinimumError, Is.EqualTo(0.33d));
         }
 
         [Test]

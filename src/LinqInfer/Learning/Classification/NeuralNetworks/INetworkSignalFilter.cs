@@ -2,6 +2,7 @@
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -22,7 +23,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Executes an action through the network, pushing it backward to previous modules
         /// </summary>
-        void BackwardPropagate(Vector error);
+        Task BackwardPropagate(Vector error);
 
         /// <summary>
         /// Enqueues input to be processed

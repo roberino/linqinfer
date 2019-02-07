@@ -10,11 +10,17 @@ namespace LinqInfer.Learning
             this IAsyncTrainingSet<TInput, TClass> trainingSet)
             where TClass : IEquatable<TClass>
         {
-            var factory = NetworkFactory<TInput>.CreateNetworkFactory(trainingSet.FeaturePipeline.FeatureExtractor);
+            var fe = trainingSet.FeaturePipeline.FeatureExtractor;
+            var om = trainingSet.OutputMapper;
 
-            var context = factory.BuildLongShortTermMemoryNetwork(trainingSet.OutputMapper);
+            var builder = RecurrentNetworkBuilder
+                .Create(fe.VectorSize)
+                .ConfigureLongShortTermMemoryNetwork(om.VectorSize);
 
-            var sink = new MultilayerNetworkAsyncSink<TClass>(context.trainer, context.trainer.Model.Specification.LearningParameters);
+            var trainingContext = builder.Build();
+
+            var sink = new MultilayerNetworkAsyncSink<TClass>(trainingContext, trainingContext.Model.Specification.TrainingParameters);
+
             var classifier = new MultilayerNetworkObjectClassifier<TClass, TInput>(trainingSet.FeaturePipeline.FeatureExtractor, trainingSet.OutputMapper, (MultilayerNetwork)sink.Output);
 
             trainingSet.RegisterSinks(sink);

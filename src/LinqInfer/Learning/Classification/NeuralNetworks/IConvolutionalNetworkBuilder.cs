@@ -8,7 +8,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Configures the parameters used for training
         /// </summary>
-        IConvolutionalNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config);
+        IConvolutionalNetworkBuilder ConfigureLearningParameters(Action<TrainingParameters> config);
 
         /// <summary>
         /// Adds a hidden neuron layer

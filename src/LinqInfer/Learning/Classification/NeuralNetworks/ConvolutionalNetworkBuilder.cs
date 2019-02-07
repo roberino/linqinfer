@@ -10,7 +10,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         readonly int? _expectedOutputSize;
         readonly IList<NetworkModuleSpecification> _layers;
-        readonly LearningParameters _learningParams;
+        readonly TrainingParameters trainingParams;
         readonly int _inputVectorSize;
 
         int _currentId;
@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             _inputVectorSize = ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
             
             _currentId = 0;
-            _learningParams = new LearningParameters();
+            trainingParams = new TrainingParameters();
             _layers = new List<NetworkModuleSpecification>();
         }
 
@@ -34,15 +34,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new ConvolutionalNetworkBuilder(inputVectorSize, expectedOutputSize);
         }
 
-        public IConvolutionalNetworkBuilder ConfigureLearningParameters(Action<LearningParameters> config)
+        public IConvolutionalNetworkBuilder ConfigureLearningParameters(Action<TrainingParameters> config)
         {
-            var lp = _learningParams.Clone(true);
+            var lp = trainingParams.Clone(true);
 
             config(lp);
 
             lp.Validate();
 
-            config(_learningParams);
+            config(trainingParams);
 
             return this;
         }
@@ -108,7 +108,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
 
             var spec = new NetworkSpecification(
-                _learningParams,
+                trainingParams,
                 _inputVectorSize,
                 _output,
                 _layers.ToArray());

@@ -23,7 +23,7 @@ namespace LinqInfer.Maths.Graphs
                     var xd = Convert.ToDouble(x);
                     var yd = Convert.ToDouble(y);
 
-                    return (C)Convert.ChangeType(xd + yd, typeof(C));
+                    return (C) Convert.ChangeType(xd + yd, typeof(C));
                 })));
 
             _workingData = new ConcurrentDictionary<T, WeightedGraphNode<T, C>>();
@@ -31,7 +31,7 @@ namespace LinqInfer.Maths.Graphs
             Cache = new Dictionary<string, object>();
         }
 
-        public event EventHandler<EventArgsOf<T>> Modified;
+        public event Action<T> Modified;
 
         /// <summary>
         /// Exports the graph as a GEXF XML document
@@ -61,7 +61,8 @@ namespace LinqInfer.Maths.Graphs
         /// </summary>
         /// <param name="predicate">A predicate which operates on the label</param>
         /// <returns></returns>
-        public async Task<IEnumerable<WeightedGraphNode<T, C>>> FindAllVertexesAsync(Expression<Func<T, bool>> predicate = null)
+        public async Task<IEnumerable<WeightedGraphNode<T, C>>> FindAllVertexesAsync(
+            Expression<Func<T, bool>> predicate = null)
         {
             var items = new HashSet<WeightedGraphNode<T, C>>();
 
@@ -134,7 +135,8 @@ namespace LinqInfer.Maths.Graphs
 
                 foreach (var edge in await vertex.GetEdgesAsync())
                 {
-                    await match.ConnectToOrModifyWeightAsync(edge.Value.Label, edge.Weight, x => weightMergeFunction(x, edge.Weight));
+                    await match.ConnectToOrModifyWeightAsync(edge.Value.Label, edge.Weight,
+                        x => weightMergeFunction(x, edge.Weight));
                 }
             }
 
@@ -197,7 +199,7 @@ namespace LinqInfer.Maths.Graphs
 
             Cache.Clear();
 
-            Modified?.Invoke(this, new EventArgsOf<T>(label));
+            Modified?.Invoke(label);
         }
     }
 }

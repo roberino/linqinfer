@@ -5,21 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using LinqInfer.Utility.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     [DebuggerDisplay("in {InputSize} out {Size}")]
     class NeuronCluster
     {
+        readonly IWorkOrchestrator _workOrchestrator;
         readonly Func<int, int, IList<INeuron>> _neuronsFactory;
 
         double[] _buffer;
+        double[] _errorBuffer;
 
         public NeuronCluster(
             Func<int, INeuron> neuronFactory,
-            ActivatorExpression activator)
+            ActivatorExpression activator,
+            IWorkOrchestrator workOrchestrator = null)
         {
+            _workOrchestrator = workOrchestrator ?? WorkOrchestrator.Default;
+
             _neuronsFactory = (c, i) =>
             {
                 return Enumerable.Range(1, c).Select(n =>
@@ -31,6 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
 
             _buffer = new double[0];
+            _errorBuffer = new double[0];
 
             Neurons = new List<INeuron>();
         }
@@ -48,7 +54,23 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Neurons.Select(n => n.Evaluate(input)).ToArray(_buffer);
         }
 
-        public double ForEachNeuron(Func<INeuron, int, double> func, string operationName = null)
+        public Task<Vector> EvaluateError(Vector error)
+        {
+            return _workOrchestrator.EnqueueWork(() =>
+            {
+                var nextError = _errorBuffer;
+
+                for (var i = 0; i < nextError.Length; i++)
+                {
+                    nextError[i] = ForEachNeuron((nk, k) =>
+                        error[k] * nk[i]);
+                }
+
+                return new Vector(nextError);
+            });
+        }
+
+        public double ForEachNeuron(Func<INeuron, int, double> func)
         {
             var result = 0d;
 
@@ -58,6 +80,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
 
             return result;
+        }
+
+        public async Task<double> ForEachNeuronAsync(Func<INeuron, int, double> func)
+        {
+            var i = 0;
+
+            var tasks = Neurons
+                .Select(n => (n, i: i++))
+                .Select(x => _workOrchestrator.EnqueueWork(() => func(x.n, x.i)))
+                .ToList();
+
+            var results = await Task.WhenAll(tasks);
+
+            return results.Sum();
         }
 
         public void Resize(int inputSize, int neuronCount)
@@ -70,7 +106,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             }
 
             InputSize = inputSize;
+
             _buffer = new double[neuronCount];
+            _errorBuffer = new double[inputSize];
         }
 
         public IList<INeuron> Neurons { get; }

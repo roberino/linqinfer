@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LinqInfer.Data
 {
-    public static class DataExtensions
+    static class DataExtensions
     {
         public static string ToClob(this IBinaryPersistable blob, bool prefixWithTypeName = true)
         {

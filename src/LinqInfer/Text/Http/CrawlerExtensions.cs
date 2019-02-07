@@ -2,11 +2,11 @@
 using LinqInfer.Maths;
 using LinqInfer.Text.Analysis;
 using LinqInfer.Text.Http;
+using LinqInfer.Text.Indexing;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text.Http
 {

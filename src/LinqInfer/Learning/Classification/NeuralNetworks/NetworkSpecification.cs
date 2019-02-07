@@ -8,39 +8,37 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
-        internal NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
+        internal NetworkSpecification(TrainingParameters trainingParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
         {
-            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+            ArgAssert.AssertNonNull(trainingParameters, nameof(trainingParameters));
             ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
-            LearningParameters = learningParameters;
+            TrainingParameters = trainingParameters;
             InputVectorSize = inputVectorSize;
             Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
             Output = new NetworkOutputSpecification(networkLayers.Last(), lossFunction);
         }
 
-        internal NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
+        internal NetworkSpecification(TrainingParameters trainingParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
         {
-            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
+            ArgAssert.AssertNonNull(trainingParameters, nameof(trainingParameters));
             ArgAssert.AssertGreaterThanZero(networkModules.Length, nameof(networkModules.Length));
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
-            LearningParameters = learningParameters;
+            TrainingParameters = trainingParameters;
             InputVectorSize = inputVectorSize;
             Modules = networkModules.ToList();
             Output = output;
         }
 
-        internal NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new LearningParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
+        internal NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new TrainingParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
         {
         }
 
-        public LearningParameters LearningParameters { get; }
+        public TrainingParameters TrainingParameters { get; }
 
         public int InputVectorSize { get; }
-
-        public NetworkFlowModel NetworkFlowModel { get; set; } = NetworkFlowModel.Convolutional;
 
         public NetworkModuleSpecification Root => Modules.FirstOrDefault();
 
@@ -53,8 +51,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var doc = new PortableDataDocument();
 
             doc.SetType<NetworkSpecification>();
-            doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
-            doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
+            doc.SetPropertyFromExpression(() => TrainingParameters.LearningRate);
+            doc.SetPropertyFromExpression(() => TrainingParameters.MinimumError);
             doc.SetPropertyFromExpression(() => InputVectorSize);
             doc.Properties[nameof(Root)] = Root.Id.ToString();
 
@@ -75,8 +73,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             NetworkSpecification networkSpecification = null;
 
             var ctx = context ?? new NetworkBuilderContext();
-            var learningRate = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.LearningRate, 0.01);
-            var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
+            var learningRate = doc.PropertyOrDefault(() => networkSpecification.TrainingParameters.LearningRate, 0.01);
+            var minimumError = doc.PropertyOrDefault(() => networkSpecification.TrainingParameters.MinimumError, 0.01);
             var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
             var layers = doc.FindChildrenByName<NetworkLayerSpecification>()
@@ -97,7 +95,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                 .ThenBy(m => m.Id)
                 .ToArray();
 
-            var learningParams = new LearningParameters()
+            var learningParams = new TrainingParameters()
             {
                 LearningRate = learningRate,
                 MinimumError = minimumError
@@ -113,7 +111,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             foreach (var layer in Layers)
             {
-                layer.WeightUpdateRule.Initialise(LearningParameters);
+                layer.WeightUpdateRule.Initialise(TrainingParameters);
             }
 
             return this;
@@ -146,7 +144,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         internal void Validate()
         {
-            LearningParameters.Validate();
+            TrainingParameters.Validate();
 
             var dups = Modules.GroupBy(m => m.Id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
 

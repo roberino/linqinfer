@@ -41,10 +41,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Create(expression.AsExpression<WeightUpdateParameters, double>());
         }
 
-        public void Initialise(LearningParameters learningParameters)
+        public void Initialise(TrainingParameters trainingParameters)
         {
-            _learningRate = learningParameters.LearningRate;
-            _momentum = learningParameters.Momentum;
+            _learningRate = trainingParameters.LearningRate;
+            _momentum = trainingParameters.Momentum;
         }
 
         public double AdjustLearningRate(Func<double, double> rateAdjustment)

@@ -11,43 +11,43 @@ namespace LinqInfer.Data.Remoting
 
         public string Id
         {
-            get { return Properties["Id"]; }
-            set { Properties["Id"] = value; }
+            get => Properties[nameof(Id)];
+            set => Properties[nameof(Id)] = value;
         }
         public string ClientId
         {
-            get { return Properties["ClientId"]; }
-            set { Properties["ClientId"] = value; }
+            get => Properties[nameof(ClientId)];
+            set => Properties[nameof(ClientId)] = value;
         }
         public string Path
         {
-            get { return Properties["Path"]; }
-            set { Properties["Path"] = value; }
+            get => Properties[nameof(Path)];
+            set => Properties[nameof(Path)] = value;
         }
         public Verb Verb
         {
-            get { return PropertyOrDefault("Verb", Verb.Default); }
-            set { Properties["Verb"] = value.ToString(); }
+            get => PropertyOrDefault(nameof(Verb), Verb.Default);
+            set => Properties[nameof(Verb)] = value.ToString();
         }
         public int BatchNum
         {
-            get { return PropertyOrDefault("Batch", 0); }
-            set { Properties["Batch"] = value.ToString(); }
+            get => PropertyOrDefault("Batch", 0);
+            set => Properties["Batch"] = value.ToString();
         }
         public bool KeepAlive
         {
-            get { return PropertyOrDefault("KeepAlive", false); }
-            set { Properties["KeepAlive"] = value.ToString(); }
+            get => PropertyOrDefault(nameof(KeepAlive), false);
+            set => Properties[nameof(KeepAlive)] = value.ToString();
         }
         public bool SendResponse
         {
-            get { return PropertyOrDefault("SendResponse", false); }
-            set { Properties["SendResponse"] = value.ToString(); }
+            get => PropertyOrDefault(nameof(SendResponse), false);
+            set => Properties[nameof(SendResponse)] = value.ToString();
         }
         public Uri ForwardingEndpoint
         {
-            get { return Parse(PropertyOrDefault("ForwardTo", null as string)); }
-            set { Properties["ForwardTo"] = value.ToString(); }
+            get => Parse(PropertyOrDefault("ForwardTo", null as string));
+            set => Properties["ForwardTo"] = value.ToString();
         }
 
         Uri Parse(string value)

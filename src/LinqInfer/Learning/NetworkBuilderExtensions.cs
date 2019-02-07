@@ -54,7 +54,7 @@ namespace LinqInfer.Learning
         /// Builds a softmax network configuration
         /// with a single hidden layer
         /// </summary>
-        public static INetworkBuilder ConfigureSoftmaxNetwork(this IConvolutionalNetworkBuilder builder, int hiddenLayerSize, Action<LearningParameters> learningConfig = null)
+        public static INetworkBuilder ConfigureSoftmaxNetwork(this IConvolutionalNetworkBuilder builder, int hiddenLayerSize, Action<TrainingParameters> learningConfig = null)
         {
             return builder
                 .ConfigureLearningParameters(p =>

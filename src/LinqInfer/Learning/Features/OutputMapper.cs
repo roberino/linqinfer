@@ -32,11 +32,16 @@ namespace LinqInfer.Learning.Features
             {
                 if (o.value > 0)
                 {
-                    yield return new ClassifyResult<T>()
+                    var cls = _encoder.GetEntry(o.index);
+
+                    if (cls != null)
                     {
-                        ClassType = _encoder.IndexTable.Single(x => x.Value == o.index).Key,
-                        Score = o.value
-                    };
+                        yield return new ClassifyResult<T>()
+                        {
+                            ClassType = cls,
+                            Score = o.value
+                        };
+                    }
                 }
             }
         }

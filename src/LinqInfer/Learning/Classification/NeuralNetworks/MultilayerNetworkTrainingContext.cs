@@ -114,8 +114,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
-            _network.Specification.LearningParameters.LearningRate =
-                rateAdjustment(_network.Specification.LearningParameters.LearningRate);
+            _network.Specification.TrainingParameters.LearningRate =
+                rateAdjustment(_network.Specification.TrainingParameters.LearningRate);
         }
     }
 }

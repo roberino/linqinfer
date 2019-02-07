@@ -44,7 +44,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenGivenNetworkFromSpecification_ThenCanExportAndImport()
         {
-            var lp = new LearningParameters();
+            var lp = new TrainingParameters();
 
             var spec = new NetworkSpecification(lp,
                 16,
