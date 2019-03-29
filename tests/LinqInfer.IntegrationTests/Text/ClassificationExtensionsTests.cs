@@ -14,6 +14,20 @@ namespace LinqInfer.IntegrationTests.Text
     public class ClassificationExtensionsTests
     {
         [Test]
+        public void T()
+        {
+            var corpus = CorpusDataSource.GetCorpus(2500);
+            var dict = new EnglishDictionary();
+
+            foreach (var block in corpus.Blocks)
+            {
+                var workString = string.Join(',', dict.Encode(block.Select(t => t.Text)));
+
+                Console.WriteLine(workString);
+            }
+        }
+
+        [Test]
         public async Task CreateTextTimeSequenceTrainingSet()
         {
             DebugOutput.VerboseOn = false;

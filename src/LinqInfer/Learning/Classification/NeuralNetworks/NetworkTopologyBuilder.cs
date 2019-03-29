@@ -12,11 +12,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         const string ConfigInvalidMessage = "Cannot create workable network graph";
 
         readonly NetworkSpecification _specification;
+        readonly IWorkOrchestrator _workOrchestrator;
         readonly Dictionary<int, (NetworkModuleSpecification spec, NetworkModule module)> _moduleLookup;
 
-        public NetworkTopologyBuilder(NetworkSpecification specification)
+        public NetworkTopologyBuilder(NetworkSpecification specification, IWorkOrchestrator workOrchestrator = null)
         {
             _specification = specification;
+            _workOrchestrator = workOrchestrator;
             _moduleLookup = new Dictionary<int, (NetworkModuleSpecification spec, NetworkModule module)>();
         }
 
@@ -132,11 +134,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return items;
         }
 
-        static NetworkModule CreateModuleOrLayer(NetworkModuleSpecification spec)
+        NetworkModule CreateModuleOrLayer(NetworkModuleSpecification spec)
         {
             if (spec is NetworkLayerSpecification layerSpecification)
             {
-                return new NetworkLayer(layerSpecification);
+                return new NetworkLayer(layerSpecification, _workOrchestrator);
             }
 
             return new NetworkModule(spec);

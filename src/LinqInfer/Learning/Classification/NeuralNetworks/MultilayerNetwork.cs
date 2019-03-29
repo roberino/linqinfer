@@ -4,6 +4,7 @@ using LinqInfer.Maths.Graphs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -12,7 +13,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         IVector _lastOutput;
         INetworkSignalFilter _outputModule;
 
-        public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
+        public MultilayerNetwork(NetworkSpecification specification, 
+            IDictionary<string, string> properties = null,
+            IWorkOrchestrator workOrchestrator = null)
         {
             specification.Validate();
 
@@ -20,7 +23,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             Properties = properties ?? new Dictionary<string, string>();
 
-            var conf = new NetworkTopologyBuilder(Specification)
+            var conf = new NetworkTopologyBuilder(Specification, workOrchestrator ?? GetOrchestrator())
                 .CreateConfiguration();
 
             _outputModule = conf.output;
@@ -61,12 +64,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public double BackwardPropagate(IVector targetOutput)
         {
+            return BackwardPropagateAsync(targetOutput)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task<double> BackwardPropagateAsync(IVector targetOutput)
+        {
             var lf = Specification.Output.LossFunction;
             var dr = Activators.None().Derivative;
 
             var errAndLoss = lf.Calculate(_lastOutput, targetOutput, dr);
 
-            _outputModule.BackwardPropagate(errAndLoss.DerivativeError);
+            await _outputModule.BackwardPropagate(errAndLoss.DerivativeError);
 
             return errAndLoss.Loss;
         }
@@ -125,5 +136,15 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         internal INetworkSignalFilter RootModule { get; }
+
+        IWorkOrchestrator GetOrchestrator()
+        {
+            if (Specification.InputVectorSize * Specification.Modules.Count > 900)
+            {
+                return WorkOrchestrator.ThreadPool;
+            }
+
+            return WorkOrchestrator.Default;
+        }
     }
 }

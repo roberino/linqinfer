@@ -3,13 +3,46 @@ using LinqInfer.Text;
 using LinqInfer.Text.Tokenisers;
 using NUnit.Framework;
 
-namespace LinqInfer.UnitTests.Text
+namespace LinqInfer.UnitTests.Text.Tokenisers
 {
     [TestFixture]
     public class TokeniserTests
     {
         [Test]
-        public void Tokenise_SimpleExample()
+        public void Tokenise_TwoCharNewLine_ReturnsSingleNewLineToken()
+        {
+            var tokeniser = new Tokeniser();
+
+            var tokens = tokeniser.Tokenise("once\r\nupon").ToList();
+
+            Assert.That(tokens.Count, Is.EqualTo(3));
+            Assert.That(tokens[0].Text, Is.EqualTo("once"));
+            Assert.That(tokens[1].Text, Is.EqualTo("\r\n"));
+            Assert.That(tokens[1].Type, Is.EqualTo(TokenType.NewLine));
+            Assert.That(tokens[2].Text, Is.EqualTo("upon"));
+        }
+
+        [Test]
+        public void Tokenise_NewLines_ReturnsNewLines()
+        {
+            var tokeniser = new Tokeniser();
+
+            var tokens = tokeniser.Tokenise("a b c\nd e\rf").ToList();
+
+            Assert.That(tokens[0].Text, Is.EqualTo("a"));
+            Assert.That(tokens[2].Text, Is.EqualTo("b"));
+            Assert.That(tokens[4].Text, Is.EqualTo("c"));
+            Assert.That(tokens[5].Text, Is.EqualTo("\n"));
+            Assert.That(tokens[5].Type, Is.EqualTo(TokenType.NewLine));
+            Assert.That(tokens[6].Text, Is.EqualTo("d"));
+            Assert.That(tokens[8].Text, Is.EqualTo("e"));
+            Assert.That(tokens[9].Text, Is.EqualTo("\r"));
+            Assert.That(tokens[9].Type, Is.EqualTo(TokenType.NewLine));
+            Assert.That(tokens[10].Text, Is.EqualTo("f"));
+        }
+
+        [Test]
+        public void Tokenise_SomeWords_ReturnsExpectedTokens()
         {
             var tokeniser = new Tokeniser();
 
@@ -39,7 +72,7 @@ namespace LinqInfer.UnitTests.Text
         }
 
         [Test]
-        public void Tokenise_NumericExample()
+        public void Tokenise_IntegersAndDecimals_ReturnsExpectedNumericTokens()
         {
             var tokeniser = new Tokeniser();
 
@@ -61,7 +94,7 @@ namespace LinqInfer.UnitTests.Text
         }
 
         [Test]
-        public void Tokenise_CurrencyExample()
+        public void Tokenise_Currency_ReturnsNumbersAndSymbol()
         {
             var tokeniser = new Tokeniser();
 

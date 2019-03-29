@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using LinqInfer.Text;
 using NUnit.Framework;
 
-namespace LinqInfer.UnitTests.Text
+namespace LinqInfer.UnitTests.Text.Tokenisers
 {
     [TestFixture]
     public class TokenisingTextWriterTests

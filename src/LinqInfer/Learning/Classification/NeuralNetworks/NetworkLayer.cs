@@ -12,8 +12,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         readonly NeuronCluster _neuronCluster;
         readonly NetworkLayerSpecification _spec;
 
-        public NetworkLayer(NetworkLayerSpecification specification)
-            : this(specification, new NeuronCluster(specification.NeuronFactory, specification.Activator))
+        public NetworkLayer(NetworkLayerSpecification specification, IWorkOrchestrator workOrchestrator = null)
+            : this(specification, new NeuronCluster(specification.NeuronFactory, specification.Activator, workOrchestrator))
         {
         }
 
