@@ -55,16 +55,26 @@ namespace LinqInfer.Text.Tokenisers
                     {
                         if (currentToken.Length > 0)
                         {
-                            lastToken = YieldToken(currentToken, lastToken, type, index);
+                            if (char.IsWhiteSpace(c))
+                            {
+                                if (type != TokenType.Null)
+                                {
+                                    lastToken = YieldToken(currentToken, lastToken, type, index);
 
-                            yield return lastToken;
+                                    yield return lastToken;
+                                }
+
+                                type = TokenType.Null;
+                            }
+                            else
+                            {
+                                lastToken = YieldToken(currentToken, lastToken, type, index);
+
+                                yield return lastToken;
+                            }
                         }
 
-                        if (!(lastToken.IsWhiteSpace() && char.IsWhiteSpace(c)))
-                        {
-                            type = TokenType.Null;
-                            currentToken.Append(c);
-                        }
+                        currentToken.Append(c);
                     }
                 }
 

@@ -25,6 +25,7 @@ namespace LinqInfer.Text
 
             if (type.HasValue) Type = type.Value;
         }
+
         public Token(Token previous, string value, int index)
         {
             Text = value;
