@@ -1,7 +1,7 @@
 # Async pipelines
 
-Async pipelines differ from syncronous in that they retrieve data
-asyncronously in batches from a supplied data source. 
+Async pipelines differ from synchronous in that they retrieve data
+asynchronously in batches from a supplied data source. 
 Each pipeline can be configured with numerous sinks, meaning the data 
 batches can be processed by numerous processes
 in parallel.
@@ -31,7 +31,7 @@ private static AsyncBatch<MyDataType> LoadBatch(int batchNum)
 
 ## Text example
 
-The text namespace implements asyncronous pipelines to extract
+The text namespace implements asynchronous pipelines to extract
 data from a HTTP source.
 
 ```cs
