@@ -13,7 +13,7 @@
     <PackageIconUrl>https://raw.githubusercontent.com/roberino/linqinfer/beta/docs/logo.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
-    <Version>4.1.1-beta0103</Version>
+    <Version>5.1.0</Version>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
