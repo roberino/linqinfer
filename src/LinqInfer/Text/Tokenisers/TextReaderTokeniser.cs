@@ -8,7 +8,6 @@ namespace LinqInfer.Text.Tokenisers
     class TextReaderTokeniser
     {
         readonly ITokeniser _tokeniser;
-        readonly Encoding _encoding;
 
         public TextReaderTokeniser(ITokeniser tokeniser = null)
         {
