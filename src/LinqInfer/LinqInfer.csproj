@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>A lightweight, linq-friendly inference library for .NET</Description>
     <AssemblyTitle>LinqInfer</AssemblyTitle>
@@ -13,7 +13,7 @@
     <PackageIconUrl>https://raw.githubusercontent.com/roberino/linqinfer/beta/docs/logo.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
-    <Version>5.1.0</Version>
+    <Version>6.0.0-beta</Version>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
