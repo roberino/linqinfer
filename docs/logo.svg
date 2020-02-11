@@ -29,13 +29,13 @@
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>12</dc:title></cc:Work></rdf:RDF></metadata><defs
    id="defs3745"><linearGradient
    inkscape:collect="always"
-   id="linearGradient1220"><stop
-     style="stop-color:#0036e8;stop-opacity:1;"
+   id="linearGradient884"><stop
+     style="stop-color:#420f13;stop-opacity:1;"
      offset="0"
-     id="stop1216" /><stop
-     style="stop-color:#0036e8;stop-opacity:0;"
+     id="stop880" /><stop
+     style="stop-color:#420f13;stop-opacity:0;"
      offset="1"
-     id="stop1218" /></linearGradient><linearGradient
+     id="stop882" /></linearGradient><linearGradient
    inkscape:collect="always"
    id="linearGradient4677"><stop
      style="stop-color:#e80000;stop-opacity:1;"
@@ -45,7 +45,7 @@
      offset="1"
      id="stop4675" /></linearGradient><radialGradient
    inkscape:collect="always"
-   xlink:href="#linearGradient1220"
+   xlink:href="#linearGradient884"
    id="radialGradient4671"
    cx="393.5"
    cy="156.69501"
@@ -107,7 +107,7 @@
 	
 <radialGradient
    inkscape:collect="always"
-   xlink:href="#linearGradient1220"
+   xlink:href="#linearGradient884"
    id="radialGradient4671-6"
    cx="393.5"
    cy="156.69501"
@@ -117,8 +117,8 @@
    gradientTransform="matrix(1,0,0,0.96969697,-58.331394,79.700825)"
    gradientUnits="userSpaceOnUse" /><radialGradient
    inkscape:collect="always"
-   xlink:href="#linearGradient1220"
-   id="radialGradient1222"
+   xlink:href="#linearGradient884"
+   id="radialGradient886"
    cx="333.75439"
    cy="327.1069"
    fx="333.75439"
@@ -139,12 +139,12 @@
    id="namedview3743"
    showgrid="false"
    inkscape:zoom="1.4142136"
-   inkscape:cx="13.710981"
+   inkscape:cx="59.257198"
    inkscape:cy="136.66435"
    inkscape:window-x="-8"
    inkscape:window-y="-8"
    inkscape:window-maximized="1"
-   inkscape:current-layer="g163"
+   inkscape:current-layer="Calque_1"
    fit-margin-top="0"
    fit-margin-left="0"
    fit-margin-right="0"
@@ -285,7 +285,7 @@
    cy="327.1069"
    rx="22.25"
    ry="21.5"
-   style="fill:url(#radialGradient1222);fill-opacity:1;stroke:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><path
+   style="fill:url(#radialGradient886);fill-opacity:1;stroke:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><path
    style="fill:none;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
    d="m 315.56009,145.17768 -42.80734,18.08324 v 0"
    id="path4577-9"
