@@ -16,7 +16,7 @@ namespace LinqInfer.UnitTests.Learning
             var pipeline1 = data.CreatePipeline();
             var pipeline2 = data.CreatePipeline();
 
-            pipeline1.CentreFeatures().ScaleFeatures(Range.MinusOneToOne);
+            pipeline1.CentreFeatures().ScaleFeatures(LinqInfer.Maths.Range.MinusOneToOne);
 
             var state = pipeline1.SaveState();
 

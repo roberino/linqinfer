@@ -12,10 +12,10 @@ namespace LinqInfer.IntegrationTests.Text
             {
                 if (numberOfWords.HasValue)
                 {
-                    return new Corpus(corpusStream.Tokenise().Take(numberOfWords.Value));
+                    return new Corpus(corpusStream.Tokenise().Take(numberOfWords.Value).ToArray());
                 }
 
-                return new Corpus(corpusStream.Tokenise());
+                return new Corpus(corpusStream.Tokenise().ToArray());
             }
         }
     }

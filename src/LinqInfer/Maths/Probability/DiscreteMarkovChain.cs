@@ -175,7 +175,6 @@ namespace LinqInfer.Maths.Probability
         {
             if (currentState != null)
             {
-
                 if (_root.Following.TryGetValue(currentState, out Transition node))
                 {
                     return node.Following.ToDictionary(x => x.Key, x => x.Value.Frequency);
@@ -276,7 +275,7 @@ namespace LinqInfer.Maths.Probability
             public T Value { get; set; }
         }
 
-        class RuntimeTransition
+        struct RuntimeTransition
         {
             Transition _link;
 

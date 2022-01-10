@@ -16,14 +16,14 @@ namespace LinqInfer.IntegrationTests.Text
     {
         IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
 
-        [Test]
-        public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
-        {
-            await GivenAnAsyncTextTrainingSet();
+        //[Test]
+        //public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
+        //{
+        //    await GivenAnAsyncTextTrainingSet();
 
-            await ThenBigramVectorsCanBeExtracted();
+        //    await ThenBigramVectorsCanBeExtracted();
 
-        }
+        //}
 
         void LogPipeStats(IPipeStatistics stats)
         {

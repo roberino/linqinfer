@@ -1,6 +1,5 @@
-﻿using LinqInfer.Text;
-using LinqInfer.Learning;
-using LinqInfer.Maths.Probability;
+﻿using LinqInfer.Maths.Probability;
+using LinqInfer.Text;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -16,7 +15,10 @@ namespace LinqInfer.IntegrationTests
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
             {
-                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol && t.Text == "?"));
+                var corpus = corpusStream
+                    .Tokenise()
+                    .Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol && t.Text == "?"))
+                    .ToList();
 
                 var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd || (w.Type == TokenType.Symbol && w.Text == "?"), order);
 
@@ -24,6 +26,11 @@ namespace LinqInfer.IntegrationTests
                 {
                     foreach (var w in mk.Simulate())
                     {
+                        if (w is null)
+                        {
+                            break;
+                        }
+
                         Console.Write(w.Text + " ");
                     }
 
@@ -48,6 +55,10 @@ namespace LinqInfer.IntegrationTests
                 {
                     foreach (var w in mk.Simulate())
                     {
+                        if (w is null)
+                        {
+                            break;
+                        }
                         Console.Write(w.Text + " ");
                     }
 

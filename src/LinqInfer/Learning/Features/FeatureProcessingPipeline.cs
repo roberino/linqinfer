@@ -59,7 +59,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         public void RestoreState(PortableDataDocument data) => _featureExtractor = TransformingFeatureExtractor<T>.Create(data);
         
-        public IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null)
+        public IFeatureProcessingPipeline<T> ScaleFeatures(Maths.Range? range = null)
         {
             var minMax = ExtractColumnVectors().MinMaxAndMeanOfEachDimension();
             var transform = minMax.CreateScaleTransformation(range);
@@ -170,7 +170,7 @@ namespace LinqInfer.Learning.Features
         {
             try
             {
-                return CentreFeatures().ScaleFeatures(Range.ZeroToOne);
+                return CentreFeatures().ScaleFeatures(Maths.Range.ZeroToOne);
             }
             catch (Exception ex)
             {
@@ -189,7 +189,7 @@ namespace LinqInfer.Learning.Features
         {
             var fe = FeatureExtractor;
 
-            foreach (var batch in Data.Chunk())
+            foreach (var batch in Data.Chunk(1000))
             {
                 foreach (var item in batch)
                 {

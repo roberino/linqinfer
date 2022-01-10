@@ -41,8 +41,6 @@ namespace LinqInfer.Text
 
         public TokenType GetTokenType(Token previous, string token)
         {
-            const char newLine = (char) 10;
-
             if (string.IsNullOrEmpty(token)) return TokenType.Null;
 
             if (char.IsNumber(token[0]) && token.All(c => char.IsDigit(c)))

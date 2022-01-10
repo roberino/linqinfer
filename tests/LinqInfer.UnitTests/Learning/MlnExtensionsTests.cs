@@ -79,7 +79,7 @@ namespace LinqInfer.UnitTests.Learning
 
             var trainingSet = await data.AsAsyncEnumerator()
                 .BuildPipelineAsync(cancel.Token)
-                .CentreAndScaleAsync(Range.ZeroToOne)
+                .CentreAndScaleAsync(LinqInfer.Maths.Range.ZeroToOne)
                 .AsTrainingSetAsync(x => x.classification, cancel.Token);
 
             var classifier = trainingSet.AttachMultilayerNetworkClassifier(b =>

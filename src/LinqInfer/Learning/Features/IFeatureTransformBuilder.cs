@@ -21,7 +21,7 @@ namespace LinqInfer.Learning.Features
         /// </summary>
         /// <param name="range">The range (defaults to -1 <= =< 1)</param>
         /// <returns></returns>
-        IFeatureProcessingPipeline<T> ScaleFeatures(Range? range = null);
+        IFeatureProcessingPipeline<T> ScaleFeatures(Maths.Range? range = null);
 
         /// <summary>
         /// Performs simple normalisation over the data,

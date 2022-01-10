@@ -50,7 +50,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public IConvolutionalNetworkBuilder AddHiddenLayer(int layerSize,
             ActivatorExpression activator = null,
             WeightUpdateRule weightUpdateRule = null,
-            Range? initialWeightRange = null)
+            Maths.Range? initialWeightRange = null)
         {
             var layer = new NetworkLayerSpecification(
                 CreateId(),
@@ -69,7 +69,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Func<int, ISerialisableDataTransformation> transformationFactory = null,
             ActivatorExpression activator = null,
             WeightUpdateRule weightUpdateRule = null,
-            Range? initialWeightRange = null)
+            Maths.Range? initialWeightRange = null)
         {
             AddHiddenLayer(_expectedOutputSize.GetValueOrDefault(_inputVectorSize), activator ?? Activators.None(), weightUpdateRule, initialWeightRange);
             

@@ -14,7 +14,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// Adds a hidden neuron layer
         /// </summary>
         IConvolutionalNetworkBuilder AddHiddenLayer(int layerSize, ActivatorExpression activator = null,
-            WeightUpdateRule weightUpdateRule = null, Range? initialWeightRange = null);
+            WeightUpdateRule weightUpdateRule = null, Maths.Range? initialWeightRange = null);
 
         /// <summary>
         /// Configures the loss function, output layer and any final transformations
@@ -23,7 +23,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Func<int, ISerialisableDataTransformation> transformationFactory = null,
             ActivatorExpression activator = null,
             WeightUpdateRule weightUpdateRule = null,
-            Range? initialWeightRange = null);
+            Maths.Range? initialWeightRange = null);
 
         /// <summary>
         /// Adds default behaviour when not specified

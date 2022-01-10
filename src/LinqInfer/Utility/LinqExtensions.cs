@@ -107,7 +107,7 @@ namespace LinqInfer.Utility
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
-        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
+        public static Data.Pipes.IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
         {
             return From.Enumerable(values, batchSize);
         }
@@ -118,7 +118,7 @@ namespace LinqInfer.Utility
         /// </summary>
         /// <typeparam name="T">The type of each item in a batch of data</typeparam>
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
-        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        public static Data.Pipes.IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
         {
             return From.EnumerableTasks(batchLoader);
         }
@@ -291,6 +291,7 @@ namespace LinqInfer.Utility
             return Expression.Lambda<Func<T, bool>>(andExp, exp1.Parameters);
         }
 
+#if NET_STD
         /// <summary>
         /// Chunks up a queryable source into batches.
         /// </summary>
@@ -315,6 +316,7 @@ namespace LinqInfer.Utility
                 }
             }
         }
+#endif
 
         internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
         {

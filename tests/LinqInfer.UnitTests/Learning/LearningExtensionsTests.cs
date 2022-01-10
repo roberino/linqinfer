@@ -22,7 +22,7 @@ namespace LinqInfer.UnitTests.Learning
 
             pipeline
                 .CentreFeatures()
-                .ScaleFeatures(new Range(1, -1));
+                .ScaleFeatures(new LinqInfer.Maths.Range(1, -1));
 
             var featureMap = pipeline.ToSofm(2, 0.5f, null, 100).Execute().ToList();
 

@@ -1,8 +1,6 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
-using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -40,20 +38,6 @@ namespace LinqInfer.UnitTests.Learning
             var data = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None);
 
             Assert.That(data.Count, Is.EqualTo(100));
-        }
-
-        [Test]
-        public async Task SendAsync_InvokesPublishAsync()
-        {
-            var pipeline = TestSamples.CreatePipeline();
-
-            var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
-
-            var publisher = Substitute.For<IMessagePublisher>();
-
-            await trainingData.SendAsync(publisher, CancellationToken.None);
-
-            await publisher.Received().PublishAsync(Arg.Is<Message>(m => m.Id != null && m.Properties["_Type"] != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
         }
 
         [Test]

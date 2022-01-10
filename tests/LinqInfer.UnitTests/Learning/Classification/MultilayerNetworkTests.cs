@@ -52,7 +52,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
                 new NetworkLayerSpecification(1, 4,
                 Activators.Threshold(),
                 WeightUpdateRules.Default(),
-                new Range()));
+                new LinqInfer.Maths.Range()));
 
             var attribs = new Dictionary<string, string>()
             {

@@ -162,7 +162,7 @@ namespace LinqInfer.UnitTests.Maths
         [Test]
         public void CosineSimularityMatrix_WhenGivenMatrix_ThenReturnsSquareMatrixOfSameWidth()
         {
-            var m1 = Matrix.RandomMatrix(10, 25, new Range(10, -10));
+            var m1 = Matrix.RandomMatrix(10, 25, new LinqInfer.Maths.Range(10, -10));
 
             var dm = m1.CosineSimularityMatrix;
 
@@ -173,7 +173,7 @@ namespace LinqInfer.UnitTests.Maths
         [Test]
         public void CosineSimularityMatrix_WhenGivenMatrix_ThenReturnsExpectedValues()
         {
-            var m1 = Matrix.RandomMatrix(2, 3, new Range(10, -10));
+            var m1 = Matrix.RandomMatrix(2, 3, new LinqInfer.Maths.Range(10, -10));
 
             var dm = m1.CosineSimularityMatrix;
 
@@ -185,7 +185,7 @@ namespace LinqInfer.UnitTests.Maths
         [Test]
         public void CosineSimularityMatrix_WhenGivenMatrixRotated_ThenReturnsExpectedValues()
         {
-            var m1 = Matrix.RandomMatrix(2, 3, new Range(10, -10)).Rotate();           
+            var m1 = Matrix.RandomMatrix(2, 3, new LinqInfer.Maths.Range(10, -10)).Rotate();           
 
             var dm = m1.CosineSimularityMatrix;
 
@@ -294,7 +294,7 @@ namespace LinqInfer.UnitTests.Maths
         [Test]
         public void Covariance_10X25Matrix_ReturnsCorrectSizeMatrix()
         {
-            var m1 = Matrix.RandomMatrix(10, 25, new Range(10, -10));
+            var m1 = Matrix.RandomMatrix(10, 25, new LinqInfer.Maths.Range(10, -10));
 
             var covarM = m1.CovarianceMatrix;
 

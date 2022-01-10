@@ -307,7 +307,7 @@ namespace LinqInfer.Maths
             return DiagonalMatrix(_ => 1, size);
         }
 
-        public static Matrix RandomMatrix(int width, int height, Range range)
+        public static Matrix RandomMatrix(int width, int height, LinqInfer.Maths.Range range)
         {
             return new Matrix(Enumerable.Range(0, height).Select(n => Functions.RandomVector(width, range)));
         }

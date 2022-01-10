@@ -32,7 +32,7 @@ namespace LinqInfer.ImageLearningTests
             var trainingSet = await bitmapDataSource
                 .AsAsyncEnumerator()
                 .CreatePipeline(l => l.VectorData, size * size)
-                .CentreAndScaleAsync(Range.ZeroToOne)
+                .CentreAndScaleAsync(Maths.Range.ZeroToOne)
                 .AsTrainingSetAsync(l => l.Character, token);
 
             var network = trainingSet.AttachMultilayerNetworkClassifier(b =>

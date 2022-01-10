@@ -22,6 +22,16 @@ namespace LinqInfer.Data.Pipes
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
+        public static IAsyncEnumerator<T> AsyncEnumerable<T>(IAsyncEnumerable<T> values, int batchSize = 1000)
+        {
+            var adapter = new AsyncEnumerableAdapter<T>(values, batchSize);
+
+            return new AsyncEnumerator<T>(adapter);
+        }
+
+        /// <summary>
+        /// Converts an enumeration into an async enumerator
+        /// </summary>
         public static IAsyncEnumerator<T> Enumerable<T>(IEnumerable<T> values, int batchSize = 1000)
         {
             return new AsyncEnumerator<T>(values

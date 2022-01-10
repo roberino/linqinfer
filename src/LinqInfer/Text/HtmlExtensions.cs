@@ -11,11 +11,6 @@ namespace LinqInfer.Text
 {
     public static class HtmlExtensions
     {
-        public static Task<HttpDocument> OpenAsHtmlTokenDocumentAsync(this Uri rootUri)
-        {
-            return new HttpDocumentServices().GetDocumentAsync(rootUri);
-        }
-
         /// <summary>
         /// Read a HTML document from the text reader, converting it into an <see cref="XDocument"/>
         /// </summary>

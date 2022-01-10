@@ -22,7 +22,7 @@ namespace LinqInfer.Learning.Features
         }
 
         public async Task<IVectorFeatureExtractor<T>> BuildAsync(
-            IAsyncEnumerator<T> samples,
+            Data.Pipes.IAsyncEnumerator<T> samples,
             CancellationToken cancellationToken)
         {
             var extractors = new List<IVectorFeatureExtractor<T>>();

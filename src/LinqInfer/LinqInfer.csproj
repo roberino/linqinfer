@@ -1,22 +1,25 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>A lightweight, linq-friendly inference library for .NET</Description>
-    <AssemblyTitle>LinqInfer</AssemblyTitle>
-    <NeutralLanguage>en-GB</NeutralLanguage>
-    <Authors>R Eyres</Authors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <AssemblyName>LinqInfer</AssemblyName>
-    <PackageId>LinqInfer</PackageId>
-    <PackageTags>inference;linq;bayesian probability;reasoning;machine learning;text search;neural networks;markov chains</PackageTags>
-    <PackageProjectUrl>https://github.com/roberino/linqinfer</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/roberino/linqinfer/beta/docs/logo.png</PackageIconUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
-    <Version>6.0.0-beta</Version>
-    <LangVersion>7.2</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\*.txt" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>A lightweight, linq-friendly inference library for .NET</Description>
+		<AssemblyTitle>LinqInfer</AssemblyTitle>
+		<NeutralLanguage>en-GB</NeutralLanguage>
+		<Authors>R Eyres</Authors>
+		<TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+		<AssemblyName>LinqInfer</AssemblyName>
+		<PackageId>LinqInfer</PackageId>
+		<PackageTags>inference;linq;bayesian probability;reasoning;machine learning;text search;neural networks;markov chains</PackageTags>
+		<PackageProjectUrl>https://github.com/roberino/linqinfer</PackageProjectUrl>
+		<PackageLicenseUrl>https://raw.githubusercontent.com/roberino/linqinfer/master/LICENSE</PackageLicenseUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/roberino/linqinfer/beta/docs/logo.png</PackageIconUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>git://github.com/roberino/linqinfer</RepositoryUrl>
+		<Version>6.0.0-beta</Version>
+		<LangVersion>10.0</LangVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\*.txt" />
+	</ItemGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.1'">
+		<DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
+	</PropertyGroup>
 </Project>

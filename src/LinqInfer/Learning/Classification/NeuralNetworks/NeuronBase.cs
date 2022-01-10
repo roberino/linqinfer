@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Activator = activator;
         }
 
-        public NeuronBase(int inputVectorSize, Range range)
+        public NeuronBase(int inputVectorSize, Maths.Range range)
         {
             Bias = range.AsRandomGenerator()();
             _weights = range.Size == 0 ?

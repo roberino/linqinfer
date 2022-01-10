@@ -17,10 +17,9 @@ namespace LinqInfer.Text.Tokenisers
 
         public IEnumerable<IToken> Tokenise(Stream stream)
         {
-            using (var reader = new StreamReader(stream, _encoding, false, 1024, true))
-            {
-                return _tokeniser.Tokenise(reader);
-            }
+            var reader = new StreamReader(stream, _encoding, false, 1024, true);
+
+            return new DisposableEnumerator<IToken>(_tokeniser.Tokenise(reader), reader);
         }
     }
 }

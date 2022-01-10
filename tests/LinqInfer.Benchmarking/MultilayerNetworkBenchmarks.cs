@@ -1,8 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Exporters;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System.Linq;
 using System.Threading;
@@ -54,7 +52,7 @@ namespace LinqInfer.Benchmarking
                         LayerSize,
                         Activators.All().First(a => a.Name == Activator),
                         WeightUpdateRules.Default(),
-                        new Range(1, -1));
+                        new LinqInfer.Maths.Range(1, -1));
                 }
             });
 

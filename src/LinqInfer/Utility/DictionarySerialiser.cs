@@ -31,7 +31,7 @@ namespace LinqInfer.Utility
             using (var writer = new BinaryWriter(output, _encoding, true))
             {
                 writer.Write(data.Count);
-                writer.Write(data.GetType().FullName);
+                writer.Write(data.GetType().AssemblyQualifiedName);
 
                 foreach (var kv in data)
                 {

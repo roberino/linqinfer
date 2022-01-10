@@ -24,7 +24,7 @@ namespace LinqInfer.Learning.Features
         /// <summary>
         /// Centres and scales the data
         /// </summary>
-        public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Range? range = null)
+        public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Maths.Range? range = null)
         {
             var minMaxMean = await MinMaxMeanVector.MinMaxAndMeanOfEachDimensionAsync(ExtractBatches().TransformEachItem(o => o.Vector));
 

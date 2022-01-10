@@ -7,14 +7,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkLayerSpecification : NetworkModuleSpecification
     {
-        public static readonly Range DefaultInitialWeightRange = new Range(0.0001, -0.0001);
+        public static readonly Maths.Range DefaultInitialWeightRange = new Maths.Range(0.0001, -0.0001);
 
         internal NetworkLayerSpecification(
             int id,
             int layerSize,
             ActivatorExpression activator = null,
             WeightUpdateRule weightUpdateRule = null,
-            Range? initialWeightRange = null,
+            Maths.Range? initialWeightRange = null,
             bool parallelProcess = false,
             Func<int, INeuron> neuronFactory = null) : base(id)
         {
@@ -56,7 +56,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         /// <summary>
         /// Gets or sets the initial weight range used to initialise neurons
         /// </summary>
-        public Range InitialWeightRange { get; }
+        public Maths.Range InitialWeightRange { get; }
 
         public override PortableDataDocument ExportData()
         {
@@ -88,7 +88,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             var activator = context.ActivatorFactory.Create(activatorStr);
             var wuRule = context.WeightUpdateRuleFactory.Create(weightUpdateRuleStr);
 
-            var layerSpec = new NetworkLayerSpecification(moduleSpec.Id, layerSize, activator, wuRule, new Range(initRangeMax, initRangeMin))
+            var layerSpec = new NetworkLayerSpecification(moduleSpec.Id, layerSize, activator, wuRule, new Maths.Range(initRangeMax, initRangeMin))
             {
                 InputOperator = moduleSpec.InputOperator
             };

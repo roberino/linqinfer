@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Data.Remoting;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
@@ -59,7 +58,7 @@ namespace LinqInfer.Learning
         /// <param name="range">The scale range</param>
         /// <returns>A pipeline with a centre and scale transform</returns>
         public static async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync<T>(
-            this Task<IAsyncFeatureProcessingPipeline<T>> pipelineTask, Range? range = null)
+            this Task<IAsyncFeatureProcessingPipeline<T>> pipelineTask, Maths.Range? range = null)
         {
             var pipeline = await pipelineTask;
 
@@ -70,7 +69,7 @@ namespace LinqInfer.Learning
         /// Builds an asynchronous pipeline, given a number of feature extractor strategies
         /// </summary>
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
-            this IAsyncEnumerator<TInput> asyncEnumerator,
+            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
             CancellationToken cancellationToken,
             params IFeatureExtractionStrategy<TInput>[] strategies)
             where TInput : class
@@ -96,7 +95,7 @@ namespace LinqInfer.Learning
         /// Creates a time sequence which can be used for training
         /// </summary>
         public static async Task<IAsyncTrainingSet<TInput, TInput>> CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
-                this IAsyncEnumerator<TInput> dataset,
+                this Data.Pipes.IAsyncEnumerator<TInput> dataset,
                 int sampleSize = 10000)
             where TInput : IEquatable<TInput>
         {
@@ -133,7 +132,7 @@ namespace LinqInfer.Learning
         /// Creates an asynchronous pipeline, given a feature extractor
         /// </summary>
         internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
-            this IAsyncEnumerator<TInput> asyncEnumerator,
+            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
             IVectorFeatureExtractor<TInput> featureExtractor)
             where TInput : class
         {
@@ -144,7 +143,7 @@ namespace LinqInfer.Learning
         /// Creates an asynchronous pipeline, given a feature extractor function
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
-            this IAsyncEnumerator<TInput> asyncEnumerator,
+            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
             Expression<Func<TInput, IVector>> featureExtractorFunction,
             int vectorSize)
             where TInput : class
@@ -234,35 +233,6 @@ namespace LinqInfer.Learning
             where TClass : IEquatable<TClass>
         {
             return new AsyncTrainingSet<TInput, TClass>(pipeline, classf, outputMapper);
-        }
-
-        /// <summary>
-        /// Published the data to messaging infrastructure
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The class type</typeparam>
-        /// <param name="trainingSet">The training set</param>
-        /// <param name="publisher">The publisher</param>
-        /// <param name="cancellationToken">A cancellation token to cancel the process</param>
-        /// <returns>The training set</returns>
-        public static async Task<IAsyncTrainingSet<TInput, TClass>> SendAsync<TInput, TClass>(
-            this IAsyncTrainingSet<TInput, TClass> trainingSet,
-            IMessagePublisher publisher,
-            CancellationToken cancellationToken)
-            where TInput : class
-            where TClass : IEquatable<TClass>
-        {
-            await trainingSet
-                .Source
-                .ProcessUsing(async b =>
-                {
-                    var batch = new TrainingBatch(b);
-                    var msg = batch.AsMessage();
-
-                    await publisher.PublishAsync(msg);
-                }, cancellationToken);
-
-            return trainingSet;
         }
     }
 }
