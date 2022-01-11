@@ -1,16 +1,9 @@
 ﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning;
-using LinqInfer.Learning.Classification;
 using LinqInfer.Learning.Classification.NeuralNetworks;
 using LinqInfer.Learning.Features;
 using LinqInfer.Text.Analysis;
 using LinqInfer.Text.VectorExtraction;
-using LinqInfer.Utility;
-using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text
 {

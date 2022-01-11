@@ -54,7 +54,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return Neurons.Select(n => n.Evaluate(input)).ToArray(_buffer);
         }
 
-        public Task<Vector> EvaluateError(Vector error)
+        public ValueTask<Vector> EvaluateError(Vector error)
         {
             return _workOrchestrator.EnqueueWork(() =>
             {
@@ -82,18 +82,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return result;
         }
 
-        public async Task<double> ForEachNeuronAsync(Func<INeuron, int, double> func)
+        public ValueTask<double> ForEachNeuronAsync(Func<INeuron, int, double> func)
         {
-            var i = 0;
+            return new ValueTask<double>(ForEachNeuron(func));
 
-            var tasks = Neurons
-                .Select(n => (n, i: i++))
-                .Select(x => _workOrchestrator.EnqueueWork(() => func(x.n, x.i)))
-                .ToList();
+            //var i = 0;
 
-            var results = await Task.WhenAll(tasks);
+            //var tasks = Neurons
+            //    .Select(n => (n, i: i++))
+            //    .Select(x => _workOrchestrator.EnqueueWork(() => func(x.n, x.i)).AsTask())
+            //    .ToList();
 
-            return results.Sum();
+            //var results = await Task.WhenAll(tasks);
+
+            //return results.Sum();
         }
 
         public void Resize(int inputSize, int neuronCount)

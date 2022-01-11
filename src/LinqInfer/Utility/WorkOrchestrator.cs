@@ -14,10 +14,8 @@ namespace LinqInfer.Utility
 
         class ThreadPoolWorkOrchestrator : IWorkOrchestrator
         {
-            public Task<T> EnqueueWork<T>(Func<T> work, CancellationToken cancellationToken = default)
-            {
-                return Task.Run(work, cancellationToken);
-            }
+            public async ValueTask<T> EnqueueWork<T>(Func<T> work, CancellationToken cancellationToken = default) 
+                => await Task.Run(work, cancellationToken);
 
             public void Dispose()
             {
@@ -26,10 +24,8 @@ namespace LinqInfer.Utility
 
         class InlineWorkOrchestrator : IWorkOrchestrator
         {
-            public Task<T> EnqueueWork<T>(Func<T> work, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(work());
-            }
+            public ValueTask<T> EnqueueWork<T>(Func<T> work, CancellationToken cancellationToken = default) 
+                => new ValueTask<T>(work());
 
             public void Dispose()
             {

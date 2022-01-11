@@ -55,7 +55,7 @@ namespace LinqInfer.Maths
             {
                 x = _func(x);
 
-                if ((haltingFunc?.Invoke(x)).GetValueOrDefault())
+                if (haltingFunc?.Invoke(x) == true)
                 {
                     if (includeHaltValueInResults)
                     {
@@ -70,7 +70,8 @@ namespace LinqInfer.Maths
                 valHistory.Enqueue(x);
                 plotter?.Invoke(n, x);
 
-                if (valHistory.Count > numberOfValuesToReturn) valHistory.Dequeue();
+                if (valHistory.Count > numberOfValuesToReturn) 
+                    valHistory.Dequeue();
             }
 
             timer.Stop();

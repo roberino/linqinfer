@@ -94,11 +94,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return _neuronCluster.Evaluate(input, _spec.ParallelProcess);
         }
 
-        Task Adjust(IVector previousOutput, Vector layerErrors)
+        async Task Adjust(IVector previousOutput, Vector layerErrors)
         {
             DebugOutput.LogVerbose($"Adjust from previous {previousOutput.Size} to {this} using errors {layerErrors.Size}");
-
-            return _neuronCluster.ForEachNeuronAsync((n, j) =>
+            
+            await _neuronCluster.ForEachNeuronAsync((n, j) =>
             {
                 var error = layerErrors[j] * Activator.Derivative(n.Output);
 

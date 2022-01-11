@@ -139,10 +139,10 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         IWorkOrchestrator GetOrchestrator()
         {
-            if (Specification.InputVectorSize * Specification.Modules.Count > 900)
-            {
-                return WorkOrchestrator.ThreadPool;
-            }
+            //if (Specification.InputVectorSize * Specification.Modules.Count > 900)
+            //{
+            //    return WorkOrchestrator.ThreadPool;
+            //}
 
             return WorkOrchestrator.Default;
         }
