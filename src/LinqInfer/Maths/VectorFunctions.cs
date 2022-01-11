@@ -31,7 +31,7 @@ namespace LinqInfer.Maths
 
             foreach (var vector in vectors)
             {
-                result = result == null ? 
+                result = result == null ?
                     vector.ToColumnVector() : result + vector.ToColumnVector();
             }
 
@@ -53,7 +53,7 @@ namespace LinqInfer.Maths
         {
             if (vectors == null || vectors.Length == 0) return vector;
 
-            return new MultiVector(new[] {vector}.Concat(vectors));
+            return new MultiVector(new[] { vector }.Concat(vectors));
         }
 
         /// <summary>
@@ -169,6 +169,30 @@ namespace LinqInfer.Maths
             }
 
             return new ColumnVector1D(result);
+        }
+
+        internal static double[] Transform(this double[] input, Func<double, double> tx)
+        {
+            var output = new double[input.Length];
+
+            for (var i = 0; i < output.Length; i++)
+            {
+                output[i] = tx(input[i]);
+            }
+
+            return output;
+        }
+
+        internal static double[] Transform(this double[] input, double arg, Func<double, double, double> tx)
+        {
+            var output = new double[input.Length];
+
+            for (var i = 0; i < output.Length; i++)
+            {
+                output[i] = tx(arg, input[i]);
+            }
+
+            return output;
         }
     }
 }

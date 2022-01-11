@@ -32,7 +32,7 @@ namespace LinqInfer.Text.Analysis
             _tokens.Add(tokens);
         }
 
-        public Data.Pipes.IAsyncEnumerator<IToken> ReadBlocksAsync()
+        public ITransformingAsyncBatchSource<IToken> ReadBlocksAsync()
         {
             return ReadBlocksAsyncInternal().AsAsyncEnumerator();
         }

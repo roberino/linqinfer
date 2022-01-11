@@ -9,7 +9,7 @@ namespace LinqInfer.Text
     public static class AsyncTextExtensions
     {
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildMultifunctionPipelineAsync<TInput>(
-            this IAsyncEnumerator<TInput> asyncEnumerator,
+            this ITransformingAsyncBatchSource<TInput> asyncEnumerator,
             CancellationToken cancellationToken,
             int maxVocabularySize = 1000,
             ITokeniser tokeniser = null)

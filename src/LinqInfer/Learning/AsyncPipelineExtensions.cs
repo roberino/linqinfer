@@ -69,7 +69,7 @@ namespace LinqInfer.Learning
         /// Builds an asynchronous pipeline, given a number of feature extractor strategies
         /// </summary>
         public static async Task<IAsyncFeatureProcessingPipeline<TInput>> BuildPipelineAsync<TInput>(
-            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
+            this ITransformingAsyncBatchSource<TInput> asyncEnumerator,
             CancellationToken cancellationToken,
             params IFeatureExtractionStrategy<TInput>[] strategies)
             where TInput : class
@@ -95,7 +95,7 @@ namespace LinqInfer.Learning
         /// Creates a time sequence which can be used for training
         /// </summary>
         public static async Task<IAsyncTrainingSet<TInput, TInput>> CreateCategoricalTimeSequenceTrainingSetAsync<TInput>(
-                this Data.Pipes.IAsyncEnumerator<TInput> dataset,
+                this ITransformingAsyncBatchSource<TInput> dataset,
                 int sampleSize = 10000)
             where TInput : IEquatable<TInput>
         {
@@ -132,7 +132,7 @@ namespace LinqInfer.Learning
         /// Creates an asynchronous pipeline, given a feature extractor
         /// </summary>
         internal static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
-            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
+            this ITransformingAsyncBatchSource<TInput> asyncEnumerator,
             IVectorFeatureExtractor<TInput> featureExtractor)
             where TInput : class
         {
@@ -143,7 +143,7 @@ namespace LinqInfer.Learning
         /// Creates an asynchronous pipeline, given a feature extractor function
         /// </summary>
         public static IAsyncFeatureProcessingPipeline<TInput> CreatePipeline<TInput>(
-            this Data.Pipes.IAsyncEnumerator<TInput> asyncEnumerator,
+            this ITransformingAsyncBatchSource<TInput> asyncEnumerator,
             Expression<Func<TInput, IVector>> featureExtractorFunction,
             int vectorSize)
             where TInput : class
@@ -164,7 +164,7 @@ namespace LinqInfer.Learning
                 IVectorFeatureExtractor<TInput> featureExtractor = null)
             where TInput : class
         {
-            var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);
+            var asyncEnum = new AsyncBatchEnumerable<TInput>(batchLoaderFunc);
             var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum);
             var pipeline = new AsyncFeatureProcessingPipeline<TInput>(asyncEnumerator, featureExtractor ?? new ObjectFeatureExtractor<TInput>());
 

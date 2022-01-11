@@ -107,7 +107,7 @@ namespace LinqInfer.Utility
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
-        public static Data.Pipes.IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
+        public static ITransformingAsyncBatchSource<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
         {
             return From.Enumerable(values, batchSize);
         }
@@ -118,7 +118,7 @@ namespace LinqInfer.Utility
         /// </summary>
         /// <typeparam name="T">The type of each item in a batch of data</typeparam>
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
-        public static Data.Pipes.IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        public static ITransformingAsyncBatchSource<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
         {
             return From.EnumerableTasks(batchLoader);
         }
@@ -204,7 +204,7 @@ namespace LinqInfer.Utility
         /// <returns>A distinct list of T</returns>
         public static IEnumerable<T> Distinct<T>(this IEnumerable<T> items, Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
         {
-            var comparer = CreateComparer<T>(compareFunc, hashCodeFunc);
+            var comparer = CreateComparer(compareFunc, hashCodeFunc);
 
             return items.Distinct(comparer);
         }

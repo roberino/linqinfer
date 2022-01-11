@@ -26,14 +26,14 @@ namespace LinqInfer.Learning.Features
 
         public ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        public IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
+        public ITransformingAsyncBatchSource<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
         {
             var clsFunc = ClassifyingExpression.Compile();
 
             return ExtractBatches(FeaturePipeline, OutputMapper, clsFunc);
         }
 
-        static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
+        static ITransformingAsyncBatchSource<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
         {
             return pipeline
                    .ExtractBatches()

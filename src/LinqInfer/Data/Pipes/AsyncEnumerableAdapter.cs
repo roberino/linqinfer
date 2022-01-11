@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    class AsyncEnumerableAdapter<T> : IEnumerable<Task<IList<T>>>
+    class AsyncEnumerableToBatchAdapter<T> : IEnumerable<Task<IList<T>>>
     {
         readonly IAsyncEnumerable<T> _data;
         readonly int _batchSize;
 
-        public AsyncEnumerableAdapter(IAsyncEnumerable<T> data, int batchSize)
+        public AsyncEnumerableToBatchAdapter(IAsyncEnumerable<T> data, int batchSize)
         {
             _data = data;
             _batchSize = batchSize;
@@ -26,13 +26,13 @@ namespace LinqInfer.Data.Pipes
         {
             bool _advance;
             bool _complete;
-            System.Collections.Generic.IAsyncEnumerator<T> _innerEnumerator;
+            IAsyncEnumerator<T> _innerEnumerator;
 
             readonly List<T> _current;
-            readonly Func<System.Collections.Generic.IAsyncEnumerator<T>> _innerEnumeratorFactory;
+            readonly Func<IAsyncEnumerator<T>> _innerEnumeratorFactory;
             readonly int _batchSize;
 
-            public AsyncEnumeratorAdapter(Func<System.Collections.Generic.IAsyncEnumerator<T>> innerEnumeratorFactory, int batchSize)
+            public AsyncEnumeratorAdapter(Func<IAsyncEnumerator<T>> innerEnumeratorFactory, int batchSize)
             {
                 _innerEnumeratorFactory = innerEnumeratorFactory;
                 _innerEnumerator = innerEnumeratorFactory();                

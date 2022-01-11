@@ -5,7 +5,7 @@ namespace LinqInfer.Text.Analysis
 {
     public interface IAsyncCorpus
     {
-        Data.Pipes.IAsyncEnumerator<IToken> ReadBlocksAsync();
+        ITransformingAsyncBatchSource<IToken> ReadBlocksAsync();
     }
 
     public interface ICorpus : IAsyncCorpus

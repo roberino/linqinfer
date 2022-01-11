@@ -16,7 +16,7 @@ namespace LinqInfer.Text.Analysis
         readonly OneHotEncoding<string> _encoding;
 
         public CBowAggregator(
-            Data.Pipes.IAsyncEnumerator<SyntacticContext> cbow,
+            ITransformingAsyncBatchSource<SyntacticContext> cbow,
             OneHotEncoding<string> encoding)
         {
             Cbow = cbow;
@@ -24,7 +24,7 @@ namespace LinqInfer.Text.Analysis
         }
 
         public CBowAggregator(
-            Data.Pipes.IAsyncEnumerator<SyntacticContext> cbow,
+            ITransformingAsyncBatchSource<SyntacticContext> cbow,
             ISemanticSet vocabulary)
         {
             Cbow = cbow;
@@ -32,7 +32,7 @@ namespace LinqInfer.Text.Analysis
             _encoding = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
         }
 
-        public Data.Pipes.IAsyncEnumerator<SyntacticContext> Cbow { get; }
+        public ITransformingAsyncBatchSource<SyntacticContext> Cbow { get; }
 
         public async Task<IDictionary<string, WordData>> AggregateVectorsAync(CancellationToken cancellationToken)
         {

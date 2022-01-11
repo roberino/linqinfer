@@ -22,7 +22,7 @@ namespace LinqInfer.Text.Analysis
 
         public ISemanticSet TargetVocabulary { get; }
 
-        public IAsyncEnumerator<SyntacticContext> GetNGramSource(int padding = 2)
+        public ITransformingAsyncBatchSource<SyntacticContext> GetNGramSource(int padding = 2)
         {
             var asyncEnum = _corpus
                 .ReadBlocksAsync()
@@ -31,7 +31,7 @@ namespace LinqInfer.Text.Analysis
             return asyncEnum;
         }
 
-        public IAsyncEnumerator<BiGram> GetBiGramSource(int padding = 2)
+        public ITransformingAsyncBatchSource<BiGram> GetBiGramSource(int padding = 2)
         {
             return GetNGramSource(padding).SplitEachItem(
                 c => c

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    class AsyncEnumerator<T> : IAsyncEnumerator<T>
+    class AsyncEnumerator<T> : ITransformingAsyncBatchSource<T>
     {
         readonly IList<Func<T, bool>> _filters;
         readonly long? _limit;
@@ -35,7 +35,7 @@ namespace LinqInfer.Data.Pipes
 
         public bool SkipEmptyBatches { get; set; }
 
-        public IAsyncEnumerator<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
+        public ITransformingAsyncBatchSource<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
         {
             var tx = Items.Select(t =>
             {
@@ -48,7 +48,7 @@ namespace LinqInfer.Data.Pipes
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public IAsyncEnumerator<T2> TransformEachItem<T2>(Func<T, T2> transformer)
+        public ITransformingAsyncBatchSource<T2> TransformEachItem<T2>(Func<T, T2> transformer)
         {
             var tx = Items.Select(t =>
             {
@@ -61,7 +61,7 @@ namespace LinqInfer.Data.Pipes
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public IAsyncEnumerator<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
+        public ITransformingAsyncBatchSource<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
         {
             var tx = Items.Select(t =>
             {
@@ -106,12 +106,12 @@ namespace LinqInfer.Data.Pipes
             });
         }
 
-        public IAsyncEnumerator<T> Filter(Func<T, bool> predicate)
+        public ITransformingAsyncBatchSource<T> Filter(Func<T, bool> predicate)
         {
             return new AsyncEnumerator<T>(Items, EstimatedTotalCount, _limit, _filters.Concat(new[] { predicate }).ToList());
         }
 
-        public IAsyncEnumerator<T> Limit(long maxNumberOfItems)
+        public ITransformingAsyncBatchSource<T> Limit(long maxNumberOfItems)
         {
             return new AsyncEnumerator<T>(Items, EstimatedTotalCount, maxNumberOfItems, _filters);
         }

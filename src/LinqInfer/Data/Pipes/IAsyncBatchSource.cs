@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    public interface IAsyncSource<T> : IDisposable
+    public interface IAsyncBatchSource<T> : IDisposable
     {
         long? EstimatedTotalCount { get; }
         Task<bool> ProcessUsing(Action<IBatch<T>> processor, CancellationToken cancellationToken);

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    sealed class AsyncEnumerable<T> : IEnumerable<Task<IList<T>>>
+    sealed class AsyncBatchEnumerable<T> : IEnumerable<Task<IList<T>>>
     {
         readonly Func<int, AsyncBatch<T>> _loader;
 
-        public AsyncEnumerable(Func<int, AsyncBatch<T>> loader)
+        public AsyncBatchEnumerable(Func<int, AsyncBatch<T>> loader)
         {
             _loader = loader;
         }

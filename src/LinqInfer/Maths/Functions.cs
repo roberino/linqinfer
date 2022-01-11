@@ -122,7 +122,7 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns a random generator for a range
         /// </summary>
-        public static Func<double> AsRandomGenerator(this LinqInfer.Maths.Range range) => () => RandomDouble(range.Min, range.Max);
+        public static Func<double> AsRandomGenerator(this Range range) => () => RandomDouble(range.Min, range.Max);
 
         /// <summary>
         /// Returns a random number between zero and max (exclusive).
@@ -145,7 +145,7 @@ namespace LinqInfer.Maths
         /// <returns>A vector containing random values</returns>
         public static ColumnVector1D RandomVector(int size, double min = 0, double max = 1)
         {
-            return RandomVector(size, new LinqInfer.Maths.Range(max, min));
+            return RandomVector(size, new Range(max, min));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace LinqInfer.Maths
         /// <param name="size">The size of the vector</param>
         /// <param name="range">The min and max range</param>
         /// <returns>A vector containing random values</returns>
-        public static ColumnVector1D RandomVector(int size, LinqInfer.Maths.Range range)
+        public static ColumnVector1D RandomVector(int size, Range range)
         {
             return new ColumnVector1D(Enumerable.Range(1, size).Select(n => range.Min + _random.NextDouble() * range.Size).ToArray());
         }

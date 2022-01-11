@@ -20,7 +20,7 @@ namespace LinqInfer.Text.Analysis
 
         public IEnumerable<IEnumerable<IToken>> Blocks => ReadBlocksAsyncInternal().Select(b => b.Result);
 
-        public Data.Pipes.IAsyncEnumerator<IToken> ReadBlocksAsync()
+        public ITransformingAsyncBatchSource<IToken> ReadBlocksAsync()
         {
             return ReadBlocksAsyncInternal().AsAsyncEnumerator();
         }

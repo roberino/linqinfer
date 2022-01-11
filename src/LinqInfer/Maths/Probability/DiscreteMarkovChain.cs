@@ -275,7 +275,7 @@ namespace LinqInfer.Maths.Probability
             public T Value { get; set; }
         }
 
-        struct RuntimeTransition
+        class RuntimeTransition
         {
             Transition _link;
 

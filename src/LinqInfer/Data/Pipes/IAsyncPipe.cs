@@ -7,7 +7,7 @@ namespace LinqInfer.Data.Pipes
 {
     public interface IAsyncPipe<T> : IDisposable
     {
-        IAsyncSource<T> Source { get; }
+        IAsyncBatchSource<T> Source { get; }
 
         IEnumerable<IAsyncSink<T>> Sinks { get; }
 

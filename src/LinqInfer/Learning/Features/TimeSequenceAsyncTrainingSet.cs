@@ -11,7 +11,7 @@ namespace LinqInfer.Learning.Features
         where T : IEquatable<T>
     {
         public TimeSequenceAsyncTrainingSet(
-            Data.Pipes.IAsyncEnumerator<T> dataSource,
+            ITransformingAsyncBatchSource<T> dataSource,
             CategoricalFeatureExtractor<T, T> featureExtractor) : this(new AsyncFeatureProcessingPipeline<T>(dataSource, featureExtractor), new OutputMapper<T>(featureExtractor.Encoder))
         {
         }
@@ -27,7 +27,7 @@ namespace LinqInfer.Learning.Features
 
         public ICategoricalOutputMapper<T> OutputMapper { get; }
 
-        static Data.Pipes.IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<T> pipeline)
+        static ITransformingAsyncBatchSource<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<T> pipeline)
         {
             return pipeline
                 .ExtractBatches()

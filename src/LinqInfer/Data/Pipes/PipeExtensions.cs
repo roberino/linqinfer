@@ -6,7 +6,7 @@ namespace LinqInfer.Data.Pipes
 {
     public static class PipeExtensions
     {
-        public static IAsyncPipe<T> CreatePipe<T>(this IAsyncEnumerator<T> asyncEnumerator)
+        public static IAsyncPipe<T> CreatePipe<T>(this ITransformingAsyncBatchSource<T> asyncEnumerator)
         {
             return new AsyncPipe<T>(asyncEnumerator);
         }

@@ -142,39 +142,30 @@ namespace LinqInfer.Maths
         /// <summary>
         /// Returns the exponential for each value as a new vector.
         /// </summary>
-        public ColumnVector1D Exp()
-        {
-            return new ColumnVector1D(_values.Select(v => Math.Exp(v)).ToArray());
-        }
+        public ColumnVector1D Exp() 
+            => new ColumnVector1D(_values.Transform(Math.Exp));
 
         /// <summary>
         /// Returns the natural logarithm for each value as a new vector.
         /// </summary>
         /// <returns></returns>
-        public ColumnVector1D Log()
-        {
-            return new ColumnVector1D(_values.Select(v => Math.Log(v)).ToArray());
-        }
+        public ColumnVector1D Log() 
+            => new ColumnVector1D(_values.Transform(Math.Log));
 
         /// <summary>
         /// Returns the values negated
         /// </summary>
         /// <returns></returns>
-        public ColumnVector1D Negate()
-        {
-            return new ColumnVector1D(_values.Select(v => -v).ToArray());
-        }
+        public ColumnVector1D Negate() 
+            => new ColumnVector1D(_values.Transform(x => -x));
 
         /// <summary>
         /// Normalises each element over the sum (default) or the length of all values.
         /// When bySum=false, the vector returned is the unit vector.
         /// </summary>
         /// <returns>A new normalised vector</returns>
-        public ColumnVector1D Normalise(bool bySum = true)
-        {
-            var t = bySum ? Sum : EuclideanLength;
-            return new ColumnVector1D(_values.Select(x => x / t).ToArray());
-        }
+        public ColumnVector1D Normalise(bool bySum = true) 
+            => new ColumnVector1D(_values.Transform(bySum ? Sum : EuclideanLength, (t, x) => x / t));
 
         /// <summary>
         /// Returns the Cosine Distance between this vector and another.
@@ -281,20 +272,14 @@ namespace LinqInfer.Maths
             return new ColumnVector1D(v1._values.Select(x => x / v2._values[i++]).ToArray());
         }
 
-        public static ColumnVector1D operator /(ColumnVector1D v1, double y)
-        {
-            return new ColumnVector1D(v1._values.Select(x => x / y).ToArray());
-        }
+        public static ColumnVector1D operator /(ColumnVector1D v1, double y) 
+            => new ColumnVector1D(v1._values.Transform(y, (y, x) => x / y));
 
-        public static ColumnVector1D operator *(ColumnVector1D v1, double y)
-        {
-            return new ColumnVector1D(v1._values.Select(x => x * y).ToArray());
-        }
+        public static ColumnVector1D operator *(ColumnVector1D v1, double y) 
+            => new ColumnVector1D(v1._values.Transform(y, (y, x) => x * y));
 
-        public static implicit operator ColumnVector1D(double[] values)
-        {
-            return new ColumnVector1D(values);
-        }
+        public static implicit operator ColumnVector1D(double[] values) 
+            => new ColumnVector1D(values);
 
         public override string ToString()
         {
