@@ -45,7 +45,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             if (parallelProcess)
             {
-                var outputItems = Neurons.AsParallel()
+                var outputItems = Neurons.AsParallel() //TODO: Fix this
                     .ForEach(n => n.Evaluate(input));
 
                 return outputItems.ToArray(_buffer);
