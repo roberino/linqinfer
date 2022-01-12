@@ -1,7 +1,7 @@
 language: csharp
 sudo: required
 mono: none
-dotnet: 2.1.502
+dotnet: 6.0.101
 script:
   - dotnet restore LinqInfer.sln
   - dotnet build tests/LinqInfer.UnitTests/LinqInfer.UnitTests.csproj
