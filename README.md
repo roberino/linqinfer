@@ -121,11 +121,7 @@ var results = index.Search("brown fox");
 
 // create training sets
 
-var httpServices = new HttpDocumentServices();
-
-var documentSource = httpServices.CreateDocumentSource(uri);
-
-var corpus = await documentSource.CreateCorpusAsync(1000);
+var corpus = File.OpenText("some.txt").CreateCorpus();
 
 var trainingSet = corpus.CreateContinuousBagOfWordsAsyncTrainingSet(index.ExtractKeyTerms(500));
 
