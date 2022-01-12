@@ -13,13 +13,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{748B717E
 		build.sh = build.sh
 		Dockerfile.test = Dockerfile.test
 		Dockerfile.web = Dockerfile.web
+		global.json = global.json
 		package.cmd = package.cmd
 		publish.cmd = publish.cmd
-		run-web-docker.sh = run-web-docker.sh
+		SetVersion.ps1 = SetVersion.ps1
 		test-docker.sh = test-docker.sh
 		test-dotnet.sh = test-dotnet.sh
-		x_global.json = x_global.json
-		xbuild.sh = xbuild.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{55C85CF2-3ECB-4E90-B5CB-60E7AC8D06B0}"
