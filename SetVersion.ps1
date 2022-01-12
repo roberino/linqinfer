@@ -1,4 +1,4 @@
-$version = GitVersion | ConvertFrom-Json
+$version = dotnet-gitversion | ConvertFrom-Json
 # Write-Host $version
 $currentPath = Split-Path $MyInvocation.MyCommand.Path
 $path = "$currentPath/src/LinqInfer/LinqInfer.csproj"
