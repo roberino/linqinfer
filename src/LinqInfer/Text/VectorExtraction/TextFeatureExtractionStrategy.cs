@@ -6,6 +6,7 @@ using LinqInfer.Data.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
 using LinqInfer.Data;
+using LinqInfer.Text.Indexing;
 
 namespace LinqInfer.Text.VectorExtraction
 {
@@ -21,12 +22,12 @@ namespace LinqInfer.Text.VectorExtraction
             _tokeniser = tokeniser;
         }
 
-        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder(Properties, _maxVectorSize, _tokeniser);
         }
 
-        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IVectorFeatureExtractor<T>>
         {
             readonly int _maxVectorSize;
             readonly DocumentIndex _index;
@@ -42,7 +43,7 @@ namespace LinqInfer.Text.VectorExtraction
 
             public bool CanReceive => true;
 
-            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            public Task<IVectorFeatureExtractor<T>> BuildAsync()
             {
                 var f = new Func<T, IEnumerable<IToken>>(x => _index.Tokeniser.Tokenise(GetText(x)));
 

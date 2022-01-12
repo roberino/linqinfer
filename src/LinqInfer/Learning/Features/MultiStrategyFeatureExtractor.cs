@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    class MultiStrategyFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
+    class MultiStrategyFeatureExtractor<T> : IVectorFeatureExtractor<T>
     {
-        readonly IFloatingPointFeatureExtractor<T>[] _featureExtractionStrategies;
+        readonly IVectorFeatureExtractor<T>[] _featureExtractionStrategies;
 
-        public MultiStrategyFeatureExtractor(params IFloatingPointFeatureExtractor<T>[] featureExtractionStrategies)
+        public MultiStrategyFeatureExtractor(params IVectorFeatureExtractor<T>[] featureExtractionStrategies)
         {
             _featureExtractionStrategies = featureExtractionStrategies;
         }
@@ -18,6 +18,8 @@ namespace LinqInfer.Learning.Features
         public int VectorSize => _featureExtractionStrategies.Sum(s => s.VectorSize);
 
         public IEnumerable<IFeature> FeatureMetadata => _featureExtractionStrategies.SelectMany(s => s.FeatureMetadata);
+
+        public bool CanEncode(T obj) => _featureExtractionStrategies.Any(f => f.CanEncode(obj));
 
         public IVector ExtractIVector(T obj)
         {
@@ -31,8 +33,8 @@ namespace LinqInfer.Learning.Features
             return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
         }
 
-        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc,
-            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader = null)
+        public static IVectorFeatureExtractor<T> Create(PortableDataDocument doc,
+            Func<PortableDataDocument, IVectorFeatureExtractor<T>> baseFeatureExtractorLoader = null)
         {
             if (baseFeatureExtractorLoader == null)
             {

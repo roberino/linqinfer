@@ -4,6 +4,6 @@ namespace LinqInfer.Text
 {
     public interface ITokeniser
     {
-        IEnumerable<IToken> Tokenise(string body);
+        IEnumerable<IToken> Tokenise(string body, int? indexOffset = null);
     }
 }

@@ -1,5 +1,4 @@
-﻿using LinqInfer.Learning.Classification;
-using LinqInfer.Learning.Features;
+﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Diagnostics.Contracts;
@@ -17,7 +16,7 @@ namespace LinqInfer.Learning
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="featureExtractor">An optional feature extractor</param>
         /// <returns></returns>
-        public static IFeatureTransformBuilder<T> CreateFeatureTransformation<T>(IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
+        public static IFeatureTransformBuilder<T> CreateFeatureTransformation<T>(IVectorFeatureExtractor<T> featureExtractor = null) where T : class
         {
             return new FeatureProcessingPipeline<T>(Enumerable.Empty<T>().AsQueryable(), featureExtractor);
         }
@@ -65,7 +64,7 @@ namespace LinqInfer.Learning
         /// <param name="data">The data</param>
         /// <param name="featureExtractor">An optional feature extractor to extract feature vectors from the data</param>
         /// <returns>A feature processing pipeline</returns>
-        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, IFloatingPointFeatureExtractor<T> featureExtractor = null) where T : class
+        public static FeatureProcessingPipeline<T> CreatePipeline<T>(this IQueryable<T> data, IVectorFeatureExtractor<T> featureExtractor = null) where T : class
         {
             return new FeatureProcessingPipeline<T>(data, featureExtractor ?? new ObjectFeatureExtractor<T>());
         }
@@ -78,7 +77,7 @@ namespace LinqInfer.Learning
         public static FeatureProcessingPipeline<ColumnVector1D> CreatePipeline(this IQueryable<ColumnVector1D> data)
         {
             var first = data.FirstOrDefault();
-            return CreatePipeline(data, v => v, first == null ? 0 : first.Size);
+            return CreatePipeline(data, v => v, first?.Size ?? 0);
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace LinqInfer.Learning
         /// <param name="pipeline">A feature pipeline</param>
         /// <param name="classf">A classifying expression</param>
         /// <returns>A training set</returns>
-        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this IQueryable<TrainingPair<TInput, TClass>> trainingData, IFloatingPointFeatureExtractor<TInput> featureExtractor)
+        public static ITrainingSet<TInput, TClass> AsTrainingSet<TInput, TClass>(this IQueryable<TrainingPair<TInput, TClass>> trainingData, IVectorFeatureExtractor<TInput> featureExtractor)
             where TInput : class
             where TClass : IEquatable<TClass>
         {
@@ -172,54 +171,6 @@ namespace LinqInfer.Learning
             });
         }
 
-        /// <summary>
-        /// Creates a basic Naive Bayesian classifiers, training the classifier using the supplied feature data.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="pipeline">A pipeline of feature data</param>
-        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
-        /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this IFeatureProcessingPipeline<TInput> pipeline, Expression<Func<TInput, TClass>> classf) where TInput : class
-        {
-            return pipeline.ProcessWith((p, n) =>
-            {
-                var net = new NaiveBayesNormalClassifier<TClass>(p.FeatureExtractor.VectorSize);
-                var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, p.FeatureExtractor);
-
-                p.NormaliseData();
-
-                classifierPipe.Train(((FeatureProcessingPipeline<TInput>)p).Data, classf);
-
-                return (IObjectClassifier<TClass, TInput>)classifierPipe;
-            });
-        }
-
-        /// <summary>
-        /// Creates a basic Naive Bayesian classifiers, training the classifier using the supplied feature data.
-        /// </summary>
-        /// <typeparam name="TInput">The input type</typeparam>
-        /// <typeparam name="TClass">The classification type</typeparam>
-        /// <param name="pipeline">A pipeline of feature data</param>
-        /// <param name="classf">An expression to teach the classifier the class of an individual item of data</param>
-        /// <returns></returns>
-        public static ExecutionPipline<IObjectClassifier<TClass, TInput>> ToNaiveBayesClassifier<TInput, TClass>(this ITrainingSet<TInput, TClass> trainingSet) where TInput : class where TClass : IEquatable<TClass>
-        {
-            var pipeline = trainingSet.FeaturePipeline;
-
-            return pipeline.ProcessWith((p, n) =>
-            {
-                var net = new NaiveBayesNormalClassifier<TClass>(p.FeatureExtractor.VectorSize);
-                var classifierPipe = new ClassificationPipeline<TClass, TInput, double>(net, net, p.FeatureExtractor);
-
-                p.NormaliseData();
-
-                classifierPipe.Train(((FeatureProcessingPipeline<TInput>)p).Data, trainingSet.ClassifyingExpression);
-
-                return (IObjectClassifier<TClass, TInput>)classifierPipe;
-            });
-        }
-
         static T DefaultOf<T>() where T : class
         {
             try
@@ -228,7 +179,7 @@ namespace LinqInfer.Learning
             }
             catch
             {
-                return default(T);
+                return default;
             }
         }
     }

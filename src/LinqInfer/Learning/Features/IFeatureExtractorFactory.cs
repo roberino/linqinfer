@@ -3,7 +3,7 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Features
 {
-    interface IFeatureExtractorFactory<T> : IFactory<IFloatingPointFeatureExtractor<T>, PortableDataDocument>
+    interface IFeatureExtractorFactory<T> : IFactory<IVectorFeatureExtractor<T>, PortableDataDocument>
     {
     }
 }

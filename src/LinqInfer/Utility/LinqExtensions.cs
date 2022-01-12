@@ -10,6 +10,13 @@ namespace LinqInfer.Utility
 {
     public static class LinqExtensions
     {
+        public static TCol Add<TCol, TInput>(this TCol collection, IEnumerable<TInput> items) 
+            where TCol : ICollection<TInput>
+        {
+            foreach (var item in items) collection.Add(item);
+            return collection;
+        }
+
         public static IEnumerable<O> SelectIf<T, O>(this IEnumerable<T> values, Func<IEnumerable<T>, bool> condition, Func<T, O> selector)
         {
             if (!condition(values))
@@ -39,19 +46,31 @@ namespace LinqInfer.Utility
             return i == 1 ? value : null;
         }
 
-        public static T[] ToArray<T>(this IEnumerable<T> values, int size)
+        public static T[] ToArray<T>(this IList<T> values, T[] buffer)
         {
-            var arr = new T[size];
-            int i = 0;
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i++] = values[i];
+                if (i == values.Count) break;
+            }
+
+            return buffer;
+        }
+
+        public static T[] ToArray<T>(this IEnumerable<T> values, T[] buffer)
+        {
+            var i = 0;
 
             foreach (var item in values)
             {
-                arr[i++] = item;
-                if (i == arr.Length) break;
+                buffer[i++] = item;
+                if (i == buffer.Length) break;
             }
 
-            return arr;
+            return buffer;
         }
+
+        public static T[] ToArray<T>(this IEnumerable<T> values, int size) => values.ToArray(new T[size]);
 
         /// <summary>
         /// Returns true if all members of an enumeration
@@ -88,7 +107,7 @@ namespace LinqInfer.Utility
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
-        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
+        public static ITransformingAsyncBatchSource<T> AsAsyncEnumerator<T>(this IEnumerable<T> values, int batchSize = 1000)
         {
             return From.Enumerable(values, batchSize);
         }
@@ -99,7 +118,7 @@ namespace LinqInfer.Utility
         /// </summary>
         /// <typeparam name="T">The type of each item in a batch of data</typeparam>
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
-        public static IAsyncEnumerator<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
+        public static ITransformingAsyncBatchSource<T> AsAsyncEnumerator<T>(this IEnumerable<Task<IList<T>>> batchLoader)
         {
             return From.EnumerableTasks(batchLoader);
         }
@@ -185,7 +204,7 @@ namespace LinqInfer.Utility
         /// <returns>A distinct list of T</returns>
         public static IEnumerable<T> Distinct<T>(this IEnumerable<T> items, Func<T, T, bool> compareFunc, Func<T, int> hashCodeFunc = null)
         {
-            var comparer = CreateComparer<T>(compareFunc, hashCodeFunc);
+            var comparer = CreateComparer(compareFunc, hashCodeFunc);
 
             return items.Distinct(comparer);
         }
@@ -272,6 +291,7 @@ namespace LinqInfer.Utility
             return Expression.Lambda<Func<T, bool>>(andExp, exp1.Parameters);
         }
 
+#if NET_STD
         /// <summary>
         /// Chunks up a queryable source into batches.
         /// </summary>
@@ -296,6 +316,7 @@ namespace LinqInfer.Utility
                 }
             }
         }
+#endif
 
         internal static string GetPropertyName<TSource, TField>(Expression<Func<TSource, TField>> propertyExpression)
         {

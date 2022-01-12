@@ -120,6 +120,11 @@ namespace LinqInfer.Maths
         }
 
         /// <summary>
+        /// Returns a random generator for a range
+        /// </summary>
+        public static Func<double> AsRandomGenerator(this Range range) => () => RandomDouble(range.Min, range.Max);
+
+        /// <summary>
         /// Returns a random number between zero and max (exclusive).
         /// </summary>
         /// <param name="min">The minimum value inclusive</param>

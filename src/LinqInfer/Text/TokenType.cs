@@ -7,6 +7,7 @@
         Symbol,
         Number,
         SentenceEnd,
-        Space
+        Space,
+        NewLine
     }
 }

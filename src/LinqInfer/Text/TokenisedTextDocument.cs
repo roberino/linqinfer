@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Xml.Linq;
-using LinqInfer.Data;
-using System.Linq;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
-using System.Xml;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using LinqInfer.Data.Serialisation;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace LinqInfer.Text
 {

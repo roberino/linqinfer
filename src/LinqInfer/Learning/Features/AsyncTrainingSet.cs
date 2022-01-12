@@ -13,7 +13,7 @@ namespace LinqInfer.Learning.Features
             IAsyncFeatureProcessingPipeline<TInput> pipeline,
             Expression<Func<TInput, TClass>> classf,
             ICategoricalOutputMapper<TClass> outputMapper)
-            : base(ExtractBatches(pipeline, outputMapper, classf.Compile()))
+            : base(ExtractBatches(pipeline, outputMapper, classf?.Compile()))
         {
             FeaturePipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             ClassifyingExpression = classf ?? throw new ArgumentNullException(nameof(classf));
@@ -26,14 +26,14 @@ namespace LinqInfer.Learning.Features
 
         public ICategoricalOutputMapper<TClass> OutputMapper { get; }
 
-        public IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
+        public ITransformingAsyncBatchSource<TrainingPair<IVector, IVector>> ExtractInputOutputIVectorBatches(int batchSize = 1000)
         {
             var clsFunc = ClassifyingExpression.Compile();
 
             return ExtractBatches(FeaturePipeline, OutputMapper, clsFunc);
         }
 
-        static IAsyncEnumerator<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
+        static ITransformingAsyncBatchSource<TrainingPair<IVector, IVector>> ExtractBatches(IAsyncFeatureProcessingPipeline<TInput> pipeline, ICategoricalOutputMapper<TClass> outputMapper, Func<TInput, TClass> classifyingFunc)
         {
             return pipeline
                    .ExtractBatches()

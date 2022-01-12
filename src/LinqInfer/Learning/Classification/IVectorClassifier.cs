@@ -2,8 +2,7 @@
 
 namespace LinqInfer.Learning.Classification
 {
-    public interface IVectorClassifier
+    public interface IVectorClassifier : ISerialisableDataTransformation
     {
-        IVector Evaluate(IVector inputVector);
     }
 }

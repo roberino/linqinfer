@@ -10,21 +10,21 @@ namespace LinqInfer.Learning.Features
         : AsyncPipe<ObjectVectorPair<T>>, IAsyncFeatureProcessingPipeline<T>
     {
         readonly TransformingFeatureExtractor<T> _featureExtractor;
-        readonly IAsyncEnumerator<T> _dataLoader;
+        readonly ITransformingAsyncBatchSource<T> _dataLoader;
 
-        internal AsyncFeatureProcessingPipeline(IAsyncEnumerator<T> asyncDataLoader, IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal AsyncFeatureProcessingPipeline(ITransformingAsyncBatchSource<T> asyncDataLoader, IVectorFeatureExtractor<T> featureExtractor)
             : base(ExtractBatches(asyncDataLoader, featureExtractor))
         {
             _dataLoader = asyncDataLoader ?? throw new ArgumentNullException(nameof(asyncDataLoader));
             _featureExtractor = featureExtractor as TransformingFeatureExtractor<T> ?? new TransformingFeatureExtractor<T>(featureExtractor);
         }
 
-        public IFloatingPointFeatureExtractor<T> FeatureExtractor => _featureExtractor;
+        public IVectorFeatureExtractor<T> FeatureExtractor => _featureExtractor;
 
         /// <summary>
         /// Centres and scales the data
         /// </summary>
-        public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Range? range = null)
+        public async Task<IAsyncFeatureProcessingPipeline<T>> CentreAndScaleAsync(Maths.Range? range = null)
         {
             var minMaxMean = await MinMaxMeanVector.MinMaxAndMeanOfEachDimensionAsync(ExtractBatches().TransformEachItem(o => o.Vector));
 
@@ -45,12 +45,12 @@ namespace LinqInfer.Learning.Features
             return this;
         }
 
-        public IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches()
+        public ITransformingAsyncBatchSource<ObjectVectorPair<T>> ExtractBatches()
         {
             return ExtractBatches(_dataLoader, _featureExtractor);
         }
 
-        static IAsyncEnumerator<ObjectVectorPair<T>> ExtractBatches(IAsyncEnumerator<T> dataLoader, IFloatingPointFeatureExtractor<T> fe)
+        static ITransformingAsyncBatchSource<ObjectVectorPair<T>> ExtractBatches(ITransformingAsyncBatchSource<T> dataLoader, IVectorFeatureExtractor<T> fe)
         {
             return dataLoader
                 .TransformEachBatch(b => b

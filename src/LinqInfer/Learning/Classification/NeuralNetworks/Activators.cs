@@ -21,6 +21,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public static ActivatorExpression None(double s = 1)
         {
             return new ActivatorExpression(nameof(None), x => x, x => 1);
+        } 
+
+        public static ActivatorExpression RectifiedLinearUnit(double t = 0)
+        {
+            return new ActivatorExpression(nameof(RectifiedLinearUnit),
+                x => x > t ? x : t,
+                x => x > t ? 1 : 0);
         }
 
         public static ActivatorExpression Sigmoid(double alpha = 2)
@@ -42,7 +49,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         {
             return new ActivatorExpression(nameof(Threshold), 
                 x => x > threshold ? 1 : 0, 
-                x => 1);
+                x => x > threshold ? 1 : 0);
         }
     }
 }

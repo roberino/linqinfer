@@ -16,10 +16,9 @@ namespace LinqInfer.Text.Analysis
             _sink = new SemanticSetSink();
         }
 
-        public async Task AddAsync(ICorpus corpus, CancellationToken cancellationToken)
+        public async Task AddAsync(IAsyncCorpus corpus, CancellationToken cancellationToken)
         {
             var pipe = corpus.ReadBlocksAsync().CreatePipe();
-            var sink = new SemanticSetSink();
 
             pipe.RegisterSinks(_sink);
 

@@ -1,5 +1,4 @@
 ﻿using LinqInfer.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -92,7 +91,7 @@ namespace LinqInfer.Text.Analysis
             return null;
         }
 
-        IToken[] Extract(IToken[] buffer, int padding)
+        static IToken[] Extract(IToken[] buffer, int padding)
         {
             var context = new IToken[padding * 2];
             var c = 0;
@@ -108,12 +107,12 @@ namespace LinqInfer.Text.Analysis
             return context;
         }
 
-        bool IsFull(IToken[] buffer)
+        static bool IsFull(IToken[] buffer)
         {
             return buffer[buffer.Length - 1] != null;
         }
 
-        void Enqueue(IToken[] buffer, IToken token)
+        static void Enqueue(IToken[] buffer, IToken token)
         {
             for (var i = 0; i < buffer.Length; i++)
             {
@@ -125,7 +124,7 @@ namespace LinqInfer.Text.Analysis
             }
         }
 
-        void Dequeue(IToken[] buffer)
+        static void Dequeue(IToken[] buffer)
         {
             for (var i = 1; i < buffer.Length; i++)
             {

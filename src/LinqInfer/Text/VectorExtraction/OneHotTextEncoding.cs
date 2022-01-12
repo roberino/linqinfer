@@ -1,89 +1,69 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
+using System.Linq.Expressions;
+using LinqInfer.Utility.Expressions;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class OneHotTextEncoding<T> : IFloatingPointFeatureExtractor<T>, IExportableAsDataDocument, IImportableFromDataDocument
+    class OneHotTextEncoding<T> : IVectorFeatureExtractor<T>
     {
-        readonly OneHotEncoding<string> _encoder;
+        readonly Expression<Func<T, string[]>> _objectToStringTransformExpression;
         readonly Func<T, string[]> _objectToStringTransform;
 
-        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string> objectToStringTransform)
+        OneHotTextEncoding(IOneHotEncoding<string> encoding, Expression<Func<T, string[]>> objectToStringTransform)
         {
-            _objectToStringTransform = x => new[] { objectToStringTransform(x) };
-            _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
-            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
+            _objectToStringTransformExpression = objectToStringTransform;
+            _objectToStringTransform = objectToStringTransform.Compile();
+            Encoder = encoding;
+            FeatureMetadata = Feature.CreateDefaults(encoding.IndexTable.Select(x => x.Key), FeatureVectorModel.Categorical);
         }
 
-        public OneHotTextEncoding(ISemanticSet vocabulary, Func<T, string[]> objectToStringTransform)
+        public OneHotTextEncoding(ISemanticSet vocabulary, Expression<Func<T, string[]>> objectToStringTransform)
+            : this(new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words)), objectToStringTransform)
         {
-            _objectToStringTransform = objectToStringTransform;
-            _encoder = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
-            FeatureMetadata = Feature.CreateDefaults(vocabulary.Words, FeatureVectorModel.Categorical);
         }
 
-        public int VectorSize => _encoder.VectorSize;
+        public IOneHotEncoding<string> Encoder { get; }
+
+        public int VectorSize => Encoder.VectorSize;
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractVector(_objectToStringTransform(obj));
-        }
+        public bool CanEncode(T obj) => true;
 
         public IVector ExtractIVector(T obj)
         {
             return ExtractOneOfNVector(_objectToStringTransform(obj));
         }
 
-        public double[] ExtractVector(string[] tokens)
-        {
-            return ExtractOneOfNVector(tokens).ToColumnVector().GetUnderlyingArray();
-        }
-
         public IVector ExtractOneOfNVector(string[] tokens)
         {
-            return _encoder.Encode(tokens);
-        }
-
-        public IVector Encode(IToken token)
-        {
-            return ExtractOneOfNVector(new[] { token.Text.ToLowerInvariant() });
-        }
-
-        public void Save(Stream output)
-        {
-            ExportData().Save(output);
-        }
-
-        public void Load(Stream input)
-        {
-            var doc = new PortableDataDocument(input);
-
-            ImportData(doc);
+            return Encoder.Encode(tokens);
         }
 
         public PortableDataDocument ExportData()
         {
-            return new KeyValueDocument(_encoder.Lookup.ToDictionary(k => k.Key, v => v.Value.ToString())).ExportData();
+            var doc = Encoder.ExportData();
+
+            doc.SetType(this);
+            doc.Properties["Expression"] = _objectToStringTransformExpression.ExportExpression();
+
+            return doc;
         }
 
-        public void ImportData(PortableDataDocument doc)
+        public static OneHotTextEncoding<T> Create(PortableDataDocument doc)
         {
-            var kvdoc = new KeyValueDocument();
+            var encoding = OneHotEncoding<string>.ImportData(doc);
 
-            kvdoc.ImportData(doc);
+            var expression = doc.Properties["Expression"].AsExpression<T, string[]>();
 
-            foreach (var kv in kvdoc.Data)
-            {
-                _encoder.Lookup[kv.Key] = int.Parse(kv.Value);
-            }
+            var textEncoding = new OneHotTextEncoding<T>(encoding, expression);
+
+            return textEncoding;
         }
     }
 }

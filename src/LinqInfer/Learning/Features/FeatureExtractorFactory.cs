@@ -20,13 +20,20 @@ namespace LinqInfer.Learning.Features
     class FeatureExtractorFactory<T> : IFeatureExtractorFactory<T>
     {
         readonly IDictionary<string,
-                Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>>>
+                Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>>>
             _featureExtractorFactories;
 
         public FeatureExtractorFactory(
-            params (string type, Func<FeatureExtractorLoadContext<T>, IFloatingPointFeatureExtractor<T>> fact)[] factories)
+            params (string type, Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>> fact)[] factories)
         {
             _featureExtractorFactories = factories.ToDictionary(f => f.type, f => f.fact);
+        }
+
+        public IFeatureExtractorFactory<T> Register<TF>(Func<FeatureExtractorLoadContext<T>, IVectorFeatureExtractor<T>> factoryMethod)
+            where TF : IVectorFeatureExtractor<T>
+        {
+            _featureExtractorFactories[NameOf<TF>()] = factoryMethod;
+            return this;
         }
 
         public static FeatureExtractorFactory<T> Default
@@ -42,16 +49,25 @@ namespace LinqInfer.Learning.Features
                         d => MultiStrategyFeatureExtractor<T>.Create(d.Data, d.Factory.Create)),
                     (NameOf<ObjectFeatureExtractor<T>>(),
                         d => ObjectFeatureExtractor<T>.Create(d.Data)),
+                    (NameOf<CategoricalFeatureExtractor<T, string>>(),
+                        d => CategoricalFeatureExtractor<T, string>.Create(d.Data)),
                     (NameOf<FeatureMapDataExtractor<T>>(),
                         d => FeatureMapDataExtractor<T>.Create(d.Data, d.Factory.Create)));
             }
         }
 
-        public IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc)
+        public IVectorFeatureExtractor<T> Create(PortableDataDocument doc)
         {
-            var factory = _featureExtractorFactories[doc.TypeName];
+            try
+            {
+                var factory = _featureExtractorFactories[doc.TypeName];
 
-            return factory(new FeatureExtractorLoadContext<T>(doc, this));
+                return factory(new FeatureExtractorLoadContext<T>(doc, this));
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new ArgumentException($"Type not found {doc.TypeName}");
+            }
         }
 
         static string NameOf<TX>()

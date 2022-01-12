@@ -30,8 +30,6 @@ namespace LinqInfer.Data.Serialisation
         {
             var properties = new ConstrainableDictionary<string, string>(v => v != null);
 
-            properties.AddContraint((k, v) => XmlConvert.VerifyName(k) != null);
-
             Properties = properties;
             Blobs = new Dictionary<string, byte[]>();
             Vectors = new List<IVector>();
@@ -105,11 +103,26 @@ namespace LinqInfer.Data.Serialisation
             SetType(type);
         }
 
+        public bool IsTypeMatch<T>()
+        {
+            return string.Equals(TypeName, GetTypeName(typeof(T)));
+        }
+
         internal void SetType(Type type)
         {
             Properties[nameof(AssemblyQualifiedName)] = type.AssemblyQualifiedName;
             Properties[nameof(TypeName)] = type.Name;
 
+            var tn = GetTypeName(type);
+
+            if (tn != null)
+            {
+                _rootName = tn;
+            }
+        }
+
+        internal static string GetTypeName(Type type)
+        {
             try
             {
                 var n = type.Name;
@@ -120,9 +133,11 @@ namespace LinqInfer.Data.Serialisation
                     n = n.Substring(0, i);
                 }
 
-                _rootName = XmlConvert.VerifyName(n);
+                return XmlConvert.VerifyName(n);
             }
             catch (XmlException) { }
+
+            return null;
         }
 
         internal void SetName(string name)
@@ -134,10 +149,11 @@ namespace LinqInfer.Data.Serialisation
 
         internal string TypeName => PropertyOrDefault(nameof(TypeName), string.Empty);
 
-        public PortableDataDocument FindChild<T>()
-        {
-            return QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
-        }
+        public PortableDataDocument FindChild<T>() 
+            => QueryChildren(new { typeof(T).AssemblyQualifiedName }).FirstOrDefault();
+
+        public IEnumerable<PortableDataDocument> FindChildrenByName<T>(StringComparison comparison = StringComparison.OrdinalIgnoreCase) 
+            => Children.Where(c => string.Equals(c.Name, typeof(T).Name, comparison));
 
         public string Name => _rootName;
 
@@ -151,8 +167,6 @@ namespace LinqInfer.Data.Serialisation
 
             return Children.Where(c =>
             {
-                bool found = true;
-
                 foreach (var q in query)
                 {
                     if (c.Properties.TryGetValue(q.Key, out string v) && v == q.Value?.ToString())
@@ -160,11 +174,10 @@ namespace LinqInfer.Data.Serialisation
                         continue;
                     }
 
-                    found = false;
-                    break;
+                    return false;
                 }
 
-                return found;
+                return true;
             });
         }
 
@@ -412,7 +425,7 @@ namespace LinqInfer.Data.Serialisation
             if (Properties.Any())
             {
                 var propsNode = new XElement(PropertiesName,
-                    Properties.Select(p => new XElement(p.Key, p.Value)));
+                    Properties.Select(PropertyElement));
 
                 doc.Root.Add(propsNode);
             }
@@ -443,7 +456,19 @@ namespace LinqInfer.Data.Serialisation
             return doc;
         }
 
-        void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
+        static XElement PropertyElement(KeyValuePair<string, string> property)
+        {
+            try
+            {
+                return new XElement(property.Key, property.Value);
+            }
+            catch (XmlException)
+            {
+                return new XElement("property", new XAttribute("key", property.Key), property.Value);
+            }
+        }
+
+        static void ReadSections(BinaryReader reader, Func<string, Action<int, BinaryReader>> readActionMapper)
         {
             while (true)
             {
@@ -468,7 +493,7 @@ namespace LinqInfer.Data.Serialisation
 
             foreach (var prop in ChildElements(rootNode, PropertiesName))
             {
-                Properties[prop.Name.LocalName] = prop.Value;
+                Properties[prop.Attribute("key")?.Value ?? prop.Name.LocalName] = prop.Value;
             }
 
             foreach (var vect in ChildElements(rootNode, DataName).Where(e => e.Name.LocalName == VectorName))
@@ -503,7 +528,7 @@ namespace LinqInfer.Data.Serialisation
             }
         }
 
-        IEnumerable<XElement> ChildElements(XElement parent, string name)
+        static IEnumerable<XElement> ChildElements(XElement parent, string name)
         {
             var e = parent.Element(XName.Get(name));
 

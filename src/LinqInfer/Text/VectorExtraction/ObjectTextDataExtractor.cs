@@ -2,11 +2,10 @@
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class ObjectTextDataExtractor<T> : TextDataExtractor, IFloatingPointFeatureExtractor<T> where T : class
+    class ObjectTextDataExtractor<T> : TextDataExtractor, IVectorFeatureExtractor<T> where T : class
     {
         readonly Func<T, IEnumerable<IToken>> _tokeniser;
 
@@ -20,34 +19,16 @@ namespace LinqInfer.Text.VectorExtraction
             _tokeniser = tokeniser;
         }
 
-        public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int normalisingFrequency) : base(words, normalisingFrequency)
-        {
-            _tokeniser = tokeniser;
-        }
-
         public ObjectTextDataExtractor(Func<T, IEnumerable<IToken>> tokeniser, IEnumerable<string> words, int[] normalisingFrequencies) : base(words, normalisingFrequencies)
         {
             _tokeniser = tokeniser;
         }
 
-        public ColumnVector1D ExtractColumnVector(T obj)
-        {
-            return ExtractColumnVector(_tokeniser(obj));
-        }
+        public bool CanEncode(T obj) => CanEncode(_tokeniser(obj));
 
         public IVector ExtractIVector(T obj)
         {
             return ExtractIVector(_tokeniser(obj));
-        }
-
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractVector(_tokeniser(obj));
-        }
-
-        public double[] NormaliseUsing(IEnumerable<T> samples)
-        {
-            return NormaliseUsing(samples.Select(_tokeniser));
         }
     }
 }

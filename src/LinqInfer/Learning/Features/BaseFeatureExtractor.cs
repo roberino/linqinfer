@@ -1,13 +1,12 @@
 ﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    class BaseFeatureExtractor<T> : IFloatingPointFeatureExtractor<T>
+    class BaseFeatureExtractor<T> : IVectorFeatureExtractor<T>
     {
         const string FeaturePrefix = "_feature_";
 
@@ -38,10 +37,7 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractIVector(obj).ToColumnVector().GetUnderlyingArray();
-        }
+        public virtual bool CanEncode(T obj) => true;
 
         public IVector ExtractIVector(T obj)
         {

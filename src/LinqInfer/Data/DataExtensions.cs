@@ -1,13 +1,12 @@
-﻿using LinqInfer.Utility;
+﻿using LinqInfer.Data.Serialisation;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Data
 {
-    public static class DataExtensions
+    static class DataExtensions
     {
         public static string ToClob(this IBinaryPersistable blob, bool prefixWithTypeName = true)
         {

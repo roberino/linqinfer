@@ -1,184 +1,127 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
+using System.Threading.Tasks;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    class NetworkLayer : ILayer
+    class NetworkLayer : NetworkModule, ILayer
     {
-        readonly IList<INeuron> _neurons;
-        readonly Func<int, IList<INeuron>> _neuronsFactory;
-        readonly LayerSpecification _spec;
-        Vector _output;
+        readonly NeuronCluster _neuronCluster;
+        readonly NetworkLayerSpecification _spec;
 
-        public NetworkLayer(int inputVectorSize, LayerSpecification specification)
+        public NetworkLayer(NetworkLayerSpecification specification, IWorkOrchestrator workOrchestrator = null)
+            : this(specification, new NeuronCluster(specification.NeuronFactory, specification.Activator, workOrchestrator))
+        {
+        }
+
+        protected NetworkLayer(
+            NetworkLayerSpecification specification,
+            NeuronCluster neuronCluster) : base(specification)
         {
             _spec = ArgAssert.AssertNonNull(specification, nameof(specification));
 
-            var nf = specification.NeuronFactory;
+            _neuronCluster = neuronCluster;
 
-            _neuronsFactory = c =>
-            {
-                return Enumerable.Range(1, c).Select(n =>
-                {
-                    var nx = nf(inputVectorSize);
-                    nx.Activator = specification.Activator.Activator;
-                    return nx;
-                }).ToList();
-            };
-
-            _neurons = _neuronsFactory(specification.LayerSize);
-
-            InputVectorSize = inputVectorSize;
-
-            _output = Vector.UniformVector(_neurons.Count, 0);
+            OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
         }
 
-        public event EventHandler<ColumnVector1DEventArgs> Calculation;
+        public override string Id => $"Layer-{Activator.Name}-{_spec.Id}";
 
-        public INetworkSignalFilter Successor { get; set; }
-
-        public int InputVectorSize { get; }
-
-        public int Size => _neurons.Count;
+        public int Size => _spec.LayerSize;
 
         public ActivatorExpression Activator => _spec.Activator;
 
-        public ILossFunction LossFunction => _spec.LossFunction;
-
         public WeightUpdateRule WeightUpdateRule => _spec.WeightUpdateRule;
 
-        public IVector Output => _output;
+        public INeuron this[int index] => _neuronCluster.Neurons[index];
 
-        public INeuron this[int index]
+        public Matrix ExportWeights() => _neuronCluster.ExportData();
+
+        public override PortableDataDocument ExportData()
         {
-            get
+            var baseData = base.ExportData();
+            var data = _neuronCluster.Export();
+
+            foreach (var prop in data.Properties)
             {
-                return _neurons[index];
+                baseData.Properties[prop.Key] = prop.Value;
             }
-        }
 
-        public Matrix ExportData()
-        {
-            var vectors = _neurons.Select(n => n.Export());
-            return new Matrix(vectors);
-        }
-
-        public virtual IVector Process(IVector input)
-        {
-            if (_neurons.Any())
+            foreach (var prop in data.Vectors)
             {
-                if (_spec.ParallelProcess)
+                baseData.Vectors.Add(prop);
+            }
+
+            return baseData;
+        }
+
+        public override void ImportData(PortableDataDocument data)
+        {
+            base.ImportData(data);
+
+            _neuronCluster.Import(data);
+        }
+
+        public override string ToString() => $"{Id}, in {_neuronCluster.InputSize} out {_neuronCluster.Size} neurons";
+
+        public void Grow(int numberOfNewNeurons = 1) => _neuronCluster.Grow(numberOfNewNeurons);
+
+        public void Prune(Func<INeuron, bool> predicate) => _neuronCluster.Prune(predicate);
+
+        public override bool IsInitialised => base.IsInitialised && _neuronCluster.Neurons.Any();
+
+        protected override void Initialise(int inputSize)
+        {
+            _neuronCluster.Resize(ProcessingVectorSize, _spec.LayerSize);
+
+            OutputVector = Vector.UniformVector(_spec.LayerSize, 0);
+        }
+
+        protected override async Task<Vector> ProcessError(Vector error, IVector predecessorOutput)
+        {
+            var nextError = await _neuronCluster.EvaluateError(error);
+
+            await Adjust(predecessorOutput, error);
+
+            return nextError;
+        }
+
+        protected override double[] Calculate(IVector input)
+        {
+            return _neuronCluster.Evaluate(input, _spec.ParallelProcess);
+        }
+
+        async Task Adjust(IVector previousOutput, Vector layerErrors)
+        {
+            DebugOutput.LogVerbose($"Adjust from previous {previousOutput.Size} to {this} using errors {layerErrors.Size}");
+            
+            await _neuronCluster.ForEachNeuronAsync((n, j) =>
+            {
+                var error = layerErrors[j] * Activator.Derivative(n.Output);
+
+                n.Adjust((w, k) =>
                 {
-                    var outputItems = _neurons.AsParallel().ForEach(n =>
+                    var prevOutput = k < 0 ? 1 : previousOutput[k];
+
+                    var wp = new WeightUpdateParameters()
                     {
-                        return n.Evaluate(input);
-                    });
+                        CurrentWeightValue = w,
+                        Error = error,
+                        PreviousLayerOutput = prevOutput
+                    };
 
-                    _output.Overwrite(outputItems);
-                }
-                else
-                {
-                    _output.Overwrite(_neurons.Select(n => n.Evaluate(input)));
-                }
-            }
-            else
-            {
-                _output.Overwrite(input.ToColumnVector());
-            }
+                    var wu = WeightUpdateRule.Execute(wp);
 
-            if (_spec.OutputTransformation != null)
-            {
-                _output.Overwrite(_spec.OutputTransformation.Apply(_output).ToColumnVector().GetUnderlyingArray());
-            }
+                    // DebugOutput.Log($"w = {wu} => error = {wp.Error} previous output = {wp.PreviousLayerOutput}, w = {wp.CurrentWeightValue}");
 
-            return (Successor == null) ? _output : Successor.Process(_output);
-        }
+                    return wu;
+                });
 
-        public void Grow(int numberOfNewNeurons = 1)
-        {
-            Contract.Assert(numberOfNewNeurons > 0);
-
-            var newNeurons = _neuronsFactory(numberOfNewNeurons);
-
-            foreach (var n in newNeurons) _neurons.Add(n);
-        }
-
-        public void Prune(Func<INeuron, bool> predicate)
-        {
-            var toBeRemoved = _neurons.Where(n => predicate(n)).ToList();
-
-            foreach (var n in toBeRemoved) _neurons.Remove(n);
-        }
-
-        public ColumnVector1D ForEachNeuron(Func<INeuron, int, double> func)
-        {
-            int i = 0;
-            var result = new ColumnVector1D(_neurons.Select(n => func(n, i++)).ToArray(_neurons.Count));
-            OnCalculate(result);
-            return result;
-        }
-
-        public IEnumerable<T> ForEachNeuron<T>(Func<INeuron, T> func)
-        {
-            return _neurons.ForEach(func);
-        }
-
-        void OnCalculate(ColumnVector1D vector)
-        {
-            Calculation?.Invoke(this, new ColumnVector1DEventArgs(vector));
-        }
-
-        public ILayer Clone(bool deep)
-        {
-            var layer = new NetworkLayer(InputVectorSize, _spec);
-
-            layer._neurons.Clear();
-
-            foreach(var neuron in _neurons)
-            {
-                layer._neurons.Add(neuron.Clone(deep));
-            }
-
-            if (layer.Successor != null)
-            {
-                layer.Successor = layer.Successor.Clone(deep);
-            }
-
-            return layer;
-        }
-
-        public object Clone() => Clone(true);
-
-        INetworkSignalFilter ICloneableObject<INetworkSignalFilter>.Clone(bool deep) => Clone(deep);
-
-        public PortableDataDocument Export()
-        {
-            var layerDoc = new PortableDataDocument();
-
-            layerDoc.Properties["Size"] = Size.ToString();
-
-            foreach (var neuron in _neurons)
-            {
-                layerDoc.Vectors.Add(neuron.Export());
-            }
-
-            return layerDoc;
-        }
-
-        public void Import(PortableDataDocument data)
-        {
-            int i = 0;
-
-            foreach (var neuron in _neurons)
-            {
-                neuron.Import(data.Vectors[i++].ToColumnVector());
-            }
+                return 0;
+            });
         }
     }
 }

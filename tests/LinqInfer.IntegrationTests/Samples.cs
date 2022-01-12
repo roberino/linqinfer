@@ -1,6 +1,5 @@
-﻿using LinqInfer.Text;
-using LinqInfer.Learning;
-using LinqInfer.Maths.Probability;
+﻿using LinqInfer.Maths.Probability;
+using LinqInfer.Text;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -16,7 +15,10 @@ namespace LinqInfer.IntegrationTests
         {
             using (var corpusStream = GetResource("shakespeare.txt"))
             {
-                var corpus = corpusStream.Tokenise().Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol && t.Text == "?"));
+                var corpus = corpusStream
+                    .Tokenise()
+                    .Where(t => t.Type == TokenType.Word || t.Type == TokenType.SentenceEnd || (t.Type == TokenType.Symbol && t.Text == "?"))
+                    .ToList();
 
                 var mk = corpus.AsMarkovChain(w => w.Type == TokenType.SentenceEnd || (w.Type == TokenType.Symbol && w.Text == "?"), order);
 
@@ -24,6 +26,11 @@ namespace LinqInfer.IntegrationTests
                 {
                     foreach (var w in mk.Simulate())
                     {
+                        if (w is null)
+                        {
+                            break;
+                        }
+
                         Console.Write(w.Text + " ");
                     }
 
@@ -48,6 +55,10 @@ namespace LinqInfer.IntegrationTests
                 {
                     foreach (var w in mk.Simulate())
                     {
+                        if (w is null)
+                        {
+                            break;
+                        }
                         Console.Write(w.Text + " ");
                     }
 
@@ -69,27 +80,6 @@ namespace LinqInfer.IntegrationTests
             var mostProbable = possibleMatches.MostProbable();
 
             Assert.That(mostProbable, Is.EqualTo("businessmen"));
-        }
-
-        [Test]
-        public void CombineClassifier_WithHypotheses()
-        {
-            var pirateSample = TestData.CreatePirates().ToList();
-            var classifier = pirateSample.AsQueryable().ToSimpleDistributionFunction(p => (p.Age + (p.IsCaptain ? 4 : 0) + p.Ships + p.Gold / 4) > 150 ? "A" : "B");
-
-            var distribution = classifier.Invoke(new TestData.Pirate()
-            {
-                Gold = 120,
-                Age = 26,
-                IsCaptain = false,
-                Ships = 1
-            });
-
-            var hypos = distribution.Select(x => P.Hypothesis(x.Key, x.Value)).AsHypotheses();
-
-            hypos.Update(x => x == "A" ? (5).OutOf(6) : (1).OutOf(10));
-
-            var newPosterier = hypos["A"];
         }
     }
 }

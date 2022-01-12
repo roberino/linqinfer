@@ -73,13 +73,7 @@ namespace LinqInfer.Maths
         /// </summary>
         /// <param name="i">The index (base 0)</param>
         /// <returns>A double value</returns>
-        public double this[int i]
-        {
-            get
-            {
-                return _values[i];
-            }
-        }
+        public double this[int i] => _values[i];
 
         /// <summary>
         /// Returns the vector size. This remains constant for the lifetime of the vector.

@@ -4,6 +4,8 @@
 
 Nuget Package: https://www.nuget.org/packages/LinqInfer/
 
+![logo](docs/logo.png "LinqInfer")
+
 ## A lightweight inference library for C# / LINQ
 
 LinqInfer is a data transformation, learning and inference framework. 

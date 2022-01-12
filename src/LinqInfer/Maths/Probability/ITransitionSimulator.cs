@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace LinqInfer.Maths.Probability
 {
     /// <summary>
     /// Simulates the transition from one state to another
     /// </summary>
-    public interface ITransitionSimulator<T> where T : IEquatable<T>
+    public interface ITransitionSimulator<T>
     {
         /// <summary>
         /// Simulates a sequence of state transitions

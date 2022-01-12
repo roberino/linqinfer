@@ -90,7 +90,7 @@ namespace LinqInfer.Data.Storage
 
         protected override string GetKey<T>(string key, T obj = default(T))
         {
-            var keyr = base.GetKey<T>(key, obj);
+            var keyr = base.GetKey(key, obj);
 
             keyr = new string(keyr.Replace('$', Path.DirectorySeparatorChar).Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
 

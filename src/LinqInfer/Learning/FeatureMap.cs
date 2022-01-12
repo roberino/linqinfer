@@ -15,7 +15,7 @@ namespace LinqInfer.Learning
         readonly IEnumerable<ClusterNode<T>> _nodes;
         readonly ClusteringParameters _parameters;
 
-        internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IFloatingPointFeatureExtractor<T> featureExtractor, ClusteringParameters parameters)
+        internal FeatureMap(IEnumerable<ClusterNode<T>> nodes, IVectorFeatureExtractor<T> featureExtractor, ClusteringParameters parameters)
         {
             _nodes = nodes;
             _parameters = parameters;
@@ -23,7 +23,7 @@ namespace LinqInfer.Learning
             FeatureExtractor = featureExtractor;
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateFeatureExtractor()
+        public IVectorFeatureExtractor<T> CreateFeatureExtractor()
         {
             return new FeatureMapDataExtractor<T>(this);
         }
@@ -38,7 +38,7 @@ namespace LinqInfer.Learning
         /// </summary>
         public IEnumerable<IFeature> Features => FeatureExtractor.FeatureMetadata;
 
-        internal IFloatingPointFeatureExtractor<T> FeatureExtractor { get; }
+        internal IVectorFeatureExtractor<T> FeatureExtractor { get; }
 
         /// <summary>
         /// Sets the export mode

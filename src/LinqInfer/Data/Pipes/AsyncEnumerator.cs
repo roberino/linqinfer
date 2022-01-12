@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace LinqInfer.Data.Pipes
 {
-    class AsyncEnumerator<T> : IAsyncEnumerator<T>
+    class AsyncEnumerator<T> : ITransformingAsyncBatchSource<T>
     {
-        readonly IEnumerable<Task<IList<T>>> _batchLoader;
         readonly IList<Func<T, bool>> _filters;
         readonly long? _limit;
 
@@ -21,7 +20,7 @@ namespace LinqInfer.Data.Pipes
             long? limit = null,
             IList<Func<T, bool>> filters = null)
         {
-            _batchLoader = batchLoader ?? throw new ArgumentNullException(nameof(batchLoader));
+            Items = batchLoader ?? throw new ArgumentNullException(nameof(batchLoader));
             _filters = filters ?? new List<Func<T, bool>>();
             _limit = limit;
 
@@ -32,13 +31,13 @@ namespace LinqInfer.Data.Pipes
 
         public long? EstimatedTotalCount { get; }
 
-        public IEnumerable<Task<IList<T>>> Items => _batchLoader;
+        public IEnumerable<Task<IList<T>>> Items { get; }
 
         public bool SkipEmptyBatches { get; set; }
 
-        public IAsyncEnumerator<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
+        public ITransformingAsyncBatchSource<T2> SplitEachItem<T2>(Func<T, IEnumerable<T2>> transformer)
         {
-            var tx = _batchLoader.Select(t =>
+            var tx = Items.Select(t =>
             {
                return t.ContinueWith<IList<T2>>(b =>
                {
@@ -49,9 +48,9 @@ namespace LinqInfer.Data.Pipes
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public IAsyncEnumerator<T2> TransformEachItem<T2>(Func<T, T2> transformer)
+        public ITransformingAsyncBatchSource<T2> TransformEachItem<T2>(Func<T, T2> transformer)
         {
-            var tx = _batchLoader.Select(t =>
+            var tx = Items.Select(t =>
             {
                 return t.ContinueWith<IList<T2>>(b =>
                 {
@@ -62,9 +61,9 @@ namespace LinqInfer.Data.Pipes
             return new AsyncEnumerator<T2>(tx);
         }
 
-        public IAsyncEnumerator<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
+        public ITransformingAsyncBatchSource<T2> TransformEachBatch<T2>(Func<IList<T>, IList<T2>> transformer)
         {
-            var tx = _batchLoader.Select(t =>
+            var tx = Items.Select(t =>
             {
                 return t.ContinueWith(b => transformer(b.Result));
             });
@@ -107,14 +106,14 @@ namespace LinqInfer.Data.Pipes
             });
         }
 
-        public IAsyncEnumerator<T> Filter(Func<T, bool> predicate)
+        public ITransformingAsyncBatchSource<T> Filter(Func<T, bool> predicate)
         {
-            return new AsyncEnumerator<T>(_batchLoader, EstimatedTotalCount, _limit, _filters.Concat(new[] { predicate }).ToList());
+            return new AsyncEnumerator<T>(Items, EstimatedTotalCount, _limit, _filters.Concat(new[] { predicate }).ToList());
         }
 
-        public IAsyncEnumerator<T> Limit(long maxNumberOfItems)
+        public ITransformingAsyncBatchSource<T> Limit(long maxNumberOfItems)
         {
-            return new AsyncEnumerator<T>(_batchLoader, EstimatedTotalCount, maxNumberOfItems, _filters);
+            return new AsyncEnumerator<T>(Items, EstimatedTotalCount, maxNumberOfItems, _filters);
         }
 
         async Task<bool> ProcessUsing(Func<IBatch<T>, Task<bool>> processor)
@@ -128,7 +127,7 @@ namespace LinqInfer.Data.Pipes
 
             var skipOn = SkipEmptyBatches;
 
-            foreach (var batchTask in _batchLoader)
+            foreach (var batchTask in Items)
             {
                 if (next != null && (!skipOn || next.Items.Count > 0))
                 {

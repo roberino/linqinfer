@@ -1,95 +1,117 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     public sealed class NetworkSpecification : IExportableAsDataDocument, IEquatable<NetworkSpecification>
     {
-        public NetworkSpecification(LearningParameters learningParameters, params LayerSpecification[] layers)
+        internal NetworkSpecification(TrainingParameters trainingParameters, int inputVectorSize, ILossFunction lossFunction, params NetworkLayerSpecification[] networkLayers)
         {
-            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertGreaterThanZero(layers.Length, nameof(layers.Length));
-
-            LearningParameters = learningParameters;
-            InputVectorSize = layers.First().LayerSize;
-            OutputVectorSize = layers.Last().LayerSize;
-            Layers = layers.ToList();
-        }
-
-        public NetworkSpecification(LearningParameters learningParameters, int inputVectorSize, params LayerSpecification[] layers)
-        {
-            ArgAssert.AssertNonNull(learningParameters, nameof(learningParameters));
-            ArgAssert.AssertGreaterThanZero(layers.Length, nameof(layers.Length));
+            ArgAssert.AssertNonNull(trainingParameters, nameof(trainingParameters));
+            ArgAssert.AssertGreaterThanZero(networkLayers.Length, nameof(networkLayers.Length));
             ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
 
-            LearningParameters = learningParameters;
+            TrainingParameters = trainingParameters;
             InputVectorSize = inputVectorSize;
-            OutputVectorSize = layers.Last().LayerSize;
-            Layers = layers.ToList();
+            Modules = networkLayers.Cast<NetworkModuleSpecification>().ToList();
+            Output = new NetworkOutputSpecification(networkLayers.Last(), lossFunction);
         }
 
-        public NetworkSpecification(int inputVectorSize, params LayerSpecification[] layers) : this(new LearningParameters(), inputVectorSize, layers)
+        internal NetworkSpecification(TrainingParameters trainingParameters, int inputVectorSize, NetworkOutputSpecification output, params NetworkModuleSpecification[] networkModules)
+        {
+            ArgAssert.AssertNonNull(trainingParameters, nameof(trainingParameters));
+            ArgAssert.AssertGreaterThanZero(networkModules.Length, nameof(networkModules.Length));
+            ArgAssert.AssertGreaterThanZero(inputVectorSize, nameof(inputVectorSize));
+
+            TrainingParameters = trainingParameters;
+            InputVectorSize = inputVectorSize;
+            Modules = networkModules.ToList();
+            Output = output;
+        }
+
+        internal NetworkSpecification(int inputVectorSize, params NetworkLayerSpecification[] networkLayers) : this(new TrainingParameters(), inputVectorSize, LossFunctions.Square, networkLayers)
         {
         }
 
-        public LearningParameters LearningParameters { get; }
+        public TrainingParameters TrainingParameters { get; }
 
         public int InputVectorSize { get; }
-        public int OutputVectorSize { get; }
 
-        public IList<LayerSpecification> Layers { get; }
+        public NetworkModuleSpecification Root => Modules.FirstOrDefault();
 
-        public LayerSpecification OutputLayer => Layers.Last();
+        public NetworkOutputSpecification Output { get; }
+
+        public IReadOnlyCollection<NetworkModuleSpecification> Modules { get; }
 
         public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
 
             doc.SetType<NetworkSpecification>();
-            doc.SetPropertyFromExpression(() => LearningParameters.LearningRate);
-            doc.SetPropertyFromExpression(() => LearningParameters.MinimumError);
+            doc.SetPropertyFromExpression(() => TrainingParameters.LearningRate);
+            doc.SetPropertyFromExpression(() => TrainingParameters.MinimumError);
             doc.SetPropertyFromExpression(() => InputVectorSize);
+            doc.Properties[nameof(Root)] = Root.Id.ToString();
 
-            foreach (var child in Layers)
+            foreach (var child in Modules)
             {
                 doc.Children.Add(child.ExportData());
             }
 
+            doc.Children.Add(Output.ExportData());
+
             return doc;
         }
 
-        internal static NetworkSpecification FromVectorDocument(PortableDataDocument doc,
+        internal static NetworkSpecification FromDataDocument(
+            PortableDataDocument doc,
             NetworkBuilderContext context = null)
         {
             NetworkSpecification networkSpecification = null;
 
             var ctx = context ?? new NetworkBuilderContext();
-            var learningRate = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.LearningRate, 0.01);
-            var minimumError = doc.PropertyOrDefault(() => networkSpecification.LearningParameters.MinimumError, 0.01);
+            var learningRate = doc.PropertyOrDefault(() => networkSpecification.TrainingParameters.LearningRate, 0.01);
+            var minimumError = doc.PropertyOrDefault(() => networkSpecification.TrainingParameters.MinimumError, 0.01);
             var inputVectorSize = doc.PropertyOrDefault(() => networkSpecification.InputVectorSize, 0);
 
-            var layers = doc.Children.Select(c => LayerSpecification.FromVectorDocument(c, ctx)).ToArray();
+            var layers = doc.FindChildrenByName<NetworkLayerSpecification>()
+                .Select(c => NetworkLayerSpecification.FromVectorDocument(c, ctx));
 
-            var learningParams = new LearningParameters()
+            var modules = doc.FindChildrenByName<NetworkModuleSpecification>()
+                .Select(c => NetworkModuleSpecification.FromVectorDocument(c, ctx));
+
+            var output = doc.FindChildrenByName<NetworkOutputSpecification>()
+                .Select(c => NetworkOutputSpecification.FromVectorDocument(c, ctx))
+                .SingleOrDefault();
+
+            var rootId = doc.PropertyOrDefault(nameof(Root), -1);
+
+            var all = layers
+                .Concat(modules)
+                .OrderBy(m => m.Id == rootId ? -1 : 0)
+                .ThenBy(m => m.Id)
+                .ToArray();
+
+            var learningParams = new TrainingParameters()
             {
                 LearningRate = learningRate,
                 MinimumError = minimumError
             };
 
-            return (inputVectorSize > 0
-                ? new NetworkSpecification(learningParams, inputVectorSize, layers)
-                : new NetworkSpecification(learningParams, layers)).Initialise();
+            return new NetworkSpecification(learningParams, inputVectorSize, output, all)
+                .Initialise();
         }
 
         public NetworkSpecification Initialise()
         {
+            Validate();
+
             foreach (var layer in Layers)
             {
-                layer.WeightUpdateRule.Initialise(LearningParameters);
+                layer.WeightUpdateRule.Initialise(TrainingParameters);
             }
 
             return this;
@@ -116,9 +138,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return (int)ExportData().Checksum;
         }
 
+        internal IEnumerable<NetworkLayerSpecification> Layers =>
+            Modules.Where(m => m is NetworkLayerSpecification)
+                .Cast<NetworkLayerSpecification>();
+
         internal void Validate()
         {
-            LearningParameters.Validate();
+            TrainingParameters.Validate();
+
+            var dups = Modules.GroupBy(m => m.Id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+
+            if (dups.Any())
+            {
+                throw new ArgumentException($"Duplicate modules: {string.Join(",", dups)}");
+            }
         }
     }
 }

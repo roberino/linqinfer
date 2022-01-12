@@ -1,11 +1,9 @@
 ﻿using LinqInfer.Data;
 using LinqInfer.Data.Pipes;
-using System;
+using LinqInfer.Utility.Expressions;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqInfer.Utility.Expressions;
 
 namespace LinqInfer.Learning.Features
 {
@@ -17,51 +15,58 @@ namespace LinqInfer.Learning.Features
             return base.CanHandle(propertyExtractor) && propertyExtractor.FeatureMetadata.Model == FeatureVectorModel.Categorical;
         }
 
-        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder()
         {
-            return new Builder(Properties);
+            return new Builder();
         }
 
-        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IVectorFeatureExtractor<T>>
         {
-            readonly IList<Tuple<PropertyExtractor<T>, IDictionary<string, long>>> _propertyLookups;
+            readonly TypeMapper<T> _typeMapper;
+            readonly IDictionary<string, IDictionary<string, bool>> _lookup;
 
-            public Builder(IEnumerable<PropertyExtractor<T>> properties)
+            public Builder()
             {
-                _propertyLookups = properties
-                    .Select(p =>
-                        new Tuple<PropertyExtractor<T>, IDictionary<string, long>>
-                            (p, new Dictionary<string, long>()))
-                            .ToList();
+                _typeMapper = new TypeMapper<T>(1024, 
+                    p => p.FeatureMetadata.Model == FeatureVectorModel.Categorical);
+
+                _lookup = new Dictionary<string, IDictionary<string, bool>>();
             }
 
             public bool CanReceive => true;
 
-            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            public Task<IVectorFeatureExtractor<T>> BuildAsync()
             {
-                var extractors = new List<IFloatingPointFeatureExtractor<T>>(_propertyLookups.Count);
+                var extractors = new List<IVectorFeatureExtractor<T>>(_lookup.Count);
 
-                foreach (var plookup in _propertyLookups)
+                foreach (var valueSet in _lookup)
                 {
-                    var set = new HashSet<string>(plookup.Item2.Keys);
+                    var set = new HashSet<string>(valueSet.Value.Keys);
 
-                    var exp = $"x => ToString(Property(x, {plookup.Item1.Property.Name}, 0))".AsExpressionWithSpecificType<T, string>(plookup.Item1.Property.DeclaringType);
+                    var exp = $"x => ToString(Property(x, {valueSet.Key}, empty))".AsExpression<T, string>();
 
-                    var fe = new CategoricalFeatureExtractor<T, string>(exp, Feature.CreateDefaults(new[] { plookup.Item1.Property.Name }, FeatureVectorModel.Categorical), set);
+                    var fe = new CategoricalFeatureExtractor<T, string>(exp, set);
 
                     extractors.Add(fe);
                 }
 
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(new MultiStrategyFeatureExtractor<T>(extractors.ToArray()));
+                return Task.FromResult<IVectorFeatureExtractor<T>>(new MultiStrategyFeatureExtractor<T>(extractors.ToArray()));
             }
 
             public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
             {
-                foreach (var plookup in _propertyLookups)
+                foreach (var v in dataBatch.Items)
                 {
-                    foreach (var v in dataBatch.Items)
+                    var map = _typeMapper.GetOrCreateMap(v.GetType());
+
+                    foreach (var prop in map.Properties)
                     {
-                        plookup.Item2[GetValue(v, plookup.Item1)] = 1;
+                        if (!_lookup.TryGetValue(prop.Property.Name, out var vals))
+                        {
+                            _lookup[prop.Property.Name] = vals = new Dictionary<string, bool>();
+                        }
+
+                        vals[GetValue(v, prop)] = true;
                     }
                 }
 

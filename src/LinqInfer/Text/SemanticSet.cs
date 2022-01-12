@@ -1,7 +1,8 @@
 ﻿using LinqInfer.Maths;
+using LinqInfer.Text.Tokenisers;
+using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -15,9 +16,10 @@ namespace LinqInfer.Text
 
         public SemanticSet(ISet<string> words)
         {
-            int i = 0;
-            _words = words.ToDictionary(w => w, _ => i++);
-            _wordset = new Lazy<IDictionary<int, string>>(() => _words.ToDictionary(k => k.Value, v => v.Key));
+            var i = 0;
+            _words = new Dictionary<string, int>(words.ToDictionary(w => w, _ => i++), StringComparer.InvariantCultureIgnoreCase);
+            _wordset = new Lazy<IDictionary<int, string>>(
+                () => _words.ToDictionary(k => k.Value, v => v.Key));
         }
 
         public IEnumerable<int> Encode(IEnumerable<string> tokens, bool appendUnknowns = false, Func<string, int> unknownValue = null)
@@ -26,7 +28,7 @@ namespace LinqInfer.Text
             {
                 int id;
 
-                if (_words.TryGetValue(t.ToLowerInvariant(), out id))
+                if (_words.TryGetValue(t, out id))
                 {
                     return id;
                 }
@@ -36,7 +38,7 @@ namespace LinqInfer.Text
                     return Append(t);
                 }
 
-                return unknownValue == null ? default(int) : unknownValue(t);
+                return unknownValue?.Invoke(t) ?? default;
             });
         }
 
@@ -44,14 +46,12 @@ namespace LinqInfer.Text
         {
             return encodedIds.Select(i =>
             {
-                string val;
-
-                if (_wordset.Value.TryGetValue(i, out val))
+                if (_wordset.Value.TryGetValue(i, out var val))
                 {
                     return val;
                 }
 
-                return unknownValue == null ? null : unknownValue(i);
+                return unknownValue?.Invoke(i);
             });
         }
 
@@ -68,17 +68,17 @@ namespace LinqInfer.Text
         /// <summary>
         /// Returns the count of the words in the set
         /// </summary>
-        public int Count { get { return _words.Count; } }
+        public int Count => _words.Count;
 
         /// <summary>
         /// Gets a word by internal id
         /// </summary>
-        public string this[int id] { get { return _wordset.Value[id]; } }
+        public string this[int id] => _wordset.Value[id];
 
         /// <summary>
         /// Returns a enumeration of words.
         /// </summary>
-        public IEnumerable<string> Words { get { return _words.Keys; } }
+        public IEnumerable<string> Words => _words.Keys;
 
         /// <summary>
         /// Returns true for a word found within the dictionary.
@@ -87,7 +87,7 @@ namespace LinqInfer.Text
         {
             if (word == null) return false;
 
-            return _words.ContainsKey(word.ToLower());
+            return _words.ContainsKey(word);
         }
 
         /// <summary>
@@ -97,8 +97,8 @@ namespace LinqInfer.Text
         /// <returns>An integer</returns>
         public int IdOf(string word)
         {
-            int id = 0;
-            if (word != null) _words.TryGetValue(word.ToLowerInvariant(), out id);
+            var id = 0;
+            if (word != null) _words.TryGetValue(word, out id);
             return id;
         }
 
@@ -112,10 +112,10 @@ namespace LinqInfer.Text
         /// <returns>A dictionary of results and relevant scores</returns>
         public IDictionary<string, Fraction> FindWordsLike(string word, float tolerance = 0.75f)
         {
-            Contract.Assert(word != null);
-            Contract.Requires(tolerance > 0f && tolerance <= 1f);
+            ArgAssert.AssertNonNull(word, nameof(word));
+            ArgAssert.AssertBetweenZeroAndOneUpperInclusive(tolerance, nameof(tolerance));
 
-            word = word.ToLower();
+            word = Normalise(word);
 
             return _words
                 .Keys
@@ -131,14 +131,14 @@ namespace LinqInfer.Text
 
         public int Append(string word)
         {
-            if (word == null) throw new ArgumentNullException("word");
+            ArgAssert.AssertNonNull(word, nameof(word));
 
             lock (_words)
             {
-                if (!_words.ContainsKey(word.ToLowerInvariant()))
+                if (!_words.ContainsKey(word))
                 {
                     int id;
-                    _words[word] = id = _words.Values.Max() + 1;
+                    _words[Normalise(word)] = id = _words.Values.Max() + 1;
                     return id;
                 }
             }
@@ -179,12 +179,17 @@ namespace LinqInfer.Text
         {
             var set = new HashSet<string>();
 
-            foreach(var word in new Tokeniser().Tokenise(words))
+            foreach(var word in new Tokeniser().Tokenise(words).Select(t => t.NormalForm()))
             {
-                if (!set.Contains(word.Text.ToLowerInvariant())) set.Add(word.Text.ToLowerInvariant());
+                if (!set.Contains(word)) set.Add(word);
             }
 
             return new SemanticSet(set);
+        }
+
+        static string Normalise(string text)
+        {
+            return text?.ToLowerInvariant();
         }
     }
 }

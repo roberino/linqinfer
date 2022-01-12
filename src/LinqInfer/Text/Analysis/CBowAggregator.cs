@@ -16,7 +16,7 @@ namespace LinqInfer.Text.Analysis
         readonly OneHotEncoding<string> _encoding;
 
         public CBowAggregator(
-            IAsyncEnumerator<SyntacticContext> cbow,
+            ITransformingAsyncBatchSource<SyntacticContext> cbow,
             OneHotEncoding<string> encoding)
         {
             Cbow = cbow;
@@ -24,7 +24,7 @@ namespace LinqInfer.Text.Analysis
         }
 
         public CBowAggregator(
-            IAsyncEnumerator<SyntacticContext> cbow,
+            ITransformingAsyncBatchSource<SyntacticContext> cbow,
             ISemanticSet vocabulary)
         {
             Cbow = cbow;
@@ -32,7 +32,7 @@ namespace LinqInfer.Text.Analysis
             _encoding = new OneHotEncoding<string>(new HashSet<string>(vocabulary.Words));
         }
 
-        public IAsyncEnumerator<SyntacticContext> Cbow { get; }
+        public ITransformingAsyncBatchSource<SyntacticContext> Cbow { get; }
 
         public async Task<IDictionary<string, WordData>> AggregateVectorsAync(CancellationToken cancellationToken)
         {
@@ -57,7 +57,7 @@ namespace LinqInfer.Text.Analysis
                   w.Vector.Size == 0 ? _encoding.Encode(w.Word) : w.Vector,
                 _encoding.VectorSize);
 
-            pipeline = await pipeline.CentreAndScaleAsync(Range.MinusOneToOne);
+            pipeline = await pipeline.CentreAndScaleAsync(Maths.Range.MinusOneToOne);
 
             return pipeline
                  .AsTrainingSet(w => w.Word, aggregation.Keys.ToArray());
@@ -67,16 +67,15 @@ namespace LinqInfer.Text.Analysis
         {
             var trainingSet = await GetTrainingSetAync(cancellationToken);
 
-            void NetworkBuilder(FluentNetworkBuilder b)
+            void NetworkBuilder(IConvolutionalNetworkBuilder b)
             {
                 b
-               .ParallelProcess()
                .ConfigureLearningParameters(p =>
                {
                    p.LearningRate = 0.2;
                    p.Momentum = 0.1;
                })
-               .AddHiddenLayer(new LayerSpecification(vectorSize, Activators.None(), LossFunctions.Square))
+               .AddHiddenLayer(vectorSize, Activators.None())
                .AddSoftmaxOutput();
             };
 

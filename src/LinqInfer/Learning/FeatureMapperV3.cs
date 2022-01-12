@@ -12,7 +12,6 @@ namespace LinqInfer.Learning
     /// </summary>
     class FeatureMapperV3<T> where T : class
     {
-        const int BATCH_SIZE = 1000;
         readonly ClusteringParameters _parameters;
 
         public FeatureMapperV3(int outputNodeCount = 10, float learningRate = 0.5f, int trainingEpochs = 1000, float? radius = null)
@@ -53,7 +52,7 @@ namespace LinqInfer.Learning
             return new FeatureMap<T>(outputNodes.Where(n => n.IsInitialised).ToList(), pipeline.FeatureExtractor, _parameters);
         }
 
-        internal async Task<FeatureMap<T>> MapAsync(HashSet<ClusterNode<T>> outputNodes, IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
+        public async Task<FeatureMap<T>> MapAsync(HashSet<ClusterNode<T>> outputNodes, IAsyncFeatureProcessingPipeline<T> pipeline, CancellationToken cancellationToken)
         {
             for (int i = 0; i < _parameters.TrainingEpochs; i++)
             {
@@ -96,7 +95,7 @@ namespace LinqInfer.Learning
             }
         }
 
-        internal HashSet<ClusterNode<T>> SetupOutputNodes(IFloatingPointFeatureExtractor<T> featureExtractor)
+        internal HashSet<ClusterNode<T>> SetupOutputNodes(IVectorFeatureExtractor<T> featureExtractor)
         {
             return new HashSet<ClusterNode<T>>(
                     Enumerable

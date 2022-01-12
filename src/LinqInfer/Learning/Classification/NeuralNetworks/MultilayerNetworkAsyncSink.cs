@@ -14,22 +14,20 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         where TClass : IEquatable<TClass>
     {
         readonly IClassifierTrainer _trainingContext;
-        readonly LearningParameters _learningParameters;
+        readonly TrainingParameters trainingParameters;
 
         readonly ValueStore _errorHistory;
         
         public MultilayerNetworkAsyncSink(
             IClassifierTrainer trainer,
-            LearningParameters learningParameters)
+            TrainingParameters trainingParameters)
         {
             _trainingContext = trainer;
-            _learningParameters = learningParameters;
-            _errorHistory = new ValueStore(learningParameters.ErrorHistoryCount);
+            this.trainingParameters = trainingParameters;
+            _errorHistory = new ValueStore(trainingParameters.ErrorHistoryCount);
 
             Reset();
         }
-
-        public IVectorClassifier Classifier => _trainingContext.Output;
 
         public bool CanReceive { get; private set; }
 
@@ -66,7 +64,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
                     MovingError =  _errorHistory.MovingError
                 };
 
-                if (_learningParameters.EvaluateHaltingFunction(status))
+                if (trainingParameters.EvaluateHaltingFunction(status))
                 {
                     CanReceive = false;
 

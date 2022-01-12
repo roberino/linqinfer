@@ -1,5 +1,4 @@
-﻿using LinqInfer.Maths;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +7,16 @@ namespace LinqInfer.Maths
 {
     public sealed class MultiVector : IVector
     {
-        IList<IVector> _vectors;
+        IReadOnlyCollection<IVector> _vectors;
 
         public MultiVector(params IVector[] vectors)
         {
-            _vectors = vectors.ToList();
+            _vectors = vectors;
         }
 
-        MultiVector(IList<IVector> vectors)
+        internal MultiVector(IEnumerable<IVector> vectors)
         {
-            _vectors = vectors;
+            _vectors = (vectors as List<IVector>) ?? vectors.ToList();
         }
 
         public double this[int index]

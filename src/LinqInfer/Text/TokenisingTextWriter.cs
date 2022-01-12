@@ -1,10 +1,11 @@
-﻿using System;
+﻿using LinqInfer.Utility;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LinqInfer.Text.Tokenisers;
 
 namespace LinqInfer.Text
 {
@@ -14,7 +15,6 @@ namespace LinqInfer.Text
         readonly List<Func<IEnumerable<IToken>, IEnumerable<IToken>>> _filters;
         readonly List<Func<IEnumerable<IToken>, Task>> _sinks;
         readonly ITokeniser _tokeniser;
-        readonly Encoding _encoding;
         readonly TextWriter _innerWriter;
         readonly bool _disposeInnerWriter;
         int _maxBufferSize;
@@ -33,7 +33,7 @@ namespace LinqInfer.Text
             _buffer = new StringBuilder();
             _filters = new List<Func<IEnumerable<IToken>, IEnumerable<IToken>>>();
             _sinks = new List<Func<IEnumerable<IToken>, Task>>();
-            _encoding = encoding ?? Encoding.UTF8;
+            Encoding = encoding ?? Encoding.UTF8;
             _tokeniser = tokeniser ?? new Tokeniser();
         }
 
@@ -45,18 +45,13 @@ namespace LinqInfer.Text
             }
             set
             {
-                Contract.Assert(value > 0);
+                ArgAssert.AssertGreaterThanZero(value, nameof(value));
+
                 _maxBufferSize = value;
             }
         }
 
-        public override Encoding Encoding
-        {
-            get
-            {
-                return _encoding;
-            }
-        }
+        public override Encoding Encoding { get; }
 
         public void AddFilter(Func<IEnumerable<IToken>, IEnumerable<IToken>> filter)
         {

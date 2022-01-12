@@ -14,7 +14,7 @@ namespace LinqInfer.Data.Pipes
         /// <summary>
         /// Returns an empty AsyncEnumerator
         /// </summary>
-        public static IAsyncEnumerator<T> EmptySource<T>()
+        public static ITransformingAsyncBatchSource<T> EmptySource<T>()
         {
             return Enumerable(System.Linq.Enumerable.Empty<T>());
         }
@@ -22,7 +22,17 @@ namespace LinqInfer.Data.Pipes
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
-        public static IAsyncEnumerator<T> Enumerable<T>(IEnumerable<T> values, int batchSize = 1000)
+        public static ITransformingAsyncBatchSource<T> AsyncEnumerable<T>(IAsyncEnumerable<T> values, int batchSize = 1000)
+        {
+            var adapter = new AsyncEnumerableToBatchAdapter<T>(values, batchSize);
+
+            return new AsyncEnumerator<T>(adapter);
+        }
+
+        /// <summary>
+        /// Converts an enumeration into an async enumerator
+        /// </summary>
+        public static ITransformingAsyncBatchSource<T> Enumerable<T>(IEnumerable<T> values, int batchSize = 1000)
         {
             return new AsyncEnumerator<T>(values
                 .AsQueryable()
@@ -33,7 +43,7 @@ namespace LinqInfer.Data.Pipes
         /// <summary>
         /// Converts an enumeration into an async enumerator
         /// </summary>
-        public static IAsyncEnumerator<T> Query<T>(IQueryable<T> values, long? estimatedResultCount = null, int batchSize = 1000)
+        public static ITransformingAsyncBatchSource<T> Query<T>(IQueryable<T> values, long? estimatedResultCount = null, int batchSize = 1000)
         {
             return new AsyncEnumerator<T>(values
                 .Chunk(batchSize)
@@ -46,7 +56,7 @@ namespace LinqInfer.Data.Pipes
         /// </summary>
         /// <typeparam name="T">The type of each item in a batch of data</typeparam>
         /// <param name="batchLoader">An enumeration of tasks to load data</param>
-        public static IAsyncEnumerator<T> EnumerableTasks<T>(IEnumerable<Task<IList<T>>> batchLoader)
+        public static ITransformingAsyncBatchSource<T> EnumerableTasks<T>(IEnumerable<Task<IList<T>>> batchLoader)
         {
             return new AsyncEnumerator<T>(batchLoader);
         }
@@ -56,9 +66,9 @@ namespace LinqInfer.Data.Pipes
         /// </summary>
         /// <typeparam name="TInput">The type of data</typeparam>
         /// <param name="batchLoaderFunc">A batch loading function</param>
-        public static IAsyncEnumerator<TInput> Func<TInput>(Func<int, AsyncBatch<TInput>> batchLoaderFunc, long? estimatedNumberOfResults = null, Action onDispose = null, bool skipEmptyBatches = true)
+        public static ITransformingAsyncBatchSource<TInput> Func<TInput>(Func<int, AsyncBatch<TInput>> batchLoaderFunc, long? estimatedNumberOfResults = null, Action onDispose = null, bool skipEmptyBatches = true)
         {
-            var asyncEnum = new AsyncEnumerable<TInput>(batchLoaderFunc);
+            var asyncEnum = new AsyncBatchEnumerable<TInput>(batchLoaderFunc);
 
             var asyncEnumerator = new AsyncEnumerator<TInput>(asyncEnum, estimatedNumberOfResults)
             {

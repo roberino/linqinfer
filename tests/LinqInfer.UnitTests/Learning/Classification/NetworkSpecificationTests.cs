@@ -17,7 +17,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
             var doc = spec.ExportData();
 
             Assert.That(doc, Is.Not.Null);
-            Assert.That(doc.Children.Count, Is.EqualTo(2));
+            Assert.That(doc.Children.Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2, Is.Not.Null);
         }
@@ -37,15 +37,15 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            spec.LearningParameters.MinimumError = 0.1;
+            spec.TrainingParameters.MinimumError = 0.1;
 
-            var halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.09);
+            var halt = spec.TrainingParameters.EvaluateHaltingFunction(0, 0.09);
 
             Assert.True(halt);
 
-            spec.LearningParameters.MinimumError = 0.5;
+            spec.TrainingParameters.MinimumError = 0.5;
 
-            halt = spec.LearningParameters.EvaluateHaltingFunction(0, 0.4);
+            halt = spec.TrainingParameters.EvaluateHaltingFunction(0, 0.4);
 
             Assert.True(halt);
         }
@@ -53,17 +53,17 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void ToVectorDocument_WhenGivenSingleLayerSpec_ThenCorrectInputVectorSizeReturnedWhenImported()
         {
-            var spec = new NetworkSpecification(new LearningParameters(),
+            var spec = new NetworkSpecification(new TrainingParameters(),
                   16,
-                  new LayerSpecification(4,
+                LossFunctions.Square,
+                  new NetworkLayerSpecification(1, 4,
                   Activators.Threshold(),
-                  LossFunctions.CrossEntropy,
                   WeightUpdateRules.Default(),
-                  new Range()));
+                  new LinqInfer.Maths.Range()));
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2.InputVectorSize, Is.EqualTo(16));
             Assert.That(spec2.Layers.Single().LayerSize, Is.EqualTo(4));
@@ -74,17 +74,17 @@ namespace LinqInfer.UnitTests.Learning.Classification
         {
             var spec = CreateSut();
 
-            var transform = new SerialisableDataTransformation(new 
+            var transform = new SerialisableDataTransformation(new
                 Matrix(new[] {
                     new[] { 1d, 5d },
                     new[] { 11d, 123.3d } }));
 
-            spec.Layers.Last().OutputTransformation = transform;
+            spec.Output.OutputTransformation = transform;
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
-            var spec2transform = spec2.Layers.Last().OutputTransformation;
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
+            var spec2transform = spec2.Output.OutputTransformation;
 
             Assert.IsNotNull(spec2transform);
 
@@ -98,20 +98,19 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
             var doc = spec.ExportData();
 
-            var spec2 = NetworkSpecification.FromVectorDocument(doc);
+            var spec2 = NetworkSpecification.FromDataDocument(doc);
 
             Assert.That(spec2.InputVectorSize, Is.EqualTo(spec.InputVectorSize));
-            Assert.That(spec2.Layers.Count, Is.EqualTo(spec.Layers.Count));
-            Assert.That(spec2.LearningParameters.LearningRate, Is.EqualTo(spec.LearningParameters.LearningRate));
-            Assert.That(spec2.LearningParameters.MinimumError, Is.EqualTo(spec.LearningParameters.MinimumError));
-            Assert.That(spec2.OutputVectorSize, Is.EqualTo(spec.OutputVectorSize));
+            Assert.That(spec2.Layers.Count, Is.EqualTo(spec.Modules.Count));
+            Assert.That(spec2.TrainingParameters.LearningRate, Is.EqualTo(spec.TrainingParameters.LearningRate));
+            Assert.That(spec2.TrainingParameters.MinimumError, Is.EqualTo(spec.TrainingParameters.MinimumError));
 
             int i = 0;
             foreach (var layer in spec2.Layers)
             {
-                Assert.That(layer.LayerSize, Is.EqualTo(spec.Layers[i].LayerSize));
-                Assert.That(layer.InitialWeightRange, Is.EqualTo(spec.Layers[i].InitialWeightRange));
-                Assert.That(layer.Activator.Name, Is.EqualTo(spec.Layers[i].Activator.Name));
+                Assert.That(layer.LayerSize, Is.EqualTo(spec.Layers.ElementAt(i).LayerSize));
+                Assert.That(layer.InitialWeightRange, Is.EqualTo(spec.Layers.ElementAt(i).InitialWeightRange));
+                Assert.That(layer.Activator.Name, Is.EqualTo(spec.Layers.ElementAt(i).Activator.Name));
 
                 i++;
             }
@@ -119,12 +118,12 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         NetworkSpecification CreateSut()
         {
-            var layer1 = new LayerSpecification(4, Activators.Sigmoid(), LossFunctions.Square, WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var layer2 = new LayerSpecification(2, Activators.Sigmoid(), LossFunctions.CrossEntropy, WeightUpdateRules.Default(), new Range(0.4, -0.3));
-            var spec = new NetworkSpecification(new LearningParameters(), layer1, layer2);
+            var layer1 = new NetworkLayerSpecification(1, 4, Activators.Sigmoid(), WeightUpdateRules.Default(), new LinqInfer.Maths.Range(0.4, -0.3));
+            var layer2 = new NetworkLayerSpecification(2, 2, Activators.Sigmoid(), WeightUpdateRules.Default(), new LinqInfer.Maths.Range(0.4, -0.3));
+            var spec = new NetworkSpecification(new TrainingParameters(), layer1.LayerSize, LossFunctions.CrossEntropy, layer1, layer2);
 
-            spec.LearningParameters.MinimumError = 0.999;
-            spec.LearningParameters.LearningRate = 0.222;
+            spec.TrainingParameters.MinimumError = 0.999;
+            spec.TrainingParameters.LearningRate = 0.222;
 
             return spec;
         }

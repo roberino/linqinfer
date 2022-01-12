@@ -21,11 +21,11 @@ namespace LinqInfer.Learning.Features
             Setup();
         }
 
-        public async Task<IFloatingPointFeatureExtractor<T>> BuildAsync(
-            IAsyncEnumerator<T> samples,
+        public async Task<IVectorFeatureExtractor<T>> BuildAsync(
+            ITransformingAsyncBatchSource<T> samples,
             CancellationToken cancellationToken)
         {
-            var extractors = new List<IFloatingPointFeatureExtractor<T>>();
+            var extractors = new List<IVectorFeatureExtractor<T>>();
 
             var strategyBuilders = _strategies
                 .Where(s => s.CanBuild)
@@ -56,10 +56,7 @@ namespace LinqInfer.Learning.Features
                     .OrderByDescending(s => s.Priority)
                     .FirstOrDefault();
 
-                if (strategy != null)
-                {
-                    strategy.Properties.Add(prop);
-                }
+                strategy?.Properties.Add(prop);
             }
         }
     }

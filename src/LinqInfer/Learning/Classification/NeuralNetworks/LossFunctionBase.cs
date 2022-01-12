@@ -7,7 +7,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         bool? _useOneOfN;
 
-        public ErrorAndLossVectors Calculate(IVector actualOutput, IVector targetOutput, Func<double, double> derivative)
+        public NetworkError Calculate(IVector actualOutput, IVector targetOutput, Func<double, double> derivative)
         {
             if (!_useOneOfN.HasValue)
             {
@@ -22,8 +22,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return CalculateNormalVector(actualOutput.ToColumnVector(), targetOutput, derivative);
         }
 
-        protected abstract ErrorAndLossVectors CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative);
+        protected abstract NetworkError CalculateNormalVector(ColumnVector1D actualOutput, IVector targetOutput, Func<double, double> derivative);
 
-        protected abstract ErrorAndLossVectors CalculateOneOfN(ColumnVector1D actualOutput, OneOfNVector targetOutput, Func<double, double> derivative);
+        protected abstract NetworkError CalculateOneOfN(ColumnVector1D actualOutput, OneOfNVector targetOutput, Func<double, double> derivative);
     }
 }

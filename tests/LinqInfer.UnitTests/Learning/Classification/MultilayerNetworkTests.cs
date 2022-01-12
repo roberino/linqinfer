@@ -16,7 +16,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public void WhenDataExport_TheMatrixReturnedPerLayer()
         {
-            var parameters = new NetworkSpecification(8, new LayerSpecification(4));
+            var parameters = new NetworkSpecification(8, new NetworkLayerSpecification(1, 4));
             var network = SetupTestNetwork(parameters);
 
             var weights = network.ExportRawData().ToList();
@@ -29,20 +29,10 @@ namespace LinqInfer.UnitTests.Learning.Classification
         [Test]
         public async Task ExportNetworkTopologyAsync()
         {
-            var parameters = new NetworkSpecification(2, new LayerSpecification(4));
+            var parameters = new NetworkSpecification(2, new NetworkLayerSpecification(1, 4));
             var network = new MultilayerNetwork(parameters);
 
-            network.ForEachLayer(l =>
-            {
-                l.ForEachNeuron((n, i) =>
-                {
-                    n.Adjust((w, k) => w * 0.1);
-
-                    return 0d;
-                });
-
-                return 1;
-            });
+            network.BackwardPropagate(Vector.UniformVector(network.OutputSize, 1.4));
 
             var topology = await network.ExportNetworkTopologyAsync();
 
@@ -51,18 +41,18 @@ namespace LinqInfer.UnitTests.Learning.Classification
             LogVerbose(xml.ToString());
         }
 
-
         [Test]
         public void WhenGivenNetworkFromSpecification_ThenCanExportAndImport()
         {
-            var lp = new LearningParameters();
+            var lp = new TrainingParameters();
+
             var spec = new NetworkSpecification(lp,
                 16,
-                new LayerSpecification(4,
+                LossFunctions.Square,
+                new NetworkLayerSpecification(1, 4,
                 Activators.Threshold(),
-                LossFunctions.CrossEntropy,
                 WeightUpdateRules.Default(),
-                new Range()));
+                new LinqInfer.Maths.Range()));
 
             var attribs = new Dictionary<string, string>()
             {
@@ -91,17 +81,7 @@ namespace LinqInfer.UnitTests.Learning.Classification
 
         void AdjustData(MultilayerNetwork network)
         {
-            network.ForEachLayer(l =>
-            {
-                l.ForEachNeuron((n, i) =>
-                {
-                    n.Adjust((w, k) => w * 0.1);
-
-                    return 0d;
-                });
-
-                return 1;
-            });
+            network.BackwardPropagate(Vector.UniformVector(network.OutputSize, 1.123d));
         }
     }
 }

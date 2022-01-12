@@ -21,12 +21,12 @@ namespace LinqInfer.Learning.Features
                    propertyExtractor.HasValue;
         }
 
-        public override IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder()
+        public override IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder()
         {
             return new Builder(_maxVectorSize);
         }
 
-        class Builder : IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>>
+        class Builder : IAsyncBuilderSink<T, IVectorFeatureExtractor<T>>
         {
             readonly PolymorphicFeatureExtractor<T> _polymorphicFeatureExtractor;
 
@@ -37,18 +37,18 @@ namespace LinqInfer.Learning.Features
 
             public bool CanReceive => !_polymorphicFeatureExtractor.CapacityReached;
 
-            public Task<IFloatingPointFeatureExtractor<T>> BuildAsync()
+            public Task<IVectorFeatureExtractor<T>> BuildAsync()
             {
                 _polymorphicFeatureExtractor.Resize();
 
-                return Task.FromResult<IFloatingPointFeatureExtractor<T>>(_polymorphicFeatureExtractor);
+                return Task.FromResult<IVectorFeatureExtractor<T>>(_polymorphicFeatureExtractor);
             }
 
             public Task ReceiveAsync(IBatch<T> dataBatch, CancellationToken cancellationToken)
             {
                 foreach (var item in dataBatch.Items)
                 {
-                    _polymorphicFeatureExtractor.MapTypeInstance(item);
+                    _polymorphicFeatureExtractor.RegisterInstance(item);
                 }
 
                 return Task.CompletedTask;

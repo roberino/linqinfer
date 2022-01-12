@@ -1,6 +1,5 @@
 ﻿using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +8,9 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
     class BackPropagationLearning : IAssistedLearningProcessor
     {
-        readonly MultilayerNetwork _network;
+        readonly IMultilayerNetwork _network;
 
-        public BackPropagationLearning(MultilayerNetwork network)
+        public BackPropagationLearning(IMultilayerNetwork network)
         {
             network.Specification.Validate();
 
@@ -20,7 +19,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
-            _network.ForEachLayer(l => l.WeightUpdateRule.AdjustLearningRate(rateAdjustment)).ToList();
+            _network.ForwardPropagate(f =>
+            {
+                if (f is ILayer layer)
+                {
+                    layer.WeightUpdateRule.AdjustLearningRate(rateAdjustment);
+                }
+            });
         }
 
         public double Train(IEnumerable<TrainingPair<IVector, IVector>> trainingSet, double errorThreshold = 0)
@@ -46,101 +51,13 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public double Train(IVector inputVector, IVector targetOutput)
         {
-            var output = _network.Evaluate(inputVector);
+            var output = _network.Apply(inputVector);
 
             Validate(output, inputVector, targetOutput);
 
-            var errors = CalculateError(output, targetOutput);
-            
-            var input = new OutputValues(inputVector);
+            var err = _network.BackwardPropagate(targetOutput);
 
-            Adjust(input, errors.Item1);
-
-            // DebugOutput.LogVerbose("Error = {0}", errors.Item2);
-
-            return errors.Item2;
-        }
-
-        protected virtual Tuple<Vector[], double> CalculateError(IVector actualOutput, IVector targetOutput)
-        {
-            // network
-            //    -- layers[]
-            //          -- neuron[]
-            //              -- weights[]
-
-            ILayer lastLayer = null;
-            Vector lastError = null;
-            double error = 0;
-
-            var errors = _network.ForEachLayer((layer) =>
-            {
-                if (lastError == null)
-                {
-                    var errAndLoss = layer.LossFunction.Calculate(layer.Output, targetOutput, layer.Activator.Derivative);
-                    
-                    error += errAndLoss.Loss;
-
-                    lastError = errAndLoss.DerivativeError;
-                }
-                else
-                {
-                    lastError = layer.ForEachNeuron((n, i) =>
-                    {
-                        var err = lastLayer.ForEachNeuron((nk, k) =>
-                        {
-                            return lastError[k] * nk[i];
-                        });
-
-                        return err.Sum * layer.Activator.Derivative(n.Output);
-                    });
-                }
-
-                lastLayer = layer;
-
-                return lastError;
-            }).Reverse().ToArray();
-
-            return new Tuple<Vector[], double>(errors, error);
-        }
-
-        protected virtual void Adjust(IPropagatedOutput input, Vector[] errors)
-        {
-            var previousLayer = input;
-            var i = 0;
-
-            _network.ForEachLayer(layer =>
-            {
-                var layerErrors = errors[i++];
-
-                var update = layer.ForEachNeuron((n, j) =>
-                {
-                    var error = layerErrors[j];
-
-                    n.Adjust((w, k) =>
-                    {
-                        var prevOutput = k < 0 ? 1 : previousLayer.Output[k];
-
-                        var wp = new WeightUpdateParameters()
-                        {
-                            CurrentWeightValue = w,
-                            Error = error,
-                            PreviousLayerOutput = prevOutput
-                        };
-
-                        var wu = layer.WeightUpdateRule.Execute(wp);
-
-                        // DebugOutput.Log($"w = {wu} => error = {wp.Error} previous output = {wp.PreviousLayerOutput}, w = {wp.CurrentWeightValue}");
-
-                        return wu;
-                    });
-
-                    return 0;
-                });
-
-                previousLayer = layer;
-
-                return update;
-            }, false);
+            return err;
         }
 
         void Validate(IVector output, IVector inputVector, IVector targetOutput)

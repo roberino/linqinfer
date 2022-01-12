@@ -1,6 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Exporters;
-using BenchmarkDotNet.Running;
 using LinqInfer.Maths;
 
 namespace LinqInfer.Benchmarking
@@ -22,8 +20,8 @@ namespace LinqInfer.Benchmarking
         [IterationSetup]
         public void Setup()
         {
-            _matrix1 = Matrix.RandomMatrix(Width, Height, new Range(100, -100));
-            _matrix2 = Matrix.RandomMatrix(Height, Width, new Range(100, -100));
+            _matrix1 = Matrix.RandomMatrix(Width, Height, new LinqInfer.Maths.Range(100, -100));
+            _matrix2 = Matrix.RandomMatrix(Height, Width, new LinqInfer.Maths.Range(100, -100));
         }
 
         [Benchmark]

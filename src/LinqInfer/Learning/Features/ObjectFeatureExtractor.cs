@@ -46,7 +46,7 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
-        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument data)
+        public static IVectorFeatureExtractor<T> Create(PortableDataDocument data)
         {
             return new ObjectFeatureExtractor<T>(data.PropertyOrDefault(nameof(SetName), string.Empty));
         }

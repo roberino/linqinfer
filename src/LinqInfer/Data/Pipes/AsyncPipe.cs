@@ -8,12 +8,12 @@ namespace LinqInfer.Data.Pipes
 {
     class AsyncPipe<T> : AsyncPipeBase<T>
     {
-        public AsyncPipe(IAsyncSource<T> source)
+        public AsyncPipe(IAsyncBatchSource<T> source)
         {
             Source = source;
         }
 
-        public override IAsyncSource<T> Source { get; }
+        public override IAsyncBatchSource<T> Source { get; }
 
         public override async Task RunAsync(CancellationToken cancellationToken, int epochs = 1)
         {

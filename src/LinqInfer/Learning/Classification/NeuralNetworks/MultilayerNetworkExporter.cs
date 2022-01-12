@@ -1,5 +1,7 @@
-﻿using LinqInfer.Data.Serialisation;
+﻿using System.Collections.Generic;
+using LinqInfer.Data.Serialisation;
 using System.Linq;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
@@ -21,19 +23,21 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             doc.WriteChildObject(network.Specification);
 
-            int i = 0;
+            var idTracker = new HashSet<string>();
 
-            foreach (var layer in network.Layers)
+            network.ForwardPropagate(x =>
             {
-                i++;
+                if (!idTracker.Contains(x.Id))
+                {
+                    var data = x.ExportData();
 
-                var layerDoc = layer.Export();
+                    data.Properties["Label"] = x.ToString();
 
-                layerDoc.Properties["Label"] = "Layer " + i;
-                layerDoc.SetType<NetworkLayer>();
+                    doc.Children.Add(data);
 
-                doc.Children.Add(layerDoc);
-            }
+                    idTracker.Add(x.Id);
+                }
+            });
 
             return doc;
         }
@@ -45,17 +49,27 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         static MultilayerNetwork CreateFromVectorDocument(PortableDataDocument doc)
         {
-            var spec = NetworkSpecification.FromVectorDocument(doc.Children.First());
+            var spec = NetworkSpecification.FromDataDocument(doc.Children.First());
             var properties = doc.Properties.Where(p => p.Key.StartsWith("_")).ToDictionary(p => p.Key.Substring(1), p => p.Value);
 
             var network = new MultilayerNetwork(spec, properties);
 
-            int i = 1;
-
-            foreach (var layer in network.Layers)
+            network.ForwardPropagate(x =>
             {
-                layer.Import(doc.Children[i++]);
-            }
+                var query = doc.QueryChildren(new
+                {
+                    x.Id
+                }).ToList();
+
+                if (query.Count > 1)
+                {
+                    ArgAssert.AssertEquals(query.Count, 1, $"Multiple ids found for {x.Id}");
+                }
+
+                var layerData = query.Single();
+
+                x.ImportData(layerData);
+            });
 
             return network;
         }

@@ -14,19 +14,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
     {
         protected readonly Config _config;
 
-        protected MultilayerNetwork _network;
+        protected IMultilayerNetwork _network;
 
         public MultilayerNetworkObjectClassifier(
-            IFloatingPointFeatureExtractor<TInput> featureExtractor,
+            IVectorFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
-            MultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
+            IMultilayerNetwork network = null) : this(Setup(featureExtractor, outputMapper, default(TInput)))
         {
             Statistics = new ClassifierStats();
 
-            if (network != null)
-            {
-                Setup(network);
-            }
+            _network = network;
         }
 
         MultilayerNetworkObjectClassifier(Config config)
@@ -34,6 +31,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             Statistics = new ClassifierStats();
 
             _config = config;
+        }
+
+        public void Reset()
+        {
+            _network.Reset();
         }
 
         public ClassifierStats Statistics { get; private set; }
@@ -57,13 +59,16 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return root;
         }
 
-        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data)
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data) =>
+            Create(data, FeatureExtractorFactory<TInput>.Default);
+
+        public static MultilayerNetworkObjectClassifier<TClass, TInput> Create(PortableDataDocument data, IFeatureExtractorFactory<TInput> featureExtractorFactory)
         {
             var stats = new ClassifierStats();
 
             stats.ImportData(data.Children[0]);
 
-            var featureExtractor = FeatureExtractorFactory<TInput>.Default.Create(data.Children[1]);
+            var featureExtractor = featureExtractorFactory.Create(data.Children[1]);
 
             var network = MultilayerNetwork.CreateFromData(data.Children[2]);
             var outputMapper = OutputMapper<TClass>.ImportData(data.Children[3]);
@@ -82,7 +87,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             var input = _config.FeatureExtractor.ExtractIVector(obj);
 
-            var output = _network.Evaluate(input);
+            var output = _network.Apply(input);
 
             var outputObjects = _config.OutputMapper.Map(output);
 
@@ -131,7 +136,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         }
 
         static Config Setup(
-            IFloatingPointFeatureExtractor<TInput> featureExtractor,
+            IVectorFeatureExtractor<TInput> featureExtractor,
             ICategoricalOutputMapper<TClass> outputMapper,
             TInput normalisingSample)
         {
@@ -143,16 +148,11 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             };
         }
 
-        void Setup(MultilayerNetwork network)
-        {
-            _network = network;
-        }
-
         protected class Config
         {
             public TInput NormalisingSample { get; set; }
             public ICategoricalOutputMapper<TClass> OutputMapper { get; set; }
-            public IFloatingPointFeatureExtractor<TInput> FeatureExtractor { get; set; }
+            public IVectorFeatureExtractor<TInput> FeatureExtractor { get; set; }
         }
     }
 }

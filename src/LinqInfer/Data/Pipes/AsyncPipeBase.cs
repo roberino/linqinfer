@@ -14,7 +14,7 @@ namespace LinqInfer.Data.Pipes
             _sinks = new List<IAsyncSink<T>>();
         }
 
-        public abstract IAsyncSource<T> Source { get; }
+        public abstract IAsyncBatchSource<T> Source { get; }
 
         public IEnumerable<IAsyncSink<T>> Sinks => _sinks;
 

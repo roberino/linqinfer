@@ -16,14 +16,14 @@ namespace LinqInfer.IntegrationTests.Text
     {
         IAsyncTrainingSet<BiGram, string> _bigramTrainingSet;
 
-        [Test]
-        public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
-        {
-            await GivenAnAsyncTextTrainingSet();
+        //[Test]
+        //public async Task WhenGivenCbow_ThenVectorsCanBeExtracted()
+        //{
+        //    await GivenAnAsyncTextTrainingSet();
 
-            await ThenBigramVectorsCanBeExtracted();
+        //    await ThenBigramVectorsCanBeExtracted();
 
-        }
+        //}
 
         void LogPipeStats(IPipeStatistics stats)
         {
@@ -42,7 +42,7 @@ namespace LinqInfer.IntegrationTests.Text
 
             await vects.WriteAsCsvAsync(Console.Out);
 
-            using (var fs = File.OpenWrite(@"C:\dev\vect.csv"))
+            using (var fs = File.OpenWrite("vect.csv"))
             using (var writer = new StreamWriter(fs))
             {
                 await vects.CreateCosineSimularityMatrix().WriteAsCsvAsync(writer);

@@ -1,8 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Exporters;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Classification.NeuralNetworks;
-using LinqInfer.Maths;
 using LinqInfer.Utility;
 using System.Linq;
 using System.Threading;
@@ -33,9 +31,6 @@ namespace LinqInfer.Benchmarking
         [Params(nameof(Activators.Sigmoid), nameof(Activators.HyperbolicTangent))]
         public string Activator { get; set; }
 
-        [Params(false, true)]
-        public bool ParallelProcess { get; set; }
-
         [Benchmark]
         public void AttachMultilayerNetworkClassifier_Run()
         {
@@ -53,13 +48,11 @@ namespace LinqInfer.Benchmarking
             {
                 foreach (var x in Enumerable.Range(0, NumberOfHiddenLayers))
                 {
-                    p.AddHiddenLayer(new LayerSpecification(
+                    p.AddHiddenLayer(
                         LayerSize,
                         Activators.All().First(a => a.Name == Activator),
-                        LossFunctions.Square, 
                         WeightUpdateRules.Default(),
-                        new Range(1, -1),
-                        ParallelProcess));
+                        new LinqInfer.Maths.Range(1, -1));
                 }
             });
 

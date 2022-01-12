@@ -1,25 +1,27 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
 using LinqInfer.Text;
 using LinqInfer.Text.Analysis;
 using NUnit.Framework;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinqInfer.UnitTests.Text.Analysis
 {
     [TestFixture]
     public class AnalysisExtensionsTests
     {
-        const int _numberOfCorpusItems = 22;
-        readonly Corpus _testCorpus;
+        readonly ICorpus _testCorpus;
         readonly ISemanticSet _testVocab;
+        readonly int _numberOfCorpusItems;
+        readonly int _numberOfCorpusBlocks;
 
         public AnalysisExtensionsTests()
         {
-            _testCorpus = new Corpus("a b c d e f g h i j k l m n o p q r s t u v w x y z".Tokenise());
-            _testVocab = _testCorpus.ExtractKeyTerms();
+            _testCorpus = TestData.CreateCorpus();
+            _testVocab = _testCorpus.ExtractKeyTerms(200);
+            _numberOfCorpusItems = _testCorpus.Words.Count();
+            _numberOfCorpusBlocks = _testCorpus.Blocks.Sum(b => b.Count(w => _testVocab.IsDefined(w.NormalForm())) - 8);
         }
 
         [Test]
@@ -33,26 +35,15 @@ namespace LinqInfer.UnitTests.Text.Analysis
         }
 
         [Test]
-        public async Task CreateContinuousBagOfWordsAsyncTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
+        public async Task CreateContinuousBagOfWordsAsyncTrainingSet_GivenCorpus_ReturnsExpectedBatches()
         {
+            const int contextPadding = 1;
             var cbow = _testCorpus.CreateAsyncContinuousBagOfWords(_testVocab);
-            var trainingData = cbow.AsNGramAsyncTrainingSet();
+            var trainingData = cbow.AsNGramAsyncTrainingSet(contextPadding);
 
-            int counter = 0;
+            var data = await trainingData.Source.ToMemoryAsync(CancellationToken.None);
 
-            await trainingData
-                .ExtractInputOutputIVectorBatches()
-                .ProcessUsing(p =>
-                {
-                    Assert.That(counter, Is.EqualTo(p.BatchNumber));
-                    Assert.That(p.Items.Count, Is.EqualTo(_numberOfCorpusItems));
-
-                    counter++;
-
-                    return true;
-                });
-
-            Assert.That(counter, Is.EqualTo(1));
+            Assert.That(data.Count, Is.GreaterThan(375));
         }
 
         [Test]
@@ -66,61 +57,19 @@ namespace LinqInfer.UnitTests.Text.Analysis
 
             var vects = await trainingSet.Source.ToMemoryAsync(ct);
 
-            Assert.That(vects.Count, Is.EqualTo(_numberOfCorpusItems));
+            Assert.That(vects.Count, Is.EqualTo(_testVocab.Count));
         }
 
         [Test]
         public void CreateContinuousBagOfWordsTrainingSet_GivenSimpleCorpus_ReturnsExpectedBatches()
         {
+            const int contextPadding = 3;
             var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
-            var trainingData = cbow.AsNGramTrainingSet();
+            var trainingData = cbow.AsNGramTrainingSet(contextPadding);
             var trainingBatches = trainingData.ExtractTrainingVectorBatches();
 
             Assert.That(trainingBatches.Count(), Is.EqualTo(1));
-            Assert.That(trainingBatches.First().Count, Is.EqualTo(_numberOfCorpusItems)); // (26 - 4) * 4));
-        }
-
-        [Test]
-        public void CreateContinuousBagOfWords_GivenSimpleCorpus_ReturnExpectedValues()
-        {
-            var cbow = _testCorpus.CreateContinuousBagOfWords(_testVocab);
-
-            Assert.That(cbow.GetNGrams().Count(), Is.EqualTo(_numberOfCorpusItems));
-
-            char c = 'c';
-
-            foreach(var context in cbow.GetNGrams())
-            {
-                Console.WriteLine(context);
-
-                var offset = 0;
-
-                for (int i = 0; i < 5; i++)
-                {
-                    if (i == 2)
-                    {
-                        offset = -1;
-                        continue; // skip context index
-                    }
-
-                    Assert.That(
-                        context.ContextualWords.ElementAt(i + offset).Text.Length, Is.EqualTo(1));
-
-                    Assert.That(
-                        context.ContextualWords.ElementAt(i + offset).Text[0], 
-                        Is.EqualTo(Offset(c, -2 + i)));
-                }
-
-                Assert.That(context.TargetWord.Text.Length, Is.EqualTo(1));
-                Assert.That(context.TargetWord.Text[0], Is.EqualTo(c));
-
-                c = Offset(c, 1);
-            }
-        }
-
-        char Offset(char c, int o)
-        {
-            return (char)((int)c + o);
+            Assert.That(trainingBatches.First().Count, Is.GreaterThan(375)); // (26 - 4) * 4));
         }
     }
 }

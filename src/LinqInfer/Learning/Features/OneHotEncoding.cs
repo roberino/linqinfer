@@ -8,29 +8,43 @@ using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Features
 {
-    class OneHotEncoding<T> : IExportableAsDataDocument
+    class OneHotEncoding<T> : IOneHotEncoding<T>
     {
+        public OneHotEncoding(int maxSize)
+        {
+            ArgAssert.AssertGreaterThanZero(maxSize, nameof(maxSize));
+
+            Lookup = new Dictionary<T, int>();
+            VectorSize = maxSize;
+        }
+
         public OneHotEncoding(ISet<T> classes)
         {
             int i = 0;
             Lookup = classes.ToDictionary(c => c, _ => i++);
+            VectorSize = Lookup.Count;
+
+            ArgAssert.AssertGreaterThanZero(VectorSize, nameof(classes));
         }
 
-        OneHotEncoding(IDictionary<T, int> lookup)
+        OneHotEncoding(IDictionary<T, int> lookup, int? maxVectorSize = null)
         {
             Lookup = lookup;
+            VectorSize = maxVectorSize.GetValueOrDefault(Lookup.Count);
         }
 
-        public int VectorSize => Lookup.Count;
+        public int VectorSize { get; }
+
+        public bool HasEntry(T obj) => Lookup.ContainsKey(obj);
+
+        public T GetEntry(int index)
+        {
+            return Lookup.FirstOrDefault(k => k.Value == index).Key;
+        }
 
         public OneOfNVector Encode(T obj)
         {
-            if (Lookup.TryGetValue(obj, out int index))
-            {
-                return new OneOfNVector(VectorSize, index);
-            }
-
-            return new OneOfNVector(VectorSize);
+            return new OneOfNVector(VectorSize, GetIndex(obj));
         }
 
         public BitVector Encode(IEnumerable<T> categories)
@@ -39,10 +53,10 @@ namespace LinqInfer.Learning.Features
 
             foreach (var cat in categories)
             {
-                if (Lookup.TryGetValue(cat, out int index))
-                {
-                    indexes.Add(index);
-                }
+                var index = GetIndex(cat);
+
+                if (index.HasValue)
+                    indexes.Add(index.Value);
             }
 
             return new BitVector(indexes, VectorSize);
@@ -58,6 +72,9 @@ namespace LinqInfer.Learning.Features
         public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
+
+            doc.SetPropertyFromExpression(() => VectorSize);
+
             var tc = Type.GetTypeCode(typeof(T));
 
             if (tc == TypeCode.Object)
@@ -80,8 +97,12 @@ namespace LinqInfer.Learning.Features
             return doc;
         }
 
+        public IEnumerable<KeyValuePair<T, int>> IndexTable => Lookup.Select(x => new KeyValuePair<T, int>(x.Key, x.Value));
+
         public static OneHotEncoding<T> ImportData(PortableDataDocument data)
         {
+            var vectorSize = data.PropertyOrDefault(nameof(VectorSize), 0);
+
             var type = typeof(T);
             var tc = Type.GetTypeCode(type);
 
@@ -100,7 +121,31 @@ namespace LinqInfer.Learning.Features
                 outputs[(T) Convert.ChangeType(item.Key.Substring(1), type)] = int.Parse(item.Value);
             }
 
-            return new OneHotEncoding<T>(outputs);
+            return new OneHotEncoding<T>(outputs, vectorSize > 0 ? vectorSize : new int?());
+        }
+
+        int? GetIndex(T obj)
+        {
+            if (obj == null)
+            {
+                return new int?();
+            }
+
+            if (Lookup.TryGetValue(obj, out var index))
+            {
+                return index;
+            }
+
+            if (Lookup.Count < VectorSize)
+            {
+                index = Lookup.Count;
+
+                Lookup[obj] = index;
+
+                return index;
+            }
+
+            return new int?();
         }
 
         void Save(Stream stream)

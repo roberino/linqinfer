@@ -1,6 +1,4 @@
-﻿using LinqInfer.Learning.Features;
-using LinqInfer.Maths;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,9 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using LinqInfer.Learning.Features;
+using LinqInfer.Maths;
 using draw = System.Drawing;
 
-namespace LinqInfer.Tests.Learning
+namespace LinqInfer.ImageLearningTests
 {
     public static class ImageSampleGeneration
     {
@@ -21,11 +21,6 @@ namespace LinqInfer.Tests.Learning
             return Enumerable
                 .Range(from, to - from + 1)
                 .Select(n => (char)(byte)n);
-        }
-
-        public static IEnumerable<char> Characters(params char[] values)
-        {
-            return values;
         }
 
         public static IEnumerable<Letter> Letters(this IEnumerable<char> characters, int width, FontFamily font)

@@ -18,6 +18,23 @@ namespace LinqInfer.Utility
             return FuncTypes.Single(f => f.GetGenericArguments().Length == numberOfArgs + 1);
         }
 
+        public static string ToCsv<T>(this IEnumerable<T> items, Func<T, string> conversionFunc = null, char separator = ',')
+        {
+            return string.Join(separator.ToString(), items.Select(x => conversionFunc?.Invoke(x) ?? x.ToString()));
+        }
+
+        public static IEnumerable<T> FromCsv<T>(this string csvData, Func<string, T> conversionFunc, char separator = ',')
+        {
+            if (string.IsNullOrWhiteSpace(csvData))
+            {
+                return Enumerable.Empty<T>();
+            }
+
+            return
+                csvData.Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(conversionFunc);
+        }
+
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
             return obj

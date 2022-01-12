@@ -1,25 +1,21 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Serialisation;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Maths;
 using LinqInfer.Maths.Graphs;
-using LinqInfer.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using LinqInfer.Utility;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    class MultilayerNetwork :
-        ICloneableObject<MultilayerNetwork>,
-        IHasNetworkTopology,
-        IVectorClassifier,
-        ISerialisableDataTransformation
+    class MultilayerNetwork : IMultilayerNetwork
     {
-        INetworkSignalFilter _rootLayer;
-        bool _initd;
+        IVector _lastOutput;
+        INetworkSignalFilter _outputModule;
 
-        public MultilayerNetwork(NetworkSpecification specification, IDictionary<string, string> properties = null)
+        public MultilayerNetwork(NetworkSpecification specification, 
+            IDictionary<string, string> properties = null,
+            IWorkOrchestrator workOrchestrator = null)
         {
             specification.Validate();
 
@@ -27,7 +23,14 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
             Properties = properties ?? new Dictionary<string, string>();
 
-            _initd = false;
+            var conf = new NetworkTopologyBuilder(Specification, workOrchestrator ?? GetOrchestrator())
+                .CreateConfiguration();
+
+            _outputModule = conf.output;
+
+            _lastOutput = Vector.UniformVector(specification.Output.OutputVectorSize, 0d);
+
+            RootModule = conf.root;
         }
 
         public IDictionary<string, string> Properties { get; }
@@ -36,164 +39,68 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IEnumerable<Matrix> ExportRawData()
         {
-            return ForEachLayer(l => l.ExportData(), false);
-        }
+            var data = new List<Matrix>();
 
-        public async Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
-            VisualSettings visualSettings = null,
-            IWeightedGraphStore<string, double> store = null)
-        {
-            var graph = new WeightedGraph<string, double>(store ?? new WeightedGraphInMemoryStore<string, double>(), (x, y) => x + y);
-
-            List<WeightedGraphNode<string, double>> previousVertexes = null;
-            List<WeightedGraphNode<string, double>> nextVertexes = new List<WeightedGraphNode<string, double>>();
-            List<INeuron> currentNeurons = new List<INeuron>();
-
-            var vs = visualSettings ?? new VisualSettings();
-
-            int l = 0;
-
-            var width = vs.Bounds.X;
-            var height = vs.Bounds.Y;
-            var numLayers = Layers.Count();
-            var mSize = Layers.Max(x => x.Size);
-            var unitW = width / numLayers;
-            var unitH = height / mSize;
-            var maxWeight = AllNeurons().Max(n => n.Export().Sum);
-
-            foreach (var layer in Layers.Reverse())
+            ForwardPropagate(x =>
             {
-                int i = 0;
-
-                var colour = vs.Palette.GetColourByIndex(l);
-
-                currentNeurons.Clear();
-
-                layer.ForEachNeuron(n =>
+                if (x is ILayer layer)
                 {
-                    currentNeurons.Add(n);
-                    return 1;
-                })
-                .ToList();
-
-                var offsetY = (layer.Size - mSize) / 2d * unitH;
-
-                foreach (var n in currentNeurons)
-                {
-                    i++;
-
-                    var name = l == 0 ? "Output " + i : l == numLayers - 1 ? "Input " + i : "N " + l + "." + i;
-                    var node = await graph.FindOrCreateVertexAsync(name);
-                    var attribs = await node.GetAttributesAsync();
-
-                    var weights = n.Export();
-                    var wsum = Math.Abs(weights.Sum);
-
-                    attribs["weights"] = weights.ToJson();
-
-                    var colourFactor = (float)(wsum / maxWeight);
-
-                    await node.SetPositionAndSizeAsync(vs.Origin.X + width - unitW * l, vs.Origin.Y + unitH * i - offsetY, 0, Math.Min(unitH, unitW) / 2);
-                    await node.SetColourAsync(colour);
-
-                    if (previousVertexes != null)
-                    {
-                        foreach (var vertex in previousVertexes)
-                        {
-                            await node.ConnectToAsync(vertex, wsum);
-                        }
-                    }
-
-                    nextVertexes.Add(node);
+                    data.Add(layer.ExportWeights());
                 }
+            });
 
-                previousVertexes = nextVertexes;
-
-                nextVertexes = new List<WeightedGraphNode<string, double>>();
-
-                l++;
-            }
-
-            await graph.SaveAsync();
-
-            return graph;
+            return data;
         }
 
-        void InitialiseLayers()
+        public void Reset()
         {
-            Specification.Initialise();
-
-            NetworkLayer next = null;
-            NetworkLayer lastLayer = null;
-
-            for (int i = 0; i < Specification.Layers.Count; i++)
-            {
-                var layer = Specification.Layers[i];
-
-                if (i == 0)
-                {
-                    next = new NetworkLayer(Specification.InputVectorSize, layer);
-                    _rootLayer = next;
-                }
-                else
-                {
-                    next = new NetworkLayer(lastLayer.Size, layer);
-                    lastLayer.Successor = next;
-                }
-
-                lastLayer = next;
-            }
-
-            _initd = true;
+            ForwardPropagate(n => n.Reset());
         }
 
-        public ILayer LastLayer => Layers.Reverse().First();
-
-        public IEnumerable<T> ForEachLayer<T>(Func<ILayer, T> func, bool reverse = true)
+        public void ForwardPropagate(Action<INetworkSignalFilter> work)
         {
-            if (!_initd) InitialiseLayers();
-
-            return (reverse ? Layers.Reverse() : Layers).ForEach(func);
+            RootModule.ForwardPropagate(work);
         }
 
-        /// <summary>
-        /// Applys the network over an input vector
-        /// </summary>
-        public IVector Evaluate(IVector input)
+        public double BackwardPropagate(IVector targetOutput)
         {
-            if (!_initd) InitialiseLayers();
-
-            return _rootLayer.Process(input);
+            return BackwardPropagateAsync(targetOutput)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
         }
 
-        /// <summary>
-        /// Transforms the vector (same as evaluate)
-        /// </summary>
+        public async Task<double> BackwardPropagateAsync(IVector targetOutput)
+        {
+            var lf = Specification.Output.LossFunction;
+            var dr = Activators.None().Derivative;
+
+            var errAndLoss = lf.Calculate(_lastOutput, targetOutput, dr);
+
+            await _outputModule.BackwardPropagate(errAndLoss.DerivativeError);
+
+            return errAndLoss.Loss;
+        }
+
         public IVector Apply(IVector vector)
         {
-            return Evaluate(vector);
-        }
-
-        public IEnumerable<ILayer> Layers
-        {
-            get
+            RootModule.Receive(vector);
+            
+            if (Specification.Output.OutputTransformation != null)
             {
-                if (!_initd) InitialiseLayers();
-
-                var next = _rootLayer as ILayer;
-
-                while (next != null)
-                {
-                    yield return next;
-
-                    next = next.Successor as ILayer;
-                }
+                _lastOutput = Specification.Output.OutputTransformation.Apply(_outputModule.Output);
             }
+            else
+            {
+                _lastOutput = _outputModule.Output;
+            }
+
+            return _lastOutput;
         }
 
         public int InputSize => Specification.InputVectorSize;
 
-        public int OutputSize => Specification.OutputVectorSize;
+        public int OutputSize => _outputModule.Output.Size;
 
         /// <summary>
         /// Exports the raw data
@@ -203,13 +110,6 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
             return new MultilayerNetworkExporter().Export(this);
         }
 
-        public void ImportData(PortableDataDocument doc)
-        {
-            var nn = CreateFromData(doc);
-
-            _rootLayer = nn._rootLayer;
-        }
-
         public static MultilayerNetwork CreateFromData(PortableDataDocument doc)
         {
             return new MultilayerNetworkExporter().Import(doc);
@@ -217,44 +117,34 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public override string ToString()
         {
-            string s = string.Empty;
-            foreach (var layer in Layers)
-            {
-                s += "[Layer " + layer.Size + "]";
-            }
+            var s = string.Empty;
+            
+            ForwardPropagate(x => s += $"/{x.Id}");
 
             return $"Network({Specification.InputVectorSize}):{s}";
         }
 
-        public MultilayerNetwork Clone(bool deep)
+        public IMultilayerNetwork Clone(bool deep) => CreateFromData(ExportData());
+
+        public object Clone() => Clone(true);
+
+        public Task<WeightedGraph<string, double>> ExportNetworkTopologyAsync(
+            VisualSettings visualSettings = null,
+            IWeightedGraphStore<string, double> store = null)
         {
-            var data = ExportData();
-            var newNet = new MultilayerNetwork(Specification);
-
-            newNet.ImportData(data);
-
-            return newNet;
+            return new NetworkTopologyExporter(this).ExportAsync(visualSettings, store);
         }
 
-        public object Clone()
+        internal INetworkSignalFilter RootModule { get; }
+
+        IWorkOrchestrator GetOrchestrator()
         {
-            return Clone(true);
-        }
+            //if (Specification.InputVectorSize * Specification.Modules.Count > 900)
+            //{
+            //    return WorkOrchestrator.ThreadPool;
+            //}
 
-        IEnumerable<INeuron> AllNeurons()
-        {
-            foreach (var layer in Layers)
-            {
-                var neurons = new List<INeuron>();
-
-                layer.ForEachNeuron(n =>
-                {
-                    neurons.Add(n);
-                    return 1;
-                }).ToList();
-
-                foreach (var n in neurons) yield return n;
-            }
+            return WorkOrchestrator.Default;
         }
     }
 }

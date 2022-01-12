@@ -1,15 +1,13 @@
-﻿using LinqInfer.Data;
+﻿using LinqInfer.Data.Serialisation;
 using LinqInfer.Learning.Features;
 using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.VectorExtraction
 {
-    class TextDataExtractor : IFloatingPointFeatureExtractor<IEnumerable<IToken>>, IExportableAsDataDocument, IImportableFromDataDocument
+    class TextDataExtractor : IVectorFeatureExtractor<IEnumerable<IToken>>
     {
         const int EXTENDED_FEATURE_COUNT = 4;
         readonly IList<IFeature> _features;
@@ -48,34 +46,16 @@ namespace LinqInfer.Text.VectorExtraction
             SetupFeatures();
         }
 
-        public IFloatingPointFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
+        public IVectorFeatureExtractor<T> CreateObjectTextVectoriser<T>(Func<T, IEnumerable<IToken>> tokeniser) where T : class
         {
             return _normalise ? new ObjectTextDataExtractor<T>(tokeniser, _words.Keys, _normalisingFrequencies) : new ObjectTextDataExtractor<T>(tokeniser, _words.Keys);
         }
 
-        public int VectorSize
-        {
-            get
-            {
-                return _words.Count + EXTENDED_FEATURE_COUNT;
-            }
-        }
+        public int VectorSize => _words.Count + EXTENDED_FEATURE_COUNT;
 
-        public bool IsNormalising
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public IEnumerable<IFeature> FeatureMetadata => _features;
 
-        public IEnumerable<IFeature> FeatureMetadata
-        {
-            get
-            {
-                return _features;
-            }
-        }
+        public bool CanEncode(IEnumerable<IToken> tokens) => true;
 
         public ColumnVector1D ExtractColumnVector(IEnumerable<IToken> tokens)
         {
@@ -84,10 +64,10 @@ namespace LinqInfer.Text.VectorExtraction
 
         public IVector ExtractIVector(IEnumerable<IToken> tokens)
         {
-            return ExtractColumnVector(tokens);
+            return new ColumnVector1D(ExtractVector(tokens));
         }
 
-        public double[] ExtractVector(IEnumerable<IToken> tokens)
+        double[] ExtractVector(IEnumerable<IToken> tokens)
         {
             var vectorRaw = ExtractVectorDenormal(tokens);
 
@@ -157,18 +137,6 @@ namespace LinqInfer.Text.VectorExtraction
             return _normalisingFrequencies.Select(d => (double)d).ToArray(); // Enumerable.Range(0, VectorSize).Select(n => 1d).ToArray();
         }
 
-        public void Save(Stream output)
-        {
-            ExportData().Save(output);
-        }
-
-        public void Load(Stream input)
-        {
-            var doc = new PortableDataDocument(input);
-
-            ImportData(doc);
-        }
-
         public PortableDataDocument ExportData()
         {
             var doc = new PortableDataDocument();
@@ -186,7 +154,16 @@ namespace LinqInfer.Text.VectorExtraction
             return doc;
         }
 
-        public void ImportData(PortableDataDocument doc)
+        public static TextDataExtractor Create(PortableDataDocument doc)
+        {
+            var textDataExtractor = new TextDataExtractor();
+
+            textDataExtractor.ImportData(doc);
+
+            return textDataExtractor;
+        }
+
+        void ImportData(PortableDataDocument doc)
         {
             foreach (var prop in doc.Properties.Where(p => !p.Key.StartsWith("_")))
             {

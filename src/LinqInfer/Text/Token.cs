@@ -9,6 +9,11 @@ namespace LinqInfer.Text
         {
             return token.Text.ToLowerInvariant();
         }
+
+        public static bool IsWhiteSpace(this IToken token)
+        {
+            return token.Type == TokenType.Space || token.Type == TokenType.NewLine;
+        }
     }
 
     class Token : IToken
@@ -20,6 +25,7 @@ namespace LinqInfer.Text
 
             if (type.HasValue) Type = type.Value;
         }
+
         public Token(Token previous, string value, int index)
         {
             Text = value;
@@ -31,7 +37,7 @@ namespace LinqInfer.Text
         public string Text { get; set; }
         public TokenType Type { get; set; }
         public byte Weight { get; set; }
-        public bool IsCapitalised { get { return Type == TokenType.Word && char.IsUpper(Text[0]); } }
+        public bool IsCapitalised => Type == TokenType.Word && char.IsUpper(Text[0]);
 
         public TokenType GetTokenType(Token previous, string token)
         {
@@ -46,7 +52,15 @@ namespace LinqInfer.Text
                 return TokenType.SentenceEnd;
             }
 
-            if (token.All(c => char.IsWhiteSpace(c))) return TokenType.Space;
+            if (token.All(c => char.IsWhiteSpace(c)))
+            {
+                if (token.Any(c => c == '\n' || c == '\r'))
+                {
+                    return TokenType.NewLine;
+                }
+
+                return TokenType.Space;
+            }
 
             if (token.Any(c => !char.IsLetterOrDigit(c))) return TokenType.Symbol;
 

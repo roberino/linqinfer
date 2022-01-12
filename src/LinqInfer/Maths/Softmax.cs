@@ -1,20 +1,18 @@
-﻿using LinqInfer.Data;
+﻿using System;
 using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Maths
 {
     public class Softmax : ISerialisableDataTransformation
     {
-        internal Softmax()
-        {
-        }
-
         public Softmax(int vectorSize)
         {
             InputSize = vectorSize;
         }
 
-        public int InputSize { get; private set; }
+        public static Func<int, ISerialisableDataTransformation> Factory => n => new Softmax(n);
+
+        public int InputSize { get; }
 
         public int OutputSize => InputSize;
 
@@ -33,9 +31,9 @@ namespace LinqInfer.Maths
             return exp / exp.Sum;
         }
 
-        public void ImportData(PortableDataDocument doc)
+        public static ISerialisableDataTransformation Create(PortableDataDocument doc)
         {
-            InputSize = doc.PropertyOrDefault(() => InputSize, 0);
+            return new Softmax(doc.PropertyOrDefault(nameof(InputSize), 0));
         }
 
         public PortableDataDocument ExportData()

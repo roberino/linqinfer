@@ -6,16 +6,16 @@ using System.Linq;
 
 namespace LinqInfer.Learning.Features
 {
-    class FeatureMapDataExtractor<T> : IFloatingPointFeatureExtractor<T>
+    class FeatureMapDataExtractor<TInput> : IVectorFeatureExtractor<TInput>
     {
-        readonly IFloatingPointFeatureExtractor<T> _baseFeatureExtractor;
+        readonly IVectorFeatureExtractor<TInput> _baseFeatureExtractor;
         Matrix _weights;
 
-        public FeatureMapDataExtractor(FeatureMap<T> map) : this(map.ExportClusterWeights(), map.Count(), map.FeatureExtractor)
+        public FeatureMapDataExtractor(FeatureMap<TInput> map) : this(map.ExportClusterWeights(), map.Count(), map.FeatureExtractor)
         {
         }
 
-        FeatureMapDataExtractor(Matrix weights, int vectorSize, IFloatingPointFeatureExtractor<T> baseFeatureExtractor)
+        FeatureMapDataExtractor(Matrix weights, int vectorSize, IVectorFeatureExtractor<TInput> baseFeatureExtractor)
         {
             _weights = weights;
             _baseFeatureExtractor = baseFeatureExtractor;
@@ -28,36 +28,28 @@ namespace LinqInfer.Learning.Features
 
         public IEnumerable<IFeature> FeatureMetadata { get; }
 
-        public ColumnVector1D ExtractColumnVector(T obj)
+        public bool CanEncode(TInput obj) => true;
+
+        public IVector ExtractIVector(TInput obj)
         {
             var vect = _baseFeatureExtractor.ExtractIVector(obj).ToColumnVector();
 
             return new ColumnVector1D(_weights.Select(v => vect.Distance(new ColumnVector1D(v))).ToArray());
         }
 
-        public double[] ExtractVector(T obj)
-        {
-            return ExtractColumnVector(obj).GetUnderlyingArray();
-        }
-
-        public IVector ExtractIVector(T obj)
-        {
-            return ExtractColumnVector(obj);
-        }
-
-        public static IFloatingPointFeatureExtractor<T> Create(PortableDataDocument doc,
-            Func<PortableDataDocument, IFloatingPointFeatureExtractor<T>> baseFeatureExtractorLoader = null)
+        public static IVectorFeatureExtractor<TInput> Create(PortableDataDocument doc,
+            Func<PortableDataDocument, IVectorFeatureExtractor<TInput>> baseFeatureExtractorLoader = null)
         {
             if (baseFeatureExtractorLoader == null)
             {
-                baseFeatureExtractorLoader = FeatureExtractorFactory<T>.Default.Create;
+                baseFeatureExtractorLoader = FeatureExtractorFactory<TInput>.Default.Create;
             }
 
             var vectorSize = doc.PropertyOrDefault(nameof(VectorSize), 0);
             var weights = new Matrix(doc.Vectors.Select(v => v.ToColumnVector()));
             var bfe = baseFeatureExtractorLoader(doc.Children.First());
 
-            return new FeatureMapDataExtractor<T>(weights, vectorSize, bfe);
+            return new FeatureMapDataExtractor<TInput>(weights, vectorSize, bfe);
         }
 
         public PortableDataDocument ExportData()

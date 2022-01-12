@@ -1,10 +1,39 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Xml.Linq;
+using LinqInfer.Text;
+using LinqInfer.Text.Analysis;
 
 namespace LinqInfer.UnitTests.Text
 {
     public static class TestData
     {
-        public static IEnumerable<string> TestCorpus()
+        public static ICorpus CreateCorpus()
+        {
+            var docs = CreateTextDocuments();
+
+            var tokenDocs = docs.AsTokenisedDocuments(k => k.Root.Attribute("id").Value);
+
+            var corpus = new Corpus();
+
+            corpus.Append(tokenDocs.SelectMany(d => d.Tokens));
+
+            return corpus;
+        }
+
+        public static IEnumerable<XDocument> CreateTextDocuments() =>
+            XmlTexts().Select(t => XDocument.Parse(t)).ToList().AsQueryable();
+
+        public static TextReader CreateReader()
+        {
+            var data = CreateTextDocuments().Aggregate(new StringBuilder(), (s, d) => s.AppendLine(d.Root.Value));
+
+            return new StringReader(data.ToString());
+        }
+
+        public static IEnumerable<string> XmlTexts()
         {
             var doc1 = @"<doc id='1'><line>Shall I compare thee to a summer’s day?</line><line>
                         Thou art more lovely and more temperate:</line><line>

@@ -37,8 +37,8 @@ namespace LinqInfer.UnitTests.Data.Pipes
 
             timer.Elapsed.Returns(TimeSpan.FromMilliseconds(1957));
 
-            Assert.That(sink.AverageBatchesPerSecond, Is.EqualTo(1.021972406745018d));
-            Assert.That(sink.AverageItemsPerSecond, Is.EqualTo(2.554931016862545d));
+            Assert.That(sink.AverageBatchesPerSecond, Is.EqualTo(1.0219724067450178d));
+            Assert.That(sink.AverageItemsPerSecond, Is.EqualTo(2.5549310168625445d));
         }
 
         async Task WhenBatchesReceived(StatisticSink<string> sink)

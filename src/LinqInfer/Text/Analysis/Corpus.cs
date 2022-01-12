@@ -1,11 +1,10 @@
-﻿using LinqInfer.Data;
-using LinqInfer.Data.Pipes;
+﻿using LinqInfer.Data.Pipes;
+using LinqInfer.Data.Serialisation;
 using LinqInfer.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LinqInfer.Data.Serialisation;
 
 namespace LinqInfer.Text.Analysis
 {
@@ -28,34 +27,23 @@ namespace LinqInfer.Text.Analysis
             _tokens.Add(token);
         }
 
-        public IAsyncEnumerator<IToken> ReadBlocksAsync()
+        public void Append(IEnumerable<IToken> tokens)
+        {
+            _tokens.Add(tokens);
+        }
+
+        public ITransformingAsyncBatchSource<IToken> ReadBlocksAsync()
         {
             return ReadBlocksAsyncInternal().AsAsyncEnumerator();
         }
 
-        public IEnumerable<IToken> Words
-        {
-            get
-            {
-                return _tokens.Where(t => t.Type == TokenType.Word);
-            }
-        }
+        public IEnumerable<IToken> Words => _tokens.Where(t => t.Type == TokenType.Word);
 
-        public IEnumerable<IToken> WordsAndSymbols
-        {
-            get
-            {
-                return _tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.Symbol);
-            }
-        }
+        public IEnumerable<IToken> WordsAndSymbols =>
+            _tokens.Where(t => t.Type == TokenType.Word || t.Type == TokenType.Symbol);
 
-        public IEnumerable<IEnumerable<IToken>> Blocks
-        {
-            get
-            {
-                return new BlockReader().ReadBlocks(_tokens);
-            }
-        }
+        public IEnumerable<IEnumerable<IToken>> Blocks => 
+            new BlockReader().ReadBlocks(_tokens);
 
         public void Load(Stream input)
         {

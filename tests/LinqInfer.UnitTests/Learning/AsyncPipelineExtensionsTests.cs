@@ -1,11 +1,8 @@
 ﻿using LinqInfer.Data.Pipes;
-using LinqInfer.Data.Remoting;
 using LinqInfer.Learning;
 using LinqInfer.Learning.Features;
-using NSubstitute;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +22,7 @@ namespace LinqInfer.UnitTests.Learning
             Assert.That(pipeline.FeatureExtractor.VectorSize, Is.EqualTo(2));
 
             var items = await pipeline.ExtractBatches().ToMemoryAsync(CancellationToken.None, 10);
-
+            
             Assert.That(items.First().Vector.Size, Is.EqualTo(2));
         }
 
@@ -44,20 +41,6 @@ namespace LinqInfer.UnitTests.Learning
         }
 
         [Test]
-        public async Task SendAsync_InvokesPublishAsync()
-        {
-            var pipeline = TestSamples.CreatePipeline();
-
-            var trainingData = pipeline.AsTrainingSet(p => p.Age % 2 == 0 ? 'a' : 'b', 'a', 'b');
-
-            var publisher = Substitute.For<IMessagePublisher>();
-
-            await trainingData.SendAsync(publisher, CancellationToken.None);
-
-            await publisher.Received().PublishAsync(Arg.Is<Message>(m => m.Id != null && m.Properties["_Type"] != null && m.Created > DateTime.UtcNow.AddMinutes(-1)));
-        }
-
-        [Test]
         public async Task AsTrainingSet_UsingOutputParams_ReturnsProcessableTrainingSet()
         {
             var pipeline = TestSamples.CreatePipeline();
@@ -67,7 +50,7 @@ namespace LinqInfer.UnitTests.Learning
             int counter = 0;
 
             await trainingData
-                .ExtractInputOutputIVectorBatches()
+                .Source
                 .ProcessUsing(b =>
                 {
                     counter++;

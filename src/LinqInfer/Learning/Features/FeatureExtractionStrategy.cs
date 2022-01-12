@@ -22,6 +22,6 @@ namespace LinqInfer.Learning.Features
             return true;
         }
 
-        public abstract IAsyncBuilderSink<T, IFloatingPointFeatureExtractor<T>> CreateBuilder();
+        public abstract IAsyncBuilderSink<T, IVectorFeatureExtractor<T>> CreateBuilder();
     }
 }

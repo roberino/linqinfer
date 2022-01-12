@@ -16,7 +16,7 @@ namespace LinqInfer.UnitTests.Maths
         public void WhenAccessedByKey_ThenCorrectRowReturned()
         {
             var matrix = new LabelledMatrix<string>(
-                Matrix.RandomMatrix(5, 4, new Range(1, -1)),
+                Matrix.RandomMatrix(5, 4, new LinqInfer.Maths.Range(1, -1)),
                 Enumerable.Range(0, 4).ToDictionary(n => "x-" + n, n => n));
 
             Assert.That(matrix.Width, Is.EqualTo(5));
@@ -31,7 +31,7 @@ namespace LinqInfer.UnitTests.Maths
         public void WhenExportedToVectorDocument_ThenCanBeImported()
         {
             var matrix = new LabelledMatrix<string>(
-                Matrix.RandomMatrix(5, 4, new Range(1, -1)),
+                Matrix.RandomMatrix(5, 4, new LinqInfer.Maths.Range(1, -1)),
                 Enumerable.Range(0, 4).ToDictionary(n => "x-" + n, n => n));
 
             var doc = matrix.ExportData();
@@ -45,7 +45,7 @@ namespace LinqInfer.UnitTests.Maths
         public void WhenWrittenAsCsv_ThenFormattedAsExpected()
         {
             var matrix = new LabelledMatrix<string>(
-                Matrix.RandomMatrix(5, 4, new Range(1, -1)),
+                Matrix.RandomMatrix(5, 4, new LinqInfer.Maths.Range(1, -1)),
                 Enumerable.Range(0, 4).ToDictionary(n => "x-" + n, n => n));
 
             using (var writer = new StringWriter())

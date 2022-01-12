@@ -7,6 +7,58 @@ namespace LinqInfer.Maths
 {
     public static class VectorFunctions
     {
+        /// <summary>
+        /// Multiplies a collection of vectors together
+        /// </summary>
+        public static IVector Product(this IEnumerable<IVector> vectors)
+        {
+            IVector result = null;
+
+            foreach (var vector in vectors)
+            {
+                result = result == null ? vector : result.MultiplyBy(vector);
+            }
+
+            return result ?? new ZeroVector(1);
+        }
+
+        /// <summary>
+        /// Adds a collection of vectors together
+        /// </summary>
+        public static IVector Sum(this IEnumerable<IVector> vectors)
+        {
+            ColumnVector1D result = null;
+
+            foreach (var vector in vectors)
+            {
+                result = result == null ?
+                    vector.ToColumnVector() : result + vector.ToColumnVector();
+            }
+
+            return result ?? new ZeroVector(1).ToColumnVector();
+        }
+
+        /// <summary>
+        /// Combines numerous vectors together into one
+        /// </summary>
+        public static IVector Concat(IEnumerable<IVector> vectors)
+        {
+            return new MultiVector(vectors);
+        }
+
+        /// <summary>
+        /// Combines numerous vectors together into one
+        /// </summary>
+        public static IVector Concat(this IVector vector, params IVector[] vectors)
+        {
+            if (vectors == null || vectors.Length == 0) return vector;
+
+            return new MultiVector(new[] { vector }.Concat(vectors));
+        }
+
+        /// <summary>
+        /// Returns a vector from an array of values
+        /// </summary>
         public static IVector ToVector(this double[] values)
         {
             return new ColumnVector1D(values);
@@ -117,6 +169,30 @@ namespace LinqInfer.Maths
             }
 
             return new ColumnVector1D(result);
+        }
+
+        internal static double[] Transform(this double[] input, Func<double, double> tx)
+        {
+            var output = new double[input.Length];
+
+            for (var i = 0; i < output.Length; i++)
+            {
+                output[i] = tx(input[i]);
+            }
+
+            return output;
+        }
+
+        internal static double[] Transform(this double[] input, double arg, Func<double, double, double> tx)
+        {
+            var output = new double[input.Length];
+
+            for (var i = 0; i < output.Length; i++)
+            {
+                output[i] = tx(arg, input[i]);
+            }
+
+            return output;
         }
     }
 }

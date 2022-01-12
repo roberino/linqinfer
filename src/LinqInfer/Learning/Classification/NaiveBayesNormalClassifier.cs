@@ -8,7 +8,6 @@ using System.Linq;
 namespace LinqInfer.Learning.Classification
 {
     class NaiveBayesNormalClassifier<T> : 
-        IByteClassifier<T>, 
         IFloatingPointClassifier<T>, 
         IAssistedLearningProcessor<T, byte>, 
         IAssistedLearningProcessor<T, double>

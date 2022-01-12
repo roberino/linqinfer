@@ -18,7 +18,7 @@ namespace LinqInfer.UnitTests.Maths
             var input = ColumnVector1D.Create(5, 3, 8);
 
             var transform = minMax
-                .CreateScaleTransformation(new Range(1, 0));
+                .CreateScaleTransformation(new LinqInfer.Maths.Range(1, 0));
 
             var output = transform.Apply(input);
 
@@ -38,7 +38,7 @@ namespace LinqInfer.UnitTests.Maths
             var input = ColumnVector1D.Create(5, 3, 8);
 
             var transform = minMaxAve
-                .CreateCentreAndScaleTransformation(new Range(1, 0));
+                .CreateCentreAndScaleTransformation(new LinqInfer.Maths.Range(1, 0));
 
             var output = transform.Apply(input);
 

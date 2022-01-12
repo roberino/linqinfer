@@ -28,7 +28,7 @@ namespace LinqInfer.Maths
 
         public IVector Mean { get; }
 
-        internal static async Task<MinMaxMeanVector> MinMaxAndMeanOfEachDimensionAsync<T>(IAsyncEnumerator<T> values)
+        internal static async Task<MinMaxMeanVector> MinMaxAndMeanOfEachDimensionAsync<T>(ITransformingAsyncBatchSource<T> values)
             where T : IVector
         {
             ColumnVector1D min = null;

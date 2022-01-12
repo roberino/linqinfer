@@ -3,30 +3,31 @@ using LinqInfer.Maths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace LinqInfer.Learning.Classification.NeuralNetworks
 {
-    [DebuggerDisplay("{AverageError}:{Parameters}")]
-    class MultilayerNetworkTrainingContext<TParams> : IClassifierTrainingContext<TParams>
+    [DebuggerDisplay("{AverageError}:{Model}")]
+    class MultilayerNetworkTrainingContext : IClassifierTrainingContext<INetworkModel>
     {
-        readonly MultilayerNetwork _network;
+        readonly IMultilayerNetwork _network;
         readonly IAssistedLearningProcessor _rawLearningProcessor;
         readonly Func<int> _idFunc;
 
         double? _lastError;
         double? _error;
         int _trainingCounter;
+        int _currentId;
 
-        public MultilayerNetworkTrainingContext(Func<int> idFunc, MultilayerNetwork network, TParams parameters)
+        public MultilayerNetworkTrainingContext(IMultilayerNetwork network, Func<int> idFunc = null)
         {
-            _network = network;
+            _currentId = 1;
+            _idFunc = idFunc ?? (() => Interlocked.Increment(ref _currentId));
+
+            Model = _network = network;
+            Id = _idFunc();
 
             _rawLearningProcessor = new BackPropagationLearning(_network);
-
-            _idFunc = idFunc;
-
-            Id = idFunc();
-            Parameters = parameters;
         }
 
         public int Id { get; }
@@ -35,7 +36,7 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public IVectorClassifier Output => _network;
 
-        public TParams Parameters { get; }
+        public INetworkModel Model { get; }
 
         public double? CumulativeError => _error;
 
@@ -93,12 +94,12 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
         public override string ToString()
         {
             return string.Format("{0}: (iter {1}) => err = {2}, params = {3}", Id, IterationCounter, AverageError,
-                Parameters);
+                Model);
         }
 
-        public IClassifierTrainingContext<TParams> Clone(bool deep)
+        public IClassifierTrainingContext<INetworkModel> Clone(bool deep)
         {
-            return new MultilayerNetworkTrainingContext<TParams>(_idFunc, _network.Clone(true), Parameters)
+            return new MultilayerNetworkTrainingContext(_network.Clone(true), _idFunc)
             {
                 _error = _error,
                 _lastError = _lastError,
@@ -113,8 +114,8 @@ namespace LinqInfer.Learning.Classification.NeuralNetworks
 
         public void AdjustLearningRate(Func<double, double> rateAdjustment)
         {
-            _network.Specification.LearningParameters.LearningRate =
-                rateAdjustment(_network.Specification.LearningParameters.LearningRate);
+            _network.Specification.TrainingParameters.LearningRate =
+                rateAdjustment(_network.Specification.TrainingParameters.LearningRate);
         }
     }
 }

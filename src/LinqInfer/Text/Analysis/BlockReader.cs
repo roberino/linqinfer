@@ -25,7 +25,11 @@ namespace LinqInfer.Text.Analysis
                 }
                 else
                 {
-                    if (word.Type == TokenType.SentenceEnd || spaceCount > 1 || ((lastType == TokenType.Word || lastType == TokenType.Number) && word.Type == TokenType.Symbol && (word.Text == ";" || word.Text == ",")))
+                    if (word.Type == TokenType.SentenceEnd || 
+                        word.Type == TokenType.NewLine ||
+                        spaceCount > 1 || 
+                        ((lastType == TokenType.Word || lastType == TokenType.Number) 
+                            && word.Type == TokenType.Symbol && (word.Text == ";" || word.Text == ",")))
                     {
                         if (currentBlock.Any())
                         {
@@ -37,7 +41,7 @@ namespace LinqInfer.Text.Analysis
                     }
                     else
                     {
-                        if (word.Type == TokenType.Space)
+                        if (word.IsWhiteSpace())
                         {
                             spaceCount++;
                         }
